@@ -192,11 +192,14 @@ if (reasonForm) {
           if (phase === "loading") resultsEl.textContent = "Fetching the reasoning engine…";
         },
       );
-      const closure = out.closure_nquads ?? "";
+      if (typeof out.closure_nquads !== "string") {
+        throw new Error("reasoning response has no admitted full RDF closure");
+      }
+      const closure = out.closure_nquads;
       resultsEl.replaceChildren();
       const h = document.createElement("p");
-      const n = out.entailed_count ?? 0;
-      h.textContent = n === 0 ? "No new entailments." : `Entailed ${n} triple${n === 1 ? "" : "s"}:`;
+      const n = out.entailed_count;
+      h.textContent = n === 0 ? "The closure is empty." : `Closure: ${n} RDF statement${n === 1 ? "" : "s"}:`;
       const pre = document.createElement("pre");
       pre.textContent = closure.trim();
       resultsEl.append(h, pre);

@@ -390,7 +390,11 @@ ex:cityBoundary a gmeow:Geometry ;
 
 - **`gmeow:placeDeterminacy`** — the ontic determinacy of a place's existence or boundary (crisp, vague, disputed).
 - **`gmeow:geometryDeterminacy`** — the ontic determinacy of a geometry's boundary.
-- **`gmeow:placeSupersededBy` / `gmeow:placeSupersedes`** — sub-properties of the universal `supersededBy` / `supersedes` for place-to-place succession (Constantinople → Istanbul, merged municipalities). The superseded place is retained with `gmeow:displayable false` (Principle 10), never deleted.
+- **`gmeow:placeSupersededBy` / `gmeow:placeSupersedes`** specialize `gmeow:supersededBy` /
+  `gmeow:supersedes` for succession between distinct places, such as a former town and
+  the municipality formed by a merger. Keep the predecessor (Principle 10) and apply
+  the reader's display policy at projection. Use `gmeow:NameUsage` with a
+  `gmeow:PlaceName` for an alternate or historical name of the same place.
 
 ## External alignment (maximal bridging)
 

@@ -439,7 +439,13 @@ ex:world {
             "native source receipts retain {predicate} on their own reifier"
         );
     }
-    let expected = gmeow_logic::result_rdf::project_reasoning_dataset(&reasoned.result).unwrap();
+    let (expected, _receipt) = gmeow_logic::result_rdf::ResultProjection::reasoning_with_receipt(
+        &reasoned.result,
+        Some(reasoned.native_receipt.as_ref()),
+    )
+    .unwrap()
+    .into_dataset()
+    .unwrap();
     assert!(
         purrdf::datasets_isomorphic(
             &graph,
@@ -449,7 +455,13 @@ ex:world {
         .unwrap(),
         "direct carrier emission must retain the complete standalone statement layers"
     );
-    let expected = gmeow_logic::result_rdf::project_reasoning_dataset(&reasoned.result).unwrap();
+    let (expected, _receipt) = gmeow_logic::result_rdf::ResultProjection::reasoning_with_receipt(
+        &reasoned.result,
+        Some(reasoned.native_receipt.as_ref()),
+    )
+    .unwrap()
+    .into_dataset()
+    .unwrap();
     assert!(
         purrdf::datasets_isomorphic(
             &graph,
@@ -466,9 +478,12 @@ ex:world {
         }),
         "the result link is directly queryable in graph/reasoning"
     );
-    let restored =
-        gmeow_logic::result_rdf::parse_reasoning_dataset(&graph, purrdf::GraphMatch::Default)
-            .unwrap();
+    let restored = gmeow_logic::result_rdf::parse_reasoning_dataset(
+        &graph,
+        purrdf::GraphMatch::Default,
+        &reasoned.native_receipt.as_ref(),
+    )
+    .unwrap();
     assert_eq!(restored.provenance, reasoned.result.provenance);
     assert!(
         dataset.owned_quads().all(|quad| {

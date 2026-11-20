@@ -267,6 +267,7 @@ const ASSET_TIERS: &[(&str, Fetch)] = &[
     ("assets/gmeow.gts", Fetch::PageLoad),
     ("assets/mcp-core/", Fetch::PageLoad),
     ("assets/mcp-transport.mjs", Fetch::PageLoad),
+    ("assets/reasoning-artifact.mjs", Fetch::PageLoad),
     ("assets/mcp/", Fetch::Demand),
     // The DOCUMENTATION SITE's own assets, which reach this map because `console_files`
     // folds `interactive_asset_files` and the site emits its four per-capability wasm

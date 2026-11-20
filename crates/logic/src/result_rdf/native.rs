@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Lossless terminal carriage of the native execution record. Live consumers
-//! borrow the typed result; this codec runs only at an RDF publication boundary.
+//! borrow the typed result; this codec runs only at a binary publication boundary.
 
 use std::io::Write;
 
@@ -16,10 +16,13 @@ use crate::result::NativeExecutionEvidence;
 
 use super::result_err;
 
-// V4 bounds compact wire at 256 MiB, separately from the mandatory 512 MiB
+mod record;
+pub(super) use record::ReceiptRecord;
+
+// The complete selected receipt bounds compact wire at 256 MiB, separately from the mandatory 512 MiB
 // expanded logical encoding (inline definitions plus every payload occurrence).
 // Neither number claims to be a measured host RSS limit.
-const SCHEMA: &str = "gmeow-native-execution-v4";
+const SCHEMA: &str = "gmeow-native-receipt-v1";
 
 /// Preserve the typed projection kind as the direct diagnostic source and retain
 /// the native refusal beneath it, rather than replacing that kind's downcast.
@@ -32,25 +35,25 @@ fn codec_err(
 
 /// One complete envelope writer owns output, replay and encoded-size accounting.
 fn write_envelope<W: Write + ?Sized>(
-    execution: &NativeExecutionEvidence,
+    record: &ReceiptRecord,
     output: &mut W,
 ) -> std::io::Result<()> {
     // Plan tables and both admissions before any publication buffer is written.
-    let tables = Tables::prepare(execution, SCHEMA).map_err(std::io::Error::other)?;
+    let tables = Tables::prepare(record, SCHEMA).map_err(std::io::Error::other)?;
     head::write_head(output, head::ARRAY, 4)?;
     head::write_text(output, SCHEMA)?;
     tables.write(output)?;
-    tables.write_payload(execution, output)
+    tables.write_payload(record, output)
 }
 
 /// Preserve native terms, proof DAGs and finite u128 cardinalities at the actual
 /// RDF boundary. Semantic ownership and source admission remain with the caller.
-pub(super) fn encode(execution: &NativeExecutionEvidence) -> gmeow_errors::Result<String> {
+pub(super) fn encode(record: &ReceiptRecord) -> gmeow_errors::Result<Vec<u8>> {
     // The original directional-term boundary could pass structural validation
     // while its typed enum visitor exceeded the reader's budget. Check borrowed
     // records before recursive emission without allocating a second execution record.
     descend(MAX_RECEIPT_DEPTH)
-        .and_then(|remaining| execution.check_depth(remaining))
+        .and_then(|remaining| record.check_depth(remaining))
         .map_err(|error| {
             codec_err(
                 format!("native execution receipt exceeds its typed admission bound: {error}"),
@@ -58,11 +61,11 @@ pub(super) fn encode(execution: &NativeExecutionEvidence) -> gmeow_errors::Resul
             )
         })?;
     let mut output = ReceiptWriter(Vec::new());
-    write_envelope(execution, &mut output).map_err(|error| {
+    write_envelope(record, &mut output).map_err(|error| {
         codec_err(
             format!(
                 "native execution receipt encoding failed: {error}; {}",
-                receipt_sizes(execution)
+                receipt_sizes(&record.execution)
             ),
             error,
         )
@@ -75,39 +78,36 @@ pub(super) fn encode(execution: &NativeExecutionEvidence) -> gmeow_errors::Resul
             error,
         )
     })?;
-    Ok(purrdf_hash::hex::encode(&output.0))
+    Ok(output.0)
 }
 
 /// Admit the selected schema and exact original emitted wire. The enclosing
 /// result admission remains responsible for semantic scope and source authority.
-pub(super) fn decode(text: &str) -> gmeow_errors::Result<Box<NativeExecutionEvidence>> {
-    if text.len() > MAX_RECEIPT_BYTES * 2 || !text.len().is_multiple_of(2) {
+pub(super) fn decode(bytes: &[u8]) -> gmeow_errors::Result<ReceiptRecord> {
+    if bytes.len() > MAX_RECEIPT_BYTES {
         return Err(result_err(
             "native execution receipt has an invalid byte length".into(),
         ));
     }
-    let bytes = purrdf_hash::hex::decode_canonical(text).map_err(|_| {
-        result_err("native execution receipt requires canonical lowercase hex".into())
-    })?;
-    check_structure(&bytes).map_err(|error| {
+    check_structure(bytes).map_err(|error| {
         codec_err(
             format!("native execution receipt exceeds its structural bound: {error}"),
             error,
         )
     })?;
-    let mut input = Reader::for_definitions(&bytes).map_err(|error| {
+    let mut input = Reader::for_definitions(bytes).map_err(|error| {
         codec_err(
             format!("native execution receipt decoding failed: {error}"),
             error,
         )
     })?;
-    let execution = input
+    let record = input
         .array(|input, length| {
             if length != 4 || input.text()? != SCHEMA {
                 return Err(input.invalid("native execution receipt has the wrong schema"));
             }
             input.read_tables()?;
-            Box::<NativeExecutionEvidence>::read_cbor(input)
+            ReceiptRecord::read_cbor(input)
         })
         .map_err(|error| {
             codec_err(
@@ -122,10 +122,10 @@ pub(super) fn decode(text: &str) -> gmeow_errors::Result<Box<NativeExecutionEvid
         )
     })?;
     let mut canonical = ReceiptVerifier {
-        expected: &bytes,
+        expected: bytes,
         consumed: 0,
     };
-    write_envelope(&execution, &mut canonical).map_err(|error| {
+    write_envelope(&record, &mut canonical).map_err(|error| {
         codec_err(
             format!("noncanonical native execution receipt: {error}"),
             error,
@@ -136,7 +136,7 @@ pub(super) fn decode(text: &str) -> gmeow_errors::Result<Box<NativeExecutionEvid
             "native execution receipt contains unconsumed fields".into(),
         ));
     }
-    Ok(execution)
+    Ok(record)
 }
 
 /// The encoded size of each receipt field, so an oversized receipt names its cause.

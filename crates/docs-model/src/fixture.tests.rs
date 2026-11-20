@@ -54,7 +54,7 @@ fn cache_key(root: &Path) -> String {
         .unwrap()
         .digest()
         .unwrap();
-    cache_key_with_implementation(root, &implementation)
+    cache_key_with_implementation(root, &implementation).unwrap()
 }
 
 fn model_context(root: &Path) -> ActionContext {
@@ -145,7 +145,7 @@ fn a_model_envelope_written_to_disk_verifies_when_read_back() {
     let cached = CachedModel::from_model(&model);
     let bytes = serde_json::to_vec(&cached).unwrap();
     let context = model_context(&root);
-    let store = action_store(&root);
+    let store = open_action_store(&root).unwrap();
     store
         .publish(
             &context,
@@ -177,7 +177,7 @@ fn selected_model_survives_consumer_source_edits_and_refuses_receipt_changes() {
     let context = model_context(&root);
     let cached = CachedModel::from_model(&DocsModel::default());
     let bytes = serde_json::to_vec(&cached).unwrap();
-    let store = action_store(&root);
+    let store = open_action_store(&root).unwrap();
     let receipt = store
         .publish(
             &context,
@@ -225,12 +225,16 @@ fn selected_model_survives_consumer_source_edits_and_refuses_receipt_changes() {
 /// and persists, so an entry edited once would keep being served — and the
 /// `DocMaturity` quality axis reads its coverage computation straight out of it.
 #[test]
-#[should_panic(expected = "tampered docs-fixture model cache")]
 fn an_edited_model_envelope_is_refused() {
     let mut cached = CachedModel::from_model(&DocsModel::default());
     // The hand-edit: claim a language the builder never found.
     cached.body.available_languages.push("klingon".to_string());
-    let _ = cached.into_model(Path::new("<in-memory>"));
+    let error = cached.into_model(Path::new("<in-memory>")).unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("tampered docs-fixture model cache")
+    );
 }
 
 #[test]
@@ -264,6 +268,12 @@ fn cache_key_is_deterministic_and_content_sensitive() {
         cache_key(&root),
         "key must change when fixture implementation bytes change"
     );
+
+    let shapes = root.join("shapes");
+    fs::write(&shapes, b"regular file in place of the shape directory").unwrap();
+    let error = cache_key_with_implementation(&root, "synthetic").unwrap_err();
+    assert!(error.is::<std::io::Error>());
+    assert!(format!("{error:#}").contains(&shapes.display().to_string()));
 }
 
 #[test]
@@ -555,7 +565,7 @@ fn present_but_corrupt_model_receipt_reaches_decode_and_is_refused() {
     let (_tmp, root) = temp_root("corrupt-model");
     let context = model_context(&root);
     let cached = CachedModel::from_model(&DocsModel::default());
-    let store = action_store(&root);
+    let store = open_action_store(&root).unwrap();
     let receipt = store
         .publish(
             &context,
@@ -577,6 +587,10 @@ fn present_but_corrupt_model_receipt_reaches_decode_and_is_refused() {
         error.to_string().starts_with("action cache JSON:"),
         "{error}"
     );
+    assert!(matches!(
+        prepare_model(&root, context, || panic!("a corrupt receipt must refuse before discovery")),
+        Err(DocsError::FixtureCache(cause)) if cause.to_string().contains("action cache JSON:")
+    ));
     assert_eq!(
         fs::read(path).unwrap(),
         corrupt,

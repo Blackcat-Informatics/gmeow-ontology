@@ -17,10 +17,14 @@
 
 use gmeow_docs::vendored_asset::REASON_ASSET;
 
-/// Verify the shipped reasoning image, required exports, and pinned file digests.
+/// Verify exports, digests and required witness presence under the current substrate.
 #[test]
 fn vendored_reason_asset_passes_the_anti_rot_gate() {
-    REASON_ASSET.verify(&repo_root());
+    let root = repo_root();
+    REASON_ASSET.verify(&root);
+    if let Some(message) = REASON_ASSET.attestation_status(&root) {
+        panic!("{message}");
+    }
 }
 
 /// Resolve this test crate's checkout for read-only reasoning asset verification.

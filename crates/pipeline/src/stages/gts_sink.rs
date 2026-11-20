@@ -19,6 +19,14 @@ use std::collections::BTreeMap;
 use crate::node::{SINK_CAPABILITY, Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::carrier::{PASS_ONE_RECEIPT_PATH, SNAPSHOT_PATH};
 
+fn receipt_error(message: &str) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+        cause: None,
+        stage: "stage-gts-sink".to_owned(),
+        message: message.to_owned(),
+    })
+}
+
 /// Committed logical path of the serialized GTS bundle.
 pub const GTS_PATH: &str = SNAPSHOT_PATH;
 
@@ -188,7 +196,7 @@ impl Stage for GtsSinkStage {
         // v14: report the production sink's allocation phases, structural counts, and
         // RSS observations while retaining the keyed pass-one receipt. Telemetry is
         // report-only and does not enter artifact identity.
-        "gts_sink.v18-math-target-artifacts"
+        "gts_sink.v19-binary-native-receipt"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // The terminal gts ARCHIVE writer: serialize THIS run's carrier
@@ -199,12 +207,40 @@ impl Stage for GtsSinkStage {
         // by-reference TAR archives are READ off the `stage-archive-blobs` product and
         // stapled alongside it, never re-folded here.
         let carrier = crate::stages::carrier::snapshot_dataset(input.upstream)?;
+        let receipt_bytes = input
+            .upstream
+            .get("stage-reason")
+            .and_then(|product| product.artifact(crate::stages::reason::NATIVE_RECEIPT_PATH))
+            .ok_or_else(|| receipt_error("missing terminal native execution receipt"))?;
+        let address = gmeow_logic::result_rdf::NativeReceiptAddress::of_bytes(receipt_bytes);
+        let receipt = gmeow_logic::result_rdf::NativeReceiptRef::admit(&address, receipt_bytes)?;
+        let graph = carrier
+            .term_id_by_iri(gmeow_logic::result_rdf::GRAPH_REASONING)
+            .ok_or_else(|| receipt_error("missing terminal reasoning graph"))?;
+        let expected = gmeow_logic::result_rdf::parse_reasoning_dataset(
+            &carrier,
+            purrdf::GraphMatch::Named(graph),
+            &receipt,
+        )?;
+        let expected = gmeow_logic::result_rdf::reasoning_snapshot_summary(
+            expected,
+            gmeow_logic::result_rdf::ReasoningSnapshotScope::Carrier,
+        )?;
         let serialized = crate::stages::carrier::serialize_carrier_snapshot(
             input.root,
             input.upstream,
             &carrier,
             &crate::medium::registry::MediumSelection::Authored,
         )?;
+        let actual = gmeow_logic::result_rdf::parse_reasoning_artifact_graph(
+            &serialized.emission.bytes,
+            Some(gmeow_logic::result_rdf::GRAPH_REASONING),
+        )?;
+        if actual != expected {
+            return Err(receipt_error(
+                "emitted GTS changed the complete actual transported reasoning result",
+            ));
+        }
         snapshot_output(self.id(), serialized)
     }
 }

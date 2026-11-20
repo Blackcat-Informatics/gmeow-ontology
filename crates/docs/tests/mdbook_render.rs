@@ -50,7 +50,7 @@ fn interactive_book_packs_the_registry_derived_engine_chain() {
         full_bundle_gts: b"synthetic bundle".to_vec(),
         ..Default::default()
     };
-    let book = render_book(&model, &exec);
+    let book = render_book(&model, &exec).expect("the selected documentation model renders");
     let toml = std::str::from_utf8(book.files.get("book.toml").unwrap()).unwrap();
     assert!(toml.contains(&format!("additional-js = [\"{MDBOOK_BOOT_JS_PATH}\"]")));
     let boot = std::str::from_utf8(book.files.get(MDBOOK_BOOT_JS_PATH).unwrap()).unwrap();
@@ -370,7 +370,8 @@ fn book_zero_term_slice_renders_valid_chapter() {
     };
     let slug = slice_slug(&empty);
     model.slices.push(empty);
-    let body = to_markdown_exec(&model, &Page::Slice(slug), &ExecutableDocsData::default());
+    let body = to_markdown_exec(&model, &Page::Slice(slug), &ExecutableDocsData::default())
+        .expect("the selected documentation model renders");
     assert!(
         body.starts_with("# "),
         "the zero-term slice chapter must open with an H1"

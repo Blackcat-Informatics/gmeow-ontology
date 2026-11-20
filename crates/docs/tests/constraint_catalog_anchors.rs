@@ -51,7 +51,8 @@ fn fragment_of(uri: &str) -> &str {
 #[test]
 fn every_finding_code_resolves_to_a_live_catalog_anchor() {
     let model = common::cached_model();
-    let html = to_html(&model, &Page::ConstraintCatalog);
+    let html = to_html(&model, &Page::ConstraintCatalog)
+        .expect("the selected documentation model renders");
     let ids = anchor_ids(&html);
     assert!(
         !ids.is_empty(),
@@ -106,7 +107,8 @@ fn every_finding_code_resolves_to_a_live_catalog_anchor() {
 #[test]
 fn advice_section_anchor_appears_exactly_once() {
     let model = common::cached_model();
-    let html = to_html(&model, &Page::ConstraintCatalog);
+    let html = to_html(&model, &Page::ConstraintCatalog)
+        .expect("the selected documentation model renders");
     // The exact `id="advice-"` substring (with the closing quote) matches ONLY the
     // section head — per-term sub-anchors are `id="advice-<term>"` and do not match.
     let count = html.matches("id=\"advice-\"").count();
@@ -141,7 +143,8 @@ fn advice_section_anchor_appears_exactly_once() {
 #[test]
 fn advice_section_on_the_real_page_is_non_vacuous() {
     let model = common::cached_model();
-    let html = to_html(&model, &Page::ConstraintCatalog);
+    let html = to_html(&model, &Page::ConstraintCatalog)
+        .expect("the selected documentation model renders");
 
     // The per-term sub-anchors for both realized advice carriers.
     assert!(

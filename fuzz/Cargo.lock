@@ -398,7 +398,9 @@ dependencies = [
  "gmeow-errors",
  "purrdf",
  "purrdf-ed25519",
+ "purrdf-hash",
  "purrdf-lex",
+ "purrdf-zstd",
 ]
 
 [[package]]
@@ -418,6 +420,7 @@ dependencies = [
  "foldhash",
  "gmeow-build-inputs",
  "gmeow-errors",
+ "gmeow-gts-profile",
  "gmeow-lang-form",
  "gmeow-logic-compile",
  "gmeow-math",

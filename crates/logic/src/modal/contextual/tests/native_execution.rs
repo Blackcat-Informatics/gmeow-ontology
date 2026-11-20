@@ -98,7 +98,9 @@ fn one_contextual_receipt_owns_every_metadata_head_and_rejects_tampering() {
     assert_preexisting_publication_retains_assessment(receipt);
 
     let projection = crate::result_rdf::ResultProjection::reasoning(&result).unwrap();
-    let restored = crate::result_rdf::parse_reasoning_graph(&projection.to_ntriples()).unwrap();
+    let restored =
+        crate::result_rdf::parse_reasoning_graph(&projection.to_ntriples(), &projection.receipt())
+            .unwrap();
     assert_eq!(
         restored.native_execution().unwrap(),
         result.native_execution().unwrap()

@@ -604,6 +604,17 @@ pub fn snapshot_frames<'a>(
             .map(GmeowGtsBlob::from),
     );
     blobs.push(build_reasoning_blob(upstream)?.into());
+    let native_receipt = upstream
+        .get("stage-reason")
+        .and_then(|product| product.artifact(crate::stages::reason::NATIVE_RECEIPT_PATH))
+        .ok_or_else(|| stage_err("missing reason-stage native execution receipt"))?;
+    // The released product retains only this explicitly declared byte artifact;
+    // the sink does not retain or read the rich reasoning handle for its bytes.
+    blobs.push(GmeowGtsBlob {
+        data: native_receipt.into(),
+        media_type: gmeow_logic::result_rdf::NATIVE_RECEIPT_MEDIA_TYPE.to_owned(),
+        rep: gmeow_logic::result_rdf::NATIVE_RECEIPT_REPRESENTATION.to_owned(),
+    });
     // The opaque-fanout archive: every non-RDF generated/ fanout output, recomputed from
     // THIS run's carrier (superset law — RDF rides as named graphs, not here). Collect the
     // member set ONCE and derive BOTH the archive blob AND the declared `opaque` fanout

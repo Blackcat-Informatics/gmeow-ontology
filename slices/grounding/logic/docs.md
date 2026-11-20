@@ -14,6 +14,63 @@ The `logic:` namespace is the authoritative ground; the full UFO⁺ foundational
 minted here. External formalisms are projections or typed bridge views of that ground, never a
 second source of truth.
 
+## Complete reasoning artifacts
+
+`logic:resultNativeExecution` carries a canonical `blake3:` address as `xsd:string`.
+The required binary GTS blob uses outer schema `gmeow-native-receipt-v1`, representation
+`native-execution-receipt` and media type `application/cbor`. Its ordered record contains
+`native_schema`, `execution`, `assessment` and `closure`: the explicitly selected
+`gmeow-native-execution-v4` evidence, the constructor-owned assessment commitment, and
+the exact optional closure address. The assessment hashes the projection-stable axes,
+proposition scope, provenance, budget, contradiction witnesses and declared row schema
+under the `gmeow-native-assessment/v1` domain followed by a zero byte. It does not hash
+the execution DAG again or certify rich payload fields omitted from the RDF summary.
+Readers authenticate the address, each physical payload occurrence, and its exact owning
+aggregate before exposing a verdict. A standalone RDF summary cannot authenticate that
+receipt. Strict field order, canonical replay and the compact 256 MiB, expanded 512 MiB,
+and depth 64 admission bounds cover the complete selected receipt; these are encoding
+limits, not host memory measurements. Bare execution envelopes are not receipt bindings.
+
+Operations publishing a complete closure additionally bind `logic:resultClosureBlob`
+before computing the aggregate identity. The native receipt selects either no closure
+or that exact address. An added, omitted or substituted RDF closure link fails under the
+retained receipt, including substitution with an independently valid leaf sharing the
+same world catalog. Reusing a receipt preserves its selected link; materializing a full
+artifact requires the selected leaf bytes. Its `reasoned-closure` blob is an isolated,
+single-segment native GTS leaf containing the asserted and inferred RDF from that same
+engine run. Its authenticated world catalog restores empty named graphs. Imported blank
+identities use the native transport namespace while original typed identities remain in
+the execution receipt. Caller graphs named `graph/reasoning` and source statements that
+resemble result metadata remain ordinary closure data. A closure leaf contains no nested
+application blobs or external blob references; its decoded limit is 1 GiB.
+
+Same-run RDF closure equivalence uses PurRDF's complete dataset-state digest, including
+empty declarations and one global blank bijection. Its equality relies on BLAKE3
+collision resistance, and the forward-mapped graph catalog is checked exactly. This
+comparison accepts arbitrary source IRIs. Native execution evidence and the actual
+transport summary retain separate exact typed comparisons. Publication temporarily
+retains the original/imported datasets and native canonical-state workspace; item
+budgets exclude those allocations and do not establish a host RSS limit.
+
+Before emission, typed inferred-object summary values are normalized into the selected
+native snapshot namespace. This includes blanks inside quoted triples and composite
+literals. The standalone runtime prefix and the pipeline carrier namespace are explicit
+selections; emitted-byte readback must equal that expected summary. The original native
+execution evidence is compared exactly and retains its original identities.
+
+Only the semantic native constructor grants original publication authority over its
+immutable inferred rows and exact execution owner. Summary normalization relinquishes
+that authority even when every row remains unchanged. Generic serialization carries the
+eight semantic result fields without runtime authority. Checked admission against the
+retained receipt restores reuse through shared cache handles; it cannot mint a new
+original receipt or certify a summary as the complete closure. Constructor-owned partial
+conflicts retain their witnesses and information state even when sibling work is exhausted.
+
+The typed result remains authoritative for binding rows, marginals, rich inference fields
+and complete native evidence. The transport summary preserves its governed axes and
+provenance, and the separate closure preserves RDF. Neither projection invents the fields
+the other omits. All payload-bearing frames use the mandated rsyncable level 12 profile.
+
 The vocabulary covers the UFO⁺ foundational sorts
 (`Kind`/`SubKind`/`Phase`/`Role`/`Category`/`Mixin`/`RoleMixin`/`PhaseMixin`/`Relator`/`Event`/`Situation`
 and the wider superset spine), the foundation relations

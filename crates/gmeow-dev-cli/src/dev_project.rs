@@ -255,10 +255,13 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
     // One model discovery and ONE site render feed both site destinations and
     // the snippets projection. The previous workflow rendered this same site
     // three times (`all` site, snippets, then ontology-docs).
-    let site = gmeow_docs::render_site_lang_exec(&model, &source_lang, &exec).files;
+    let site = gmeow_docs::render_site_lang_exec(&model, &source_lang, &exec)
+        .map_err(|error| fail(format!("cannot render site: {error:#}")))?
+        .files;
     let snippets =
         source_snippets(&site).map_err(|e| fail(format!("cannot render snippets: {e}")))?;
-    let mdbook = render_source_book(&model, &exec);
+    let mdbook = render_source_book(&model, &exec)
+        .map_err(|error| fail(format!("cannot render book: {error:#}")))?;
     let pdf = render_source_print(&root, &model)
         .map_err(|e| fail(format!("cannot render print docs: {e}")))?;
     let pydantic = gmeow_pipeline::stages::pydantic::render_models_python_package(&root)
@@ -598,8 +601,8 @@ fn pick_source_lang(
 fn render_source_book(
     model: &gmeow_docs::DocsModel,
     exec: &gmeow_docs::ExecutableDocsData,
-) -> BTreeMap<String, Vec<u8>> {
-    gmeow_docs::mdbook::render_book(model, exec).files
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+    Ok(gmeow_docs::mdbook::render_book(model, exec)?.files)
 }
 
 fn render_source_print(

@@ -133,7 +133,15 @@ fn projection_is_byte_deterministic() {
     assert_eq!(a, c, "structurally-equal results project identically");
 }
 
-fn native_conflict_result() -> ReasoningResult {
+/// Read the explicitly produced current references; absence is an actionable failure.
+fn receipt_reference_text() -> String {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("src/result_rdf/fixtures/native-receipt-v1.txt");
+    std::fs::read_to_string(&path)
+        .expect("produce native receipt references with make maint-native-receipt-vectors before selecting these codec cases")
+}
+
+pub(super) fn native_conflict_result(max_steps: Option<u64>) -> ReasoningResult {
     use crate::physical::{DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld};
     let mut source = purrdf::RdfDatasetBuilder::new();
     source
@@ -154,46 +162,178 @@ fn native_conflict_result() -> ReasoningResult {
     .unwrap()])
     .unwrap();
     // gmeow-test-input: synthetic-only
-    let result = crate::reason::reason_all(input, &domains).unwrap();
+    let result = crate::reason::reason_all_budgeted(
+        input,
+        &domains,
+        &crate::query_ir::Budget {
+            max_answers: None,
+            max_steps,
+        },
+    )
+    .expect("the tiny selected native source executes under its explicit derivation budget");
     result.validate_native_closure().unwrap();
     assert_eq!(result.information, InformationState::Both);
     result
 }
 
-/// The verify attestation digests the projection of the reasoning result a consumer can
-/// recover from `graph/reasoning`. Transporting the result with one receipt encode and
-/// reusing that text must give the very value and the very bytes of the path it
-/// replaces, which projects, reads back and projects again with a second encode. The
-/// reader must also refuse a receipt literal other than the one it was told to expect.
+/// Verification transport and cache hydration reuse exact receipt authority without
+/// granting original publication authority to parsed, normalized or serde values.
 #[test]
 fn transported_projection_matches_the_reencoding_path_byte_for_byte() {
-    let result = native_conflict_result();
-    let live = project_reasoning_dataset(&result).expect("a native result projects");
-    let reread =
-        parse_reasoning_dataset(&live, GraphMatch::Default).expect("its own projection reads back");
-    let reencoded = project_reasoning_result(&reread).expect("the read-back result projects");
+    let result = native_conflict_result(None);
+    let (live, publication) = project_reasoning_dataset(&result).expect("a native result projects");
+    let receipt = publication.as_ref().map(NativeReceipt::as_ref);
+    let reread = parse_reasoning_dataset(&live, GraphMatch::Default, &receipt)
+        .expect("its own projection reads back");
+    assert!(
+        ResultProjection::reasoning(&reread).is_err(),
+        "a parsed summary cannot mint another original receipt"
+    );
+    let reencoded = ResultProjection::reasoning_with_receipt(&reread, receipt)
+        .expect("the read-back result reuses its exact admitted receipt")
+        .to_ntriples();
     assert!(
         reencoded.contains("resultNativeExecution"),
         "the fixture carries a native execution receipt"
     );
 
-    let transported = transport_reasoning(&result).expect("a native result transports");
+    let transported = transport_reasoning(&result, receipt).expect("a native result transports");
     assert_eq!(transported.result().provenance, reread.provenance);
     assert_eq!(transported.result().inferred(), reread.inferred());
     let reused =
         ResultProjection::transported(&transported).expect("the transported result projects");
     assert_eq!(
         reused.node_iri(),
-        ResultProjection::reasoning(&reread)
-            .expect("the read-back result projects")
+        ResultProjection::reasoning_with_receipt(&reread, receipt)
+            .expect("the read-back result reuses its receipt")
             .node_iri()
     );
     assert_eq!(reused.to_ntriples(), reencoded);
 
+    let bytes =
+        serde_json::to_vec(&result).expect("the original result has complete typed serde data");
+    let restored = Arc::new(
+        serde_json::from_slice::<ReasoningResult>(&bytes)
+            .expect("generic serde restores the eight semantic fields"),
+    );
+    assert_eq!(restored.as_ref(), &result);
+    assert!(
+        ResultProjection::reasoning(&restored).is_err(),
+        "generic serde cannot restore original mint authority"
+    );
+    receipt
+        .expect("the native control has its retained receipt")
+        .admit_result(&restored)
+        .expect("exact receipt admission works through a shared cache handle");
+    assert_eq!(
+        serde_json::to_vec(restored.as_ref()).expect("admitted state remains serde-skipped"),
+        bytes
+    );
+    assert!(
+        restored.validate_native_closure().is_err(),
+        "receipt hydration grants reuse only"
+    );
+    assert!(ResultProjection::reasoning(&restored).is_err());
+    ResultProjection::reasoning_with_receipt(&restored, receipt)
+        .expect("the hydrated handle can reuse its receipt");
+
+    let mut in_place = result.clone();
+    let mut decoder = serde_json::Deserializer::from_slice(&bytes);
+    serde::Deserialize::deserialize_in_place(&mut decoder, &mut in_place)
+        .expect("successful in-place data replacement constructs an unsealed result");
+    assert_eq!(in_place, result);
+    in_place.provenance.native_execution = result.provenance.native_execution.clone();
+    assert!(
+        ResultProjection::reasoning(&in_place).is_err(),
+        "restoring the original execution owner cannot restore skipped mint authority"
+    );
+
+    assert!(
+        result
+            .inferred()
+            .iter()
+            .all(|row| matches!(&row.object, purrdf::TermValue::Iri(_))),
+        "this original exercises normalization with only unchanged IRI objects"
+    );
+    let summary = reasoning_snapshot_summary(result.clone(), ReasoningSnapshotScope::Carrier)
+        .expect("an unchanged-object summary normalizes");
+    assert_eq!(
+        summary, result,
+        "runtime authority does not alter semantic value equality"
+    );
+    assert!(
+        ResultProjection::reasoning(&summary).is_err(),
+        "even a no-op summary transform relinquishes original authority"
+    );
+
+    let mut altered = result.clone();
+    altered.completeness = if result.completeness == CompletenessStatus::Incomplete {
+        CompletenessStatus::Unknown
+    } else {
+        CompletenessStatus::Incomplete
+    };
+    assert!(
+        ResultProjection::reasoning(&altered).is_err(),
+        "a mutable facade cannot recertify its altered assessment"
+    );
+
+    let mut unsealed: ReasoningResult =
+        serde_json::from_slice(&bytes).expect("unsealed EDB substitution control");
+    unsealed
+        .summary_rows_mut()
+        .expect("the control owns inferred rows")
+        .iter_mut()
+        .find(|row| row.is_edb)
+        .expect("the original retains its asserted premise")
+        .object = purrdf::TermValue::iri("urn:substituted:edb");
+    receipt
+        .expect("the control carries its native receipt")
+        .admit_result(&unsealed)
+        .expect("a retained assessment does not certify omitted EDB payload fields");
+    assert!(
+        unsealed.validate_native_closure().is_err(),
+        "admission cannot bind substituted EDB as an original closure"
+    );
+    assert!(ResultProjection::reasoning_with_closure(&unsealed).is_err());
+
+    // A map can replace payload data before discovering a required field is
+    // absent. Failed generic replacement must leave the original fully intact.
+    let payload_only = serde_json::to_vec(&serde_json::json!({ "payload": unsealed.payload() }))
+        .expect("encode an incomplete payload-first map");
+    let mut original = result.clone();
+    let mut decoder = serde_json::Deserializer::from_slice(&payload_only);
+    serde::Deserialize::deserialize_in_place(&mut decoder, &mut original)
+        .expect_err("missing semantic fields refuse the whole in-place replacement");
+    assert_eq!(
+        original, result,
+        "failure cannot partially replace the private original EDB"
+    );
+    ResultProjection::reasoning(&original)
+        .expect("an unchanged original remains publishable after a refused replacement");
+
+    let partial = native_conflict_result(Some(0));
+    assert_eq!(partial.evaluation, EvaluationStatus::BudgetExhausted);
+    assert_eq!(partial.information, InformationState::Both);
+    assert!(
+        !partial
+            .native_execution()
+            .expect("the cut retains its execution")
+            .has_conflict(),
+        "the asserted EDB contradiction is owned by the constructor witness fold"
+    );
+    let publication = ResultProjection::reasoning(&partial)
+        .expect("a genuine partial conflict retains original publication authority");
+    let restored = parse_reasoning_graph(&publication.to_ntriples(), &publication.receipt())
+        .expect("the exact receipt preserves a constructor-owned partial conflict");
+    assert_eq!(restored.information, InformationState::Both);
+    assert_eq!(restored.evaluation, EvaluationStatus::BudgetExhausted);
+
     let other = read_reasoning_result_expecting(
         &ResultGraph::new(&live, GraphMatch::Default)
             .expect("the projected dataset has a default graph"),
-        Some(Some("00")),
+        &receipt,
+        RootSelection::Aggregate(None),
+        Some(Some(&NativeReceiptAddress::of_bytes(b"another execution"))),
     );
     assert!(
         other
@@ -206,35 +346,52 @@ fn transported_projection_matches_the_reencoding_path_byte_for_byte() {
 
 #[test]
 fn terminal_result_retains_native_execution_and_requires_the_separate_closure() {
-    let result = native_conflict_result();
+    let result = native_conflict_result(None);
     let projection = ResultProjection::reasoning(&result).unwrap();
-    let reference: Vec<_> = include_str!("fixtures/native-execution-cbor-v4.txt")
+    let references = receipt_reference_text();
+    let reference: Vec<_> = references
         .lines()
         .next()
-        .unwrap()
+        .expect("the explicit producer writes the original conflict first")
         .split('|')
         .collect();
     assert_eq!(reference[0], "conflict");
     // Historical records retain their originating engine contract. Check their
     // complete wire without promoting that contract to current execution authority.
-    let obsolete = include_str!("fixtures/native-execution-cbor-v3.txt")
-        .lines()
-        .next()
-        .unwrap()
-        .split('|')
-        .nth(1)
-        .unwrap();
-    assert!(
-        native::decode(obsolete).is_err(),
-        "the obsolete native schema is refused"
+    for obsolete in [
+        include_str!("fixtures/native-execution-cbor-v3.txt"),
+        include_str!("fixtures/native-execution-cbor-v4.txt"),
+    ] {
+        let wire = obsolete
+            .lines()
+            .next()
+            .expect("an old native sample remains")
+            .split('|')
+            .nth(1)
+            .expect("the old sample carries its exact hex record");
+        let bytes = purrdf_hash::hex::decode(wire).expect("old sample hex remains well formed");
+        assert!(
+            native::decode(&bytes).is_err(),
+            "bare native schemas cannot stand in for a bound receipt"
+        );
+    }
+    let historical = native::decode(
+        &purrdf_hash::hex::decode(reference[1]).expect("the produced conflict carries valid hex"),
+    )
+    .expect("the current reference is an admissible bound receipt");
+    assert_eq!(
+        purrdf_hash::hex::encode(
+            &native::encode(&historical).expect("an admitted reference re-encodes canonically")
+        ),
+        reference[1]
     );
-    let historical = native::decode(reference[1]).unwrap();
-    assert_eq!(native::encode(&historical).unwrap(), reference[1]);
     // Exact ordinary objects and interpreted declarations must survive the
     // actual receipt boundary as distinct evidence, including a scoped wildcard.
     use crate::reason::refute::native::{NativeRead, NativeReadKind};
-    let mut scoped = result.native_execution().unwrap().clone();
-    scoped.families[0].outcomes[0].publication_reads = vec![
+    let mut scoped =
+        native::ReceiptRecord::original(&result, None).expect("original scoped codec record");
+    let mut execution = scoped.execution.as_ref().clone();
+    execution.families[0].outcomes[0].publication_reads = vec![
         NativeRead::statement(
             Some(purrdf::TermValue::iri("urn:receipt:owner")),
             None,
@@ -246,11 +403,16 @@ fn terminal_result_retains_native_execution_and_requires_the_separate_closure() 
             "https://blackcatinformatics.ca/logic/Thing",
         ),
     ];
-    let scoped_wire = native::encode(&scoped).unwrap();
-    assert_eq!(native::decode(&scoped_wire).unwrap().as_ref(), &scoped);
+    scoped.execution = std::sync::Arc::new(execution);
+    let scoped_wire =
+        native::encode(&scoped).expect("the small scoped read record fits codec bounds");
+    assert_eq!(
+        native::decode(&scoped_wire).expect("scoped exact and declaration reads decode"),
+        scoped
+    );
     let wire = projection.to_ntriples();
     assert!(wire.contains(projection.node_iri()));
-    let restored = parse_reasoning_graph(&wire).unwrap();
+    let restored = parse_reasoning_graph(&wire, &projection.receipt()).unwrap();
     assert_eq!(restored.provenance.claim, ResultClaim::WorldConsistency);
     assert_eq!(
         restored.native_execution().unwrap(),
@@ -261,14 +423,148 @@ fn terminal_result_retains_native_execution_and_requires_the_separate_closure() 
         restored.validate_native_closure().is_err(),
         "a verdict projection omits asserted closure rows and cannot stand in for its complete native product"
     );
-    let dataset = projection.into_dataset().unwrap();
-    let direct = parse_reasoning_dataset(&dataset, GraphMatch::Default).unwrap();
+    let (dataset, receipt) = projection.into_dataset().unwrap();
+    let direct = parse_reasoning_dataset(
+        &dataset,
+        GraphMatch::Default,
+        &receipt.as_ref().map(NativeReceipt::as_ref),
+    )
+    .unwrap();
     assert_eq!(direct.provenance, restored.provenance);
+    let artifact = ResultProjection::reasoning_with_closure(&result)
+        .unwrap()
+        .into_gts()
+        .unwrap();
+    let (summary, closure) = parse_reasoning_artifact_with_closure(&artifact.bytes).unwrap();
+    assert_eq!(
+        summary.native_execution().unwrap(),
+        result.native_execution().unwrap()
+    );
+    let original = crate::reason::native_closure_to_dataset(&result).unwrap();
+    assert_eq!(
+        closure.quad_count(),
+        original.quad_count(),
+        "the full closure retains asserted rows omitted by the verdict summary"
+    );
+}
+
+/// A complete closure preserves every admitted caller graph and source IRI,
+/// including result-looking source RDF and declaration-only scoped blank worlds.
+#[test]
+fn complete_closure_keeps_caller_namespaces_and_scoped_world_catalog() {
+    // gmeow-test-input: synthetic-only
+    use crate::physical::{DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld};
+    let mut source = purrdf::RdfDatasetBuilder::new();
+    let reasoning = source.intern_iri(GRAPH_REASONING).unwrap();
+    let named = source.intern_blank("world", purrdf::BlankScope(7)).unwrap();
+    let empty = source.intern_blank("empty", purrdf::BlankScope(9)).unwrap();
+    source.declare_named_graph(empty).unwrap();
+    let subject = source.intern_iri("urn:purrdf:rdfc:caller-owned").unwrap();
+    let predicate = source.intern_iri(RDF_TYPE).unwrap();
+    let class = source.intern_iri(&logic("ReasoningResult")).unwrap();
+    source
+        .push_quad(subject, predicate, class, Some(reasoning))
+        .unwrap();
+    let relation = source.intern_iri("urn:caller:relation").unwrap();
+    source
+        .push_quad(subject, relation, named, Some(named))
+        .unwrap();
+    let source = source.freeze().unwrap();
+    let input = crate::reason::prepare_reasoning_input(&source).unwrap();
+    let domains = SelectedDomains::new(
+        input
+            .source_contexts()
+            .values()
+            .map(|graph| {
+                SelectedLogicalWorld::new(
+                    LogicalGraph::from_graph(graph.clone()),
+                    DomainProfile::NonemptyObjectDomainV1,
+                    "gmeow.test.closure-transport.v1".into(),
+                    *input.ingress_contract(),
+                )
+            })
+            .collect::<gmeow_errors::Result<Vec<_>>>()
+            .unwrap(),
+    )
+    .unwrap();
+    let result = crate::reason::reason_all(input, &domains).unwrap();
+    let artifact = ResultProjection::reasoning_with_closure(&result)
+        .unwrap()
+        .into_gts()
+        .unwrap();
+    let (summary, closure) = parse_reasoning_artifact_with_closure(&artifact.bytes).unwrap();
+    assert_eq!(
+        summary.native_execution().unwrap(),
+        result.native_execution().unwrap()
+    );
+    assert!(closure.quads().any(|row| matches!(closure.as_ref().resolve(row.s), TermRef::Iri("urn:purrdf:rdfc:caller-owned"))
+        && matches!(closure.as_ref().resolve(row.o), TermRef::Iri(iri) if iri == logic("ReasoningResult"))));
+    let catalog = closure
+        .named_graphs()
+        .map(|graph| closure.as_ref().term_value(graph))
+        .collect::<BTreeSet<_>>();
+    let worlds = result
+        .native_execution()
+        .unwrap()
+        .worlds
+        .values()
+        .cloned()
+        .collect::<Vec<_>>();
+    assert_eq!(
+        catalog,
+        super::closure::graph_catalog(&worlds)
+            .into_iter()
+            .flatten()
+            .collect()
+    );
+    assert!(
+        catalog.contains(&purrdf::TermValue::Blank {
+            label: purrdf::BlankScope(9).qualify_label("empty").into_owned(),
+            scope: purrdf::BlankScope(1),
+        }),
+        "the selected empty world survives in the transported namespace"
+    );
+}
+
+/// A statement layer cannot introduce a default world into a named-only closure.
+#[test]
+fn complete_closure_refuses_statement_rows_outside_its_world_catalog() {
+    use crate::physical::LogicalGraph;
+
+    let world = purrdf::TermValue::iri("urn:closure:named-world");
+    for is_reifier in [true, false] {
+        let mut builder = purrdf::RdfDatasetBuilder::new();
+        let named = builder.intern_iri("urn:closure:named-world").unwrap();
+        let reifier = builder.intern_iri("urn:closure:reifier").unwrap();
+        let subject = builder.intern_iri("urn:closure:subject").unwrap();
+        let relation = builder.intern_iri("urn:closure:relation").unwrap();
+        builder
+            .push_quad(subject, relation, reifier, Some(named))
+            .unwrap();
+        if is_reifier {
+            let statement = builder.intern_triple(subject, relation, reifier).unwrap();
+            builder.push_reifier(reifier, statement).unwrap();
+        } else {
+            builder.push_annotation(reifier, relation, subject).unwrap();
+        }
+        let dataset = builder.freeze().unwrap();
+        // gmeow-test-input: synthetic-only
+        let leaf = gmeow_gts_profile::view_to_gmeow_gts(dataset.as_ref()).unwrap();
+        let address = NativeReceiptAddress::of_bytes(&leaf.bytes);
+        let worlds = [LogicalGraph::from_graph(Some(world.clone()))];
+        let error = super::closure::admit_leaf(&address, &leaf.bytes, &worlds).unwrap_err();
+        assert!(
+            error
+                .message()
+                .contains("outside the authenticated world catalog"),
+            "{error}"
+        );
+    }
 }
 
 #[test]
 fn native_world_conflict_does_not_supply_an_unrelated_conclusion_proof() {
-    let mut result = native_conflict_result();
+    let mut result = native_conflict_result(None);
     result.provenance.contradiction_witnesses.clear();
     result.provenance.proof = None;
     result.provenance.counterproof = None;
@@ -287,7 +583,7 @@ fn native_world_conflict_does_not_supply_an_unrelated_conclusion_proof() {
 
 #[test]
 fn native_result_admission_refuses_missing_duplicate_and_corrupt_execution() {
-    let result = native_conflict_result();
+    let result = native_conflict_result(None);
     let projection = ResultProjection::reasoning(&result).unwrap();
     let wire = projection.to_ntriples();
     let predicate = format!("<{}>", logic("resultNativeExecution"));
@@ -297,7 +593,7 @@ fn native_result_admission_refuses_missing_duplicate_and_corrupt_execution() {
         .map(|line| format!("{line}\n"))
         .collect::<String>();
     assert!(
-        parse_reasoning_graph(&missing)
+        parse_reasoning_graph(&missing, &projection.receipt())
             .unwrap_err()
             .message()
             .contains("missing its native execution evidence")
@@ -307,32 +603,292 @@ fn native_result_admission_refuses_missing_duplicate_and_corrupt_execution() {
         projection.node_iri()
     );
     assert!(
-        parse_reasoning_graph(&(wire + &corrupt))
+        parse_reasoning_graph(&(wire + &corrupt), &projection.receipt())
             .unwrap_err()
             .message()
             .contains("duplicate resultNativeExecution")
     );
-    assert!(parse_reasoning_graph(&(missing + &corrupt)).is_err());
+    assert!(parse_reasoning_graph(&(missing + &corrupt), &projection.receipt()).is_err());
+
+    let ResultProjection { mut sink, .. } =
+        ResultProjection::reasoning_with_receipt(&result, projection.receipt())
+            .expect("the original receipt authorizes its unchanged assessment");
+    sink.triples
+        .iter_mut()
+        .find(|row| row.predicate.as_ref() == logic("resultInformation"))
+        .expect("the projection declares its information axis")
+        .object = Node::iri(InformationState::Supported.iri());
+    let forged = native_dataset(sink).expect("the altered axis is valid RDF");
+    let error = parse_reasoning_dataset(&forged, GraphMatch::Default, &projection.receipt())
+        .expect_err("a retained receipt cannot authorize an altered RDF assessment");
+    assert!(
+        error.message().contains("execution or assessment"),
+        "{error}"
+    );
+
+    let ResultProjection { mut sink, .. } =
+        ResultProjection::reasoning_with_receipt(&result, projection.receipt())
+            .expect("the original receipt authorizes its unchanged assessment");
+    sink.push(
+        Node::iri(projection.node_iri()),
+        logic("resultInformation"),
+        Node::iri(InformationState::Supported.iri()),
+    );
+    let duplicate = native_dataset(sink).expect("distinct assessment values are valid RDF");
+    let error = parse_reasoning_dataset(&duplicate, GraphMatch::Default, &projection.receipt())
+        .expect_err("a scalar role cannot discard a second declared value");
+    assert!(
+        error
+            .message()
+            .contains("resultInformation must be single-valued"),
+        "{error}"
+    );
+
+    for (local, malformed) in [
+        ("resultWorld", Node::string("urn:wrong-kind-world")),
+        (
+            "resultBudgetAllowance",
+            Node::Lit {
+                lex: "not-a-number".into(),
+                datatype: XSD_INTEGER.into(),
+            },
+        ),
+        ("resultBudgetLimit", Node::string("unknown-limit")),
+        ("resultPayloadKind", Node::string("unknown-payload")),
+    ] {
+        let ResultProjection { mut sink, .. } =
+            ResultProjection::reasoning_with_receipt(&result, projection.receipt())
+                .expect("the retained receipt authorizes the unchanged starting projection");
+        sink.triples
+            .retain(|row| row.predicate.as_ref() != logic(local));
+        sink.push(Node::iri(projection.node_iri()), logic(local), malformed);
+        let malformed = native_dataset(sink).expect("the malformed declared facet is valid RDF");
+        let error = parse_reasoning_dataset(&malformed, GraphMatch::Default, &projection.receipt())
+            .expect_err("malformed declared facets must fail before receipt admission");
+        assert!(error.message().contains(local), "{local}: {error}");
+    }
+
+    let full = ResultProjection::reasoning_with_closure(&result).unwrap();
+    let ResultProjection {
+        sink,
+        receipt,
+        closure,
+        ..
+    } = full;
+    let dataset = native_dataset(sink).unwrap();
+    let receipt = receipt.unwrap();
+    let closure = closure.unwrap();
+
+    let borrowed = ResultProjection::reasoning_with_receipt(&result, Some(receipt.as_ref()))
+        .expect("the retained full receipt can project its selected closure reference");
+    assert!(borrowed.to_ntriples().contains(closure.address.as_str()));
+    let missing_leaf = borrowed
+        .into_gts()
+        .expect_err("full materialization without the selected leaf must fail");
+    assert!(
+        missing_leaf
+            .message()
+            .contains("required RDF closure publication is absent"),
+        "{missing_leaf}"
+    );
+
+    // This replacement is independently well formed and has the same admitted
+    // world catalog. Only the original receipt's exact leaf binding excludes it.
+    let mut replacement = purrdf::RdfDatasetBuilder::new();
+    replacement
+        .push_owned_quad(&purrdf::RdfQuad::new(
+            purrdf::RdfTerm::iri("urn:closure:substituted-subject"),
+            "urn:closure:predicate",
+            purrdf::RdfTerm::iri("urn:closure:substituted-object"),
+        ))
+        .expect("construct a valid alternative default-world closure");
+    let replacement = replacement
+        .freeze()
+        .expect("the replacement dataset freezes");
+    // gmeow-test-input: synthetic-only
+    let emission = gmeow_gts_profile::view_to_gmeow_gts(replacement.as_ref())
+        .expect("the replacement uses the mandatory GTS frame profile");
+    let replacement = super::closure::ClosurePublication {
+        address: NativeReceiptAddress::of_bytes(&emission.bytes),
+        bytes: emission.bytes,
+    };
+    assert_ne!(replacement.address, closure.address);
+    let worlds = result
+        .native_execution()
+        .expect("the original execution retains its worlds")
+        .worlds
+        .values()
+        .cloned()
+        .collect::<Vec<_>>();
+    super::closure::admit_leaf(&replacement.address, &replacement.bytes, &worlds)
+        .expect("the replacement independently passes the same-catalog leaf checks");
+    let resolver = ProjectionResolver {
+        receipt: Some(receipt.as_ref()),
+        closure: Some(&replacement),
+    };
+    for selected in [None, Some(&replacement.address)] {
+        let ResultProjection { mut sink, .. } =
+            ResultProjection::reasoning_with_receipt(&result, Some(receipt.as_ref()))
+                .expect("the unchanged full receipt retains its original leaf reference");
+        match selected {
+            None => sink
+                .triples
+                .retain(|row| row.predicate.as_ref() != logic("resultClosureBlob")),
+            Some(address) => {
+                sink.triples
+                    .iter_mut()
+                    .find(|row| row.predicate.as_ref() == logic("resultClosureBlob"))
+                    .expect("the full receipt projects its selected leaf")
+                    .object = Node::string(address.as_str())
+            }
+        }
+        let altered = native_dataset(sink).expect("the altered binding remains valid RDF");
+        let error = parse_reasoning_dataset(&altered, GraphMatch::Default, &resolver).expect_err(
+            "an omitted or same-catalog substituted leaf cannot replace the original selection",
+        );
+        assert!(
+            error
+                .message()
+                .contains("immutable native receipt selection"),
+            "{error}"
+        );
+    }
+    let ResultProjection {
+        mut sink,
+        receipt: receipt_only,
+        ..
+    } = ResultProjection::reasoning(&result)
+        .expect("an explicit receipt-only publication selects no leaf");
+    let root = sink
+        .triples
+        .iter()
+        .find(|row| row.predicate.as_ref() == logic("resultInformation"))
+        .expect("the projection declares its aggregate root")
+        .subject
+        .clone();
+    sink.push(
+        root,
+        logic("resultClosureBlob"),
+        Node::string(replacement.address.as_str()),
+    );
+    let attached = native_dataset(sink).expect("the unselected attachment is valid RDF");
+    let error = parse_reasoning_dataset(
+        &attached,
+        GraphMatch::Default,
+        &receipt_only.as_ref().map(NativeReceipt::as_ref),
+    )
+    .expect_err("a receipt-only publication cannot acquire an unselected leaf");
+    assert!(
+        error
+            .message()
+            .contains("immutable native receipt selection"),
+        "{error}"
+    );
+
+    for carry_invalid_closure in [false, true] {
+        // gmeow-test-input: synthetic-only
+        let mut writer = gmeow_gts_profile::GmeowGtsWriter::new("runtime");
+        writer
+            .add_blob(
+                receipt.as_ref().bytes().to_vec(),
+                NATIVE_RECEIPT_MEDIA_TYPE,
+                NATIVE_RECEIPT_REPRESENTATION,
+            )
+            .unwrap();
+        if carry_invalid_closure {
+            writer
+                .add_blob(
+                    closure.bytes.clone(),
+                    "application/cbor",
+                    CLOSURE_REPRESENTATION,
+                )
+                .unwrap();
+        }
+        let incomplete = writer
+            .finish_view_scoped(dataset.as_ref(), "invalid-closure-attachment")
+            .unwrap();
+        assert!(
+            parse_reasoning_artifact(&incomplete.bytes).is_err(),
+            "missing and relabeled required closures must refuse"
+        );
+    }
+    let complete = ResultProjection::reasoning_with_closure(&result)
+        .unwrap()
+        .into_gts()
+        .unwrap();
+    let (admitted, retained) =
+        parse_reasoning_artifact_graph_with_receipt(&complete.bytes, None).unwrap();
+    let retained = retained.expect("the selected aggregate carries a native receipt");
+    assert_eq!(
+        admitted.native_execution().unwrap(),
+        result.native_execution().unwrap()
+    );
+    assert_eq!(retained.as_ref().address(), receipt.as_ref().address());
+    assert_eq!(retained.as_ref().bytes(), receipt.as_ref().bytes());
+
+    let mut duplicate =
+        ResultProjection::reasoning_with_receipt(&result, Some(receipt.as_ref())).unwrap();
+    let owner = Node::iri(duplicate.node_iri());
+    duplicate.sink.push(
+        owner,
+        logic("resultClosureBlob"),
+        Node::string(replacement.address.as_str()),
+    );
+    let duplicate = native_dataset(duplicate.sink).unwrap();
+    // gmeow-test-input: synthetic-only
+    let duplicate = gmeow_gts_profile::view_to_gmeow_gts(duplicate.as_ref()).unwrap();
+    let error = parse_reasoning_artifact(&duplicate.bytes).unwrap_err();
+    assert!(
+        error.message().contains("duplicate native receipt binding"),
+        "{error}"
+    );
+
+    // gmeow-test-input: synthetic-only
+    let mut repeated = gmeow_gts_profile::GmeowGtsWriter::new("runtime");
+    repeated
+        .add_blob(
+            closure.bytes,
+            CLOSURE_MEDIA_TYPE,
+            "conflicting-closure-role",
+        )
+        .unwrap();
+    let mut conflicting = complete.bytes;
+    conflicting.extend(repeated.into_bytes());
+    assert!(
+        parse_reasoning_artifact(&conflicting).is_err(),
+        "a later repeated closure cannot relabel an already authenticated digest"
+    );
 }
 
 #[test]
 fn native_execution_receipt_refuses_trailing_bytes_and_unknown_fields() {
-    let result = native_conflict_result();
-    let wire = native::encode(result.native_execution().unwrap()).unwrap();
-    let trailing = native::decode(&(wire.clone() + "00")).unwrap_err();
+    let result = native_conflict_result(None);
+    let wire = native::encode(
+        &native::ReceiptRecord::original(&result, None).expect("original codec record"),
+    )
+    .expect("the original conflict fits the bound receipt codec");
+    let trailing = native::decode(&[wire.as_slice(), &[0]].concat()).unwrap_err();
     let kind = trailing.downcast_ref::<crate::error::Result>().unwrap();
     assert!(
         std::error::Error::source(kind)
             .unwrap()
             .is::<crate::execution_cbor::Error>()
     );
-    let bytes = purrdf_hash::hex::decode(&wire).unwrap();
+    let bytes = wire.clone();
     let mut envelope: purrdf_lex::cbor::Value =
         purrdf_lex::cbor::decode(&bytes, purrdf_lex::cbor::Limits::DEFAULT).unwrap();
     let purrdf_lex::cbor::Value::Array(fields) = &mut envelope else {
         panic!("native receipt envelope")
     };
-    let purrdf_lex::cbor::Value::Map(execution) = &mut fields[3] else {
+    let purrdf_lex::cbor::Value::Map(binding) = &mut fields[3] else {
+        panic!("native receipt binding")
+    };
+    let purrdf_lex::cbor::Value::Map(execution) = &mut binding
+        .iter_mut()
+        .find(|(key, _)| key == &purrdf_lex::cbor::Value::Text("execution".into()))
+        .expect("the receipt binding selects the complete inner execution")
+        .1
+    else {
         panic!("native execution record")
     };
     execution.push((
@@ -341,7 +897,6 @@ fn native_execution_receipt_refuses_trailing_bytes_and_unknown_fields() {
     ));
     let mut changed = Vec::new();
     purrdf_lex::cbor::write(&envelope, &mut changed).unwrap();
-    let changed = purrdf_hash::hex::encode(&changed);
     assert!(
         native::decode(&changed).is_err(),
         "unknown execution evidence must never disappear during admission"
@@ -377,7 +932,7 @@ fn native_execution_receipt_refuses_trailing_bytes_and_unknown_fields() {
         table.push(entry);
         let mut changed = Vec::new();
         purrdf_lex::cbor::write(&altered, &mut changed).unwrap();
-        let error = native::decode(&purrdf_hash::hex::encode(&changed)).unwrap_err();
+        let error = native::decode(&changed).unwrap_err();
         let kind = error.downcast_ref::<crate::error::Result>().unwrap();
         let cause = std::error::Error::source(kind)
             .unwrap()
@@ -392,17 +947,25 @@ fn native_execution_receipt_refuses_trailing_bytes_and_unknown_fields() {
     }
     for (path, index, expected) in [
         (
-            vec!["reachability", "Program", "engine", "name"],
+            vec!["execution", "reachability", "Program", "engine", "name"],
             usize::MAX as u64,
             "outside its table",
         ),
         (
-            vec!["reachability", "Program", "engine", "name"],
+            vec!["execution", "reachability", "Program", "engine", "name"],
             1,
             "noncanonical",
         ),
         (
-            vec!["families", "0", "proofs", "0", "statement", "subject"],
+            vec![
+                "execution",
+                "families",
+                "0",
+                "proofs",
+                "0",
+                "statement",
+                "subject",
+            ],
             usize::MAX as u64,
             "outside its table",
         ),
@@ -428,15 +991,23 @@ fn native_execution_receipt_refuses_trailing_bytes_and_unknown_fields() {
         *value = Value::Integer(index.into());
         let mut changed = Vec::new();
         purrdf_lex::cbor::write(&altered, &mut changed).unwrap();
-        let error = native::decode(&purrdf_hash::hex::encode(&changed)).unwrap_err();
+        let error = native::decode(&changed).unwrap_err();
         assert!(error.message().contains(expected), "{error}");
     }
     let mut altered = original;
     let Value::Array(fields) = &mut altered else {
         panic!("receipt envelope")
     };
-    let Value::Map(execution) = &mut fields[3] else {
-        panic!("execution record")
+    let Value::Map(binding) = &mut fields[3] else {
+        panic!("receipt binding record")
+    };
+    let Value::Map(execution) = &mut binding
+        .iter_mut()
+        .find(|(key, _)| key == &Value::Text("execution".into()))
+        .expect("the binding carries its complete execution")
+        .1
+    else {
+        panic!("native execution record")
     };
     let Value::Bytes(digest) = &mut execution
         .iter_mut()
@@ -450,7 +1021,7 @@ fn native_execution_receipt_refuses_trailing_bytes_and_unknown_fields() {
     let mut changed = Vec::new();
     purrdf_lex::cbor::write(&altered, &mut changed).unwrap();
     assert!(
-        native::decode(&purrdf_hash::hex::encode(&changed))
+        native::decode(&changed)
             .unwrap_err()
             .message()
             .contains("fixed receipt byte-string length")
@@ -459,9 +1030,12 @@ fn native_execution_receipt_refuses_trailing_bytes_and_unknown_fields() {
 
 #[test]
 fn native_execution_requires_the_selected_program_analysis_and_current_schema() {
-    let result = native_conflict_result();
-    let wire = native::encode(result.native_execution().unwrap()).unwrap();
-    let bytes = purrdf_hash::hex::decode(&wire).unwrap();
+    let result = native_conflict_result(None);
+    let wire = native::encode(
+        &native::ReceiptRecord::original(&result, None).expect("original codec record"),
+    )
+    .unwrap();
+    let bytes = wire.clone();
     for missing_field in [false, true] {
         let mut envelope: purrdf_lex::cbor::Value =
             purrdf_lex::cbor::decode(&bytes, purrdf_lex::cbor::Limits::DEFAULT).unwrap();
@@ -469,7 +1043,16 @@ fn native_execution_requires_the_selected_program_analysis_and_current_schema() 
             panic!("native receipt envelope");
         };
         if missing_field {
-            let purrdf_lex::cbor::Value::Map(execution) = &mut fields[3] else {
+            use purrdf_lex::cbor::Value;
+            let Value::Map(binding) = &mut fields[3] else {
+                panic!("receipt binding record");
+            };
+            let Value::Map(execution) = &mut binding
+                .iter_mut()
+                .find(|(key, _)| key == &Value::Text("execution".into()))
+                .expect("the binding carries its complete execution")
+                .1
+            else {
                 panic!("native execution record");
             };
             let before = execution.len();
@@ -477,17 +1060,24 @@ fn native_execution_requires_the_selected_program_analysis_and_current_schema() 
                 .retain(|(key, _)| key != &purrdf_lex::cbor::Value::Text("reachability".into()));
             assert_eq!(execution.len() + 1, before);
         } else {
-            fields[0] = purrdf_lex::cbor::Value::Text("gmeow-native-execution-v2".into());
+            let purrdf_lex::cbor::Value::Map(binding) = &mut fields[3] else {
+                panic!("receipt binding record");
+            };
+            binding
+                .iter_mut()
+                .find(|(key, _)| key == &purrdf_lex::cbor::Value::Text("native_schema".into()))
+                .expect("the receipt explicitly names the inner native schema")
+                .1 = purrdf_lex::cbor::Value::Text("gmeow-native-execution-v2".into());
         }
         let mut changed = Vec::new();
         purrdf_lex::cbor::write(&envelope, &mut changed).unwrap();
-        assert!(native::decode(&purrdf_hash::hex::encode(&changed)).is_err());
+        assert!(native::decode(&changed).is_err());
     }
 }
 
 #[test]
 fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
-    let result = native_conflict_result();
+    let result = native_conflict_result(None);
     let mut execution = result.native_execution().unwrap().clone();
     let mut object = purrdf::TermValue::iri("urn:gmeow:test:deep-receipt-value");
     for _ in 0..80 {
@@ -498,7 +1088,10 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
         };
     }
     execution.families[0].proofs[0].statement.object = object;
-    let error = native::encode(&execution).unwrap_err();
+    let mut altered =
+        native::ReceiptRecord::original(&result, None).expect("original depth-bound codec record");
+    altered.execution = std::sync::Arc::new(execution);
+    let error = native::encode(&altered).unwrap_err();
     assert!(error.message().contains("typed admission bound"));
 
     use crate::reason::refute::{
@@ -510,12 +1103,22 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
     // A directional literal adds a typed enum visit without adding a container.
     // These altered evidence packets exercise the codec, not semantic admission;
     // no RDF result identity is claimed for a deliberately modified proof.
-    let mut references = include_str!("fixtures/native-execution-cbor-v4.txt").lines();
-    let historical_base =
-        native::decode(references.next().unwrap().split('|').nth(1).unwrap()).unwrap();
+    let reference_text = receipt_reference_text();
+    let mut references = reference_text.lines();
+    let original_reference = references
+        .next()
+        .expect("the explicit producer writes the original conflict first")
+        .split('|')
+        .nth(1)
+        .expect("the original conflict row contains its hex record");
+    let historical_base = native::decode(
+        &purrdf_hash::hex::decode(original_reference)
+            .expect("the produced original reference is valid hex"),
+    )
+    .expect("the current original reference is an admissible bound receipt");
     for profile in ["ordinary", "directional", "ordinary-u128"] {
         for depth in 25..=28 {
-            let mut packet = historical_base.as_ref().clone();
+            let mut packet = historical_base.execution.as_ref().clone();
             if profile == "ordinary-u128" {
                 // The public record can retain counts above u64 without a
                 // producer run. Both values require original CBOR tag 2.
@@ -574,14 +1177,23 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
                 })
                 .expect("the original tiny conflict retains an asserted source premise");
             *source_object = object;
-            let reference: Vec<_> = references.next().unwrap().splitn(6, '|').collect();
+            let packet = native::ReceiptRecord {
+                execution: std::sync::Arc::new(packet),
+                assessment: historical_base.assessment,
+                closure: historical_base.closure.clone(),
+            };
+            let reference: Vec<_> = references
+                .next()
+                .expect("the producer writes every selected neighboring depth")
+                .splitn(6, '|')
+                .collect();
             assert_eq!(reference.len(), 6);
             assert_eq!(reference[0], profile);
             assert_eq!(reference[1], depth.to_string());
             match (reference[2], reference[3]) {
                 ("admitted", "admitted") => {
                     let encoded = native::encode(&packet).unwrap();
-                    assert_eq!(encoded, reference[4]);
+                    assert_eq!(purrdf_hash::hex::encode(&encoded), reference[4]);
                     assert!(native::decode(&encoded).is_ok());
                 }
                 ("refused", "not-run") => {
@@ -591,7 +1203,7 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
                     if profile == "directional" && depth == 26 {
                         // Compact references must not hide the original occurrence depth.
                         // Construct an adversarial packet below the publication preflight.
-                        let schema = "gmeow-native-execution-v4";
+                        let schema = "gmeow-native-receipt-v1";
                         let tables = Tables::prepare(&packet, schema).unwrap();
                         let mut hostile = Vec::new();
                         head::write_head(&mut hostile, head::ARRAY, 4).unwrap();
@@ -599,7 +1211,7 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
                         tables.write(&mut hostile).unwrap();
                         tables.write_payload(&packet, &mut hostile).unwrap();
                         assert!(
-                            native::decode(&purrdf_hash::hex::encode(&hostile))
+                            native::decode(&hostile)
                                 .unwrap_err()
                                 .message()
                                 .contains("occurrence recursion limit")
@@ -618,7 +1230,7 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
     let leaf = std::sync::Arc::new("x".repeat(1024 * 1024));
     for (count, admitted) in [(510, true), (511, false)] {
         let occurrences = vec![std::sync::Arc::clone(&leaf); count];
-        let planned = Tables::prepare(&occurrences, "gmeow-native-execution-v4");
+        let planned = Tables::prepare(&occurrences, "gmeow-native-receipt-v1");
         assert_eq!(planned.is_ok(), admitted);
         if let Err(error) = planned {
             let cause = std::error::Error::source(&error)
@@ -638,7 +1250,7 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
         }
         let mut wire = Vec::new();
         head::write_head(&mut wire, head::ARRAY, 4).unwrap();
-        head::write_text(&mut wire, "gmeow-native-execution-v4").unwrap();
+        head::write_text(&mut wire, "gmeow-native-receipt-v1").unwrap();
         head::write_head(&mut wire, head::ARRAY, 1).unwrap();
         head::write_text(&mut wire, &leaf).unwrap();
         head::write_head(&mut wire, head::ARRAY, 0).unwrap();
@@ -649,7 +1261,7 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
         let mut reader = Reader::for_definitions(&wire).unwrap();
         let decoded = reader.array(|input, length| {
             assert_eq!(length, 4);
-            assert_eq!(input.text()?, "gmeow-native-execution-v4");
+            assert_eq!(input.text()?, "gmeow-native-receipt-v1");
             input.read_tables()?;
             input.array(|input, length| {
                 assert_eq!(length, count);
@@ -714,7 +1326,7 @@ fn native_reasoning_summary_matches_the_wire_projection() {
     let mut result = rich_result();
     result.provenance.query =
         "source \"quoted\" \\ escaped\n\t<urn:gmeow:reasoning-result:self>".into();
-    let ResultPayload::Inferred(rows) = &mut result.payload else {
+    let Some(rows) = result.summary_rows_mut() else {
         panic!("inferred fixture")
     };
     rows[0].subject = RESULT_PLACEHOLDER.into();
@@ -724,7 +1336,7 @@ fn native_reasoning_summary_matches_the_wire_projection() {
         format!("\"<{RESULT_PLACEHOLDER}>\""),
     ));
     let derived = rows[0].clone();
-    let native = project_reasoning_dataset(&result).unwrap();
+    let (native, receipt) = project_reasoning_dataset(&result).unwrap();
     let wire = parse_nt(&project_reasoning_result(&result).unwrap()).unwrap();
     assert!(
         purrdf::datasets_isomorphic(
@@ -734,12 +1346,18 @@ fn native_reasoning_summary_matches_the_wire_projection() {
         )
         .expect("isomorphism is decided by canonical bytes")
     );
-    let restored = parse_reasoning_dataset(&native, GraphMatch::Default)
-        .expect("authored placeholder text must not invalidate a derivation receipt");
+    let restored = parse_reasoning_dataset(
+        &native,
+        GraphMatch::Default,
+        &receipt.as_ref().map(NativeReceipt::as_ref),
+    )
+    .expect("authored placeholder text must not invalidate a derivation receipt");
     assert_eq!(restored.provenance.query, result.provenance.query);
-    assert_eq!(restored.payload, ResultPayload::Inferred(vec![derived]));
+    assert_eq!(restored.payload(), &ResultPayload::Inferred(vec![derived]));
 }
 
+/// Typed inferred objects retain their values under RDF projection and both production
+/// snapshot namespaces, including nested and composite-literal blank identities.
 #[test]
 fn typed_inferred_objects_survive_closure_and_receipt_projections() {
     use purrdf::{BlankScope, RdfTextDirection, TermBox, TermValue};
@@ -773,6 +1391,12 @@ fn typed_inferred_objects_survive_closure_and_receipt_projections() {
         TermValue::simple_literal("<urn:literal>"),
         directional,
         quoted,
+        TermValue::Literal {
+            lexical_form: "[_:source]".into(),
+            datatype: "http://w3id.org/awslabs/neptune/SPARQL-CDTs/List".into(),
+            language: None,
+            direction: None,
+        },
     ]
     .into_iter()
     .enumerate()
@@ -783,7 +1407,15 @@ fn typed_inferred_objects_survive_closure_and_receipt_projections() {
         row
     })
     .collect();
-    result.payload = ResultPayload::Inferred(rows.clone());
+    result = ReasoningResult::new(
+        result.input,
+        result.evaluation,
+        result.completeness,
+        result.preservation,
+        result.information,
+        result.provenance,
+        ResultPayload::Inferred(rows.clone()),
+    );
 
     let retained: ReasoningResult =
         serde_json::from_slice(&serde_json::to_vec(&result).unwrap()).unwrap();
@@ -799,11 +1431,27 @@ fn typed_inferred_objects_survive_closure_and_receipt_projections() {
                 && quad.g.is_some_and(|world| matches!(closure.as_ref().resolve(world), purrdf::TermRef::Iri(iri) if iri == row.world))
         }), "the closure must retain the value in its original world");
     }
-    let native = project_reasoning_dataset(&result).unwrap();
-    let restored = parse_reasoning_dataset(&native, GraphMatch::Default).unwrap();
+    let (native, receipt) = project_reasoning_dataset(&result).unwrap();
+    let restored = parse_reasoning_dataset(
+        &native,
+        GraphMatch::Default,
+        &receipt.as_ref().map(NativeReceipt::as_ref),
+    )
+    .unwrap();
     assert_eq!(
-        restored.payload, result.payload,
+        restored.payload(),
+        result.payload(),
         "native result admission retains every receipt and typed object"
+    );
+    let expected = reasoning_snapshot_summary(restored, ReasoningSnapshotScope::Runtime).unwrap();
+    let standalone = ResultProjection::reasoning(&result)
+        .unwrap()
+        .into_gts()
+        .unwrap();
+    assert_eq!(
+        parse_reasoning_artifact(&standalone.bytes).unwrap(),
+        expected,
+        "standalone publication admits exactly the original summary under its native transport namespace"
     );
     let mut appended = purrdf::RdfDatasetBuilder::new();
     let mut routed = purrdf::RdfDatasetBuilder::new();
@@ -868,9 +1516,29 @@ fn typed_inferred_objects_survive_closure_and_receipt_projections() {
             .expect("native blank lookup succeeds")
             .is_some()
     );
-    let restored = parse_reasoning_graph(&project_reasoning_result(&result).unwrap()).unwrap();
+    let graph = appended.term_id_by_iri(GRAPH_REASONING).unwrap();
+    let expected = parse_reasoning_dataset(
+        &appended,
+        GraphMatch::Named(graph),
+        &receipt.as_ref().map(NativeReceipt::as_ref),
+    )
+    .unwrap();
+    let expected = reasoning_snapshot_summary(expected, ReasoningSnapshotScope::Carrier).unwrap();
+    // gmeow-test-input: synthetic-only
+    let carrier = gmeow_gts_profile::view_to_gmeow_gts(appended.as_ref()).unwrap();
     assert_eq!(
-        restored.payload, result.payload,
+        parse_reasoning_artifact_graph(&carrier.bytes, Some(GRAPH_REASONING)).unwrap(),
+        expected,
+        "the carrier emitter admits exactly the pre-emission summary under its native transport namespace"
+    );
+    let restored = parse_reasoning_graph(
+        &project_reasoning_result(&result).unwrap(),
+        &NoNativeReceipts,
+    )
+    .unwrap();
+    assert_eq!(
+        restored.payload(),
+        result.payload(),
         "RDF result transport retains every receipt and typed object"
     );
     let artifact =
@@ -887,12 +1555,12 @@ fn typed_inferred_objects_survive_closure_and_receipt_projections() {
 #[test]
 fn round_trip_recovers_axes_and_provenance() {
     let original = rich_result();
-    let ResultPayload::Inferred(original_rows) = &original.payload else {
+    let ResultPayload::Inferred(original_rows) = original.payload() else {
         panic!("fixture payload must be inferred");
     };
     let original_derived = original_rows[0].clone();
     let body = project_reasoning_result(&original).unwrap();
-    let parsed = parse_reasoning_graph(&body).expect("parse graph/reasoning");
+    let parsed = parse_reasoning_graph(&body, &NoNativeReceipts).expect("parse graph/reasoning");
 
     // The five axes round-trip exactly.
     assert_eq!(parsed.input, original.input);
@@ -906,7 +1574,7 @@ fn round_trip_recovers_axes_and_provenance() {
 
     // The payload DISCRIMINANT round-trips (Inferred); the derived-only rows survive
     // (the EDB row does not — only derived axioms are projected).
-    let ResultPayload::Inferred(rows) = &parsed.payload else {
+    let ResultPayload::Inferred(rows) = parsed.payload() else {
         panic!("payload discriminant must round-trip as Inferred");
     };
     assert_eq!(
@@ -927,22 +1595,25 @@ fn attributed_context_round_trips_and_changes_result_identity() {
     let body = project_reasoning_result(&result).unwrap();
     assert_ne!(unscoped, result_node_iri(&result).unwrap());
     assert_eq!(
-        parse_reasoning_graph(&body).unwrap().provenance.context,
+        parse_reasoning_graph(&body, &NoNativeReceipts)
+            .unwrap()
+            .provenance
+            .context,
         result.provenance.context
     );
     let node = result_node_iri(&result).unwrap();
     let duplicated = format!(
         "{body}\n<{node}> <https://blackcatinformatics.ca/logic/resultAttributedContext> <urn:context:other> .\n"
     );
-    assert!(parse_reasoning_graph(&duplicated).is_err());
+    assert!(parse_reasoning_graph(&duplicated, &NoNativeReceipts).is_err());
     let malformed = body.replace("<urn:context:enactment-step>", "\"not a context IRI\"");
-    assert!(parse_reasoning_graph(&malformed).is_err());
+    assert!(parse_reasoning_graph(&malformed, &NoNativeReceipts).is_err());
 }
 
 #[test]
 fn native_rule_label_has_one_canonical_public_iri_and_raw_receipt_identity() {
     let result = rich_result();
-    let ResultPayload::Inferred(axioms) = &result.payload else {
+    let ResultPayload::Inferred(axioms) = result.payload() else {
         panic!("fixture payload must be inferred");
     };
     let expected = &axioms[0];
@@ -967,8 +1638,9 @@ fn native_rule_label_has_one_canonical_public_iri_and_raw_receipt_identity() {
     assert!(body.contains("rule:subclass-transitive"));
     assert!(body.contains(&receipt.row.derivation_id));
 
-    let parsed = parse_reasoning_graph(&body).expect("canonical receipt-bearing graph parses");
-    let ResultPayload::Inferred(rows) = parsed.payload else {
+    let parsed = parse_reasoning_graph(&body, &NoNativeReceipts)
+        .expect("canonical receipt-bearing graph parses");
+    let ResultPayload::Inferred(rows) = parsed.payload() else {
         panic!("payload must remain inferred");
     };
     assert_eq!(rows[0], *expected);
@@ -1022,7 +1694,7 @@ fn modal_derived_row_round_trips_its_complete_receipt() {
         ),
     ] {
         let mut result = rich_result();
-        let ResultPayload::Inferred(axioms) = &mut result.payload else {
+        let Some(axioms) = result.summary_rows_mut() else {
             panic!("fixture payload must be inferred");
         };
         let modal = &mut axioms[0];
@@ -1088,8 +1760,9 @@ fn modal_derived_row_round_trips_its_complete_receipt() {
         }
         assert!(body.contains(&format!("<{PROV_VALUE}>")));
 
-        let parsed = parse_reasoning_graph(&body).expect("receipt-bearing graph parses");
-        let ResultPayload::Inferred(rows) = parsed.payload else {
+        let parsed =
+            parse_reasoning_graph(&body, &NoNativeReceipts).expect("receipt-bearing graph parses");
+        let ResultPayload::Inferred(rows) = parsed.payload() else {
             panic!("payload must remain inferred");
         };
         let actual = rows
@@ -1180,7 +1853,7 @@ fn modal_derived_row_round_trips_its_complete_receipt() {
                 1,
             );
             assert_ne!(unbound, body);
-            let error = parse_reasoning_graph(&unbound)
+            let error = parse_reasoning_graph(&unbound, &NoNativeReceipts)
                 .expect_err("import must bind modal evidence to the actual axiom context");
             assert!(
                 error.message().contains("modal axiom does not match"),
@@ -1204,7 +1877,7 @@ fn modal_derived_row_round_trips_its_complete_receipt() {
 #[test]
 fn derived_row_parser_rejects_a_tampered_source_receipt() {
     let mut result = rich_result();
-    let ResultPayload::Inferred(axioms) = &mut result.payload else {
+    let Some(axioms) = result.summary_rows_mut() else {
         panic!("fixture payload must be inferred");
     };
     axioms[0].premises = vec![(
@@ -1218,7 +1891,7 @@ fn derived_row_parser_rejects_a_tampered_source_receipt() {
         .filter(|line| !line.contains(PROV_VALUE) || line.contains("receipt-rule-identity"))
         .map(|line| format!("{line}\n"))
         .collect();
-    let err = parse_reasoning_graph(&tampered).unwrap_err();
+    let err = parse_reasoning_graph(&tampered, &NoNativeReceipts).unwrap_err();
     assert!(err.message().contains("source reifier"), "got: {err}");
 }
 
@@ -1235,7 +1908,7 @@ fn derived_row_parser_rejects_public_rule_that_disagrees_with_raw_identity() {
         tampered, body,
         "fixture must contain the canonical rule edge"
     );
-    let err = parse_reasoning_graph(&tampered).unwrap_err();
+    let err = parse_reasoning_graph(&tampered, &NoNativeReceipts).unwrap_err();
     assert!(
         err.message().contains("does not canonicalize"),
         "got: {err}"
@@ -1254,7 +1927,7 @@ fn derived_row_parser_rejects_a_missing_raw_receipt_identity() {
         tampered, body,
         "fixture must carry the raw receipt identity"
     );
-    let err = parse_reasoning_graph(&tampered).unwrap_err();
+    let err = parse_reasoning_graph(&tampered, &NoNativeReceipts).unwrap_err();
     assert!(
         err.message()
             .contains("missing its raw receipt rule identity"),
@@ -1265,7 +1938,7 @@ fn derived_row_parser_rejects_a_missing_raw_receipt_identity() {
 #[test]
 fn derived_row_round_trip_preserves_duplicate_source_multiplicity() {
     let mut result = rich_result();
-    let ResultPayload::Inferred(axioms) = &mut result.payload else {
+    let Some(axioms) = result.summary_rows_mut() else {
         panic!("fixture payload must be inferred");
     };
     let premise = (
@@ -1280,8 +1953,9 @@ fn derived_row_round_trip_preserves_duplicate_source_multiplicity() {
 
     let body = project_reasoning_result(&result).unwrap();
     assert!(body.contains(&receipt.row.derivation_id));
-    let parsed = parse_reasoning_graph(&body).expect("duplicate-source receipt parses");
-    let ResultPayload::Inferred(rows) = parsed.payload else {
+    let parsed =
+        parse_reasoning_graph(&body, &NoNativeReceipts).expect("duplicate-source receipt parses");
+    let ResultPayload::Inferred(rows) = parsed.payload() else {
         panic!("payload must remain inferred");
     };
     assert_eq!(rows[0], expected);
@@ -1294,18 +1968,21 @@ fn round_trip_for_an_invalid_request() {
         ResultProvenance::native("contract:x", "http://ex/world/w"),
     );
     let body = project_reasoning_result(&original).unwrap();
-    let parsed = parse_reasoning_graph(&body).expect("parse");
+    let parsed = parse_reasoning_graph(&body, &NoNativeReceipts).expect("parse");
     assert_eq!(parsed.input, InputStatus::Invalid);
     assert_eq!(parsed.evaluation, EvaluationStatus::Unsupported);
     assert_eq!(parsed.information, InformationState::NotEvaluated);
     assert_eq!(parsed.provenance.conclusion, "ill-formed request");
-    assert!(matches!(parsed.payload, ResultPayload::Empty));
+    assert!(matches!(parsed.payload(), ResultPayload::Empty));
 }
 
 #[test]
 fn parse_rejects_a_body_without_the_result_subject() {
-    let err = parse_reasoning_graph("<http://ex/s> <http://ex/p> <http://ex/o> .\n")
-        .expect_err("a body without a ReasoningResult subject must fail");
+    let err = parse_reasoning_graph(
+        "<http://ex/s> <http://ex/p> <http://ex/o> .\n",
+        &NoNativeReceipts,
+    )
+    .expect_err("a body without a ReasoningResult subject must fail");
     assert!(
         err.message().contains("no logic:ReasoningResult subject"),
         "{err}"
@@ -1322,7 +1999,8 @@ fn parse_rejects_multiple_unrelated_results_instead_of_selecting_row_order() {
         project_reasoning_result(&first).unwrap(),
         project_reasoning_result(&second).unwrap(),
     );
-    let error = parse_reasoning_graph(&body).expect_err("two unowned roots are ambiguous");
+    let error = parse_reasoning_graph(&body, &NoNativeReceipts)
+        .expect_err("two unowned roots are ambiguous");
     assert!(error.message().contains("found 2"), "{error}");
 }
 
@@ -1402,7 +2080,8 @@ fn parse_fails_closed_on_missing_result_query() {
         .filter(|l| !l.contains("resultQuery"))
         .map(|l| format!("{l}\n"))
         .collect();
-    let err = parse_reasoning_graph(&stripped).expect_err("missing resultQuery must return Err");
+    let err = parse_reasoning_graph(&stripped, &NoNativeReceipts)
+        .expect_err("missing resultQuery must return Err");
     assert!(
         err.message().contains("resultQuery"),
         "error must name the missing field: {err}"
@@ -1418,8 +2097,8 @@ fn parse_fails_closed_on_missing_result_conclusion() {
         .filter(|l| !l.contains("resultConclusion"))
         .map(|l| format!("{l}\n"))
         .collect();
-    let err =
-        parse_reasoning_graph(&stripped).expect_err("missing resultConclusion must return Err");
+    let err = parse_reasoning_graph(&stripped, &NoNativeReceipts)
+        .expect_err("missing resultConclusion must return Err");
     assert!(
         err.message().contains("resultConclusion"),
         "error must name the missing field: {err}"
@@ -1435,8 +2114,8 @@ fn parse_fails_closed_on_missing_result_budget_consumed() {
         .filter(|l| !l.contains("resultBudgetConsumed"))
         .map(|l| format!("{l}\n"))
         .collect();
-    let err =
-        parse_reasoning_graph(&stripped).expect_err("missing resultBudgetConsumed must return Err");
+    let err = parse_reasoning_graph(&stripped, &NoNativeReceipts)
+        .expect_err("missing resultBudgetConsumed must return Err");
     assert!(
         err.message().contains("resultBudgetConsumed"),
         "error must name the missing field: {err}"
@@ -1490,8 +2169,8 @@ fn derived_axiom_blank_and_literal_terms_round_trip() {
     );
 
     let body = project_reasoning_result(&result).unwrap();
-    let parsed = parse_reasoning_graph(&body).expect("parse must succeed");
-    let ResultPayload::Inferred(rows) = &parsed.payload else {
+    let parsed = parse_reasoning_graph(&body, &NoNativeReceipts).expect("parse must succeed");
+    let ResultPayload::Inferred(rows) = parsed.payload() else {
         panic!("payload must be Inferred");
     };
     assert_eq!(rows.len(), 2, "both derived axioms must survive");
@@ -1633,7 +2312,8 @@ fn conjecture_verdict_round_trips() {
         forbidden_predicate: Some(REFUTED_PREDICATE),
     };
     let body = project_conjecture_verdict(&input).unwrap();
-    let record = parse_conjecture_verdict(&body).expect("parse conjecture verdict");
+    let record =
+        parse_conjecture_verdict(&body, &NoNativeReceipts).expect("parse conjecture verdict");
 
     assert_eq!(record.content_key, "formula:phi-alpha-normalized");
     assert_eq!(record.standpoint, "http://ex/standpointA");
@@ -1698,7 +2378,7 @@ fn conjecture_verdict_escapes_control_bearing_formula_identity() {
         "the N-Triples transport must not contain raw control scalars"
     );
 
-    let record = parse_conjecture_verdict(&body)
+    let record = parse_conjecture_verdict(&body, &NoNativeReceipts)
         .expect("the escaped control-bearing conjecture verdict must remain valid N-Triples");
     assert_eq!(record.content_key, content_key);
 }
@@ -1717,7 +2397,8 @@ fn promotion_leg_emitted_exactly_on_corroboration() {
         forbidden_predicate: None,
     };
     let body = project_conjecture_verdict(&input).unwrap();
-    let record = parse_conjecture_verdict(&body).expect("parse corroborated verdict");
+    let record =
+        parse_conjecture_verdict(&body, &NoNativeReceipts).expect("parse corroborated verdict");
     assert_eq!(record.lifecycle, ConjectureLifecycleState::Corroborated);
 
     // No anti-conjecture obligation leg on a corroboration.
@@ -1791,7 +2472,7 @@ fn obligation_leg_emitted_exactly_on_refutation() {
         forbidden_predicate: Some(REFUTED_PREDICATE),
     };
     let body = project_conjecture_verdict(&input).unwrap();
-    let record = parse_conjecture_verdict(&body).expect("parse refuted verdict");
+    let record = parse_conjecture_verdict(&body, &NoNativeReceipts).expect("parse refuted verdict");
     assert!(
         record.promotion_candidate.is_none()
             && !body.contains(&logic("conjecturePromotionCandidate")),
@@ -1839,7 +2520,7 @@ fn open_verdict_emits_neither_leg() {
         forbidden_predicate: None,
     };
     let body = project_conjecture_verdict(&input).unwrap();
-    let record = parse_conjecture_verdict(&body).expect("parse open verdict");
+    let record = parse_conjecture_verdict(&body, &NoNativeReceipts).expect("parse open verdict");
     assert_eq!(record.lifecycle, ConjectureLifecycleState::Open);
     assert!(
         record.promotion_candidate.is_none() && record.obligation_candidate.is_none(),
@@ -1964,7 +2645,7 @@ fn conjecture_reader_rejects_a_blank_math_statement_identity() {
     })
     .unwrap();
     let malformed = body.replace(&format!("<{math_iri}>"), "_:math-statement");
-    let error = parse_conjecture_verdict(&malformed).unwrap_err();
+    let error = parse_conjecture_verdict(&malformed, &NoNativeReceipts).unwrap_err();
     assert!(
         error
             .to_string()
@@ -2020,7 +2701,8 @@ fn math_twin_edge_names_the_witness() {
         "the math:conjectureUnderTest twin bridge `{under_test}` must be present; body:\n{body}"
     );
     // And it round-trips.
-    let record = parse_conjecture_verdict(&body).expect("parse refuted verdict with math twin");
+    let record = parse_conjecture_verdict(&body, &NoNativeReceipts)
+        .expect("parse refuted verdict with math twin");
     assert_eq!(
         record.math_conjecture.as_deref(),
         Some(math_iri),
@@ -2057,8 +2739,8 @@ fn conjecture_under_test_bridge_emitted_on_corroboration_and_absent_without_math
         !body.contains(&math("hasCounterexample")),
         "a corroborated verdict must NOT carry a math:hasCounterexample edge; body:\n{body}"
     );
-    let record =
-        parse_conjecture_verdict(&body).expect("parse corroborated verdict with math twin");
+    let record = parse_conjecture_verdict(&body, &NoNativeReceipts)
+        .expect("parse corroborated verdict with math twin");
     assert_eq!(record.math_conjecture.as_deref(), Some(math_iri));
 
     // When no math statement is named, NEITHER math edge is emitted and the record's
@@ -2076,8 +2758,8 @@ fn conjecture_under_test_bridge_emitted_on_corroboration_and_absent_without_math
         !bare.contains(&math("conjectureUnderTest")) && !bare.contains(&math("hasCounterexample")),
         "no math edges may be emitted when no math_conjecture is supplied; body:\n{bare}"
     );
-    let bare_record =
-        parse_conjecture_verdict(&bare).expect("parse corroborated verdict without math twin");
+    let bare_record = parse_conjecture_verdict(&bare, &NoNativeReceipts)
+        .expect("parse corroborated verdict without math twin");
     assert!(
         bare_record.math_conjecture.is_none(),
         "math_conjecture must be None when no bridge edge is present"
@@ -2086,8 +2768,11 @@ fn conjecture_under_test_bridge_emitted_on_corroboration_and_absent_without_math
 
 #[test]
 fn parse_rejects_body_without_conjecture_subject() {
-    let err = parse_conjecture_verdict("<http://ex/s> <http://ex/p> <http://ex/o> .\n")
-        .expect_err("a body without a logic:Conjecture subject must fail closed");
+    let err = parse_conjecture_verdict(
+        "<http://ex/s> <http://ex/p> <http://ex/o> .\n",
+        &NoNativeReceipts,
+    )
+    .expect_err("a body without a logic:Conjecture subject must fail closed");
     assert!(
         err.message().contains("no logic:Conjecture subject"),
         "err was: {err}"
@@ -2109,15 +2794,20 @@ fn native_reader_preserves_the_selected_verdict_and_ignores_other_worlds() {
     );
     let dataset = purrdf::parse_dataset(trig.as_bytes(), "application/trig", None).unwrap();
     let selected = dataset.term_id_by_iri("urn:verdict:selected").unwrap();
-    let parsed = parse_reasoning_dataset(&dataset, GraphMatch::Named(selected)).unwrap();
+    let parsed =
+        parse_reasoning_dataset(&dataset, GraphMatch::Named(selected), &NoNativeReceipts).unwrap();
     assert_eq!(parsed.provenance, rich_result().provenance);
     assert_eq!(
         parsed.inferred(),
-        parse_reasoning_graph(&body).unwrap().inferred()
+        parse_reasoning_graph(&body, &NoNativeReceipts)
+            .unwrap()
+            .inferred()
     );
-    assert!(parse_reasoning_dataset(&dataset, GraphMatch::Default).is_err());
+    assert!(parse_reasoning_dataset(&dataset, GraphMatch::Default, &NoNativeReceipts).is_err());
     let other = dataset.term_id_by_iri("urn:verdict:other").unwrap();
-    assert!(parse_reasoning_dataset(&dataset, GraphMatch::Named(other)).is_err());
+    assert!(
+        parse_reasoning_dataset(&dataset, GraphMatch::Named(other), &NoNativeReceipts).is_err()
+    );
 }
 
 #[test]
@@ -2130,6 +2820,6 @@ fn two_unrelated_reasoning_verdicts_cannot_select_a_handle_by_row_order() {
         project_reasoning_result(&first).unwrap(),
         project_reasoning_result(&second).unwrap()
     );
-    let error = parse_reasoning_graph(&body).unwrap_err();
+    let error = parse_reasoning_graph(&body, &NoNativeReceipts).unwrap_err();
     assert!(error.to_string().contains("expected one aggregate"));
 }

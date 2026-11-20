@@ -217,6 +217,15 @@ pub trait LibraryLock {}
 /// library in one step, so a commit that writes more than one segment can never land
 /// some of them and lose the rest.
 pub trait SegmentLibrary: Send + Sync {
+    /// Refuse a standalone filesystem output that would replace this library or
+    /// its stable transaction lock. Resolving a destination does not create it.
+    ///
+    /// # Errors
+    /// An alias of either owned destination, an unresolvable path, or a backend
+    /// without filesystem identity for this explicitly selected output operation.
+    #[cfg(not(target_arch = "wasm32"))]
+    fn ensure_distinct_output(&self, output: &std::path::Path) -> Result<()>;
+
     /// The library's current bytes. A library that has never been written is EMPTY,
     /// not an error — a first-ever read of an untouched library is normal.
     ///
@@ -1039,6 +1048,113 @@ mod native {
         PathBuf::from(os)
     }
 
+    /// Resolve a library destination without requiring its first-use parents to
+    /// exist. Only a missing component may be retained; other IO failures refuse.
+    fn library_destination(path: &Path) -> io::Result<PathBuf> {
+        let mut selected = std::path::absolute(path)?;
+        let mut seen = std::collections::BTreeSet::new();
+        'destination: loop {
+            if !seen.insert(selected.clone()) {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "cyclic library destination symlink",
+                ));
+            }
+            let mut prefix = selected.clone();
+            let mut suffix = Vec::new();
+            let (mut resolved, followed_symlink) = loop {
+                match fs::symlink_metadata(&prefix) {
+                    Ok(metadata) if metadata.file_type().is_symlink() => {
+                        let target = fs::read_link(&prefix)?;
+                        break (
+                            if target.is_absolute() {
+                                target
+                            } else {
+                                prefix
+                                    .parent()
+                                    .ok_or_else(|| {
+                                        io::Error::new(
+                                            io::ErrorKind::InvalidInput,
+                                            "library symlink needs a parent",
+                                        )
+                                    })?
+                                    .join(target)
+                            },
+                            true,
+                        );
+                    }
+                    Ok(_) => break (fs::canonicalize(&prefix)?, false),
+                    Err(error) if error.kind() == io::ErrorKind::NotFound => {
+                        let component = prefix.components().next_back().ok_or_else(|| {
+                            io::Error::new(
+                                io::ErrorKind::InvalidInput,
+                                "library destination needs an existing ancestor",
+                            )
+                        })?;
+                        suffix.push(component.as_os_str().to_owned());
+                        prefix = prefix
+                            .parent()
+                            .ok_or_else(|| {
+                                io::Error::new(
+                                    io::ErrorKind::InvalidInput,
+                                    "library destination needs a parent",
+                                )
+                            })?
+                            .to_path_buf();
+                    }
+                    Err(error) => return Err(error),
+                }
+            };
+            let mut components = suffix.into_iter().rev();
+            while let Some(component) = components.next() {
+                if component == ".." {
+                    // A preceding missing/.. pair may expose an existing symlink.
+                    // Let the filesystem interpret it before traversing its parent.
+                    match fs::canonicalize(resolved.join("..")) {
+                        Ok(parent) => resolved = parent,
+                        Err(cause) if cause.kind() == io::ErrorKind::NotFound => {
+                            match fs::symlink_metadata(&resolved) {
+                                Ok(metadata) if metadata.file_type().is_symlink() => {
+                                    let target = fs::read_link(&resolved)?;
+                                    selected = if target.is_absolute() {
+                                        target
+                                    } else {
+                                        resolved
+                                            .parent()
+                                            .ok_or_else(|| {
+                                                io::Error::new(
+                                                    io::ErrorKind::InvalidInput,
+                                                    "library symlink needs a parent",
+                                                )
+                                            })?
+                                            .join(target)
+                                    };
+                                    selected.push("..");
+                                    for remaining in components {
+                                        selected.push(remaining);
+                                    }
+                                    continue 'destination;
+                                }
+                                Ok(_) => return Err(cause),
+                                Err(error) if error.kind() == io::ErrorKind::NotFound => {
+                                    let _ = resolved.pop();
+                                }
+                                Err(error) => return Err(error),
+                            }
+                        }
+                        Err(error) => return Err(error),
+                    }
+                } else {
+                    resolved.push(component);
+                }
+            }
+            if resolved == selected && !followed_symlink {
+                return Ok(resolved);
+            }
+            selected = resolved;
+        }
+    }
+
     /// The native lock: an `flock`ed file handle, unlocked on drop.
     struct FsLibraryLock {
         file: fs::File,
@@ -1055,6 +1171,31 @@ mod native {
     }
 
     impl SegmentLibrary for FsSegmentLibrary {
+        fn ensure_distinct_output(&self, output: &Path) -> Result<()> {
+            let destination = |path: &Path| {
+                library_destination(path).map_err(|cause| {
+                    gmeow_errors::Diag::of_kind(crate::error::Mcp::caused_by(
+                        format!("resolve protected library destination {}", path.display()),
+                        cause,
+                    ))
+                })
+            };
+            let output = destination(output)?;
+            for (role, path) in [
+                ("library", self.path.clone()),
+                ("library lock", lock_path(&self.path)),
+            ] {
+                if output == destination(&path)? {
+                    return Err(err(format!(
+                        "standalone artifact output {} would replace the active {role} {}",
+                        output.display(),
+                        path.display()
+                    )));
+                }
+            }
+            Ok(())
+        }
+
         fn read_bytes(&self) -> Result<Vec<u8>> {
             match fs::read(&self.path) {
                 Ok(bytes) => Ok(bytes),
@@ -1511,6 +1652,13 @@ struct InMemoryLibraryLock<'a> {
 impl LibraryLock for InMemoryLibraryLock<'_> {}
 
 impl SegmentLibrary for InMemorySegmentLibrary {
+    #[cfg(not(target_arch = "wasm32"))]
+    fn ensure_distinct_output(&self, _output: &std::path::Path) -> Result<()> {
+        Err(err(
+            "the selected in-memory library has no filesystem output identity",
+        ))
+    }
+
     fn read_bytes(&self) -> Result<Vec<u8>> {
         Ok(self
             .bytes

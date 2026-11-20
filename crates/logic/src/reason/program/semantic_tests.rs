@@ -221,7 +221,14 @@ fn derived_property_characteristics_are_visible_in_the_same_fixed_point() {
             }
             let (result, _, _) =
                 super::super::result_from_closure(&prepared, closure, None).unwrap();
-            let transported = crate::result_rdf::transport_reasoning(&result).unwrap();
+            let (_, publication) = crate::result_rdf::project_reasoning_dataset(&result)
+                .expect("publish the native result and its receipt");
+            let receipt = publication
+                .as_ref()
+                .expect("the native result publishes its execution receipt")
+                .as_ref();
+            let transported = crate::result_rdf::transport_reasoning(&result, Some(receipt))
+                .expect("transport the result with its published receipt");
             assert_eq!(
                 transported
                     .result()

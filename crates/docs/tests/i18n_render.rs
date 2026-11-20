@@ -125,7 +125,7 @@ fn french_render_translates_where_present_and_falls_back_per_term() {
     let alpha = &model.terms[0];
     let beta = &model.terms[1];
 
-    let fr = render_site_lang(&model, "fr");
+    let fr = render_site_lang(&model, "fr").expect("the selected documentation model renders");
 
     // Alpha has a French catalog → its page shows the French definition/label.
     let alpha_fr = term_md(&fr, alpha);
@@ -155,7 +155,7 @@ fn chinese_render_falls_back_to_english_when_no_catalog() {
     // zh is an available language but no zh entries exist → every term falls back
     // to the English carrier (per-term fallback, not a hard failure).
     let model = bilingual_model();
-    let zh = render_site_lang(&model, "zh");
+    let zh = render_site_lang(&model, "zh").expect("the selected documentation model renders");
     let alpha_zh = term_md(&zh, &model.terms[0]);
     assert!(
         alpha_zh.contains("ALPHADEFEN"),
@@ -190,8 +190,8 @@ fn translated_tree_preserves_the_no_dangling_link_invariant() {
 fn language_render_is_deterministic() {
     let model = bilingual_model();
     assert_eq!(
-        render_site_lang(&model, "fr"),
-        render_site_lang(&model, "fr"),
+        render_site_lang(&model, "fr").expect("the selected documentation model renders"),
+        render_site_lang(&model, "fr").expect("the selected documentation model renders"),
         "fr render must be byte-stable across calls"
     );
 }

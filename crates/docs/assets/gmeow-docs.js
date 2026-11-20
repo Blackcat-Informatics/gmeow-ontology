@@ -17,7 +17,9 @@ import validateInit, { validate as wasmValidate } from "./validate/gmeow_validat
 import reasonInit, {
   reason as wasmReason,
   conjecture as wasmConjecture,
+  admit_artifact as wasmAdmitArtifact,
 } from "./reason/gmeow_reason_wasm.js";
+import { admitReasoningArtifact } from "./reasoning-artifact.mjs";
 import gmnInit, {
   to_gmn1 as wasmToGmn1,
   from_gmn1 as wasmFromGmn1,
@@ -255,7 +257,7 @@ const ensureReasoner = async () => {
 
 // ── Live entailment panel (W4b) ─────────────────────────────────────────────
 // Run the native GMEOW structured-DL reasoner (gmeow-reason-wasm) over pasted RDF
-// entirely in-browser and show the inference diff (the entailed triples). The wasm
+// entirely in-browser and show the complete asserted and inferred RDF closure. The wasm
 // chase is byte-identical to the native one (proven by the F3 witness lane).
 const reasonForm = document.getElementById("gmeow-reason-form");
 if (reasonForm) {
@@ -266,14 +268,17 @@ if (reasonForm) {
     resultsEl.textContent = "Reasoning…";
     try {
       await ensureReasoner();
-      const closure = wasmReason(inputEl.value, "turtle");
+      const response = JSON.parse(wasmReason(inputEl.value, "turtle"));
+      const admitted = admitReasoningArtifact(response.artifact, wasmAdmitArtifact);
+      const closure = admitted.closure_nquads;
+      if (typeof closure !== "string") throw new Error("reasoning response has no admitted full closure");
       const lines = closure.split("\n").filter((l) => l.trim());
       resultsEl.replaceChildren();
       const h = document.createElement("p");
       h.textContent =
         lines.length === 0
-          ? "No new entailments."
-          : `Entailed ${lines.length} triple${lines.length === 1 ? "" : "s"}:`;
+          ? "The closure is empty."
+          : `Closure: ${lines.length} RDF statement${lines.length === 1 ? "" : "s"}:`;
       const pre = document.createElement("pre");
       pre.textContent = closure.trim();
       resultsEl.append(h, pre);
@@ -425,7 +430,9 @@ if (conjectureForm) {
     try {
       await ensureReasoner();
       const demo = DEMOS.find((d) => d.id === selectEl.value) ?? DEMOS[0];
-      const nt = wasmConjecture(demo.kb, "turtle", demo.formula, STANDPOINT);
+      const response = JSON.parse(wasmConjecture(demo.kb, "turtle", demo.formula, STANDPOINT));
+      const admitted = admitReasoningArtifact(response.artifact, wasmAdmitArtifact);
+      const nt = admitted.judgment_nquads;
       const v = parseVerdict(nt);
       resultsEl.replaceChildren();
 

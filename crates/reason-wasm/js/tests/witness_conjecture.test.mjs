@@ -3,7 +3,7 @@
 
 // WASM half of the W4 conjecture-playground parity WITNESS (symmetric proof / counterproof).
 // Runs the wasm `conjecture()` over the SAME two curated inputs the native
-// `tests/witness_conjecture.rs` pins, joins the two verdict bodies with the SAME delimiter,
+// `tests/witness_conjecture.rs` pins, retains both complete artifact responses,
 // and asserts byte-identity with the committed native attestation. Both matching the one
 // attestation proves native ≡ wasm for the conjecture engine.
 import { test } from "node:test";
@@ -62,17 +62,13 @@ const REFUTE_KB =
   "ex:a rdf:type ex:A .\n" +
   "ex:A owl:disjointWith ex:B .\n";
 
-// MUST match `DELIM` in tests/witness_conjecture.rs byte-for-byte.
-const DELIM =
-  "# ── conjecture witness · counterproof leg ──────────────────────────────\n";
-
 test("wasm conjecture verdicts are byte-identical to the native witness attestation", async () => {
   const attestation = await readFile(
-    fileURLToPath(new URL("../../tests/WITNESS.conjecture.nq", import.meta.url)),
+    fileURLToPath(new URL("../../tests/WITNESS.conjecture.json", import.meta.url)),
     "utf8",
   );
   const proof = conjecture(PROOF_KB, "turtle", PROOF_FORMULA, STANDPOINT);
   const refute = conjecture(REFUTE_KB, "turtle", REFUTE_FORMULA, STANDPOINT);
-  const bundle = proof + DELIM + refute;
+  const bundle = JSON.stringify({ proof: JSON.parse(proof), refutation: JSON.parse(refute) });
   assert.equal(bundle, attestation, "wasm conjecture verdicts drifted from native attestation");
 });

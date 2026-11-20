@@ -862,8 +862,8 @@ msgid "dataflow: reason → gts-sink"
 msgstr "数据流：reason → gts-sink"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-reason|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The dataflow edge from gmeow:stage-reason to gmeow:stage-gts-sink: gts-sink reads the artifact 'generated/logic/dl-el-crosscheck-report.ttl', the artifact 'generated/logic/inferred-closure.rdf12.ttl', the artifact 'generated/logic/perf-ledger.ttl', the artifact 'generated/logic/reasoning-explanations.rdf12.ttl' of the producer's product."
-msgstr "从 gmeow:stage-reason 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的产物“generated/logic/dl-el-crosscheck-report.ttl”、产物“generated/logic/inferred-closure.rdf12.ttl”、产物“generated/logic/perf-ledger.ttl”、产物“generated/logic/reasoning-explanations.rdf12.ttl”。"
+msgid "The dataflow edge from gmeow:stage-reason to gmeow:stage-gts-sink: gts-sink reads the artifact 'generated/logic/dl-el-crosscheck-report.ttl', the artifact 'generated/logic/inferred-closure.rdf12.ttl', the artifact 'generated/logic/perf-ledger.ttl', the artifact 'generated/logic/reasoning-explanations.rdf12.ttl' of the producer's product. It also reads the required binary native execution artifact and emits its dedicated receipt frame without retaining the rich reasoning carrier."
+msgstr "从 gmeow:stage-reason 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的产物“generated/logic/dl-el-crosscheck-report.ttl”、产物“generated/logic/inferred-closure.rdf12.ttl”、产物“generated/logic/perf-ledger.ttl”、产物“generated/logic/reasoning-explanations.rdf12.ttl”。 它还读取必需的二进制原生执行制品并输出其专用凭据帧，无须保留丰富的推理载体。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-snapshot|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "dataflow: snapshot → gts-sink"
@@ -1300,6 +1300,14 @@ msgstr "从 gmeow:stage-snapshot 到 gmeow:stage-export-yaml-ld 的数据流边�
 msgctxt "https://blackcatinformatics.ca/gmeow/flowReasonDataflow|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The edge exists because BYTES genuinely flow producer → consumer: the consumer reads the producer's product (the ordinary gmeow:dataflowConsumes case). A dataflow reasoner may key the consumer's cache on the flowing entities' digests and is free to schedule producers first. The default and most common reason; most of the build DAG's own edges carry it, and the edges that carry no bytes declare gmeow:flowReasonAuthority instead. Distinct from gmeow:flowReasonAuthority, whose edge carries no bytes and exists purely to order two stages."
 msgstr "该边之所以存在，是因为字节确实从生产者流向使用方：使用方读取生产者的产品（即常规的 gmeow:dataflowConsumes 情形）。数据流推理器可以按流动实体的摘要为使用方的缓存建键，并可自由地先调度生产者。这是默认且最常见的原因；构建 DAG 的大多数边都带有它，而不携带任何字节的边则改为声明 gmeow:flowReasonAuthority。与 gmeow:flowReasonAuthority 不同，后者的边不携带任何字节，仅用于为两个阶段排序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-verify-reason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The typed dataflow edge from gmeow:stage-reason to gmeow:stage-verify-attestation: the verifier consumes the already-built typed ReasoningResult pinned to graph/reasoning and evaluates every embedded bad-example query against it. Narrowing the edge to graph/reasoning keys the bounded persistent attestation on the exact logical result while excluding the reason stage's committed prose and report byte lanes; no second closure is constructed. It also borrows the required binary native execution artifact for exact transport normalization without another publication encoding."
+msgstr "从 gmeow:stage-reason 到 gmeow:stage-verify-attestation 的类型化数据流边：验证器消费已构建并固定到 graph/reasoning 的类型化 ReasoningResult，依据它评估每个内嵌反例查询。将该边限制到 graph/reasoning，使有界持久凭证以确切逻辑结果为键，同时排除推理阶段的已提交文字和报告字节通道；不会构建第二个闭包。 它还借用必需的二进制原生执行制品，以在不再次编码发布的情况下完成精确传输规范化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-verify-reason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dataflow: reason → verify attestation"
+msgstr "数据流：推理 → 验证凭证"
 
 #: module.ttl
 msgid "Stage Output Family"

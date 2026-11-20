@@ -18,12 +18,13 @@ chained by containment.
 Contested geography gets the standpoint treatment, not a dispute mechanism:
 a Crimea-class sovereignty conflict is two `gmeow:accordingTo`-annotated
 `gmeow:containedInPlace` statements; an endonym/exonym conflict is two co-equal place
-namings. There is **no `preferredJurisdiction` and no `primaryName`** — competing claims
-coexist, none privileged (Principle 9), and superseded ones are suppressed via
-`gmeow:displayable false`, never deleted (Principle 10). Everything computational — CIDR
-containment, calendar/assembly liftover, geodesic distance, transform-tree math, RCC8
-closure — is solver-layer (Principle 12): the slice models structure, `gmeow:frameSolver`
-names the engine.
+namings. Competing claims coexist on equal terms (Principle 9). Keep records their own
+holders withdraw or replace (Principle 10). Use `gmeow:displayable false` for global
+suppression of a record, such as when a holder suppresses a superseded name for every
+reader. Choose which contested claims to show according to the reader's policy at
+projection. The solver handles CIDR containment, calendar and assembly liftover, geodesic
+distance, transform-tree math and RCC8 closure (Principle 12). The slice models structure
+and `gmeow:frameSolver` names the engine.
 
 ## The location umbrella
 
@@ -38,6 +39,12 @@ storage paths); everything else is a type value.
 A geographic location at any granularity; the kind (country … room, ~600 GeoNames feature
 codes) is the open `gmeow:placeType` value, non-functional because multi-source
 classifications coexist as evidence.
+
+Use `gmeow:placeSupersededBy` from a former town to the distinct municipality that
+succeeds it after a merger. Its inverse, `gmeow:placeSupersedes`, can link the successor
+to each predecessor. Keep the predecessor place and leave display decisions to the
+reader's policy at projection. Record an alternate or historical name of the same place
+as a `gmeow:NameUsage` of a `gmeow:PlaceName`.
 
 ### gmeow:VirtualLocation · gmeow:StorageLocation
 

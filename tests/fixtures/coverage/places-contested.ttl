@@ -149,14 +149,13 @@ ex:disputedGeom a gmeow:Geometry ;
     gmeow:geometryDeterminacy gmeow:determinacyDisputed .
 
 # --------------------------------------------------------------------------- #
-# Issue #82 — Historical place superseded by another (Principle 10)
+# Historical place succession without a display flag
 # --------------------------------------------------------------------------- #
 
 ex:historicalPlace a gmeow:Place ;
     gmeow:placeType gmeow:placeTypeCity ;
     gmeow:placeSupersededBy ex:disputedPlace ;
-    gmeow:hasGeometry ex:historicalGeom ;
-    gmeow:displayable false .
+    gmeow:hasGeometry ex:historicalGeom .
 
 ex:historicalGeom a gmeow:Geometry ;
     gmeow:geometryType gmeow:geometryTypePoint ;

@@ -311,14 +311,17 @@ fn native_equality_refuses_unknown_datatype_comparison() {
             .iter()
             .all(|obstruction| !obstruction.reason.support.is_empty())
     );
-    let projection = crate::result_rdf::project_reasoning_result(&result).unwrap();
-    let restored = crate::result_rdf::parse_reasoning_graph(&projection).unwrap();
+    let publication = crate::result_rdf::ResultProjection::reasoning(&result).unwrap();
+    let projection = publication.to_ntriples();
+    let restored =
+        crate::result_rdf::parse_reasoning_graph(&projection, &publication.receipt()).unwrap();
     assert_eq!(restored.native_execution().unwrap(), execution);
     let mut corrupt = result.clone();
     let ledger = corrupt
         .provenance
         .native_execution
         .as_mut()
+        .map(std::sync::Arc::make_mut)
         .unwrap()
         .families
         .iter_mut()

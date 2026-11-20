@@ -96,7 +96,7 @@ use crate::node::StageProduct;
 /// subdirectory and the [`CachedBundle`] manifest so a stale cache (e.g. the C4-spine
 /// byte-only stand-in, version-less or an older rev) is treated as a clean MISS, not
 /// mis-decoded. Bump on ANY change to the persisted shape (no migration path).
-pub const CACHE_VERSION: u32 = 24;
+pub const CACHE_VERSION: u32 = 25;
 
 /// Schema revision for the canonical action-key rows and immutable stage receipt.
 pub const RECEIPT_SCHEMA_VERSION: u32 = 2;
@@ -104,7 +104,7 @@ pub const RECEIPT_SCHEMA_VERSION: u32 = 2;
 /// The structural codec identity. This is explicit in every action key rather than
 /// relying only on [`CACHE_VERSION`], because a receipt must name the representation
 /// it authenticates without knowing its storage path.
-pub const CACHE_CODEC_IDENTITY: &str = "bincode-1+purrpack1+typed-ir5+typed-payload7+compiled-logic-cbor2+diagnostics-cbor2+receipt-json-2";
+pub const CACHE_CODEC_IDENTITY: &str = "bincode-1+purrpack1+typed-ir5+typed-payload8-binary-native-receipt+compiled-logic-cbor2+diagnostics-cbor2+receipt-json-2";
 
 /// Complete independently reusable contributions use the shared store's byte
 /// budget. Stage disposition and authenticated output selection determine which
@@ -886,6 +886,7 @@ pub struct ArtifactCacheHit {
 fn validate_handle_projection(
     handle: &PipelineHandle,
     graph: &purrdf::RdfDataset,
+    receipt_bytes: Option<&[u8]>,
 ) -> Result<(), gmeow_errors::Diag> {
     let error = |detail: String| {
         gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
@@ -911,8 +912,26 @@ fn validate_handle_projection(
             true
         }
         PipelineHandle::Reasoning(result) => {
-            let expected = gmeow_logic::result_rdf::project_reasoning_dataset(result)
-                .map_err(|e| error(e.to_string()))?;
+            use gmeow_logic::result_rdf::{
+                NativeReceiptAddress, NativeReceiptRef, ResultProjection,
+            };
+            let address = receipt_bytes.map(NativeReceiptAddress::of_bytes);
+            let receipt = address
+                .as_ref()
+                .zip(receipt_bytes)
+                .map(|(address, bytes)| NativeReceiptRef::admit(address, bytes))
+                .transpose()?;
+            // The original rich result owns the declared payload kind/count and
+            // aggregate address. A parsed summary intentionally omits some rows.
+            // The public borrowed projection authenticates the entire native
+            // record without creating another publication encoding.
+            let (expected, _borrowed_receipt) =
+                ResultProjection::reasoning_with_receipt(result, receipt)
+                    .map_err(|cause| cause.with_context("cache: typed handle projection binding"))?
+                    .into_dataset()
+                    .map_err(|cause| {
+                        cause.with_context("cache: typed handle projection binding")
+                    })?;
             purrdf::datasets_isomorphic(
                 graph,
                 &expected,
@@ -1449,12 +1468,32 @@ impl CachedBundle {
             let backing = bundle
                 .dataset()
                 .project_graph(Some(&purrdf::RdfTerm::iri(graph)))?;
-            validate_handle_projection(&entry.payload, &backing)?;
+            validate_handle_projection(
+                &entry.payload,
+                &backing,
+                crate::bundle::bundle_artifact(bundle, crate::stages::reason::NATIVE_RECEIPT_PATH),
+            )?;
             let arm = handle_arm_tag(&entry.payload);
             let payload_digest = handle_payload_digest(&entry.payload);
             let encoded = encode_handle(&entry.payload)?;
             let typed_payload = Some(encoded);
             let rebuilt = rebuild_handle(arm, typed_payload.as_deref())?;
+            if let PipelineHandle::Reasoning(result) = &rebuilt
+                && result.provenance.native_execution.is_some()
+            {
+                use gmeow_logic::result_rdf::{NativeReceiptAddress, NativeReceiptRef};
+                let bytes = crate::bundle::bundle_artifact(
+                    bundle,
+                    crate::stages::reason::NATIVE_RECEIPT_PATH,
+                )
+                .ok_or_else(|| {
+                    gmeow_errors::Diag::of_kind(crate::error::Decode::new(
+                        "cache: rebuilt native reasoning handle has no retained receipt".into(),
+                    ))
+                })?;
+                let address = NativeReceiptAddress::of_bytes(bytes);
+                NativeReceiptRef::admit(&address, bytes)?.admit_result(result)?;
+            }
             let rebuilt_digest = handle_payload_digest(&rebuilt);
             if rebuilt_digest != payload_digest {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::Decode::new(
@@ -1581,6 +1620,11 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
                 )))
             })?;
             let payload = rebuild_handle(&h.arm, h.typed_payload.as_ref().map(AsRef::as_ref))?;
+            validate_handle_projection(
+                &payload,
+                &subgraph,
+                crate::bundle::bundle_artifact(&bundle, crate::stages::reason::NATIVE_RECEIPT_PATH),
+            )?;
             if let PipelineHandle::Diagnostics(publication) = &payload {
                 publication.validate_binding(&self.stage_id, &h.graph)?;
                 if !crate::handle_identity::contains_graph(&bundle, &h.graph) {

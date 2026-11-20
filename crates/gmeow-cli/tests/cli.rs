@@ -819,7 +819,8 @@ fn conjecture_test_refutes_persists_and_grows_the_library() {
     );
     gmeow()
         .env("GMEOW_CONJECTURE_PATH", &lib)
-        .args(["conjecture", "test"])
+        .args(["conjecture", "test", "--out"])
+        .arg(dir.join("verdict.gts"))
         .arg("--formula")
         .arg(&formula)
         .arg("--kb")
@@ -837,9 +838,18 @@ fn conjecture_test_refutes_persists_and_grows_the_library() {
     // The append-only library was written and is non-empty.
     let grown = std::fs::metadata(&lib).map(|m| m.len()).unwrap_or(0);
     assert!(grown > 0, "the committed run must have grown the library");
+    let bytes = std::fs::read(dir.join("verdict.gts")).expect("complete persisted evaluation");
+    let result = gmeow_logic::result_rdf::parse_reasoning_artifact(&bytes)
+        .expect("admitted persisted conjecture artifact");
+    assert_eq!(
+        result.information,
+        gmeow_logic::result::InformationState::Opposed
+    );
 }
 
 /// A `--dry-run` computes the SAME verdict but WRITES NOTHING to the library.
+/// Its standalone artifact cannot alias and replace the selected library.
+/// A failed artifact export still discloses its identity and non-persisting state.
 #[test]
 fn conjecture_test_dry_run_writes_nothing() {
     let (_tmp, dir) = scratch("conjecture-dry");
@@ -851,7 +861,8 @@ fn conjecture_test_dry_run_writes_nothing() {
 
     gmeow()
         .env("GMEOW_CONJECTURE_PATH", &lib)
-        .args(["conjecture", "test"])
+        .args(["conjecture", "test", "--out"])
+        .arg(dir.join("verdict.gts"))
         .arg("--formula")
         .arg(&formula)
         .arg("--kb")
@@ -862,12 +873,56 @@ fn conjecture_test_dry_run_writes_nothing() {
         .success()
         .stdout(
             predicate::str::contains("lifecycle refuted-in-standpoint").and(
-                predicate::str::contains("persisted dry-run (nothing written)"),
+                predicate::str::contains("persisted dry-run (library unchanged)"),
             ),
         );
     // Nothing written: the library does not exist / is zero bytes.
     let written = lib.exists() && std::fs::metadata(&lib).map(|m| m.len()).unwrap_or(0) > 0;
     assert!(!written, "a dry run must write nothing to the library");
+    let bytes = std::fs::read(dir.join("verdict.gts")).expect("complete dry-run evaluation");
+    let result = gmeow_logic::result_rdf::parse_reasoning_artifact(&bytes)
+        .expect("admitted dry-run conjecture artifact");
+    assert_eq!(
+        result.information,
+        gmeow_logic::result::InformationState::Opposed
+    );
+    gmeow()
+        .env("GMEOW_CONJECTURE_PATH", &lib)
+        .args(["conjecture", "test", "--out"])
+        .arg(&dir)
+        .arg("--formula")
+        .arg(&formula)
+        .arg("--kb")
+        .arg(&kb)
+        .args(["--standpoint", "http://ex/standpoint/alice", "--dry-run"])
+        .assert()
+        .failure()
+        .stderr(
+            predicate::str::contains("; conjecture ")
+                .and(predicate::str::contains("committed=false; dry_run=true")),
+        );
+    assert!(
+        !lib.exists(),
+        "failed dry-run export must not create a library"
+    );
+    std::fs::write(&lib, b"preserved conjecture history")
+        .expect("seed the protected conjecture history");
+    gmeow()
+        .env("GMEOW_CONJECTURE_PATH", &lib)
+        .args(["conjecture", "test", "--out"])
+        .arg(&lib)
+        .arg("--formula")
+        .arg(&formula)
+        .arg("--kb")
+        .arg(&kb)
+        .args(["--standpoint", "http://ex/standpoint/alice", "--dry-run"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("would replace the active library"));
+    assert_eq!(
+        std::fs::read(&lib).expect("read the protected conjecture history"),
+        b"preserved conjecture history"
+    );
 }
 
 /// A KB whose `ex:trigger` fires the candidate on SEVERAL individuals, so the
@@ -897,7 +952,8 @@ fn conjecture_test_max_steps_bound_forces_open() {
 
     gmeow()
         .env("GMEOW_CONJECTURE_PATH", &lib)
-        .args(["conjecture", "test"])
+        .args(["conjecture", "test", "--out"])
+        .arg(dir.join("verdict.gts"))
         .arg("--formula")
         .arg(&formula)
         .arg("--kb")
@@ -912,6 +968,13 @@ fn conjecture_test_max_steps_bound_forces_open() {
                 .and(predicate::str::contains("evaluation budget-exhausted"))
                 .and(predicate::str::contains("discharge ObligationUnknown")),
         );
+    let bytes = std::fs::read(dir.join("verdict.gts")).expect("complete budget-cut evaluation");
+    let result = gmeow_logic::result_rdf::parse_reasoning_artifact(&bytes)
+        .expect("admitted budget-cut conjecture artifact");
+    assert_eq!(
+        result.evaluation,
+        gmeow_logic::result::EvaluationStatus::BudgetExhausted
+    );
 }
 
 // ── Hybrid query: external-relation provider on the shipped CLI ──────────────
