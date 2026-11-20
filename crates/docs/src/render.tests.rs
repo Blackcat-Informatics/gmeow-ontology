@@ -94,6 +94,54 @@ fn health_renders_undecided_native_reasoning_without_positive_claims() {
     assert!(output.contains("other documented classes is undetermined"));
 }
 
+/// A proof cited for a class in a premise remains visible as an inferred fact.
+/// Only the class named by its unsatisfiability conclusion gets the explanation.
+#[test]
+fn term_page_attributes_unsatisfiability_to_the_concluded_class() {
+    let mut model = tiny_model();
+    let [bar, foo] = model.terms.as_slice() else {
+        panic!("the documentation fixture supplies two classes");
+    };
+    model.reasoning = Some(crate::model::ReasoningVerdict {
+        consistency: crate::model::ConsistencyAssessment::Consistent,
+        input: "valid".into(),
+        evaluation: "completed".into(),
+        completeness: "complete".into(),
+        information: "supported".into(),
+        unsupported_constructs: Default::default(),
+        unsatisfiable: [foo.iri.clone(), bar.iri.clone()].into(),
+    });
+    let proof = crate::exec::Entailment {
+        rule: "logic:SubClassTransitivity".into(),
+        conclusion: "[gmeow:reasoning] gmeow:Bar rdfs:subClassOf owl:Nothing".into(),
+        premises: vec!["[gmeow:reasoning] gmeow:Bar rdfs:subClassOf gmeow:Foo".into()],
+        proves_term_unsatisfiable: true,
+    };
+    let exec = ExecutableDocsData {
+        term_entailments: BTreeMap::from([
+            (bar.iri.clone(), vec![proof.clone()]),
+            (
+                foo.iri.clone(),
+                vec![crate::exec::Entailment {
+                    proves_term_unsatisfiable: false,
+                    ..proof.clone()
+                }],
+            ),
+        ]),
+        ..Default::default()
+    };
+    let foo_page = to_markdown_exec(&model, &Page::Term(term_slug(foo)), &exec);
+    let bar_page = to_markdown_exec(&model, &Page::Term(term_slug(bar)), &exec);
+    let explanation = format!(
+        "- **{}:**",
+        model.ui("body_reasoning_unsatisfiable_because")
+    );
+    assert!(!foo_page.contains(&explanation));
+    assert!(foo_page.contains(model.ui("body_term_entailments")));
+    assert!(foo_page.contains(&proof.conclusion));
+    assert!(bar_page.contains(&format!("{explanation}\n  - `{}`", proof.conclusion)));
+}
+
 /// `CONTROLLER_HOOKS` equals the hooks the SHIPPED controller module actually binds.
 ///
 /// Scrapes `assets/gmeow-docs.js` for every element it looks up
@@ -1126,6 +1174,7 @@ fn per_term_card_json_and_full_md_are_emitted() {
             rule: "subClassOf-transitivity".to_string(),
             conclusion: "gmeow:Foo rdfs:subClassOf owl:Thing".to_string(),
             premises: vec!["gmeow:Foo rdfs:subClassOf gmeow:Bar".to_string()],
+            proves_term_unsatisfiable: false,
         }],
     );
     let exec = ExecutableDocsData {
