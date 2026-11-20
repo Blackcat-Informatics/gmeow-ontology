@@ -3,10 +3,10 @@
 
 # The Pipeline Spine — Carrier, Terminal, and Fanout
 
-> **Genre.** A normative architecture spec for the regeneration pipeline. The
-> declarative present tense is normative — "the carrier *is* the sole transport"
-> means "a conforming realization makes it so" — not a claim that every line of the
-> current build already conforms. The conformance gate (§7) is what establishes it.
+> **Genre.** A normative architecture spec for the regeneration pipeline.
+> The stage contract (§3) identifies the checks that enforce it and the
+> conventions that require review. The conformance gate (§7) checks the
+> materialized outputs against the bundle.
 >
 > **Audience.** Anyone working on `crates/pipeline`, the GTS terminal, or any stage
 > that produces a committed artifact under `generated/`.
@@ -67,27 +67,36 @@ native payload, graph binding and product commitment before admitting a hit.
 
 A stage is a function from carrier to carrier. It **reads** what upstream stages
 contributed and **attaches** its own contribution — one or more named graphs and/or
-blobs. Four rules bind every stage:
+blobs. Each stage follows four rules.
 
-1. **No out-of-band writes.** A stage never writes a file under `generated/`, never
-   reads one back as input, and never opens a side channel to a later stage. Its
-   only output is what it attaches to the carrier. (Reading authored *source* —
-   `slices/`, `dsl/`, `imports/` — is how stages begin; that is input, not
-   transport.)
-2. **Transform once (the razor).** Each transformation from one form to another
-   happens at most once per run. A closure, a projection, or a rendering is computed
-   a single time and attached; downstream consumers read the attached result rather
-   than recomputing it. Reasoning in particular runs **once**, materializing the
-   reasoned closure as a carrier graph that every consumer — the bundle, the
-   committed closure artifact, the documentation — reads from.
-3. **Declare contributions.** A stage names the graphs and blobs it contributes, so
-   the dependency order is derivable and the superset gate (§7) can map every output
-   to its producer.
-
-4. **Read only what you declared.** The scheduler hands a stage exactly the products
-   of the ids in its `dataflowConsumes`. There is no ambient access to a sibling's or
-   an ancestor's carrier; an undeclared read is not "unsupported", it is
-   *unreachable*.
+1. **Route stage products through the carrier (convention).** Read declared
+   authored inputs and publish outputs through the stage product. Keep
+   `generated/` writes and reads of the materialized outputs in the reconcile,
+   fanout, and audit phases. The carrier-purity test checks selected transport
+   code for store accumulation and round-trips. Review enforces the broader
+   convention about filesystem access and side channels.
+   [Carrier-purity test](../crates/pipeline/tests/carrier_purity.rs)
+2. **Transform once (convention).** Attach the authoritative closure,
+   projection, or rendering and reuse it in downstream stages. The scheduler
+   accounts for actions and their reads. Identifying equivalent computations
+   across separate stage bodies is a review responsibility.
+3. **Declare contributions (checked).** Name the graphs and blob
+   representations a stage attaches. The loader compares the RDF declarations
+   with the Rust implementation, and the scheduler compares the product's
+   attachment delta with those declarations. Authored dataflow edges order
+   dependencies. The superset gate (§7) verifies the correspondence between
+   shipped representatives and committed paths.
+   [Loader](../crates/pipeline/src/loader.rs) · [Scheduler](../crates/pipeline/src/scheduler.rs)
+4. **Declare the reads each edge makes (checked).** The scheduler provides only
+   the producer products named by `dataflowConsumes`. The bound dataflow
+   declares which reads need a live carrier and which use the artifact lane.
+   For each stage that executes successfully, the scheduler compares recorded reads
+   with those declarations in both directions. Undeclared reads and unread
+   declarations fail the run and prevent caching that product. An identity-only
+   dependency uses the producer's digest and requires no lane read. Stored
+   products are authenticated on cache hits. This check covers reads on declared
+   edges. Finding products with no declared reader remains a review responsibility.
+   [Read contracts](../crates/pipeline/src/reads.rs) · [Scheduler](../crates/pipeline/src/scheduler.rs)
 
 Stage kinds (source-load, transform, reason, validate, docs-render) differ only in
 *what* they contribute and *what they read*, never in *how* they deliver it: all
@@ -482,15 +491,18 @@ grounding slice is only *what to compute* — never *how to ship it*.
 
 ## 4. One terminal
 
-Exactly **one** stage writes bytes. The terminal takes the fully-accumulated
-carrier and **presents** it as the `gmeow.gts` bundle. It assembles nothing: it does
-not load sources, union datasets, re-canonicalize graphs, or recompute any view —
-those are the stages' work, already in the carrier. The terminal is the sole
-serialization boundary in the build, and the bundle it emits is the single
-content-addressed, signable artifact the project ships (Principles 14, 16).
+`stage-snapshot` assembles the cumulative carrier from upstream products and
+publishes the certified snapshot dataset. `stage-gts-sink` reads that dataset
+and the declared archive, dictionary, and export inputs. It assembles the
+physical frames, computes their identities, seals the medium envelopes, and
+publishes the serialized `gmeow.gts` bytes in its stage product. The reconcile
+phase materializes the bundle, then fanout projects its files (§6).
 
-A build with two writers — one that serializes and another that re-emits — has two
-terminals, and is non-conforming. Presentation and writing are one stage.
+The reconcile checks for exactly one declared sink and exactly one product
+that supplies the bundle bytes, and requires their stage identities to match.
+The shipped bundle is the sole GTS serialization boundary for the carrier
+(Principles 14 and 16).
+[Snapshot stage](../crates/pipeline/src/stages/carrier.rs) · [GTS sink](../crates/pipeline/src/stages/gts_sink.rs) · [Reconcile](../crates/pipeline/src/run.rs)
 
 ## 5. The superset law
 
