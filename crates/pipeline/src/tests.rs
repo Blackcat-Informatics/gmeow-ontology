@@ -2881,6 +2881,9 @@ fn run_retention_chain(
     (result, watch)
 }
 
+#[path = "scheduler.order_tests.rs"]
+mod scheduling_order;
+
 #[path = "scheduler.handle_retention_tests.rs"]
 mod handle_retention;
 

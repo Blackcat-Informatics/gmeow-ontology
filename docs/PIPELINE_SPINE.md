@@ -417,6 +417,7 @@ reader that reaches for an unretained intermediate, HARD-fails on the released m
 rather than treating the empty residue as data. A post-run proof names the exact
 intermediate carriers it retains in the run context; `RetainAll` remains an explicit
 diagnostic profile. These profiles change only residency, never produced bytes.
+
 Typed handles can also leave the live carrier independently. The enforcing
 scheduler counts exact handle readers and whole-carrier readers in the selected
 graph. After publication or a reader's completion, it detaches handles with no
@@ -424,6 +425,30 @@ remaining reader when the scheduler has sole access to the carrier. In-flight
 views and explicit post-run retention preserve access. Published commitments
 still identify the full product and its handles. Memory traces identify each
 dropped handle reference. Shared allocations can remain live through other owners.
+
+The ordinary build ranks only dependency-ready stages whose resources are
+available. It compares transient memory estimates, then the change in retained
+bytes after the candidate completes. Last-reader credit counts a shared
+dataset once. The final declared reader of an exclusively owned source
+catalog gets credit for its aggregate RDF payload even if a later reader
+still needs the catalog's receipt dataset. Retained or in-flight inputs
+stay live. Ties defer stages
+whose only consumer is the sink, favor the longer remaining dependency path,
+and use stage identifier order. The ranking uses declared dependencies and
+fixed measurements.
+
+For controlled comparisons, set `GMEOW_PIPELINE_READY_ORDER=stage-id` to use
+the identifier order with the same retention policy. The default is `memory`.
+Set `GMEOW_PIPELINE_READY_ORDER=calibrate` to dispatch one stage at a time
+in identifier order. Use the same `--jobs` for calibration and both comparison
+arms so each stage can use the ordinary Rayon pool.
+Set `GMEOW_PIPELINE_MEMORY_ESTIMATES` to a JSON file keyed by selected stage
+identifier to supply `transient_bytes` and `published_bytes` for each stage.
+The transient value is the observed resident growth above the dispatch
+sample. The published value measures committed artifact bytes at publication.
+Without a calibration file, the memory order uses the measured live payload
+sizes and declared graph. These controls change execution order while leaving
+action keys and published identities intact.
 
 On glibc Linux, the scheduler also requests allocator reclamation once after each
 stage's publication and the carrier releases that completion caused, before the next

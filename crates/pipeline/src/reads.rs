@@ -287,11 +287,14 @@ pub fn mismatches(edges: &[Arc<EdgeAccess>]) -> Vec<String> {
     lines
 }
 
-/// The Turtle that declares exactly what was recorded over `edges`, for authoring.
+/// The Turtle that declares exactly what was recorded over `edges`, in edge order.
 #[must_use]
 pub fn observed_turtle(edges: &[Arc<EdgeAccess>]) -> String {
+    let mut ordered: Vec<_> = edges.iter().collect();
+    ordered
+        .sort_unstable_by(|a, b| (a.consumer(), a.producer()).cmp(&(b.consumer(), b.producer())));
     let mut out = String::new();
-    for edge in edges {
+    for edge in ordered {
         let short = |stage: &str| stage.strip_prefix("stage-").unwrap_or(stage).to_owned();
         out.push_str(&format!(
             "gmeow:pipeline-dataflow-{}-{}\n    a gmeow:BuildDataFlow ;\n    gmeow:buildFlowFrom gmeow:{} ;\n    gmeow:buildFlowTo gmeow:{}",
@@ -339,9 +342,7 @@ pub fn record_run(root: &std::path::Path, jobs: usize) -> Result<String, gmeow_e
     let mut ctx = crate::RunContext::open_uncached(root, jobs);
     ctx.read_policy = ReadPolicy::Record;
     let result = crate::scheduler::run(&graph, &bound, &mut ctx)?;
-    let mut edges = result.recorded_reads;
-    edges.sort_by(|a, b| (a.consumer(), a.producer()).cmp(&(b.consumer(), b.producer())));
-    let mut out = observed_turtle(&edges);
+    let mut out = observed_turtle(&result.recorded_reads);
     out.push_str(&observed_writes(&result.products)?);
     Ok(out)
 }

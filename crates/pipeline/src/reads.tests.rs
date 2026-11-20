@@ -54,6 +54,23 @@ fn undeclared_and_unmade_reads_are_both_reported() {
     assert!(lines[1].contains("gmeow:flowReadsArtifact \"pipeline/a\""));
 }
 
+/// The read observations have the same bytes regardless of scheduler completion
+/// order, and a different observed lane changes those bytes.
+#[test]
+fn observed_reads_are_ordered_by_edge() {
+    let first = EdgeAccess::new("stage-b", "stage-a", set(&[Read::Carrier]));
+    let second = EdgeAccess::new("stage-c", "stage-a", set(&[Read::Carrier]));
+    first.record(Read::Carrier);
+    second.record(Read::Carrier);
+    let expected = observed_turtle(&[Arc::clone(&first), Arc::clone(&second)]);
+    assert_eq!(
+        observed_turtle(&[Arc::clone(&second), Arc::clone(&first)]),
+        expected
+    );
+    second.record(Read::Dataset);
+    assert_ne!(observed_turtle(&[first, second]), expected);
+}
+
 /// Only carrier lanes keep a producer's carrier alive; a declared internal artifact is
 /// listed for retention through release and a committed one is not.
 #[test]
