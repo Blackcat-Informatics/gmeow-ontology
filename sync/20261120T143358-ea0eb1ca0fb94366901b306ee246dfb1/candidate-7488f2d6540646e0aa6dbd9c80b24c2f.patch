@@ -1,0 +1,1438 @@
+diff --git crates/docs-model/src/exec.rs crates/docs-model/src/exec.rs
+index 912ec6f2a..43a2bc7bb 100644
+--- crates/docs-model/src/exec.rs
++++ crates/docs-model/src/exec.rs
+@@ -34,11 +34,9 @@ impl InferenceDiff {
+     }
+ }
+ 
+-/// One reasoner-derived "why" fact about a documented term: the rule that fired, a
+-/// display of the axiom it concluded, and the premises it fired from. Parsed by the
+-/// pipeline (`build_executable_docs_data`) from `stage-reason`'s already-materialized
+-/// `reasoning-explanations` proof skeletons (reason-once — the reasoner itself never
+-/// runs in the docs crate; see [`ExecutableDocsData::term_entailments`]).
++/// A proof entry for a documented term. The pipeline projects the rule,
++/// conclusion, and premises from the native reasoning result and indexes the
++/// proof under the terms they mention. See [`ExecutableDocsData::term_entailments`].
+ #[derive(Debug, Clone, Default, PartialEq, Eq)]
+ pub struct Entailment {
+     /// The firing rule: a compact display form (a CURIE where the canonical prefix
+@@ -51,6 +49,9 @@ pub struct Entailment {
+     /// Compact displays of the derivation's premises (zero or more, sorted), in the
+     /// same `s p o` style as [`conclusion`](Self::conclusion).
+     pub premises: Vec<String>,
++    /// The exact native conclusion proves unsatisfiability of the class under
++    /// which this entry is indexed.
++    pub proves_term_unsatisfiable: bool,
+ }
+ 
+ /// Everything the executable docs surfaces need. Empty ⇒ render the base site only.
+diff --git crates/docs-model/src/rdf.tests.rs crates/docs-model/src/rdf.tests.rs
+index af1537501..f6347e072 100644
+--- crates/docs-model/src/rdf.tests.rs
++++ crates/docs-model/src/rdf.tests.rs
+@@ -245,6 +245,7 @@ fn entailment_dag_round_trips_rule_conclusion_and_all_premises() {
+                 "gmeow:Cat rdfs:subClassOf gmeow:Feline".to_string(),
+                 "gmeow:Feline rdfs:subClassOf gmeow:Animal".to_string(),
+             ],
++            proves_term_unsatisfiable: false,
+         }],
+     );
+     let nq = to_gmeow_rdf(&model, &entailments);
+diff --git crates/docs/src/render.rs crates/docs/src/render.rs
+index 80892caed..f126c07e7 100644
+--- crates/docs/src/render.rs
++++ crates/docs/src/render.rs
+@@ -1784,7 +1784,7 @@ fn term_academic_surface(
+                 .map(|entries| {
+                     entries
+                         .iter()
+-                        .filter(|e| is_unsatisfiable_conclusion(&e.conclusion))
++                        .filter(|e| e.proves_term_unsatisfiable)
+                         .collect()
+                 })
+                 .unwrap_or_default();
+@@ -4062,14 +4062,6 @@ fn code_escape(text: &str) -> String {
+     out
+ }
+ 
+-/// Whether a B3 entailment's display-form conclusion (`s p o`, CURIE-compacted) is a
+-/// class-unsatisfiability witness — `<class> rdfs:subClassOf owl:Nothing` — the same
+-/// signal [`crate::model::ReasoningVerdict::unsatisfiable`] keys on, so the
+-/// "unsatisfiable because" derivation lines never surface an unrelated entailment.
+-fn is_unsatisfiable_conclusion(conclusion: &str) -> bool {
+-    conclusion.contains(" rdfs:subClassOf ") && conclusion.ends_with(" owl:Nothing")
+-}
+-
+ /// Escape model-derived text for safe Markdown emission: backslash-escape the
+ /// inline metacharacters that would otherwise be interpreted, and replace `|`
+ /// (table-cell delimiter) and newlines so cell content cannot break the grid.
+diff --git crates/docs/src/render.tests.rs crates/docs/src/render.tests.rs
+index 0579e5e99..3ea5fc3c5 100644
+--- crates/docs/src/render.tests.rs
++++ crates/docs/src/render.tests.rs
+@@ -94,6 +94,54 @@ fn health_renders_undecided_native_reasoning_without_positive_claims() {
+     assert!(output.contains("other documented classes is undetermined"));
+ }
+ 
++/// A proof cited for a class in a premise remains visible as an inferred fact.
++/// Only the class named by its unsatisfiability conclusion gets the explanation.
++#[test]
++fn term_page_attributes_unsatisfiability_to_the_concluded_class() {
++    let mut model = tiny_model();
++    let [bar, foo] = model.terms.as_slice() else {
++        panic!("the documentation fixture supplies two classes");
++    };
++    model.reasoning = Some(crate::model::ReasoningVerdict {
++        consistency: crate::model::ConsistencyAssessment::Consistent,
++        input: "valid".into(),
++        evaluation: "completed".into(),
++        completeness: "complete".into(),
++        information: "supported".into(),
++        unsupported_constructs: Default::default(),
++        unsatisfiable: [foo.iri.clone(), bar.iri.clone()].into(),
++    });
++    let proof = crate::exec::Entailment {
++        rule: "logic:SubClassTransitivity".into(),
++        conclusion: "[gmeow:reasoning] gmeow:Bar rdfs:subClassOf owl:Nothing".into(),
++        premises: vec!["[gmeow:reasoning] gmeow:Bar rdfs:subClassOf gmeow:Foo".into()],
++        proves_term_unsatisfiable: true,
++    };
++    let exec = ExecutableDocsData {
++        term_entailments: BTreeMap::from([
++            (bar.iri.clone(), vec![proof.clone()]),
++            (
++                foo.iri.clone(),
++                vec![crate::exec::Entailment {
++                    proves_term_unsatisfiable: false,
++                    ..proof.clone()
++                }],
++            ),
++        ]),
++        ..Default::default()
++    };
++    let foo_page = to_markdown_exec(&model, &Page::Term(term_slug(foo)), &exec);
++    let bar_page = to_markdown_exec(&model, &Page::Term(term_slug(bar)), &exec);
++    let explanation = format!(
++        "- **{}:**",
++        model.ui("body_reasoning_unsatisfiable_because")
++    );
++    assert!(!foo_page.contains(&explanation));
++    assert!(foo_page.contains(model.ui("body_term_entailments")));
++    assert!(foo_page.contains(&proof.conclusion));
++    assert!(bar_page.contains(&format!("{explanation}\n  - `{}`", proof.conclusion)));
++}
++
+ /// `CONTROLLER_HOOKS` equals the hooks the SHIPPED controller module actually binds.
+ ///
+ /// Scrapes `assets/gmeow-docs.js` for every element it looks up
+@@ -1126,6 +1174,7 @@ fn per_term_card_json_and_full_md_are_emitted() {
+             rule: "subClassOf-transitivity".to_string(),
+             conclusion: "gmeow:Foo rdfs:subClassOf owl:Thing".to_string(),
+             premises: vec!["gmeow:Foo rdfs:subClassOf gmeow:Bar".to_string()],
++            proves_term_unsatisfiable: false,
+         }],
+     );
+     let exec = ExecutableDocsData {
+diff --git crates/docs/tests/enrichment_golden.rs crates/docs/tests/enrichment_golden.rs
+index 2e7b5518e..a33a0d914 100644
+--- crates/docs/tests/enrichment_golden.rs
++++ crates/docs/tests/enrichment_golden.rs
+@@ -209,6 +209,7 @@ fn term_entailments_markdown_golden() {
+                 format!("{} rdfs:subClassOf gmeow:Continuant", term.curie),
+                 "gmeow:Continuant rdfs:subClassOf gmeow:Entity".to_string(),
+             ],
++            proves_term_unsatisfiable: false,
+         }],
+     );
+ 
+diff --git crates/pipeline/src/memory_record.rs crates/pipeline/src/memory_record.rs
+index e45ca8506..0444c87ca 100644
+--- crates/pipeline/src/memory_record.rs
++++ crates/pipeline/src/memory_record.rs
+@@ -44,8 +44,9 @@
+ //!
+ //! That bound covers the reads made for records only. The scheduler also reads the same
+ //! file once per stage, and a second time on a cache hit, for the cache-hydration
+-//! figure, and the snapshot reads it once for each owned carrier whose size it logs
+-//! (`log_carrier_size` in `stages/carrier.rs`).
++//! figure, and once for each individually detached typed handle. The snapshot reads
++//! it once for each owned carrier whose size it logs (`log_carrier_size` in
++//! `stages/carrier.rs`).
+ 
+ use std::cell::RefCell;
+ use std::sync::atomic::{AtomicU64, Ordering};
+@@ -97,6 +98,22 @@ impl ProcessMemory {
+     }
+ }
+ 
++/// Report an individual dropped handle reference at the scheduler boundary.
++/// Shared handle backing can survive this event through another owner.
++pub(crate) fn handle_release(stage: &str, handle: &str) {
++    let process = ProcessMemory::sample();
++    tracing::info!(
++        target: TARGET,
++        pid = std::process::id(),
++        stage,
++        event = "release-handle",
++        handle,
++        rss_kib = process.rss_kib,
++        peak_rss_kib = process.peak_rss_kib,
++        "typed handle release"
++    );
++}
++
+ /// What the process allocator held, in bytes, as its own totals report it.
+ ///
+ /// The totals are those of every arena and are not an atomic snapshot: threads go on
+diff --git crates/pipeline/src/node.rs crates/pipeline/src/node.rs
+index 8c62fa46d..8448e9ff9 100644
+--- crates/pipeline/src/node.rs
++++ crates/pipeline/src/node.rs
+@@ -362,6 +362,24 @@ impl StageProduct {
+         }
+     }
+ 
++    /// Drop unread handles without copying a carrier held by a running consumer.
++    /// The original handle commitments and stage digest remain the published identity.
++    pub(crate) fn release_unread_handles(&mut self, is_live: impl Fn(&str) -> bool) {
++        let Some(bundle) = Arc::get_mut(&mut self.bundle) else {
++            return;
++        };
++        let keys: Vec<_> = bundle
++            .handles()
++            .keys()
++            .filter(|key| !is_live(key))
++            .cloned()
++            .collect();
++        for key in keys {
++            drop(bundle.detach_handle(&key));
++            crate::memory_record::handle_release(&self.stage_id, &key);
++        }
++    }
++
+     /// This product as `consumer` may read it: the same carrier, recording each access made through
+     /// the lane accessors against `access`, the declared read set of the dataflow edge.
+     #[must_use]
+diff --git crates/pipeline/src/scheduler.handle_retention_tests.rs crates/pipeline/src/scheduler.handle_retention_tests.rs
+new file mode 100644
+index 000000000..d72a197fd
+--- /dev/null
++++ crates/pipeline/src/scheduler.handle_retention_tests.rs
+@@ -0,0 +1,193 @@
++// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
++// SPDX-License-Identifier: AGPL-3.0-only
++
++use std::collections::BTreeMap;
++use std::sync::Arc;
++
++use gmeow_logic_compile::ir::LogicProgram;
++use purrdf::provenance::DatasetProvenance;
++
++use super::{PipelineSpec, StageSpec, registry_for, spec};
++use crate::bundle::{PipelineHandle, bundle_from_artifacts_over};
++use crate::node::{CachePolicy, OutputFamily, Stage, StageInput, StageOutput, StageProduct};
++use crate::reads::Read;
++use crate::scheduler::{CarrierRetention, RunContext, run};
++
++const EARLY: &str = "urn:handle:early";
++const LATE: &str = "urn:handle:late";
++const UNREAD: &str = "urn:handle:unread";
++
++struct HandleStage {
++    spec: StageSpec,
++    keep_all: bool,
++    whole_reader: bool,
++}
++
++impl Stage for HandleStage {
++    fn id(&self) -> &str {
++        &self.spec.id
++    }
++
++    fn impl_version(&self) -> &str {
++        "handle-release-fixture-v1"
++    }
++
++    fn output_family(&self) -> OutputFamily {
++        self.spec.output_family
++    }
++
++    fn consumes(&self) -> &[String] {
++        &self.spec.consumes
++    }
++
++    fn capabilities(&self) -> &[String] {
++        &self.spec.capabilities
++    }
++
++    fn cache_policy(&self) -> CachePolicy {
++        self.spec.cache_disposition
++    }
++
++    fn attaches_graphs(&self) -> &[String] {
++        &self.spec.attaches_graphs
++    }
++
++    fn run(&self, input: StageInput<'_>) -> gmeow_errors::Result<StageOutput> {
++        if self.id() == "producer" {
++            return handle_product();
++        }
++
++        let source = &input.upstream["producer"];
++        if self.id() == "first" {
++            assert!(source.handle(EARLY).is_some());
++            assert_eq!(source.raw_bundle().handle(UNREAD).is_some(), self.keep_all);
++        } else if self.whole_reader {
++            let bundle = source.bundle();
++            assert!(
++                [EARLY, LATE, UNREAD]
++                    .iter()
++                    .all(|key| bundle.handle(key).is_some())
++            );
++        } else {
++            assert!(source.handle(LATE).is_some());
++            assert_eq!(source.raw_bundle().handle(EARLY).is_some(), self.keep_all);
++            assert!(source.handle_commitments().contains_key(EARLY));
++        }
++        Ok(StageOutput::new(StageProduct::from_artifacts(
++            self.id(),
++            BTreeMap::new(),
++        )?))
++    }
++}
++
++fn handle_product() -> gmeow_errors::Result<StageOutput> {
++    let quads = [EARLY, LATE, UNREAD]
++        .map(|graph| format!("<urn:s> <urn:p> <urn:o> <{graph}> .\n"))
++        .concat();
++    let dataset = purrdf::parse_dataset(quads.as_bytes(), "application/n-quads", None)
++        .expect("synthetic typed backing graphs");
++    let mut bundle = bundle_from_artifacts_over(dataset, BTreeMap::new(), DatasetProvenance::new());
++    let mut control = purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None);
++    for graph in [EARLY, LATE, UNREAD] {
++        let pin = bundle
++            .graph_digest(graph, &mut control)
++            .expect("graph digest");
++        let program = LogicProgram::new(Vec::new(), Vec::new(), Vec::new(), Some(graph.to_owned()));
++        bundle
++            .pin_handle(
++                graph.to_owned(),
++                PipelineHandle::Logic(Arc::new(program)),
++                pin,
++                &mut control,
++            )
++            .expect("pin synthetic typed handle");
++    }
++    Ok(StageOutput::new(StageProduct::from_bundle(
++        "producer",
++        Arc::new(bundle),
++    )?))
++}
++
++/// Fresh and hydrated handle products retain their complete commitments while
++/// releasing keyed payloads before the next consumer reads a surviving sibling.
++#[test]
++fn keyed_handles_release_between_consumers_without_changing_cache_identity() {
++    for (retained, whole_reader) in [(false, false), (true, false), (false, true)] {
++        let mut producer = spec("producer", &[]);
++        producer.attaches_graphs = [EARLY, LATE, UNREAD].map(str::to_owned).to_vec();
++        let mut first = spec("first", &["producer"]);
++        first.cache_disposition = CachePolicy::Recompute;
++        first.reads.insert(
++            "producer".to_owned(),
++            [Read::Handle(EARLY.to_owned())].into(),
++        );
++        let mut sink = spec("sink", &["first", "producer"]);
++        sink.cache_disposition = CachePolicy::Recompute;
++        let sink_read = if whole_reader {
++            Read::Carrier
++        } else {
++            Read::Handle(LATE.to_owned())
++        };
++        sink.reads.insert("producer".to_owned(), [sink_read].into());
++        let pipeline = PipelineSpec {
++            id: "keyed-retention".to_owned(),
++            stages: vec![producer, first, sink],
++        };
++        let graph = pipeline.validate().expect("keyed retention graph");
++        let registry = registry_for(
++            &pipeline,
++            pipeline
++                .stages
++                .iter()
++                .map(|spec| {
++                    Arc::new(HandleStage {
++                        spec: spec.clone(),
++                        keep_all: retained || whole_reader,
++                        whole_reader,
++                    }) as Arc<dyn Stage>
++                })
++                .collect(),
++        );
++        let bound = crate::loader::bind(&pipeline, &graph, &registry).expect("bound stages");
++        let directory = tempfile::tempdir().expect("synthetic cache directory");
++        let execute = || {
++            let mut ctx = RunContext::open(directory.path(), 1).expect("open synthetic cache");
++            ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
++            if retained {
++                ctx.retained_carriers.insert("producer".to_owned());
++            }
++            run(&graph, &bound, &mut ctx).expect("enforced keyed retention run")
++        };
++        let cold = execute();
++        let warm = execute();
++        assert_eq!(cold.combined_digest, warm.combined_digest);
++        assert_eq!(cold.receipt_root, warm.receipt_root);
++        assert!(
++            warm.stage_timings
++                .iter()
++                .any(|stage| stage.stage_id == "producer" && stage.cached)
++        );
++        assert_eq!(warm.products["producer"].handle(EARLY).is_some(), retained);
++    }
++}
++
++/// A reader's shared carrier survives a release attempt until that reader ends.
++#[test]
++fn an_in_flight_handle_reader_keeps_the_shared_carrier() {
++    let mut product = handle_product().expect("synthetic handle carrier").product;
++    let view = product.consumer_view(crate::reads::EdgeAccess::new(
++        "in-flight",
++        "producer",
++        [Read::Handle(LATE.to_owned())].into(),
++    ));
++
++    product.release_unread_handles(|key| key == LATE);
++    assert!(Arc::ptr_eq(product.raw_bundle(), view.raw_bundle()));
++    assert!(view.handle(LATE).is_some());
++    assert!(product.handle(EARLY).is_some());
++
++    drop(view);
++    product.release_unread_handles(|key| key == LATE);
++    assert!(product.handle(EARLY).is_none());
++    assert!(product.handle(LATE).is_some());
++}
+diff --git crates/pipeline/src/scheduler.rs crates/pipeline/src/scheduler.rs
+index 9a55ffcb1..914cfbb4c 100644
+--- crates/pipeline/src/scheduler.rs
++++ crates/pipeline/src/scheduler.rs
+@@ -694,6 +694,9 @@ pub fn run_without(
+             .unwrap_or_default()
+     };
+     let read_policy = ctx.read_policy;
++    let release_handles = read_policy == crate::reads::ReadPolicy::Enforce
++        && ctx.carrier_retention == CarrierRetention::DropAfterLastConsumer;
++    let mut remaining_handle_readers = BTreeMap::<String, HandleReaders>::new();
+     let mut recorded_edges: Vec<Arc<crate::reads::EdgeAccess>> = Vec::new();
+     let mut memory: Vec<MemoryRecord> = Vec::new();
+     // Every stage whose recorded reads differ from its declared dataflow. The run goes
+@@ -714,6 +717,14 @@ pub fn run_without(
+                     ));
+                 }
+             }
++            if release_handles {
++                for (producer, reads) in reads {
++                    remaining_handle_readers
++                        .entry(producer)
++                        .or_default()
++                        .declare(reads);
++                }
++            }
+         }
+         if !undeclared.is_empty() {
+             return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+@@ -1105,6 +1116,14 @@ pub fn run_without(
+                             .checked_sub(1)
+                             .expect("completed carrier reader was counted");
+                     }
++                    if release_handles {
++                        for (producer, reads) in stage.reads() {
++                            remaining_handle_readers
++                                .get_mut(&producer)
++                                .expect("a completed handle reader was counted")
++                                .complete(reads);
++                        }
++                    }
+                     // A producer's carrier is swapped for its residue once no carrier
+                     // reader is left and no artifact-lane view of it is in flight. The
+                     // three things that can make that true are this stage finishing its
+@@ -1145,6 +1164,15 @@ pub fn run_without(
+                                 Some(after),
+                                 Some(before.released_to(&after)),
+                             ));
++                        } else if release_handles
++                            && logically_consumed.contains(&producer)
++                            && !retained_carriers.contains(&producer)
++                            && let Some(product) = products.get_mut(&producer)
++                        {
++                            let readers = remaining_handle_readers.get(&producer);
++                            product.release_unread_handles(|key| {
++                                readers.is_some_and(|readers| readers.contains(key))
++                            });
+                         }
+                     }
+                 }
+@@ -1335,6 +1363,45 @@ pub(crate) fn last_consumer_levels(
+     last
+ }
+ 
++/// Selected readers that still have access to a producer's typed handles.
++#[derive(Default)]
++struct HandleReaders {
++    whole: usize,
++    keys: BTreeMap<String, usize>,
++}
++
++impl HandleReaders {
++    fn declare(&mut self, reads: crate::reads::ReadSet) {
++        for read in reads {
++            match read {
++                crate::reads::Read::Carrier => self.whole += 1,
++                crate::reads::Read::Handle(key) => *self.keys.entry(key).or_default() += 1,
++                _ => {}
++            }
++        }
++    }
++
++    fn complete(&mut self, reads: crate::reads::ReadSet) {
++        for read in reads {
++            let remaining = match read {
++                crate::reads::Read::Carrier => &mut self.whole,
++                crate::reads::Read::Handle(key) => self
++                    .keys
++                    .get_mut(&key)
++                    .expect("declared typed handle reader was counted"),
++                _ => continue,
++            };
++            *remaining = remaining
++                .checked_sub(1)
++                .expect("completed typed handle reader was counted");
++        }
++    }
++
++    fn contains(&self, key: &str) -> bool {
++        self.whole > 0 || self.keys.get(key).is_some_and(|&readers| readers > 0)
++    }
++}
++
+ /// The producers `stage` is handed an artifact-lane view of: the dependencies whose edge
+ /// declares no carrier read, under the enforcing read policy. Recording hands every
+ /// product over whole, so it has none.
+diff --git crates/pipeline/src/stages/carrier.rs crates/pipeline/src/stages/carrier.rs
+index b6b57f653..4691ac8fd 100644
+--- crates/pipeline/src/stages/carrier.rs
++++ crates/pipeline/src/stages/carrier.rs
+@@ -3183,6 +3183,8 @@ pub(crate) fn term_entailments_from_upstream(
+     upstream: &BTreeMap<String, StageProduct>,
+     term_iris: &std::collections::BTreeSet<String>,
+ ) -> Result<BTreeMap<String, Vec<gmeow_docs::Entailment>>, gmeow_errors::Diag> {
++    use gmeow_logic::reason::dl::EmptyClassAssertion;
++
+     // Documentation runs before snapshot assembly and already retains this native
+     // carrier for its verdict. No extra dependency or lifetime extension is needed.
+     use crate::stages::docs_render::reasoning_verdict_error;
+@@ -3256,6 +3258,11 @@ pub(crate) fn term_entailments_from_upstream(
+         }
+         premises.sort();
+         premises.dedup();
++        let proves_unsatisfiability = axiom
++            .object
++            .as_iri()
++            .and_then(|iri| EmptyClassAssertion::classify(&axiom.predicate, iri))
++            == Some(EmptyClassAssertion::Subsumption);
+         let object = axiom
+             .object
+             .as_iri()
+@@ -3271,9 +3278,17 @@ pub(crate) fn term_entailments_from_upstream(
+                 object
+             ),
+             premises,
++            proves_term_unsatisfiable: false,
+         };
+         for iri in matched {
+-            entailments.entry(iri).or_default().push(entailment.clone());
++            let proves_term_unsatisfiable = proves_unsatisfiability && iri == axiom.subject;
++            entailments
++                .entry(iri)
++                .or_default()
++                .push(gmeow_docs::Entailment {
++                    proves_term_unsatisfiable,
++                    ..entailment.clone()
++                });
+         }
+     }
+     for entries in entailments.values_mut() {
+diff --git crates/pipeline/src/stages/carrier.term_entailments_tests.rs crates/pipeline/src/stages/carrier.term_entailments_tests.rs
+index ea01542c6..3dcee8c71 100644
+--- crates/pipeline/src/stages/carrier.term_entailments_tests.rs
++++ crates/pipeline/src/stages/carrier.term_entailments_tests.rs
+@@ -50,9 +50,12 @@ fn native_term_panels_from_reason_preserve_multiple_heads_sources_and_worlds() {
+     let mut edb = derived(TermValue::iri("urn:asserted-only"));
+     edb.is_edb = true;
+     edb.rule_name = None;
++    let mut empty = derived(TermValue::iri(gmeow_ns::LOGIC_NOTHING));
++    empty.predicate = gmeow_ns::LOGIC_SUB_CLASS_OF.to_owned();
+     let upstream = native_upstream(vec![
+         derived(TermValue::iri(ANIMAL)),
+         derived(TermValue::iri("urn:companion")),
++        empty,
+         edb,
+     ]);
+     let terms = [
+@@ -67,12 +70,23 @@ fn native_term_panels_from_reason_preserve_multiple_heads_sources_and_worlds() {
+     .map(str::to_owned)
+     .collect();
+     let panels = term_entailments_from_upstream(&upstream, &terms).unwrap();
+-    assert_eq!(panels[CAT].len(), 2);
+-    assert_eq!(panels[MAMMAL].len(), 2);
++    assert_eq!(panels[CAT].len(), 3);
++    assert_eq!(panels[MAMMAL].len(), 3);
+     assert_eq!(panels[ANIMAL].len(), 1);
+     assert_eq!(panels["urn:companion"].len(), 1);
+     assert!(!panels.contains_key("urn:unrelated"));
+     assert!(!panels.contains_key("urn:asserted-only"));
++    let own_proof: Vec<_> = panels[CAT]
++        .iter()
++        .filter(|entry| entry.proves_term_unsatisfiable)
++        .collect();
++    assert_eq!(own_proof.len(), 1);
++    assert!(own_proof[0].conclusion.ends_with(" logic:Nothing"));
++    assert!(
++        panels[MAMMAL]
++            .iter()
++            .all(|entry| !entry.proves_term_unsatisfiable)
++    );
+     for panel in &panels[CAT] {
+         assert!(panel.conclusion.contains(WORLD));
+         assert!(panel.premises[0].contains(WORLD));
+diff --git crates/pipeline/src/tests.rs crates/pipeline/src/tests.rs
+index a47f06cbb..1d11e1a4f 100644
+--- crates/pipeline/src/tests.rs
++++ crates/pipeline/src/tests.rs
+@@ -2884,6 +2884,9 @@ fn run_retention_chain(
+ #[path = "scheduler.order_tests.rs"]
+ mod scheduling_order;
+ 
++#[path = "scheduler.handle_retention_tests.rs"]
++mod handle_retention;
++
+ #[test]
+ fn last_consumer_level_is_total_over_consumed_stages_and_absent_for_outputs() {
+     let spec = retention_chain();
+diff --git crates/validate/tests/conformance_cases/conformance_places.rs crates/validate/tests/conformance_cases/conformance_places.rs
+index 380c2c025..4a1ea1104 100644
+--- crates/validate/tests/conformance_cases/conformance_places.rs
++++ crates/validate/tests/conformance_cases/conformance_places.rs
+@@ -14,7 +14,7 @@
+ //! `tests/fixtures/coverage/*.ttl` fixtures:
+ //! - `test_contested_sovereignty_coexists` → `contested_sovereignty_coexists`
+ //! - `test_contested_place_names_coexist` → `contested_place_names_coexist`
+-//! - `test_superseded_historical_name_suppressed` → `superseded_historical_name_suppressed`
++//! - Place succession follows reader display policy, with a suppressed historical name.
+ //! - `test_contested_jurisdiction_tenures_coexist` → `contested_jurisdiction_tenures_coexist`
+ //! - `test_containment_tenure_records_border_change` → `containment_tenure_records_border_change`
+ //! - `test_geometry_has_type_and_geojson` → `geometry_has_type_and_geojson`
+@@ -574,16 +574,24 @@ fn contested_place_names_coexist() {
+     assert!(names.contains(&ex("nameExonym")));
+ }
+ 
+-/// Twin of `test_superseded_historical_name_suppressed`.
++/// A place successor requires no display flag and a suppressed historical name
++/// retains its own flag.
+ #[gmeow_test_batch_macros::batch_test]
+-fn superseded_historical_name_suppressed() {
+-    let g = load_ok("places-contested");
+-    assert!(g.has_literal(
+-        &ex("nameHistorical"),
+-        &gmeow("displayable"),
+-        "false",
+-        XSD_BOOLEAN
++fn place_succession_respects_reader_display_policy() {
++    let nt = fixture_as_nt("coverage", "places-contested");
++    let g = GraphStore::wrap_dataset(nt_to_dataset(&nt));
++    let predecessor = ex("historicalPlace");
++    let displayable = gmeow("displayable");
++    assert!(g.has(
++        Some(&predecessor),
++        Some(&gmeow("placeSupersededBy")),
++        Some(&ex("disputedPlace")),
+     ));
++    assert!(!g.has(Some(&predecessor), Some(&displayable), None));
++    assert!(g.has_literal(&ex("nameHistorical"), &displayable, "false", XSD_BOOLEAN));
++    Case::raw_nt(nt)
++        .no_warning("A superseded place (one with gmeow:placeSupersededBy)")
++        .run();
+ }
+ 
+ /// Twin of `test_contested_jurisdiction_tenures_coexist`.
+diff --git docs/PIPELINE_SPINE.md docs/PIPELINE_SPINE.md
+index fe4a11196..f540b33cc 100644
+--- docs/PIPELINE_SPINE.md
++++ docs/PIPELINE_SPINE.md
+@@ -418,6 +418,14 @@ rather than treating the empty residue as data. A post-run proof names the exact
+ intermediate carriers it retains in the run context; `RetainAll` remains an explicit
+ diagnostic profile. These profiles change only residency, never produced bytes.
+ 
++Typed handles can also leave the live carrier independently. The enforcing
++scheduler counts exact handle readers and whole-carrier readers in the selected
++graph. After publication or a reader's completion, it detaches handles with no
++remaining reader when the scheduler has sole access to the carrier. In-flight
++views and explicit post-run retention preserve access. Published commitments
++still identify the full product and its handles. Memory traces identify each
++dropped handle reference. Shared allocations can remain live through other owners.
++
+ The ordinary build ranks only dependency-ready stages whose resources are
+ available. It compares transient memory estimates, then the change in retained
+ bytes after the candidate completes. Last-reader credit counts a shared
+diff --git docs/location-mapping.md docs/location-mapping.md
+index e03c55429..e86c3f056 100644
+--- docs/location-mapping.md
++++ docs/location-mapping.md
+@@ -390,7 +390,11 @@ ex:cityBoundary a gmeow:Geometry ;
+ 
+ - **`gmeow:placeDeterminacy`** — the ontic determinacy of a place's existence or boundary (crisp, vague, disputed).
+ - **`gmeow:geometryDeterminacy`** — the ontic determinacy of a geometry's boundary.
+-- **`gmeow:placeSupersededBy` / `gmeow:placeSupersedes`** — sub-properties of the universal `supersededBy` / `supersedes` for place-to-place succession (Constantinople → Istanbul, merged municipalities). The superseded place is retained with `gmeow:displayable false` (Principle 10), never deleted.
++- **`gmeow:placeSupersededBy` / `gmeow:placeSupersedes`** specialize `gmeow:supersededBy` /
++  `gmeow:supersedes` for succession between distinct places, such as a former town and
++  the municipality formed by a merger. Keep the predecessor (Principle 10) and apply
++  the reader's display policy at projection. Use `gmeow:NameUsage` with a
++  `gmeow:PlaceName` for an alternate or historical name of the same place.
+ 
+ ## External alignment (maximal bridging)
+ 
+diff --git helpers-census-debt.json helpers-census-debt.json
+index e2a3e7d12..abfa805c0 100644
+--- helpers-census-debt.json
++++ helpers-census-debt.json
+@@ -1555,7 +1555,6 @@
+    "members": [
+     "gmeow_validate::test_crate::conformance_suite::conformance_places::superseded_capacity_suppressed",
+     "gmeow_validate::test_crate::conformance_suite::conformance_places::superseded_coordinate_observation_suppressed",
+-    "gmeow_validate::test_crate::conformance_suite::conformance_places::superseded_historical_name_suppressed",
+     "gmeow_validate::test_crate::conformance_suite::conformance_places::superseded_network_address_suppressed"
+    ]
+   },
+diff --git slices/core/lifecycle/docs.md slices/core/lifecycle/docs.md
+index f7bf2fe88..fd0a008ea 100644
+--- slices/core/lifecycle/docs.md
++++ slices/core/lifecycle/docs.md
+@@ -46,14 +46,14 @@ statements. The interval carries its frame per Principle 11.
+ 
+ ### gmeow:supersededBy
+ 
+-Links a resource to the resource that replaced it — Constantinople `supersededBy`
+-Istanbul, a deprecated release `supersededBy` its successor. The declared inverse of
+-the coreference slice's `gmeow:supersedes`; directional, never symmetric. The
++Links a predecessor resource to its replacement, such as a retired software release
++to its successor. The declared inverse is the coreference slice's `gmeow:supersedes`. The
+ universal `logic:Thing` domain and range preserve the types of entities, claim
+ tokens and reifiers, including when an inverse edge is inferred from claim
+-succession. The superseded resource is retained (Principle 10) and takes no display flag from the succession;
+-the replacement itself may be recorded as an event typed
+-`gmeow:eventTypeSupersession` when it needs a date or participants.
++succession. Keep the predecessor (Principle 10) and apply each reader's display
++policy at projection. The lifecycle warning prompts global suppression only for a
++superseded name or identity label. To record the date or participants of the
++replacement, use an event typed `gmeow:eventTypeSupersession`.
+ 
+ ## The reified form (promote on demand)
+ 
+diff --git slices/core/lifecycle/i18n/fr.po slices/core/lifecycle/i18n/fr.po
+index c33c6e699..77a18f6eb 100644
+--- slices/core/lifecycle/i18n/fr.po
++++ slices/core/lifecycle/i18n/fr.po
+@@ -85,9 +85,17 @@ msgctxt "https://blackcatinformatics.ca/gmeow/supersededBy|rdfs:label"
+ msgid "superseded by"
+ msgstr "remplacé par"
+ 
++msgctxt "https://blackcatinformatics.ca/gmeow/supersededBy|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:retiredRelease gmeow:supersededBy ex:replacementRelease ."
++msgstr "ex:retiredRelease gmeow:supersededBy ex:replacementRelease ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/supersededBy|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use when one resource replaces another, as when a software release succeeds a retired release. Keep the predecessor in the graph (Principle 10)."
++msgstr "Utilisez cette relation lorsqu’une ressource en remplace une autre, par exemple quand une version logicielle succède à une version retirée. Conservez la ressource prédécesseure dans le graphe (principe 10)."
++
+ msgctxt "https://blackcatinformatics.ca/gmeow/supersededBy|skos:definition"
+-msgid "Links a resource to the resource that replaced it — Constantinople supersededBy Istanbul, the Soviet Union supersededBy the Russian Federation, a deprecated software release supersededBy its successor. Directional, NOT symmetric. The superseded resource is retained (never deleted). The universal logic:Thing signatures preserve the types of entities, claim tokens and reifiers. The relation itself prompts no display flag: whether a reader is shown the predecessor is that reader's policy, decided at projection, and the only suppression the lifecycle slice prompts is for a superseded name or identity label, which its holder hides from every reader. A more specific relation may state a stricter display rule of its own."
+-msgstr "Relie une ressource à la ressource qui l’a remplacée — Constantinople supersededBy Istanbul, l’Union soviétique supersededBy la Fédération de Russie, une version logicielle obsolète supersededBy son successeur. Directionnel, NON symétrique. La ressource remplacée est conservée (jamais supprimée). Les signatures universelles logic:Thing préservent les types des entités, des jetons d’assertion et des réificateurs. La relation elle-même ne suscite aucun indicateur d’affichage : la politique de lecture de chaque lecteur, appliquée à la projection, décide si le prédécesseur lui est montré, et le seul masquage que suscite la tranche lifecycle vise un nom remplacé ou une étiquette d’identité remplacée, que son titulaire masque à tout lecteur. Une relation plus spécifique peut énoncer sa propre règle d’affichage plus stricte."
++msgid "Links a predecessor resource to its replacement. The inverse is gmeow:supersedes. Retain the predecessor (Principle 10). The universal logic:Thing signatures preserve the types of entities, claim tokens and reifiers. Readers apply their own display policies at projection. The lifecycle slice prompts global suppression only for a superseded name or identity label."
++msgstr "Relie une ressource prédécesseure à celle qui la remplace. L’inverse est gmeow:supersedes. Conservez la ressource prédécesseure (principe 10). Les signatures universelles logic:Thing préservent les types des entités, des jetons d’assertion et des réificateurs. Les lecteurs appliquent leurs propres politiques d’affichage au moment de la projection. Le module du cycle de vie demande un masquage global uniquement pour un nom ou une étiquette d’identité remplacés."
+ 
+ msgctxt "https://blackcatinformatics.ca/gmeow/existenceEntityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+ msgid "existenceEntity is functional"
+@@ -130,5 +138,5 @@ msgid "Assert gmeow:supersededBy from predecessor to successor; optionally recor
+ msgstr "Affirmer gmeow:supersededBy du prédécesseur vers le successeur ; consigner éventuellement le changement lui-même comme gmeow:Event de type gmeow:eventTypeSupersession, et laisser l’affichage prospectif à la projection de chaque lecteur ; la tranche lifecycle elle-même ne suscite gmeow:displayable false que sur un nom remplacé ou une étiquette d’identité remplacée."
+ 
+ msgctxt "https://blackcatinformatics.ca/gmeow/SupersededEntitySuppressionConstraint|skos:definition"
+-msgid "A closed-world integrity constraint: a superseded gmeow:Appellation (a name carrying gmeow:supersededBy) should set gmeow:displayable false — suppressed from display for every reader, never deleted (Principle 10). It is limited to names, the global safety case. A superseded entity of any other kind and a claim that another party disputes or corrects are not reported by this constraint: what a reader is shown of them is reader policy, decided at projection, unless a more specific constraint states a stricter rule of its own."
+-msgstr "Une contrainte d’intégrité en monde clos : un gmeow:Appellation remplacé (un nom portant gmeow:supersededBy) devrait fixer gmeow:displayable false — masqué pour tout lecteur, jamais supprimé (Principe 10). Elle est limitée aux noms, le cas de sécurité globale. Une entité remplacée de tout autre type et une affirmation qu’une autre partie conteste ou corrige ne sont pas signalées par cette contrainte : ce qu’un lecteur en voit relève de la politique du lecteur, décidée à la projection, sauf si une contrainte plus spécifique énonce sa propre règle plus stricte."
++msgid "Warns when a gmeow:Appellation carrying gmeow:supersededBy lacks gmeow:displayable false. The flag hides the superseded name from every reader and preserves the record (Principle 10). Readers apply their own display policies at projection for other superseded resources and for claims another party disputes or corrects."
++msgstr "Émet un avertissement lorsqu’un gmeow:Appellation lié par gmeow:supersededBy n’a pas le marqueur gmeow:displayable false. Ce marqueur masque le nom remplacé à tous les lecteurs et préserve son enregistrement (principe 10). Au moment de la projection, les lecteurs appliquent leurs propres politiques d’affichage aux autres ressources remplacées et aux assertions qu’une autre partie conteste ou corrige."
+diff --git slices/core/lifecycle/i18n/zh.po slices/core/lifecycle/i18n/zh.po
+index 88ba5b086..c26f6ce6c 100644
+--- slices/core/lifecycle/i18n/zh.po
++++ slices/core/lifecycle/i18n/zh.po
+@@ -85,9 +85,17 @@ msgctxt "https://blackcatinformatics.ca/gmeow/supersededBy|rdfs:label"
+ msgid "superseded by"
+ msgstr "被取代"
+ 
++msgctxt "https://blackcatinformatics.ca/gmeow/supersededBy|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:retiredRelease gmeow:supersededBy ex:replacementRelease ."
++msgstr "ex:retiredRelease gmeow:supersededBy ex:replacementRelease ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/supersededBy|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use when one resource replaces another, as when a software release succeeds a retired release. Keep the predecessor in the graph (Principle 10)."
++msgstr "用于一种资源取代另一种资源的情形，例如新软件版本接替已退役的版本。将前身资源保留在图中（原则 10）。"
++
+ msgctxt "https://blackcatinformatics.ca/gmeow/supersededBy|skos:definition"
+-msgid "Links a resource to the resource that replaced it — Constantinople supersededBy Istanbul, the Soviet Union supersededBy the Russian Federation, a deprecated software release supersededBy its successor. Directional, NOT symmetric. The superseded resource is retained (never deleted). The universal logic:Thing signatures preserve the types of entities, claim tokens and reifiers. The relation itself prompts no display flag: whether a reader is shown the predecessor is that reader's policy, decided at projection, and the only suppression the lifecycle slice prompts is for a superseded name or identity label, which its holder hides from every reader. A more specific relation may state a stricter display rule of its own."
+-msgstr "将一个资源与取代它的资源相连——君士坦丁堡被伊斯坦布尔取代、苏联被俄罗斯联邦取代、一个被弃用的软件发行版被其后继者取代。有方向性，并非对称。被取代的资源被保留（从不删除）。通用的 logic:Thing 签名保留实体、声明令牌和重述标识节点的类型。该关系本身不引发任何显示标记：读者是否看到前任由该读者自己的政策在投影时决定，生命周期切片唯一引发的隐藏针对被取代的名称或身份标签，其持有者会对所有读者隐藏它。更具体的关系可以另行规定其自身更严格的显示规则。"
++msgid "Links a predecessor resource to its replacement. The inverse is gmeow:supersedes. Retain the predecessor (Principle 10). The universal logic:Thing signatures preserve the types of entities, claim tokens and reifiers. Readers apply their own display policies at projection. The lifecycle slice prompts global suppression only for a superseded name or identity label."
++msgstr "将前身资源与取代它的资源相连。逆属性为 gmeow:supersedes。保留前身资源（原则 10）。通用的 logic:Thing 签名保留实体、主张标记和具化器的类型。读者在投影时应用各自的显示策略。生命周期模块只对已被替换的名称或身份标签提示全局隐藏。"
+ 
+ msgctxt "https://blackcatinformatics.ca/gmeow/existenceEntityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+ msgid "existenceEntity is functional"
+@@ -130,5 +138,5 @@ msgid "Assert gmeow:supersededBy from predecessor to successor; optionally recor
+ msgstr "从前任向继任者断言 gmeow:supersededBy；可选择把变更本身记录为类型为 gmeow:eventTypeSupersession 的 gmeow:Event，并把面向未来的显示留给每位读者的投影；生命周期切片本身只对被取代的名称或身份标签引发 gmeow:displayable false。"
+ 
+ msgctxt "https://blackcatinformatics.ca/gmeow/SupersededEntitySuppressionConstraint|skos:definition"
+-msgid "A closed-world integrity constraint: a superseded gmeow:Appellation (a name carrying gmeow:supersededBy) should set gmeow:displayable false — suppressed from display for every reader, never deleted (Principle 10). It is limited to names, the global safety case. A superseded entity of any other kind and a claim that another party disputes or corrects are not reported by this constraint: what a reader is shown of them is reader policy, decided at projection, unless a more specific constraint states a stricter rule of its own."
+-msgstr "封闭世界完整性约束：被取代的 gmeow:Appellation（带有 gmeow:supersededBy 的名称）应设置 gmeow:displayable false——对所有读者隐藏，绝不删除（原则 10）。它仅限于名称，即全局安全的情形。任何其他类型的被取代实体，以及被另一方质疑或更正的主张，都不会被此约束报告：读者对它们看到什么属于读者策略，在投影时决定，除非更具体的约束另行规定其自身更严格的规则。"
++msgid "Warns when a gmeow:Appellation carrying gmeow:supersededBy lacks gmeow:displayable false. The flag hides the superseded name from every reader and preserves the record (Principle 10). Readers apply their own display policies at projection for other superseded resources and for claims another party disputes or corrects."
++msgstr "当带有 gmeow:supersededBy 的 gmeow:Appellation 缺少 gmeow:displayable false 时发出警告。该标志对所有读者隐藏已被替换的名称，同时保留原记录（原则 10）。对于其他已被替换的资源，以及受到他方质疑或纠正的主张，读者在投影时应用各自的显示策略。"
+diff --git slices/core/lifecycle/module.ttl slices/core/lifecycle/module.ttl
+index 3f443b935..dbe8c9803 100644
+--- slices/core/lifecycle/module.ttl
++++ slices/core/lifecycle/module.ttl
+@@ -108,12 +108,12 @@ gmeow:supersededBy
+     rdfs:label "superseded by"@x-gmeow-english ;
+     logic:range logic:Thing ;
+     logic:inverseOf gmeow:supersedes ;
+-    skos:definition "Links a resource to the resource that replaced it — Constantinople supersededBy Istanbul, the Soviet Union supersededBy the Russian Federation, a deprecated software release supersededBy its successor. Directional, NOT symmetric. The superseded resource is retained (never deleted). The universal logic:Thing signatures preserve the types of entities, claim tokens and reifiers. The relation itself prompts no display flag: whether a reader is shown the predecessor is that reader's policy, decided at projection, and the only suppression the lifecycle slice prompts is for a superseded name or identity label, which its holder hides from every reader. A more specific relation may state a stricter display rule of its own."@x-gmeow-english ;
+-    skos:example "ex:constantinople gmeow:supersededBy ex:istanbul ."@x-gmeow-english ;
++    skos:definition "Links a predecessor resource to its replacement. The inverse is gmeow:supersedes. Retain the predecessor (Principle 10). The universal logic:Thing signatures preserve the types of entities, claim tokens and reifiers. Readers apply their own display policies at projection. The lifecycle slice prompts global suppression only for a superseded name or identity label."@x-gmeow-english ;
++    skos:example "ex:retiredRelease gmeow:supersededBy ex:replacementRelease ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid treating it as symmetric (it is directional; the inverse is gmeow:supersedes) and avoid deleting the superseded entity — retain it and link it forward, and avoid reading this relation by itself as a ground for gmeow:displayable false: the lifecycle slice prompts that only for a superseded name or identity label, and what a reader is shown of anything else is reader policy, not data."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxRBox ;
+     gmeow:howToUse "Assert gmeow:supersededBy from predecessor to successor; optionally record the change itself as a gmeow:Event typed gmeow:eventTypeSupersession, and leave forward-facing display to each reader's projection; the lifecycle slice itself prompts gmeow:displayable false only on a superseded name or identity label."@x-gmeow-english ;
+-    gmeow:useWhen "Use to link a retired entity forward to the entity that replaced it — a renamed place, a successor state, a deprecated release — preserving the predecessor rather than deleting it (Principle 10)."@x-gmeow-english .
++    gmeow:useWhen "Use when one resource replaces another, as when a software release succeeds a retired release. Keep the predecessor in the graph (Principle 10)."@x-gmeow-english .
+ 
+ <https://blackcatinformatics.ca/gmeow/slices/lifecycle>
+     a logic:Ontology ;
+@@ -174,7 +174,7 @@ gmeow:SupersededEntitySuppressionConstraint
+     rdfs:label "Superseded entity suppression constraint"@x-gmeow-english ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ;
+     gmeow:graphBoxRole gmeow:boxTBox ;
+-    skos:definition "A closed-world integrity constraint: a superseded gmeow:Appellation (a name carrying gmeow:supersededBy) should set gmeow:displayable false — suppressed from display for every reader, never deleted (Principle 10). It is limited to names, the global safety case. A superseded entity of any other kind and a claim that another party disputes or corrects are not reported by this constraint: what a reader is shown of them is reader policy, decided at projection, unless a more specific constraint states a stricter rule of its own."@x-gmeow-english ;
++    skos:definition "Warns when a gmeow:Appellation carrying gmeow:supersededBy lacks gmeow:displayable false. The flag hides the superseded name from every reader and preserves the record (Principle 10). Readers apply their own display policies at projection for other superseded resources and for claims another party disputes or corrects."@x-gmeow-english ;
+     logic:formalizes gmeow:SupersededEntitySuppressionShape ;
+     logic:severity "Warning" ;
+     logic:message "A superseded name (a gmeow:Appellation with gmeow:supersededBy) should set gmeow:displayable false — suppressed from display, never deleted." ;
+diff --git slices/core/places/docs.md slices/core/places/docs.md
+index e0442765b..cc40b5a05 100644
+--- slices/core/places/docs.md
++++ slices/core/places/docs.md
+@@ -18,12 +18,13 @@ chained by containment.
+ Contested geography gets the standpoint treatment, not a dispute mechanism:
+ a Crimea-class sovereignty conflict is two `gmeow:accordingTo`-annotated
+ `gmeow:containedInPlace` statements; an endonym/exonym conflict is two co-equal place
+-namings. There is **no `preferredJurisdiction` and no `primaryName`** — competing claims
+-coexist, none privileged (Principle 9), and superseded ones are suppressed via
+-`gmeow:displayable false`, never deleted (Principle 10). Everything computational — CIDR
+-containment, calendar/assembly liftover, geodesic distance, transform-tree math, RCC8
+-closure — is solver-layer (Principle 12): the slice models structure, `gmeow:frameSolver`
+-names the engine.
++namings. Competing claims coexist on equal terms (Principle 9). Keep records their own
++holders withdraw or replace (Principle 10). Use `gmeow:displayable false` for global
++suppression of a record, such as when a holder suppresses a superseded name for every
++reader. Choose which contested claims to show according to the reader's policy at
++projection. The solver handles CIDR containment, calendar and assembly liftover, geodesic
++distance, transform-tree math and RCC8 closure (Principle 12). The slice models structure
++and `gmeow:frameSolver` names the engine.
+ 
+ ## The location umbrella
+ 
+@@ -39,6 +40,12 @@ A geographic location at any granularity; the kind (country … room, ~600 GeoNa
+ codes) is the open `gmeow:placeType` value, non-functional because multi-source
+ classifications coexist as evidence.
+ 
++Use `gmeow:placeSupersededBy` from a former town to the distinct municipality that
++succeeds it after a merger. Its inverse, `gmeow:placeSupersedes`, can link the successor
++to each predecessor. Keep the predecessor place and leave display decisions to the
++reader's policy at projection. Record an alternate or historical name of the same place
++as a `gmeow:NameUsage` of a `gmeow:PlaceName`.
++
+ ### gmeow:VirtualLocation · gmeow:StorageLocation
+ 
+ The online venue (video conference, website, metaverse room — open
+diff --git slices/core/places/i18n/fr.po slices/core/places/i18n/fr.po
+index 3aa74fdcc..a78984aa3 100644
+--- slices/core/places/i18n/fr.po
++++ slices/core/places/i18n/fr.po
+@@ -1422,3 +1422,237 @@ msgstr "Enregistrer le contenant et l’entité contenue dans le même référen
+ msgctxt "https://blackcatinformatics.ca/gmeow/insideOf|https://blackcatinformatics.ca/gmeow/useWhen"
+ msgid "Use for a prop in a box or another direct interior placement in an actual or narrated scene."
+ msgstr "À employer pour un objet dans une boîte ou un autre placement intérieur direct dans une scène réelle ou racontée."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/placeSupersededBy|http://www.w3.org/2004/02/skos/core#definition"
++msgid "Links a predecessor place to the distinct place that replaced it. Retain the predecessor (Principle 10). The succession relation sets no display flag. Each reader's policy determines whether to show the predecessor at projection."
++msgstr "Relie un lieu prédécesseur au lieu distinct qui l’a remplacé. Conservez le prédécesseur (principe 10). La relation de succession ne fixe aucun indicateur d’affichage. La politique de chaque lecteur détermine, au moment de la projection, si le prédécesseur est affiché."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/placeSupersededBy|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:oldTown gmeow:placeSupersededBy ex:mergedMunicipality ."
++msgstr "ex:oldTown gmeow:placeSupersededBy ex:mergedMunicipality ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/placeSupersededBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Use gmeow:NameUsage with a gmeow:PlaceName for an alternate or historical name of the same place. Record succession independently of gmeow:displayable. Apply the reader's display policy at projection."
++msgstr "Utilisez gmeow:NameUsage avec un gmeow:PlaceName pour un autre nom ou un nom historique du même lieu. Consignez la succession indépendamment de gmeow:displayable. Appliquez la politique d’affichage du lecteur au moment de la projection."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/placeSupersededBy|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use when one place replaces a distinct place, as when a municipality formed by a merger succeeds its predecessor municipalities."
++msgstr "Utilisez cette relation lorsqu’un lieu en remplace un autre, par exemple quand une municipalité issue d’une fusion succède aux municipalités d’origine."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/placeSupersedes|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:mergedMunicipality gmeow:placeSupersedes ex:oldTown ."
++msgstr "ex:mergedMunicipality gmeow:placeSupersedes ex:oldTown ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/slices/places|rdfs:comment"
++msgid ""
++"Locations — geographic places, online (virtual) locations, digital storage locations, "
++"celestial / astronomical locations, and biological-sequence loci — with coordinates, "
++"geometry, containment, and external-gazetteer coreference (the schema.org / GeoSPARQL / "
++"GeoNames / Getty TGN / Wikidata / WGS84 / BOT / ifcOWL / IVOA / UAT / SWEET / FALDO / "
++"Sequence Ontology superset layer). Place kinds, celestial object kinds, and sequence "
++"feature kinds are open value vocabularies (gmeow:placeType, gmeow:celestialObjectType, "
++"gmeow:sequenceFeatureType), so any granularity from country to room, from star to galaxy "
++"cluster, or from chromosome to SNP, can be a first-class, QID-bearing entity chained by "
++"containedInPlace or locatedAt."
++"\n\n"
++"STANDPOINT DOCTRINE. Contested facts in the locations slice — sovereignty/jurisdiction "
++"disputes, competing place names (endonym vs exonym per community), boundary changes, "
++"regulatory overlays — are standpoint-indexed claims that COEXIST, none privileged "
++"(Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two "
++"gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two "
++"gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming "
++"instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names "
++"the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame "
++"asserting it — the two axes are orthogonal and must not be conflated. There is NO "
++"location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the "
++"cross-cutting standpoint facility. Only a claim's holder ends its liveness by replacing or "
++"withdrawing it. Keep the earlier record (Principle 10). Apply the reader's display policy "
++"at projection when another party disputes, corrects or evaluates the claim (Principle 9)."
++"\n\n"
++"REGULATORY OVERLAYS (regulatory-overlay design + vertical/maritime/aviation-zone design). "
++"Legal and regulatory spatial overlays — zoning, protected areas, restricted airspace, "
++"sanctions, tax/electoral districts, postal zones, civil-time zones, fishing zones, customs "
++"zones, maritime zones (territorial sea, EEZ, continental shelf, high seas, marine protected "
++"area), aviation zones (airway, CTR, TMA, FIR, ATZ, MOA, warning, alert), and temporary "
++"NOTAM notices — are modelled as reified gmeow:RegulatoryOverlay instances (⊑ "
++"gmeow:TimeScopedRelation), each binding a place, an authority, an overlay type (open value "
++"vocabulary), and an optional RightsStatement (rights facility) for the deontic rules. 3D "
++"bounds (altitude/depth) are frame-relative math:Quantity values in explicit vertical "
++"reference frames (Principle 11). Contested overlays (disputed EEZ, overlapping airspace "
++"claims) coexist as multiple standpoint-indexed instances, never a single winner (Principle "
++"9)."
++"\n\n"
++"VIRTUAL LOCATIONS + NETWORK ADDRESS SPACE (virtual-location design). Virtual locations "
++"(video conferences, chat spaces, websites, social media pages) are typed by an open value "
++"vocabulary (gmeow:VirtualLocationType). Their network addresses — IP, IPv6, MAC, DNS, URL, "
++"port, BGP-AS — are modelled as frame-relative coordinates (gmeow:NetworkAddress) in "
++"topology-only reference frames (gmeow:frameKindTopological) nested under the Internet root "
++"frame via gmeow:parentFrame. CIDR containment, DNS resolution, and path-length are "
++"solver-layer computations (Principle 12), never asserted as triples in the OWL core."
++"\n\n"
++"MATHEMATICAL / n-D REFERENCE FRAMES (mathematical-frame design). Hilbert spaces, smooth "
++"manifolds, phase spaces, and latent vector spaces are first-class gmeow:ReferenceFrame "
++"instances under gmeow:frameRealmMathematical. A finite-dimensional vector space (ℝⁿ, ℂⁿ, "
++"latent embedding) uses one gmeow:Axis with gmeow:hasCoordinateMatrix encoding the full "
++"column/row matrix via gmeow:CoordinateMatrix.matrixShape, not n separate axis individuals "
++"(Principle 12 — the ontology carries structure, solver carries cardinality). A "
++"configuration space (C-space, e.g. 6-DOF robot arm joint angles) uses one axis per joint. A "
++"phase space uses paired generalized-coordinate and generalized-momentum axes (qᵢ, pᵢ) and "
++"carries gmeow:hasMetricKind gmeow:metricSymplectic. A Hilbert space (∞-D) and latent vector "
++"spaces are modelled with gmeow:dimensionCount 1 and a single axis, leaving actual "
++"dimensionality to the matrix shape attribute, since the ontology does not assert "
++"infinite-dimensional structures as OWL individuals (Principle 12). OpenMath / "
++"Content-MathML encoding of coordinates is handled by the value-space layer "
++"(gmeow:coordinateValue typed by gmeow:CoordinateEncoding), not by per-expression ontology "
++"axioms."
++"\n\n"
++"ROBOTIC REALM — C-SPACE / TF / SLAM (robotic-frame design). Robot configuration spaces "
++"(C-space) are modelled as gmeow:ReferenceFrame instances in the gmeow:frameRealmRobotic "
++"realm, with joint-angle axes and geodesic metrics on a configuration-space manifold. "
++"Task-space and velocity frames are Cartesian seeds under the same realm. The TF transform "
++"tree is a hierarchy of nested frames linked via gmeow:parentFrame; static vs dynamic "
++"transforms are distinguished by statement-level temporal metadata (statement DSL), not by "
++"new ontology properties — the actual homogeneous-transform matrix math lives in the solver "
++"layer (Principle 12). SLAM occupancy maps are probabilistic occupancy-grid reference frames "
++"hosted by the robot, with gmeow:determinacyProbabilistic and gmeow:confidence carried on "
++"the observation results (CoordinateMatrix or SpatialCoordinates), not on the frame itself."
++"\n\n"
++"BIOLOGICAL-SEQUENCE REALM — FALDO / SEQUENCE ONTOLOGY / GFF3 (biological-sequence design). "
++"Biological sequences (DNA, RNA, protein) are modelled as gmeow:ReferenceFrame instances in "
++"the gmeow:frameRealmBiological realm. A reference assembly (e.g. GRCh38) is a versioned, "
++"linear 1-D reference frame with a single position axis; a sequence feature (gene, exon, "
++"SNP, CDS) is a gmeow:BiologicalSequenceLocation bearing gmeow:SequenceCoordinates with "
++"explicit start, end, and strand in that frame. Feature types are an open value vocabulary "
++"(gmeow:sequenceFeatureType) aligned by reference to Sequence Ontology (SO) terms. FALDO "
++"positions map to gmeow:SequenceCoordinates; liftover (coordinate conversion between "
++"assemblies) is declared via gmeow:transformsTo on the ReferenceFrame but executed by an "
++"external solver (Principle 12)."
++"\n\n"
++"CADASTRAL / LAND ADMINISTRATION REALM — LADM / INSPIRE (cadastral design). Parcels, lots, "
++"and spatial units are Places typed by an open value vocabulary (gmeow:placeType). Their "
++"boundaries are Geometry / SpatialCoordinates in a terrestrial reference frame. Ownership "
++"and land rights (ownership, lease, easement, mortgage, usufruct) are modelled as reified "
++"gmeow:LandTenure instances (⊑ gmeow:TimeScopedRelation), each binding a place, a party "
++"(Agent), a rights statement (rights facility), and a tenure type (open value vocabulary). A "
++"structured cadastral identifier (folio, title, lot, parcel ID) is modelled as a reified "
++"gmeow:CadastralReference (⊑ gmeow:InformationObject) linked to the place. Boundary surveys "
++"carry determinacy (typically crisp for surveyed boundaries, disputed for contested claims). "
++"Contested titles coexist as multiple standpoint-indexed LandTenures, none privileged "
++"(Principle 9). Expired or lapsed tenures keep their record with gmeow:displayable false, "
++"never deletion (Principle 10). Area and intersection computations stay in the solver layer "
++"(Principle 12). Aligns ISO 19152 LADM and INSPIRE Cadastral Parcels by reference (SSSOM)."
++msgstr ""
++"Lieux géographiques, lieux en ligne (virtuels), lieux de stockage numérique, lieux célestes "
++"ou astronomiques et loci de séquences biologiques. Le module couvre les coordonnées, la "
++"géométrie, l’inclusion spatiale et la coréférence avec les répertoires géographiques "
++"externes. Il constitue une couche qui englobe schema.org, GeoSPARQL, GeoNames, Getty TGN, "
++"Wikidata, WGS84, BOT, ifcOWL, IVOA, UAT, SWEET, FALDO et Sequence Ontology. Les types de "
++"lieux, d’objets célestes et d’éléments de séquence forment des vocabulaires de valeurs "
++"ouverts (gmeow:placeType, gmeow:celestialObjectType, gmeow:sequenceFeatureType). À toute "
++"échelle, du pays à la pièce, de l’étoile à l’amas de galaxies ou du chromosome au "
++"polymorphisme mononucléotidique (SNP), ces entités de premier rang peuvent porter un QID et "
++"s’enchaîner par containedInPlace ou locatedAt."
++"\n\n"
++"POINTS DE VUE. Les faits contestés dans la tranche des lieux, notamment les différends de "
++"souveraineté ou de juridiction, les noms concurrents d’un lieu (endonymes et exonymes selon "
++"la communauté), les changements de frontières et les zonages réglementaires, sont des "
++"assertions indexées par point de vue qui coexistent sur un pied d’égalité (principe 9). Une "
++"souveraineté contestée, comme en Crimée, se représente par deux triplets de base "
++"gmeow:containedInPlace annotés avec gmeow:accordingTo. Un toponyme contesté se représente "
++"par deux énoncés gmeow:hasPlaceName annotés avec gmeow:accordingTo ou par deux instances "
++"réifiées de gmeow:PlaceNaming portant chacune gmeow:accordingTo. Sur un gmeow:NameUsage, "
++"gmeow:usageAuthority désigne l’autorité toponymique, tandis que gmeow:accordingTo désigne "
++"le cadre du point de vue qui affirme cet usage. Ces deux axes sont indépendants. Le "
++"mécanisme transversal des points de vue couvre les différends, sans mécanisme propre aux "
++"lieux ni propriété preferredJurisdiction ou primaryName. Seul le titulaire d’une assertion "
++"peut mettre fin à son statut d’assertion active en la remplaçant ou en la retirant. "
++"Conservez l’enregistrement antérieur (principe 10). Lorsqu’une autre partie conteste, "
++"corrige ou évalue l’assertion, appliquez la politique d’affichage du lecteur au moment de "
++"la projection (principe 9)."
++"\n\n"
++"ZONAGES RÉGLEMENTAIRES (modèles des zonages réglementaires et des zones verticales, "
++"maritimes et aéronautiques). Les zonages juridiques et réglementaires recouvrent les plans "
++"de zonage, les aires protégées, les espaces aériens réglementés, les sanctions, les "
++"circonscriptions fiscales ou électorales, les zones postales, les fuseaux horaires civils, "
++"les zones de pêche et les zones douanières. Ils comprennent aussi les zones maritimes (mer "
++"territoriale, ZEE, plateau continental, haute mer et aire marine protégée), les zones "
++"aéronautiques (voie aérienne, CTR, TMA, FIR, ATZ, MOA et zones d’avertissement ou d’alerte) "
++"et les avis temporaires NOTAM. Chaque zonage est une instance réifiée de "
++"gmeow:RegulatoryOverlay (⊑ gmeow:TimeScopedRelation) qui associe un lieu, une autorité, un "
++"type de zonage issu d’un vocabulaire de valeurs ouvert et, s’il y a lieu, un "
++"RightsStatement pour les règles déontiques. Les limites tridimensionnelles (altitude ou "
++"profondeur) sont des valeurs math:Quantity relatives à des repères verticaux explicites "
++"(principe 11). Les zonages contestés, comme les ZEE litigieuses ou les revendications "
++"d’espaces aériens qui se chevauchent, coexistent sous forme d’instances indexées par point "
++"de vue, toutes sur un pied d’égalité (principe 9)."
++"\n\n"
++"LIEUX VIRTUELS ET ESPACE D’ADRESSAGE RÉSEAU (modèle des lieux virtuels). Les lieux "
++"virtuels, notamment les visioconférences, les salons de discussion, les sites web et les "
++"pages de réseaux sociaux, sont classés par un vocabulaire de valeurs ouvert "
++"(gmeow:VirtualLocationType). Leurs adresses réseau (IP, IPv6, MAC, DNS, URL, port et "
++"BGP-AS) sont des coordonnées gmeow:NetworkAddress relatives à des repères purement "
++"topologiques de type gmeow:frameKindTopological, imbriqués sous le repère racine d’Internet "
++"par gmeow:parentFrame. L’inclusion CIDR, la résolution DNS et la longueur des chemins "
++"relèvent du solveur (principe 12). Le noyau OWL ne les affirme jamais sous forme de "
++"triplets."
++"\n\n"
++"REPÈRES MATHÉMATIQUES EN DIMENSION N (modèle des repères mathématiques). Les espaces de "
++"Hilbert, les variétés lisses, les espaces des phases et les espaces de vecteurs latents "
++"sont des instances de premier rang de gmeow:ReferenceFrame dans le domaine "
++"gmeow:frameRealmMathematical. Un espace vectoriel de dimension finie (ℝⁿ, ℂⁿ ou plongement "
++"latent) utilise un seul gmeow:Axis avec gmeow:hasCoordinateMatrix pour encoder la matrice "
++"complète de lignes et de colonnes via gmeow:CoordinateMatrix.matrixShape, au lieu de n "
++"individus représentant chacun un axe (principe 12, la structure relève de l’ontologie et la "
++"cardinalité du solveur). Un espace de configuration (espace C, par exemple les angles "
++"articulaires d’un bras robotique à six degrés de liberté) utilise un axe par articulation. "
++"Un espace des phases associe des axes de coordonnées généralisées et des axes de moments "
++"conjugués généralisés (qᵢ, pᵢ) et porte gmeow:hasMetricKind gmeow:metricSymplectic. Un "
++"espace de Hilbert (∞-D) et les espaces de vecteurs latents sont modélisés avec "
++"gmeow:dimensionCount 1 et un seul axe. L’attribut de forme de la matrice porte la dimension "
++"réelle, puisque l’ontologie n’affirme pas de structures de dimension infinie comme "
++"individus OWL (principe 12). La couche des espaces de valeurs gère l’encodage OpenMath ou "
++"Content-MathML des coordonnées (gmeow:coordinateValue typé par gmeow:CoordinateEncoding) "
++"sans axiome ontologique propre à chaque expression."
++"\n\n"
++"DOMAINE ROBOTIQUE — ESPACE C, TF ET SLAM (modèle des repères robotiques). Les espaces de "
++"configuration robotique (espaces C) sont des instances de gmeow:ReferenceFrame dans le "
++"domaine gmeow:frameRealmRobotic, avec des axes correspondant aux angles articulaires et des "
++"métriques géodésiques sur la variété de l’espace de configuration. Les repères d’espace de "
++"tâche et de vitesse sont initialisés en coordonnées cartésiennes dans ce même domaine. "
++"L’arbre de transformations TF est une hiérarchie de repères imbriqués reliés par "
++"gmeow:parentFrame. Les métadonnées au niveau de l’énoncé (DSL des énoncés) distinguent les "
++"transformations statiques et dynamiques sans nouvelles propriétés ontologiques. Le calcul "
++"matriciel des transformations homogènes relève du solveur (principe 12). Les cartes "
++"d’occupation SLAM sont des repères probabilistes en grille hébergés par le robot. Les "
++"résultats d’observation (CoordinateMatrix ou SpatialCoordinates) portent "
++"gmeow:determinacyProbabilistic et gmeow:confidence. Le repère lui-même ne porte pas ces valeurs."
++"\n\n"
++"DOMAINE DES SÉQUENCES BIOLOGIQUES — FALDO, SEQUENCE ONTOLOGY ET GFF3 (modèle des séquences "
++"biologiques). Les séquences biologiques (ADN, ARN et protéines) sont modélisées comme des "
++"instances de gmeow:ReferenceFrame dans le domaine gmeow:frameRealmBiological. Un assemblage "
++"de référence (par exemple GRCh38) est un repère linéaire, unidimensionnel et versionné qui "
++"comporte un seul axe de position. Un élément de séquence (gène, exon, SNP ou CDS) est un "
++"gmeow:BiologicalSequenceLocation portant des gmeow:SequenceCoordinates qui indiquent "
++"explicitement le début, la fin et le brin dans ce repère. Les types d’éléments forment un "
++"vocabulaire de valeurs ouvert, gmeow:sequenceFeatureType, aligné par référence sur les "
++"termes de Sequence Ontology (SO). Les positions FALDO correspondent à "
++"gmeow:SequenceCoordinates. Le changement de repère entre assemblages (liftover) est déclaré "
++"sur le ReferenceFrame par gmeow:transformsTo et exécuté par un solveur externe (principe "
++"12)."
++"\n\n"
++"DOMAINE CADASTRAL ET ADMINISTRATION FONCIÈRE — LADM ET INSPIRE (modèle cadastral). Les "
++"parcelles, les lots et les unités spatiales sont des lieux classés par un vocabulaire de "
++"valeurs ouvert (gmeow:placeType). Leurs limites sont exprimées par des objets Geometry ou "
++"SpatialCoordinates dans un repère terrestre. La propriété et les droits fonciers "
++"(propriété, bail, servitude, hypothèque et usufruit) sont modélisés par des instances "
++"réifiées de gmeow:LandTenure (⊑ gmeow:TimeScopedRelation). Chacune associe un lieu, une "
++"partie (Agent), un énoncé de droits (dispositif des droits) et un type de tenure issu d’un "
++"vocabulaire de valeurs ouvert. Un identifiant cadastral structuré (folio, titre, numéro de "
++"lot ou de parcelle) est modélisé comme un gmeow:CadastralReference réifié (⊑ "
++"gmeow:InformationObject) lié au lieu. Les levés de limites portent un degré de "
++"détermination, généralement net pour une limite arpentée et contesté pour une limite "
++"litigieuse. Les titres contestés coexistent sous la forme de plusieurs LandTenure indexés "
++"par point de vue, tous sur un pied d’égalité (principe 9). Les tenures arrivées à terme ou "
++"caduques restent enregistrées avec gmeow:displayable false (principe 10). Le calcul des "
++"superficies et des intersections relève du solveur (principe 12). L’alignement sur ISO "
++"19152 LADM et INSPIRE Cadastral Parcels se fait par référence (SSSOM)."
+diff --git slices/core/places/i18n/zh.po slices/core/places/i18n/zh.po
+index a39a2b404..07fac3a35 100644
+--- slices/core/places/i18n/zh.po
++++ slices/core/places/i18n/zh.po
+@@ -1422,3 +1422,175 @@ msgstr "在同一个具有归属的空间框架下记录容器和内部实体。
+ msgctxt "https://blackcatinformatics.ca/gmeow/insideOf|https://blackcatinformatics.ca/gmeow/useWhen"
+ msgid "Use for a prop in a box or another direct interior placement in an actual or narrated scene."
+ msgstr "用于实际或叙述场景中道具置于盒内等直接内部摆放关系。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/placeSupersededBy|http://www.w3.org/2004/02/skos/core#definition"
++msgid "Links a predecessor place to the distinct place that replaced it. Retain the predecessor (Principle 10). The succession relation sets no display flag. Each reader's policy determines whether to show the predecessor at projection."
++msgstr "将前身地点与取代它的另一个地点相连。保留前身地点（原则 10）。承继关系本身不设置显示标志。是否显示前身地点，由投影时采用的每位读者的策略决定。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/placeSupersededBy|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:oldTown gmeow:placeSupersededBy ex:mergedMunicipality ."
++msgstr "ex:oldTown gmeow:placeSupersededBy ex:mergedMunicipality ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/placeSupersededBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
++msgid "Use gmeow:NameUsage with a gmeow:PlaceName for an alternate or historical name of the same place. Record succession independently of gmeow:displayable. Apply the reader's display policy at projection."
++msgstr "同一地点的别名或历史名称，用 gmeow:NameUsage 结合 gmeow:PlaceName 表示。记录承继关系时将其与 gmeow:displayable 分开处理。投影时应用读者的显示策略。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/placeSupersededBy|https://blackcatinformatics.ca/gmeow/useWhen"
++msgid "Use when one place replaces a distinct place, as when a municipality formed by a merger succeeds its predecessor municipalities."
++msgstr "用于一个地点取代另一个地点的情形，例如合并后成立的新自治市承继原有各自治市。"
++
++msgctxt "https://blackcatinformatics.ca/gmeow/placeSupersedes|http://www.w3.org/2004/02/skos/core#example"
++msgid "ex:mergedMunicipality gmeow:placeSupersedes ex:oldTown ."
++msgstr "ex:mergedMunicipality gmeow:placeSupersedes ex:oldTown ."
++
++msgctxt "https://blackcatinformatics.ca/gmeow/slices/places|rdfs:comment"
++msgid ""
++"Locations — geographic places, online (virtual) locations, digital storage locations, "
++"celestial / astronomical locations, and biological-sequence loci — with coordinates, "
++"geometry, containment, and external-gazetteer coreference (the schema.org / GeoSPARQL / "
++"GeoNames / Getty TGN / Wikidata / WGS84 / BOT / ifcOWL / IVOA / UAT / SWEET / FALDO / "
++"Sequence Ontology superset layer). Place kinds, celestial object kinds, and sequence "
++"feature kinds are open value vocabularies (gmeow:placeType, gmeow:celestialObjectType, "
++"gmeow:sequenceFeatureType), so any granularity from country to room, from star to galaxy "
++"cluster, or from chromosome to SNP, can be a first-class, QID-bearing entity chained by "
++"containedInPlace or locatedAt."
++"\n\n"
++"STANDPOINT DOCTRINE. Contested facts in the locations slice — sovereignty/jurisdiction "
++"disputes, competing place names (endonym vs exonym per community), boundary changes, "
++"regulatory overlays — are standpoint-indexed claims that COEXIST, none privileged "
++"(Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two "
++"gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two "
++"gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming "
++"instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names "
++"the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame "
++"asserting it — the two axes are orthogonal and must not be conflated. There is NO "
++"location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the "
++"cross-cutting standpoint facility. Only a claim's holder ends its liveness by replacing or "
++"withdrawing it. Keep the earlier record (Principle 10). Apply the reader's display policy "
++"at projection when another party disputes, corrects or evaluates the claim (Principle 9)."
++"\n\n"
++"REGULATORY OVERLAYS (regulatory-overlay design + vertical/maritime/aviation-zone design). "
++"Legal and regulatory spatial overlays — zoning, protected areas, restricted airspace, "
++"sanctions, tax/electoral districts, postal zones, civil-time zones, fishing zones, customs "
++"zones, maritime zones (territorial sea, EEZ, continental shelf, high seas, marine protected "
++"area), aviation zones (airway, CTR, TMA, FIR, ATZ, MOA, warning, alert), and temporary "
++"NOTAM notices — are modelled as reified gmeow:RegulatoryOverlay instances (⊑ "
++"gmeow:TimeScopedRelation), each binding a place, an authority, an overlay type (open value "
++"vocabulary), and an optional RightsStatement (rights facility) for the deontic rules. 3D "
++"bounds (altitude/depth) are frame-relative math:Quantity values in explicit vertical "
++"reference frames (Principle 11). Contested overlays (disputed EEZ, overlapping airspace "
++"claims) coexist as multiple standpoint-indexed instances, never a single winner (Principle "
++"9)."
++"\n\n"
++"VIRTUAL LOCATIONS + NETWORK ADDRESS SPACE (virtual-location design). Virtual locations "
++"(video conferences, chat spaces, websites, social media pages) are typed by an open value "
++"vocabulary (gmeow:VirtualLocationType). Their network addresses — IP, IPv6, MAC, DNS, URL, "
++"port, BGP-AS — are modelled as frame-relative coordinates (gmeow:NetworkAddress) in "
++"topology-only reference frames (gmeow:frameKindTopological) nested under the Internet root "
++"frame via gmeow:parentFrame. CIDR containment, DNS resolution, and path-length are "
++"solver-layer computations (Principle 12), never asserted as triples in the OWL core."
++"\n\n"
++"MATHEMATICAL / n-D REFERENCE FRAMES (mathematical-frame design). Hilbert spaces, smooth "
++"manifolds, phase spaces, and latent vector spaces are first-class gmeow:ReferenceFrame "
++"instances under gmeow:frameRealmMathematical. A finite-dimensional vector space (ℝⁿ, ℂⁿ, "
++"latent embedding) uses one gmeow:Axis with gmeow:hasCoordinateMatrix encoding the full "
++"column/row matrix via gmeow:CoordinateMatrix.matrixShape, not n separate axis individuals "
++"(Principle 12 — the ontology carries structure, solver carries cardinality). A "
++"configuration space (C-space, e.g. 6-DOF robot arm joint angles) uses one axis per joint. A "
++"phase space uses paired generalized-coordinate and generalized-momentum axes (qᵢ, pᵢ) and "
++"carries gmeow:hasMetricKind gmeow:metricSymplectic. A Hilbert space (∞-D) and latent vector "
++"spaces are modelled with gmeow:dimensionCount 1 and a single axis, leaving actual "
++"dimensionality to the matrix shape attribute, since the ontology does not assert "
++"infinite-dimensional structures as OWL individuals (Principle 12). OpenMath / "
++"Content-MathML encoding of coordinates is handled by the value-space layer "
++"(gmeow:coordinateValue typed by gmeow:CoordinateEncoding), not by per-expression ontology "
++"axioms."
++"\n\n"
++"ROBOTIC REALM — C-SPACE / TF / SLAM (robotic-frame design). Robot configuration spaces "
++"(C-space) are modelled as gmeow:ReferenceFrame instances in the gmeow:frameRealmRobotic "
++"realm, with joint-angle axes and geodesic metrics on a configuration-space manifold. "
++"Task-space and velocity frames are Cartesian seeds under the same realm. The TF transform "
++"tree is a hierarchy of nested frames linked via gmeow:parentFrame; static vs dynamic "
++"transforms are distinguished by statement-level temporal metadata (statement DSL), not by "
++"new ontology properties — the actual homogeneous-transform matrix math lives in the solver "
++"layer (Principle 12). SLAM occupancy maps are probabilistic occupancy-grid reference frames "
++"hosted by the robot, with gmeow:determinacyProbabilistic and gmeow:confidence carried on "
++"the observation results (CoordinateMatrix or SpatialCoordinates), not on the frame itself."
++"\n\n"
++"BIOLOGICAL-SEQUENCE REALM — FALDO / SEQUENCE ONTOLOGY / GFF3 (biological-sequence design). "
++"Biological sequences (DNA, RNA, protein) are modelled as gmeow:ReferenceFrame instances in "
++"the gmeow:frameRealmBiological realm. A reference assembly (e.g. GRCh38) is a versioned, "
++"linear 1-D reference frame with a single position axis; a sequence feature (gene, exon, "
++"SNP, CDS) is a gmeow:BiologicalSequenceLocation bearing gmeow:SequenceCoordinates with "
++"explicit start, end, and strand in that frame. Feature types are an open value vocabulary "
++"(gmeow:sequenceFeatureType) aligned by reference to Sequence Ontology (SO) terms. FALDO "
++"positions map to gmeow:SequenceCoordinates; liftover (coordinate conversion between "
++"assemblies) is declared via gmeow:transformsTo on the ReferenceFrame but executed by an "
++"external solver (Principle 12)."
++"\n\n"
++"CADASTRAL / LAND ADMINISTRATION REALM — LADM / INSPIRE (cadastral design). Parcels, lots, "
++"and spatial units are Places typed by an open value vocabulary (gmeow:placeType). Their "
++"boundaries are Geometry / SpatialCoordinates in a terrestrial reference frame. Ownership "
++"and land rights (ownership, lease, easement, mortgage, usufruct) are modelled as reified "
++"gmeow:LandTenure instances (⊑ gmeow:TimeScopedRelation), each binding a place, a party "
++"(Agent), a rights statement (rights facility), and a tenure type (open value vocabulary). A "
++"structured cadastral identifier (folio, title, lot, parcel ID) is modelled as a reified "
++"gmeow:CadastralReference (⊑ gmeow:InformationObject) linked to the place. Boundary surveys "
++"carry determinacy (typically crisp for surveyed boundaries, disputed for contested claims). "
++"Contested titles coexist as multiple standpoint-indexed LandTenures, none privileged "
++"(Principle 9). Expired or lapsed tenures keep their record with gmeow:displayable false, "
++"never deletion (Principle 10). Area and intersection computations stay in the solver layer "
++"(Principle 12). Aligns ISO 19152 LADM and INSPIRE Cadastral Parcels by reference (SSSOM)."
++msgstr ""
++"本模块涵盖地理地点、在线（虚拟）地点、数字存储地点、天体或天文地点以及生物序列位点，提供坐标、几何、空间包含和外部地名录共指功能。其覆盖范围包括 schema.org、"
++"GeoSPARQL、GeoNames、Getty TGN、Wikidata、WGS84、BOT、ifcOWL、IVOA、UAT、SWEET、FALDO 和 Sequence "
++"Ontology。地点类型、天体类型和序列特征类型均采用开放的值词表（gmeow:placeType、gmeow:celestialObjectType、"
++"gmeow:sequenceFeatureType）。因此，从国家到房间、从恒星到星系团、从染色体到单核苷酸多态性（SNP），任意粒度的对象都可作为一等实体携带 QID，并通过 "
++"containedInPlace 或 locatedAt 相连。"
++"\n\n"
++"立场原则。地点切片中的争议事实包括主权或管辖权争议、不同社群竞用的地名（内名与外名）、边界变化和监管叠加区。这些事实作为按立场索引的主张并存，地位平等（原则 9）。"
++"例如克里米亚一类的主权争议可表示为两条用 gmeow:accordingTo 标注的 gmeow:containedInPlace 基本三元组。有争议的地名可表示为两条用 "
++"gmeow:accordingTo 标注的 gmeow:hasPlaceName 语句，或两个各自携带 gmeow:accordingTo 的具化 gmeow:PlaceNaming "
++"实例。在 gmeow:NameUsage 上，gmeow:usageAuthority 指明地名权威，gmeow:accordingTo 指明提出该用法的立场框架，"
++"两者是相互独立的维度。争议统一使用通用的立场机制，不设置地点专用的争议机制、preferredJurisdiction 或 primaryName。"
++"只有主张的持有者才能通过替换或撤回该主张来结束其活跃状态。保留原记录（原则 10）。当另一方质疑、纠正或评价该主张时，在投影时应用读者的显示策略（原则 9）。"
++"\n\n"
++"监管叠加区（监管叠加区设计与垂直、海事及航空区域设计）。法律和监管空间叠加区包括分区规划、保护区、限制空域、制裁区域、税务或选举辖区、邮政区、民用时区、捕捞区、海关区、海事区域（领海、"
++"专属经济区、陆架、公海和海洋保护区）、航空区域（航路、CTR、TMA、FIR、ATZ、MOA、警告区和警戒区）以及临时航行通告 NOTAM。每项叠加区建模为一个具化的 "
++"gmeow:RegulatoryOverlay 实例（⊑ gmeow:TimeScopedRelation），关联一个地点、一个主管机构、一个来自开放值词表的叠加区类型，"
++"并可关联一个由权利机制提供的 RightsStatement 来描述义务与许可规则。三维边界（高度或深度）用相对于显式垂直参照系的 math:Quantity 值表达（原则 11）。"
++"有争议的叠加区（如存在争议的专属经济区和重叠的空域主张）以多个按立场索引的实例并存，地位平等（原则 9）。"
++"\n\n"
++"虚拟地点和网络地址空间（虚拟地点设计）。视频会议、聊天室、网站和社交媒体页面等虚拟地点由开放值词表 gmeow:VirtualLocationType 分类。其 IP、IPv6、"
++"MAC、DNS、URL、端口、BGP-AS 等网络地址建模为相对于参照系的 gmeow:NetworkAddress 坐标。相关参照系属于仅有拓扑结构的 "
++"gmeow:frameKindTopological 类型，并通过 gmeow:parentFrame 嵌套在互联网根参照系下。CIDR 包含、DNS "
++"解析和路径长度属于求解器层的计算（原则 12），从不在 OWL 核心中以三元组断言。"
++"\n\n"
++"数学与多维参照系（数学参照系设计）。希尔伯特空间、光滑流形、相空间和潜向量空间都是 gmeow:frameRealmMathematical 域中的一等 "
++"gmeow:ReferenceFrame 实例。有限维向量空间（ℝⁿ、ℂⁿ 或潜嵌入）使用一个 gmeow:Axis，借助 gmeow:hasCoordinateMatrix 和 "
++"gmeow:CoordinateMatrix.matrixShape 编码完整的行列矩阵，无需独立建立 n 个轴个体（原则 12，本体承载结构，求解器处理基数）。构型空间（C 空间，"
++"例如六自由度机械臂的关节角空间）为每个关节设置一条轴。相空间成对设置广义坐标轴和广义动量轴（qᵢ, pᵢ），并带有 gmeow:hasMetricKind "
++"gmeow:metricSymplectic。无限维希尔伯特空间和潜向量空间采用 gmeow:dimensionCount 1 和单一轴，将实际维度交由矩阵形状属性表达，"
++"因为本体不将无限维结构断言为 OWL 个体（原则 12）。坐标的 OpenMath 或 Content-MathML 编码由值空间层处理（gmeow:coordinateValue "
++"以 gmeow:CoordinateEncoding 为类型），无需为每个表达式编写本体公理。"
++"\n\n"
++"机器人域：构型空间、TF 与 SLAM（机器人参照系设计）。机器人的构型空间（C 空间）建模为 gmeow:frameRealmRobotic 域中的 "
++"gmeow:ReferenceFrame 实例，在构型空间流形上设有关节角轴和测地度量。任务空间参照系和速度参照系同属该域，以笛卡尔坐标为初始表示。TF 变换树由经 "
++"gmeow:parentFrame 连接的嵌套参照系组成。静态变换和动态变换由语句层元数据（语句 DSL）区分，无需新增本体属性。实际的齐次变换矩阵运算由求解器层处理（原则 12）。"
++"SLAM 占用图是由机器人承载的概率网格参照系。gmeow:determinacyProbabilistic 和 gmeow:confidence "
++"记录在观测结果（CoordinateMatrix 或 SpatialCoordinates）上，而非记录在参照系本身。"
++"\n\n"
++"生物序列域：FALDO、SEQUENCE ONTOLOGY 与 GFF3（生物序列设计）。生物序列（DNA、RNA、蛋白质）建模为 "
++"gmeow:frameRealmBiological 域中的 gmeow:ReferenceFrame 实例。参考组装（例如 GRCh38）是一维线性且带版本的参照系，具有单一位置轴。"
++"基因、外显子、SNP 或 CDS 等序列特征以 gmeow:BiologicalSequenceLocation 表示，其 gmeow:SequenceCoordinates "
++"显式给出该参照系中的起点、终点和链。特征类型使用开放值词表 gmeow:sequenceFeatureType，并通过引用与 Sequence Ontology（SO）的术语对齐。"
++"FALDO 的位置映射到 gmeow:SequenceCoordinates。组装之间的坐标转换（liftover）通过 ReferenceFrame 上的 "
++"gmeow:transformsTo 声明，由外部求解器执行（原则 12）。"
++"\n\n"
++"地籍与土地管理域：LADM 与 INSPIRE（地籍设计）。地块、宗地和空间单元均为地点，由开放值词表 gmeow:placeType 分类。它们的边界是在地球参照系中的 "
++"Geometry 或 SpatialCoordinates。所有权及其他土地权利（如租赁、地役权、抵押和用益权）建模为具化的 gmeow:LandTenure 实例（⊑ "
++"gmeow:TimeScopedRelation）。每个实例关联一个地点、一个当事方（Agent）、一条权利声明（权利机制）和一种来自开放值词表的权属类型。"
++"结构化地籍标识符（登记簿页码、权属证号、宗地编号或地块编号）建模为关联到地点的具化 gmeow:CadastralReference（⊑ "
++"gmeow:InformationObject）。边界测量记录其确定性，实测边界通常明确，存在争议的边界主张则标为有争议。存在争议的权属以多个按立场索引的 LandTenure 并存，"
++"地位平等（原则 9）。期满或失效的权属记录保留并设置 gmeow:displayable false（原则 10）。面积和相交运算由求解器层处理（原则 12）。通过引用与 ISO "
++"19152 LADM 和 INSPIRE Cadastral Parcels 对齐（SSSOM）。"
+diff --git slices/core/places/module.ttl slices/core/places/module.ttl
+index 80e8e3dab..7790d8068 100644
+--- slices/core/places/module.ttl
++++ slices/core/places/module.ttl
+@@ -3262,29 +3262,29 @@ gmeow:placeDeterminacy
+ 
+ gmeow:placeSupersededBy
+     a logic:ObjectProperty ;
+-    rdfs:domain gmeow:Place ;
++    logic:domain gmeow:Place ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+     rdfs:label "place superseded by"@x-gmeow-english ;
+-    rdfs:range gmeow:Place ;
++    logic:range gmeow:Place ;
+     rdfs:subPropertyOf gmeow:supersededBy ;
+     logic:inverseOf gmeow:placeSupersedes ;
+-    skos:definition "Links a place to the place that replaced it — Constantinople placeSupersededBy Istanbul, a merged municipality placeSupersededBy its successor. Directional. The superseded place is retained (never deleted) and may carry gmeow:displayable false."@x-gmeow-english ;
+-    skos:example "ex:constantinople gmeow:placeSupersededBy ex:istanbul ."@x-gmeow-english ;
+-    gmeow:avoidWhen "Avoid deleting the superseded place — retain it, optionally with gmeow:displayable false (Principle 10); avoid using it for a mere alternate name (that is a PlaceName via the names slice)."@x-gmeow-english ;
++    skos:definition "Links a predecessor place to the distinct place that replaced it. Retain the predecessor (Principle 10). The succession relation sets no display flag. Each reader's policy determines whether to show the predecessor at projection."@x-gmeow-english ;
++    skos:example "ex:oldTown gmeow:placeSupersededBy ex:mergedMunicipality ."@x-gmeow-english ;
++    gmeow:avoidWhen "Use gmeow:NameUsage with a gmeow:PlaceName for an alternate or historical name of the same place. Record succession independently of gmeow:displayable. Apply the reader's display policy at projection."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxRBox ;
+     gmeow:howToUse "Assert gmeow:placeSupersededBy from the old place to the new; read the inverse via gmeow:placeSupersedes."@x-gmeow-english ;
+-    gmeow:useWhen "Use to link a place to the place that replaced it (renaming, merger); directional, a subproperty of gmeow:supersededBy."@x-gmeow-english .
++    gmeow:useWhen "Use when one place replaces a distinct place, as when a municipality formed by a merger succeeds its predecessor municipalities."@x-gmeow-english .
+ 
+ gmeow:placeSupersedes
+     a logic:ObjectProperty ;
+-    rdfs:domain gmeow:Place ;
++    logic:domain gmeow:Place ;
+     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+     rdfs:label "place supersedes"@x-gmeow-english ;
+-    rdfs:range gmeow:Place ;
++    logic:range gmeow:Place ;
+     rdfs:subPropertyOf gmeow:supersedes ;
+     logic:inverseOf gmeow:placeSupersededBy ;
+     skos:definition "Links a newer place to a prior one it supersedes. Inverse of gmeow:placeSupersededBy. Non-functional: one successor may consolidate several predecessors."@x-gmeow-english ;
+-    skos:example "ex:istanbul gmeow:placeSupersedes ex:constantinople ."@x-gmeow-english ;
++    skos:example "ex:mergedMunicipality gmeow:placeSupersedes ex:oldTown ."@x-gmeow-english ;
+     gmeow:avoidWhen "Avoid using it for naming variants (names slice) and avoid deleting predecessors."@x-gmeow-english ;
+     gmeow:graphBoxRole gmeow:boxRBox ;
+     gmeow:howToUse "Assert gmeow:placeSupersedes from the successor; merged municipalities point to all predecessors."@x-gmeow-english ;
+@@ -5336,7 +5336,7 @@ gmeow:yaw
+     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+     rdfs:comment """Locations — geographic places, online (virtual) locations, digital storage locations, celestial / astronomical locations, and biological-sequence loci — with coordinates, geometry, containment, and external-gazetteer coreference (the schema.org / GeoSPARQL / GeoNames / Getty TGN / Wikidata / WGS84 / BOT / ifcOWL / IVOA / UAT / SWEET / FALDO / Sequence Ontology superset layer). Place kinds, celestial object kinds, and sequence feature kinds are open value vocabularies (gmeow:placeType, gmeow:celestialObjectType, gmeow:sequenceFeatureType), so any granularity from country to room, from star to galaxy cluster, or from chromosome to SNP, can be a first-class, QID-bearing entity chained by containedInPlace or locatedAt.
+ 
+-STANDPOINT DOCTRINE. Contested facts in the locations slice — sovereignty/jurisdiction disputes, competing place names (endonym vs exonym per community), boundary changes, regulatory overlays — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame asserting it — the two axes are orthogonal and must not be conflated. There is NO location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the cross-cutting standpoint facility. Superseded or withdrawn claims set gmeow:displayable false, never deletion (Principle 10).
++STANDPOINT DOCTRINE. Contested facts in the locations slice — sovereignty/jurisdiction disputes, competing place names (endonym vs exonym per community), boundary changes, regulatory overlays — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested sovereignty claim (e.g. Crimea-class) is two gmeow:accordingTo-annotated gmeow:containedInPlace base triples. A contested toponym is two gmeow:accordingTo-annotated gmeow:hasPlaceName statements, or two reified gmeow:PlaceNaming instances each carrying gmeow:accordingTo. gmeow:usageAuthority on a gmeow:NameUsage names the toponymic authority; gmeow:accordingTo on the same usage names the standpoint frame asserting it — the two axes are orthogonal and must not be conflated. There is NO location-specific dispute mechanism, no preferredJurisdiction, no primaryName — only the cross-cutting standpoint facility. Only a claim's holder ends its liveness by replacing or withdrawing it. Keep the earlier record (Principle 10). Apply the reader's display policy at projection when another party disputes, corrects or evaluates the claim (Principle 9).
+ 
+ REGULATORY OVERLAYS (regulatory-overlay design + vertical/maritime/aviation-zone design). Legal and regulatory spatial overlays — zoning, protected areas, restricted airspace, sanctions, tax/electoral districts, postal zones, civil-time zones, fishing zones, customs zones, maritime zones (territorial sea, EEZ, continental shelf, high seas, marine protected area), aviation zones (airway, CTR, TMA, FIR, ATZ, MOA, warning, alert), and temporary NOTAM notices — are modelled as reified gmeow:RegulatoryOverlay instances (⊑ gmeow:TimeScopedRelation), each binding a place, an authority, an overlay type (open value vocabulary), and an optional RightsStatement (rights facility) for the deontic rules. 3D bounds (altitude/depth) are frame-relative math:Quantity values in explicit vertical reference frames (Principle 11). Contested overlays (disputed EEZ, overlapping airspace claims) coexist as multiple standpoint-indexed instances, never a single winner (Principle 9).
+ 
+@@ -5413,39 +5413,6 @@ gmeow:FrameDimensionCountConstraint
+     logic:formalizes gmeow:ReferenceFrame , gmeow:FrameProfileShape ;
+     logic:message "A reference frame's dimension count must equal its number of coordinate axes." .
+ 
+-# =========================================================================== #
+-# Suppression constraint — projection of SupersededPlaceSuppressionShape.
+-# A superseded place (one carrying gmeow:placeSupersededBy) that is not          #
+-# suppressed (gmeow:displayable false) is a Warning — a source may lag the flag. #
+-# =========================================================================== #
+-
+-gmeow:SupersededPlaceSuppressionConstraint
+-    a logic:Constraint ;
+-    rdfs:label "Superseded place suppression constraint"@x-gmeow-english ;
+-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+-    gmeow:graphBoxRole gmeow:boxTBox ;
+-    skos:definition "A closed-world integrity constraint: a superseded gmeow:Place (one carrying gmeow:placeSupersededBy) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
+-    logic:formalizes gmeow:Place , gmeow:SupersededPlaceSuppressionShape ;
+-    logic:severity "Warning" ;
+-    logic:message "A superseded place (one with gmeow:placeSupersededBy) should set gmeow:displayable false — suppressed from display, never deleted." ;
+-    logic:integrity logic:supPlForall .
+-logic:supPlForall a logic:Formula ;
+-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+-    logic:forall logic:supPlImpl .
+-logic:supPlImpl a logic:Formula ; logic:antecedent logic:supPlGuard ; logic:consequent logic:supPlPhi .
+-logic:supPlGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Place ] .
+-logic:supPlPhi a logic:Formula ; logic:not logic:supPlEx .
+-logic:supPlEx a logic:Formula ;
+-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] ;
+-    logic:exists logic:supPlBody .
+-logic:supPlBody a logic:Formula ; logic:and logic:supPlSuc , logic:supPlNotSuppressed .
+-logic:supPlSuc a logic:Formula ; logic:relation gmeow:placeSupersededBy ;
+-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+-logic:supPlNotSuppressed a logic:Formula ; logic:not logic:supPlDisp .
+-logic:supPlDisp a logic:Formula ; logic:relation gmeow:displayable ;
+-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
+-
+ # =========================================================================== #
+ # coarsenTo target-level reachability constraint                        #
+ # (Principle 10 disclosure control), from gmeow:CoarsenToShape (Warning).        #
+diff --git slices/core/places/tests/structural.ttl slices/core/places/tests/structural.ttl
+index 691ab671a..288553f77 100644
+--- slices/core/places/tests/structural.ttl
++++ slices/core/places/tests/structural.ttl
+@@ -460,15 +460,24 @@ ASK {
+ }""" ;
+     gmeow:saRationale "gmeow:placeDeterminacy and geometryDeterminacy MUST be subproperties of gmeow:hasDeterminacy with correct domains." .
+ 
+-# --- 35. placeSupersededBy and placeSupersedes subproperties (MUST) -----------
++# --- 35. Place succession signatures and display policy ---------------------
+ ex:saPlaceSupersessionSubproperties a gmeow:StructuralAssertion ;
+     gmeow:saPolarity gmeow:must ;
+     gmeow:saScope gmeow:scopeModule ;
+     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
++PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ ASK {
+-    gmeow:placeSupersededBy rdfs:subPropertyOf gmeow:supersededBy .
+-    gmeow:placeSupersedes   rdfs:subPropertyOf gmeow:supersedes .
++    gmeow:placeSupersededBy rdfs:subPropertyOf gmeow:supersededBy ;
++                           logic:domain gmeow:Place ;
++                           logic:range gmeow:Place ;
++                           logic:inverseOf gmeow:placeSupersedes .
++    gmeow:placeSupersedes rdfs:subPropertyOf gmeow:supersedes ;
++                         logic:domain gmeow:Place ;
++                         logic:range gmeow:Place ;
++                         logic:inverseOf gmeow:placeSupersededBy .
++    FILTER NOT EXISTS { gmeow:SupersededPlaceSuppressionConstraint ?predicate ?value . }
++    FILTER NOT EXISTS { ?constraint logic:formalizes gmeow:SupersededPlaceSuppressionShape . }
+ }""" ;
+     gmeow:saRationale "gmeow:placeSupersededBy MUST be rdfs:subPropertyOf gmeow:supersededBy and gmeow:placeSupersedes MUST be rdfs:subPropertyOf gmeow:supersedes." .
+ 
+diff --git tests/fixtures/coverage/places-contested.ttl tests/fixtures/coverage/places-contested.ttl
+index b6170e8de..dd577f91d 100644
+--- tests/fixtures/coverage/places-contested.ttl
++++ tests/fixtures/coverage/places-contested.ttl
+@@ -149,14 +149,13 @@ ex:disputedGeom a gmeow:Geometry ;
+     gmeow:geometryDeterminacy gmeow:determinacyDisputed .
+ 
+ # --------------------------------------------------------------------------- #
+-# Issue #82 — Historical place superseded by another (Principle 10)
++# Historical place succession without a display flag
+ # --------------------------------------------------------------------------- #
+ 
+ ex:historicalPlace a gmeow:Place ;
+     gmeow:placeType gmeow:placeTypeCity ;
+     gmeow:placeSupersededBy ex:disputedPlace ;
+-    gmeow:hasGeometry ex:historicalGeom ;
+-    gmeow:displayable false .
++    gmeow:hasGeometry ex:historicalGeom .
+ 
+ ex:historicalGeom a gmeow:Geometry ;
+     gmeow:geometryType gmeow:geometryTypePoint ;

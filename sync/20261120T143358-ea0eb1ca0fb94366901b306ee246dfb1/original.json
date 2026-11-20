@@ -1,0 +1,14 @@
+[
+  {
+    "path": "crates/pipeline/src/tests.rs",
+    "kind": "file",
+    "executable": false,
+    "content": "original/0.bin"
+  },
+  {
+    "path": "docs/PIPELINE_SPINE.md",
+    "kind": "file",
+    "executable": false,
+    "content": "original/1.bin"
+  }
+]

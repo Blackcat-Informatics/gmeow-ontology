@@ -1,0 +1,42 @@
+{
+  "crates/pipeline/src/tests.rs": [
+    {
+      "mode": "100644",
+      "oid": "7ddf2c13ac3b44df0a7233185d772ca5b5669f8f",
+      "stage": 1,
+      "content": "inputs/0-1.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "a47f06cbb50ee228b0af27420e95692f259f6e8b",
+      "stage": 2,
+      "content": "inputs/0-2.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "b7001fffb76c6fad2e5cfdfe863ef9b7e50fc7aa",
+      "stage": 3,
+      "content": "inputs/0-3.bin"
+    }
+  ],
+  "docs/PIPELINE_SPINE.md": [
+    {
+      "mode": "100644",
+      "oid": "b3217dbd5b49369b3f81deabc5fd297b130e14de",
+      "stage": 1,
+      "content": "inputs/1-1.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "fe4a111967f91ef1f5f7fcaeffc9f806296585ac",
+      "stage": 2,
+      "content": "inputs/1-2.bin"
+    },
+    {
+      "mode": "100644",
+      "oid": "7a8620c31b1e1075ecad4a02a888e24935351280",
+      "stage": 3,
+      "content": "inputs/1-3.bin"
+    }
+  ]
+}

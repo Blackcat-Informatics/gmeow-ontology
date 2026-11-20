@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2703-order-the-ready-frontier-by-what-it",
+  "branch": "paudley/2703-order-the-ready-frontier-by-what-it",
+  "base_ref": "origin/main",
+  "head": "002f3532606791491699d9d06774c33d7d381b93",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2703-order-the-ready-frontier-by-what-it/.stage/order-the-ready-frontier-by-what-it/sync/20261120T143358-ea0eb1ca0fb94366901b306ee246dfb1",
+  "conflicts": [
+    "crates/pipeline/src/tests.rs",
+    "docs/PIPELINE_SPINE.md"
+  ],
+  "status": "completed",
+  "base": "f081005ecc54c8437aa143fbdfee639753b35508",
+  "merge_bases": [
+    "93997fdc1104db1b117a7587692db80d358a732b"
+  ],
+  "merge_index": "c5d25a155afea49ba143f52b2bc62d6bf462ad88a3b0370f52e552d8ced9df07",
+  "reused_paths": [],
+  "rerere_output": "Recorded preimage for 'crates/pipeline/src/tests.rs'\nRecorded preimage for 'docs/PIPELINE_SPINE.md'\n",
+  "candidate_tree": "bcda26bab631f643f8b842b0c19fc5765e80dc3d",
+  "candidate_patch": "candidate-7488f2d6540646e0aa6dbd9c80b24c2f.patch",
+  "stdout_log": "commit-7488f2d6540646e0aa6dbd9c80b24c2f.stdout.log",
+  "stderr_log": "commit-7488f2d6540646e0aa6dbd9c80b24c2f.stderr.log",
+  "validation_records": [],
+  "commit_duration_seconds": 35.03660269698594,
+  "commit": "2bda414a567a051eb1e2ec01b1d7278dde3909f8",
+  "tree": "bcda26bab631f643f8b842b0c19fc5765e80dc3d",
+  "exit_code": 0
+}
