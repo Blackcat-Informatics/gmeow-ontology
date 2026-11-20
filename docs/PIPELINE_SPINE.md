@@ -429,8 +429,10 @@ dropped handle reference. Shared allocations can remain live through other owner
 The ordinary build ranks only dependency-ready stages whose resources are
 available. It compares transient memory estimates, then the change in retained
 bytes after the candidate completes. Last-reader credit counts a shared
-dataset once and includes the source catalog's aggregate RDF payload when
-it has no other owner. Retained or in-flight inputs stay live. Ties defer stages
+dataset once. The final declared reader of an exclusively owned source
+catalog gets credit for its aggregate RDF payload even if a later reader
+still needs the catalog's receipt dataset. Retained or in-flight inputs
+stay live. Ties defer stages
 whose only consumer is the sink, favor the longer remaining dependency path,
 and use stage identifier order. The ranking uses declared dependencies and
 fixed measurements.
@@ -442,11 +444,11 @@ in identifier order. Use the same `--jobs` for calibration and both comparison
 arms so each stage can use the ordinary Rayon pool.
 Set `GMEOW_PIPELINE_MEMORY_ESTIMATES` to a JSON file keyed by selected stage
 identifier to supply `transient_bytes` and `published_bytes` for each stage.
-The transient value is the measured demand above the resident inputs during
-the stage. The published value is the measured newly retained output. Without
-a calibration file, the memory order uses the measured payload sizes and
-declared graph. These controls change execution order while leaving action keys and
-published identities intact.
+The transient value is the observed resident growth above the dispatch
+sample. The published value measures committed artifact bytes at publication.
+Without a calibration file, the memory order uses the measured live payload
+sizes and declared graph. These controls change execution order while leaving
+action keys and published identities intact.
 
 On glibc Linux, the scheduler also requests allocator reclamation once after each
 stage's publication and the carrier releases that completion caused, before the next

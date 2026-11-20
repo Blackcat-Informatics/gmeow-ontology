@@ -68,6 +68,12 @@ impl Stage for FrontierStage {
                 );
                 StageProduct::from_artifacts(self.id(), BTreeMap::new())?
             }
+            "catalog-receipt-reader" => {
+                let source = &input.upstream[PARSE_SOURCES];
+                assert_eq!(source.dataset().quad_count(), 3);
+                assert!(source.raw_bundle().handle(GRAPH_SOURCE_CATALOG).is_none());
+                StageProduct::from_artifacts(self.id(), BTreeMap::new())?
+            }
             _ => StageProduct::from_artifacts(self.id(), BTreeMap::new())?,
         };
         Ok(StageOutput::new(product))
@@ -187,8 +193,8 @@ fn memory_ready_order_uses_last_reader_credit_and_fixed_transient_cost() {
     assert_eq!(profile_receipts, receipts);
 }
 
-/// The source catalog's native aggregate is larger than the competing dataset.
-/// Its small published receipt alone would dispatch the other reader first.
+/// The last keyed reader frees the native aggregate before a competing dataset
+/// release. A later dataset reader still needs the catalog's RDF receipt.
 #[test]
 fn memory_ready_order_credits_the_exclusive_source_catalog_payload() {
     let directory = tempfile::tempdir().expect("synthetic catalog frontier root");
@@ -204,6 +210,13 @@ fn memory_ready_order_credits_the_exclusive_source_catalog_payload() {
         PARSE_SOURCES.into(),
         [Read::Handle(GRAPH_SOURCE_CATALOG.into())].into(),
     );
+    let mut receipt_reader = spec(
+        "catalog-receipt-reader",
+        &[PARSE_SOURCES, "z-catalog-reader"],
+    );
+    receipt_reader
+        .reads
+        .insert(PARSE_SOURCES.into(), [Read::Dataset].into());
     let pipeline = PipelineSpec {
         id: "catalog-frontier-fixture".into(),
         stages: vec![
@@ -211,7 +224,8 @@ fn memory_ready_order_credits_the_exclusive_source_catalog_payload() {
             source,
             dataset_reader,
             catalog_reader,
-            spec("sink", &["a-dataset-reader", "z-catalog-reader"]),
+            receipt_reader,
+            spec("sink", &["a-dataset-reader", "catalog-receipt-reader"]),
         ],
     };
 
@@ -225,6 +239,7 @@ fn memory_ready_order_credits_the_exclusive_source_catalog_payload() {
             PARSE_SOURCES,
             "z-catalog-reader",
             "a-dataset-reader",
+            "catalog-receipt-reader",
             "sink"
         ]
     );

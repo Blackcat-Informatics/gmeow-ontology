@@ -789,6 +789,7 @@ pub fn run_without(
                             products: &products,
                             dataset_bytes: &dataset_bytes,
                             carrier_readers: &remaining_carrier_readers,
+                            handle_readers: release_handles.then_some(&remaining_handle_readers),
                             artifact_views: &artifact_views_in_flight,
                             retained: retained_carriers,
                         };
@@ -1398,7 +1399,24 @@ impl HandleReaders {
     }
 
     fn contains(&self, key: &str) -> bool {
-        self.whole > 0 || self.keys.get(key).is_some_and(|&readers| readers > 0)
+        self.contains_after(key, None)
+    }
+
+    /// Is a whole-carrier or keyed reader still outstanding after one stage completes?
+    fn contains_after(&self, key: &str, completed: Option<&crate::reads::ReadSet>) -> bool {
+        use crate::reads::Read;
+
+        let whole = completed.is_some_and(|reads| reads.contains(&Read::Carrier));
+        let keyed = completed.is_some_and(|reads| {
+            reads
+                .iter()
+                .any(|read| matches!(read, Read::Handle(read_key) if read_key == key))
+        });
+        self.whole > usize::from(whole)
+            || self
+                .keys
+                .get(key)
+                .is_some_and(|&readers| readers > usize::from(keyed))
     }
 }
 
