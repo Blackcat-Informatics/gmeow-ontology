@@ -88,12 +88,14 @@ blobs. Each stage follows four rules.
 4. **Declare the reads each edge makes (checked).** The scheduler provides only
    the producer products named by `dataflowConsumes`. The bound dataflow
    declares which reads need a live carrier and which use the artifact lane.
-   For each stage that executes successfully, the scheduler compares recorded reads
-   with those declarations in both directions. Undeclared reads and unread
-   declarations fail the run and prevent caching that product. An identity-only
-   dependency uses the producer's digest and requires no lane read. Stored
-   products are authenticated on cache hits. This check covers reads on declared
-   edges. Finding products with no declared reader remains a review responsibility.
+   Under the production enforcement policy, the scheduler compares recorded
+   reads with those declarations in both directions when a stage succeeds.
+   Undeclared reads and unread declarations fail the run and prevent caching that
+   product. The maintainer recording mode observes reads without enforcement.
+   An identity-only dependency uses the producer's digest and requires no lane
+   read. Stored products are authenticated on cache hits. This check covers reads
+   on declared edges. Finding products with no declared reader remains a review
+   responsibility.
    [Read contracts](../crates/pipeline/src/reads.rs) · [Scheduler](../crates/pipeline/src/scheduler.rs)
 
 Stage kinds (source-load, transform, reason, validate, docs-render) differ only in
@@ -490,6 +492,8 @@ and the declared archive, dictionary, and export inputs. It assembles the
 physical frames, computes their identities, seals the medium envelopes, and
 publishes the serialized `gmeow.gts` bytes in its stage product. In update
 mode, reconcile materializes the bundle and fanout projects its files (§6).
+In check mode, reconcile checks the emitted bundle and the existing files
+without writing either.
 
 The reconcile checks for exactly one declared sink and exactly one product
 that supplies the bundle bytes, and requires their stage identities to match.
