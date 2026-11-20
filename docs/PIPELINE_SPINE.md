@@ -425,12 +425,9 @@ output.
 
 ### 3.1 The grounding-generator contract
 
-A grounding slice (`logic:`, `lang:`, `math:`) does not only *declare* vocabulary —
-it computes things: closures, corpora, projections, executed lifts. Those computed
-artifacts reach consumers the same way every other stage output does, and the
-uniformity is the point: **a grounding slice's computed artifact is a carrier graph
-attached by a registered stage, never a file the slice writes and something else
-reads back.** Rule 1 of the stage contract admits no grounding exception.
+Grounding slices (`logic:`, `lang:`, `math:`) compute closures, corpora,
+projections, and lifts. Their stages publish computed artifacts through the
+declared carrier outputs under rule 1.
 
 The following stages supply grounding outputs and their authored inputs.
 
@@ -664,7 +661,7 @@ contract while exercising the same exact carrier.
   committed closure file, the bundle's reasoning graph, and any documentation of
   inferred axioms are all projections of that one graph — never independent
   reasoning passes. Two artifacts that claim to be "the closure" but were reasoned
-  separately are a razor (§3.2) violation, even if they happen to agree.
+  separately violate the convention in rule 2 of §3.
 - **One published bundle.** The terminal publishes `gmeow.gts`. Produce side
   formats from the in-memory carrier. The explicit documentation sizing command
   can serialize a counterfactual bundle for measurement after the stage DAG.
