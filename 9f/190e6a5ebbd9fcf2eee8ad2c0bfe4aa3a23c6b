@@ -1,0 +1,19 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: b155f418ee1a42a7edbf9746fb34fc518714aad5
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 3002
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/3002
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: f081005ecc54c8437aa143fbdfee639753b35508
+GhpRsq-Head-Ref: paudley/3001-bound-fanout-rule-discovery-to-its
+GhpRsq-Head-OID: b155f418ee1a42a7edbf9746fb34fc518714aad5
+GhpRsq-Result-Tree: 120c416110703d9f8a1c4cf1f6d4c92b095eb110
+GhpRsq-Result-Commit: 9f190e6a5ebbd9fcf2eee8ad2c0bfe4aa3a23c6b
+GhpRsq-Parent-Hashes: b155f418ee1a42a7edbf9746fb34fc518714aad5
+GhpRsq-Squash-Notes-SHA256: 7c61e5e12d382fdde4fa56ec9a2dac908877503e519a8fa5c14ee63c53a2e0d9
+GhpRsq-Defect-Class: none
+GhpRsq-Stage-Evidence: none
