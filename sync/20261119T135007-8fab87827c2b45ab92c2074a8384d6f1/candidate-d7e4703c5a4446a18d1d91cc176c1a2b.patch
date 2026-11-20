@@ -1,0 +1,226 @@
+diff --git crates/pipeline/src/stages/carrier.rs crates/pipeline/src/stages/carrier.rs
+index 4d9977112..b6b57f653 100644
+--- crates/pipeline/src/stages/carrier.rs
++++ crates/pipeline/src/stages/carrier.rs
+@@ -872,6 +872,36 @@ fn holds_named_graph(dataset: &purrdf::RdfDataset, graph_iri: &str) -> bool {
+         .is_some_and(|graph| dataset.has_named_graph(graph))
+ }
+ 
++/// Check that the promised graph owns the entire native dataset.
++pub(super) fn require_rooted_graph(
++    dataset: &purrdf::RdfDataset,
++    stage: &str,
++    graph_iri: &str,
++) -> gmeow_errors::Result<()> {
++    let invalid = |message| {
++        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
++            stage: stage.to_owned(),
++            message,
++            cause: None,
++        })
++    };
++    let graph = dataset
++        .term_id_by_iri(graph_iri)
++        .filter(|&graph| dataset.named_graphs().eq(std::iter::once(graph)))
++        .ok_or_else(|| invalid(format!("must declare only <{graph_iri}>")))?;
++    if dataset.quads().any(|quad| quad.g != Some(graph))
++        || dataset
++            .reifiers_with_graph()
++            .any(|(_, _, owner)| owner != Some(graph))
++        || dataset
++            .annotations_with_graph()
++            .any(|(_, _, _, owner)| owner != Some(graph))
++    {
++        return Err(invalid(format!("contains RDF rows outside <{graph_iri}>")));
++    }
++    Ok(())
++}
++
+ /// Number of ordinary quads `dataset` asserts in the named graph `graph_iri`.
+ fn graph_quad_count(dataset: &purrdf::RdfDataset, graph_iri: &str) -> usize {
+     dataset.term_id_by_iri(graph_iri).map_or(0, |graph| {
+@@ -1034,22 +1064,7 @@ impl<'a> CarrierParts<'a> {
+         graph_iri: &str,
+     ) -> Result<(), gmeow_errors::Diag> {
+         let dataset = self.producer_dataset(stage)?;
+-        let graph = dataset
+-            .term_id_by_iri(graph_iri)
+-            .filter(|&graph| dataset.named_graphs().eq(std::iter::once(graph)))
+-            .ok_or_else(|| stage_err(&format!("{stage} must declare only <{graph_iri}>")))?;
+-        if dataset.quads().any(|quad| quad.g != Some(graph))
+-            || dataset
+-                .reifiers_with_graph()
+-                .any(|(_, _, owner)| owner != Some(graph))
+-            || dataset
+-                .annotations_with_graph()
+-                .any(|(_, _, _, owner)| owner != Some(graph))
+-        {
+-            return Err(stage_err(&format!(
+-                "{stage} contains RDF rows outside <{graph_iri}>"
+-            )));
+-        }
++        require_rooted_graph(&dataset, stage, graph_iri)?;
+         log_carrier_part(stage, graph_iri, dataset.quad_count());
+         self.place_graph_source(purrdf::CompositeSource::new(dataset), graph_iri);
+         Ok(())
+diff --git crates/pipeline/src/stages/docs_render.rs crates/pipeline/src/stages/docs_render.rs
+index b99d5c1a4..141e30097 100644
+--- crates/pipeline/src/stages/docs_render.rs
++++ crates/pipeline/src/stages/docs_render.rs
+@@ -7,18 +7,35 @@
+ 
+ use std::collections::{BTreeMap, BTreeSet};
+ use std::path::Path;
++use std::sync::Arc;
+ 
+ use gmeow_docs::model::{
+     ConsistencyAssessment, ConstraintRule, DiagnosticsDigest, DocDiagFinding, DocsModel,
+     ReasoningVerdict,
+ };
+ use gmeow_docs::rdf::to_gmeow_rdf;
+-use purrdf::RdfTerm;
++use purrdf::{RdfDataset, RdfDatasetBuilder, RdfTerm};
+ 
+ use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
++use crate::stages::carrier::{GRAPH_DOCUMENTATION, require_rooted_graph};
+ 
+ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+ 
++/// Publish the already named graph the N-Quads renderer supplies.
++fn admit_rendered_documentation(rendered: &str) -> gmeow_errors::Result<Arc<RdfDataset>> {
++    let dataset = if rendered.is_empty() {
++        let mut builder = RdfDatasetBuilder::new();
++        let graph = builder.intern_iri(GRAPH_DOCUMENTATION)?;
++        builder.declare_named_graph(graph)?;
++        builder.freeze().map_err(gmeow_errors::Diag::from)?
++    } else {
++        purrdf::parse_dataset(rendered.as_bytes(), "application/n-quads", None)
++            .map_err(gmeow_errors::Diag::from)?
++    };
++    require_rooted_graph(&dataset, "stage-docs-render", GRAPH_DOCUMENTATION)?;
++    Ok(dataset)
++}
++
+ /// Select the declared in-DAG reasoning owner. Post-DAG documentation explicitly
+ /// selects its retained snapshot and uses the same native admission below.
+ pub(crate) fn reasoning_verdict_from_reason(
+@@ -1034,7 +1051,7 @@ impl Stage for DocsRenderStage {
+         // v6: adds `term_loss_digest_from_upstream`, folding the dynamic per-term
+         // projection-loss join from the `stage-mappings` product's live
+         // `GRAPH_PROJECTION_LEDGER` graph.
+-        "docs_render.v17-localized-fixture-rationales"
++        "docs_render.v18-admit-rendered-graph"
+     }
+     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
+         // Guides, four-boxes patterns and locale catalogs contribute to the graph
+@@ -1045,11 +1062,9 @@ impl Stage for DocsRenderStage {
+         let verdict = reasoning_verdict_from_reason(input.upstream)?;
+         let dataset = {
+             let graph = render_docs_graph(input.root, verdict, input.upstream)?;
+-            crate::stages::carrier::parse_into_graph(
+-                graph.as_bytes(),
+-                "application/n-quads",
+-                crate::stages::carrier::GRAPH_DOCUMENTATION,
+-            )?
++            crate::node::measure_stage_phase(self.id(), "parse-documentation-rdf", || {
++                admit_rendered_documentation(&graph)
++            })?
+         };
+         Ok(StageOutput::new(StageProduct::from_artifacts_over(
+             self.id(),
+diff --git crates/pipeline/src/stages/docs_render.tests.rs crates/pipeline/src/stages/docs_render.tests.rs
+index 7a8e9a93e..c1bde79e6 100644
+--- crates/pipeline/src/stages/docs_render.tests.rs
++++ crates/pipeline/src/stages/docs_render.tests.rs
+@@ -3,6 +3,72 @@
+ 
+ use super::*;
+ 
++/// Publish the same stage and snapshot content for rendered documentation,
++/// including a declaration-only graph and native statement metadata.
++#[test]
++fn documentation_admission_preserves_stage_and_snapshot_identity() {
++    let model = DocsModel {
++        terms: vec![gmeow_docs::model::DocTerm {
++            iri: "https://blackcatinformatics.ca/gmeow/Document".to_owned(),
++            curie: "gmeow:Document".to_owned(),
++            label: Some("Document".to_owned()),
++            owner_slice: "https://blackcatinformatics.ca/gmeow/slice/documents".to_owned(),
++            ..Default::default()
++        }],
++        ..Default::default()
++    };
++    let rendered = to_gmeow_rdf(&model, &BTreeMap::new());
++    assert!(!rendered.is_empty(), "the renderer emits a documented term");
++    let reified = format!(
++        "_:doc <urn:doc:label> \"A document\"@en <{GRAPH_DOCUMENTATION}> .\n\
++         <urn:doc:claim> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> \
++         <<( _:doc <urn:doc:label> \"A document\"@en )>> <{GRAPH_DOCUMENTATION}> .\n\
++         <urn:doc:claim> <urn:doc:evidence> <urn:doc:source> <{GRAPH_DOCUMENTATION}> .\n"
++    );
++    let snapshot_id = |dataset: &RdfDataset| {
++        let mut snapshot = purrdf::gts_compose::SnapshotBuilder::new();
++        let _receipt = snapshot
++            .add_view(dataset)
++            .expect("fold documentation into the snapshot");
++        snapshot.snapshot_content_id()
++    };
++    let stage_digest = |dataset| {
++        StageProduct::from_artifacts_over("stage-docs-render", dataset, BTreeMap::new())
++            .expect("digest the documentation stage product")
++            .digest
++    };
++
++    for input in [rendered.as_str(), reified.as_str(), ""] {
++        let admitted = admit_rendered_documentation(input).expect("admit the rendered graph");
++        assert_eq!(
++            admitted.owned_named_graphs().collect::<Vec<_>>(),
++            [RdfTerm::iri(GRAPH_DOCUMENTATION)]
++        );
++        let rooted = crate::stages::carrier::parse_into_graph(
++            input.as_bytes(),
++            "application/n-quads",
++            GRAPH_DOCUMENTATION,
++        )
++        .expect("admit the same input through explicit graph placement");
++        assert_eq!(snapshot_id(&admitted), snapshot_id(&rooted));
++
++        assert_eq!(stage_digest(admitted), stage_digest(rooted));
++    }
++}
++
++/// Reject renderer output that includes a statement outside its declared graph.
++#[test]
++fn documentation_admission_refuses_foreign_graph_rows() {
++    for foreign in [
++        "<urn:s> <urn:p> <urn:o> .",
++        "<urn:s> <urn:p> <urn:o> <urn:foreign> .",
++    ] {
++        let input = format!("<urn:s> <urn:p> <urn:o> <{GRAPH_DOCUMENTATION}> .\n{foreign}\n");
++        let error = admit_rendered_documentation(&input).expect_err("refuse misplaced RDF");
++        assert!(error.message().contains(GRAPH_DOCUMENTATION));
++    }
++}
++
+ fn repo_root() -> std::path::PathBuf {
+     Path::new(env!("CARGO_MANIFEST_DIR"))
+         .join("..")
+diff --git docs/PIPELINE_SPINE.md docs/PIPELINE_SPINE.md
+index 78a89ec1a..bf522fcfe 100644
+--- docs/PIPELINE_SPINE.md
++++ docs/PIPELINE_SPINE.md
+@@ -206,9 +206,11 @@ input blank scopes remain distinct. These producer inputs carry locations in the
+ RDF and report payloads; unexpected physical row-location attachments fail admission
+ before publication. Diagnostics retain their selected graph placement.
+ 
+-Snapshot assembly uses the native documentation dataset as an independently
+-scoped source. It checks that the documentation graph is the sole declaration
+-and owns every ordinary statement, reifier and annotation before placing it.
++The documentation producer parses the renderer's named N-Quads and publishes
++that native dataset. An empty render publishes the empty named graph. The
++producer and snapshot assembly both check that the documentation graph is the
++sole declaration and owns every ordinary statement, reifier and annotation.
++Snapshot assembly places the dataset as an independently scoped source.
+ 
+ Snapshot assembly derives finding verdicts over the composed resident sources, then
+ assesses coherence over a second read-only view with those verdicts appended. The

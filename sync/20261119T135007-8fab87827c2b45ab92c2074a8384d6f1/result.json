@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "worktree": "/home/paudley/Active/gmeow-ontology/.worktrees/2830-places-warns-that-every-superseded",
+  "branch": "paudley/2830-places-warns-that-every-superseded",
+  "base_ref": "refs/remotes/origin/main",
+  "head": "86c30c123b87d17b2491437cc2fc05d40fe1807a",
+  "attempt": "/home/paudley/Active/gmeow-ontology/.worktrees/2830-places-warns-that-every-superseded/.stage/places-warns-that-every-superseded/sync/20261119T135007-8fab87827c2b45ab92c2074a8384d6f1",
+  "conflicts": [],
+  "status": "completed",
+  "base": "a989867cd4a349854c93013ce76c15b3aafbf28c",
+  "merge_bases": [
+    "06137d1bae69aed0fecf009c329d26bb4cab818d"
+  ],
+  "merge_index": "ee0a095b933e14d8e89dbf5156c9ca3a1c7b26238a1631161b5025465c5f3520",
+  "candidate_tree": "9a7057090ab71207a5987e634072df7875858146",
+  "candidate_patch": "candidate-d7e4703c5a4446a18d1d91cc176c1a2b.patch",
+  "stdout_log": "commit-d7e4703c5a4446a18d1d91cc176c1a2b.stdout.log",
+  "stderr_log": "commit-d7e4703c5a4446a18d1d91cc176c1a2b.stderr.log",
+  "validation_records": [],
+  "commit_duration_seconds": 4.018859056996007,
+  "commit": "f4b77bb05a610d188b6d2264652de81c512f0f5c",
+  "tree": "9a7057090ab71207a5987e634072df7875858146",
+  "exit_code": 0
+}
