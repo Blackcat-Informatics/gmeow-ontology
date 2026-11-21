@@ -866,7 +866,7 @@ pub(crate) fn read_expected_outputs(
 /// "every declared output is produced" direction, proved against the bundle rather than the
 /// on-disk tree, so a clean clone that no longer emits a consumed output cannot pass silently.
 fn check_expected_completeness(
-    files: &BTreeMap<String, Vec<u8>>,
+    files: &BTreeMap<String, Bytes>,
     expected: &BTreeSet<String>,
 ) -> Result<(), gmeow_errors::Diag> {
     let missing: Vec<&str> = expected

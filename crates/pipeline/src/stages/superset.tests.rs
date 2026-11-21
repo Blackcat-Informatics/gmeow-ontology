@@ -492,8 +492,7 @@ fn completeness_hard_fails_naming_every_dropped_output() {
     // deterministic-drop case the two-generation determinism gate is blind to.
     let expected = authored_expected();
     // A produced set that reconstructs every declared path passes.
-    let full: BTreeMap<String, Vec<u8>> =
-        expected.iter().map(|p| (p.clone(), Vec::new())).collect();
+    let full = expected.iter().map(|p| (p.clone(), Bytes::new())).collect();
     check_expected_completeness(&full, &expected).expect("full production is complete");
     // Drop one declared output (simulate a carrier code change that stops emitting it).
     let dropped = "generated/catalog/constraint-catalog.nq";
