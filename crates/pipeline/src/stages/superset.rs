@@ -36,6 +36,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::Arc;
 
+use bytes::Bytes;
 use purrdf::RdfDataset;
 
 pub(crate) mod source_contracts;
@@ -72,8 +73,8 @@ impl SupersetReport {
 /// it against the committed tree; the fanout phase ([`crate::fanout()`]) writes it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BundleProjection {
-    /// Committed repo-relative path -> reconstructed bytes.
-    pub files: BTreeMap<String, Vec<u8>>,
+    /// Reconstructed bytes by committed repo-relative path.
+    pub files: BTreeMap<String, Bytes>,
 }
 
 /// One verified decode of the two bundle surfaces the projection proof needs.
@@ -169,7 +170,7 @@ pub fn project_decoded_bundle(
     // branching in Rust (PIPELINE_SPINE §6/§7).
     let rules = read_fanout_rules(dataset)?;
 
-    let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    let mut files = BTreeMap::new();
 
     // The reconstructed paths, for the bijection completeness HARD-FAIL below.
     let mut reconstructed_paths: BTreeSet<String> = BTreeSet::new();
@@ -194,20 +195,15 @@ pub fn project_decoded_bundle(
                 "reconstruction graph {iri} is present but folds to no bytes"
             ))
         })?;
-        if files.insert(path.clone(), folded).is_some() {
+        if files.insert(path.clone(), Bytes::from(folded)).is_some() {
             return Err(stage_err(&format!(
                 "{path} is carried by two representatives (named graph {iri} collides)"
             )));
         }
     }
 
-    // Inline blob members: the opaque + byte-decorated committed files under
-    // `generated/`. Source archive members (`shapes/`, `slices/`, `dsl/`) are carried
-    // for self-sufficiency but are not `generated/` targets — skip them.
+    // Inline blob members supply the opaque and byte-decorated generated files.
     for (path, bytes) in blob_members.files {
-        if !path.starts_with("generated/") {
-            continue;
-        }
         if files.insert(path.clone(), bytes).is_some() {
             return Err(stage_err(&format!(
                 "{path} is carried by two representatives (blob member collides with a named graph)"
@@ -223,7 +219,10 @@ pub fn project_decoded_bundle(
     let mut header_dict_paths: BTreeSet<String> = BTreeSet::new();
     for (path, bytes) in &source.header_dicts {
         header_dict_paths.insert(path.clone());
-        if files.insert(path.clone(), bytes.clone()).is_some() {
+        if files
+            .insert(path.clone(), Bytes::copy_from_slice(bytes))
+            .is_some()
+        {
             return Err(stage_err(&format!(
                 "{path} is carried by two representatives (header \"dct\" entry collides)"
             )));
@@ -867,7 +866,7 @@ pub(crate) fn read_expected_outputs(
 /// "every declared output is produced" direction, proved against the bundle rather than the
 /// on-disk tree, so a clean clone that no longer emits a consumed output cannot pass silently.
 fn check_expected_completeness(
-    files: &BTreeMap<String, Vec<u8>>,
+    files: &BTreeMap<String, Bytes>,
     expected: &BTreeSet<String>,
 ) -> Result<(), gmeow_errors::Diag> {
     let missing: Vec<&str> = expected
@@ -1267,7 +1266,7 @@ fn read_dataset(gts_bytes: &[u8]) -> Result<std::sync::Arc<RdfDataset>, gmeow_er
 /// archive — the exact set the carrier declares as `gmeow:extractsGraphFamily "opaque"`
 /// rows, which [`check_opaque_bijection`] proves is a bijection against those rows.
 struct BlobMembers {
-    files: BTreeMap<String, Vec<u8>>,
+    files: BTreeMap<String, Bytes>,
     opaque_paths: BTreeSet<String>,
 }
 
@@ -1275,7 +1274,7 @@ fn read_blob_members(
     graph: &purrdf::gts::model::Graph,
     lookaside: &purrdf::RdfLookaside,
 ) -> Result<BlobMembers, gmeow_errors::Diag> {
-    let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    let mut out = BTreeMap::new();
     let mut opaque_paths: BTreeSet<String> = BTreeSet::new();
     for record in &lookaside.blobs {
         // Only archive blobs unpack to member files; non-archive blobs (reports,
@@ -1297,25 +1296,46 @@ fn read_blob_members(
         };
         let bytes = entry
             .decoded_vec()
+            .map(Bytes::from)
             .map_err(|e| stage_err(&format!("decode blob {}: {e:?}", record.digest)))?;
-        for (name, member_bytes) in purrdf::ustar::read_archive(&bytes)
+        let members = purrdf::ustar::archive_members(&bytes)
+            .collect::<Result<Vec<_>, _>>()
             .map_err(|e| stage_err(&format!("unpack archive {}: {e}", record.digest)))?
-        {
-            let Some(committed) =
-                crate::stages::carrier::committed_path_for_archive_member(rep, &name)
-            else {
-                // A rep that passed `archive_rep_carries_generated` but resolves no
-                // committed path is a wiring contradiction — fail closed, never drop.
-                return Err(stage_err(&format!(
-                    "archive rep {rep} carries member {name} with no committed-path mapping"
-                )));
-            };
+            .into_iter()
+            .map(|member| {
+                let path = crate::stages::carrier::committed_path_for_archive_member(
+                    rep,
+                    member.name,
+                )
+                .ok_or_else(|| {
+                    stage_err(&format!(
+                        "archive rep {rep} carries member {} with no committed-path mapping",
+                        member.name,
+                    ))
+                })?;
+                Ok((path, member.data))
+            })
+            .collect::<Result<Vec<_>, gmeow_errors::Diag>>()?;
+        // Keep one decoded backing for archives whose members all contribute a
+        // generated path. In mixed archives, retain only the projected bytes.
+        let share_archive = members
+            .iter()
+            .all(|(path, _)| path.starts_with("generated/"));
+        for (committed, member_bytes) in members {
+            if !committed.starts_with("generated/") {
+                continue;
+            }
             // The generated-opaque archive is the byte lane the carrier declares as
             // `opaque` fanout rows; record its members (all under `generated/`) as the
             // set the opaque bijection proves against those rows.
-            if rep == crate::stages::carrier::REP_GENERATED && committed.starts_with("generated/") {
+            if rep == crate::stages::carrier::REP_GENERATED {
                 opaque_paths.insert(committed.clone());
             }
+            let member_bytes = if share_archive {
+                bytes.slice_ref(member_bytes)
+            } else {
+                Bytes::copy_from_slice(member_bytes)
+            };
             out.insert(committed, member_bytes);
         }
     }
