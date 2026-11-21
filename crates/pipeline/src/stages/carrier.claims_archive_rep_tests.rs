@@ -38,10 +38,11 @@ fn the_yaml_ld_archive_owns_no_committed_generated_path() {
 /// archive is refused by the generated-opaque archive, so the SAME bytes can never
 /// reach both `generated-opaque-archive` and `yaml-ld-archive`. A double-carry would
 /// hand one payload to two separately-sealed frames and key the superset gate's
-/// blob-member map on a `pipeline/` path no committed file backs.
+/// blob-member map on a `pipeline/` path no committed file backs. Borrowed and
+/// owned members retain their canonical archive bytes.
 #[test]
 fn the_internal_dataflow_lane_never_reaches_the_generated_opaque_archive() {
-    let mut members: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    let mut members = BTreeMap::new();
     take_opaque(
         &mut members,
         [
@@ -57,12 +58,22 @@ fn the_internal_dataflow_lane_never_reaches_the_generated_opaque_archive() {
         .map(|(p, b)| (p.to_string(), b.to_vec()))
         .collect(),
     );
-    assert_eq!(
-        members.keys().collect::<Vec<_>>(),
-        vec![
-            "generated/pipeline-notes.md",
-            "generated/references/refs.md"
-        ],
-        "no internal `pipeline/` artifact may reach the generated-opaque archive"
-    );
+    let path = crate::stages::verify_attestation::VERIFY_JSON_PATH;
+    let stage = "stage-verify-attestation";
+    let upstream = BTreeMap::from([(
+        stage.to_owned(),
+        StageProduct::from_artifacts(stage, BTreeMap::from([(path.to_owned(), b"{}".to_vec())]))
+            .expect("verification artifact"),
+    )]);
+    let bytes = producer_artifact(stage, path, &upstream).expect("borrow verification artifact");
+    members.insert(path.to_owned(), bytes.into());
+
+    let archive = opaque_blob_from_members(members).expect("opaque archive");
+    let expected = purrdf::ustar::write_archive(&[
+        (path.to_owned(), b"{}".to_vec()),
+        ("generated/pipeline-notes.md".to_owned(), b"n".to_vec()),
+        ("generated/references/refs.md".to_owned(), b"r".to_vec()),
+    ])
+    .expect("canonical archive bytes");
+    assert_eq!(archive.data, expected);
 }
