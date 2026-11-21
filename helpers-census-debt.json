@@ -1851,13 +1851,6 @@
   {
    "kind": "shim",
    "members": [
-    "gmeow_docs_model::fixture::ModelCacheError::from",
-    "gmeow_pipeline::cache::FixtureCoordinateError::from"
-   ]
-  },
-  {
-   "kind": "shim",
-   "members": [
     "gmeow_docs_model::model::is_external_iri",
     "gmeow_pipeline::stages::research_objects::is_http_iri"
    ]
