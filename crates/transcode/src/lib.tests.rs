@@ -101,8 +101,8 @@ fn gts_identity_preserves_complete_history_and_refuses_blob_loss() {
     // gmeow-test-input: synthetic-only
     let signed = gmeow_gts_profile::emit_gmeow_gts(
         snapshot,
-        vec![purrdf::gts_compose::BlobRow {
-            data: receipt.clone(),
+        vec![gmeow_gts_profile::GmeowGtsBlob {
+            data: receipt.as_slice().into(),
             media_type: "application/cbor".into(),
             rep: "native-execution-receipt".into(),
         }],
