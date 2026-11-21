@@ -6,7 +6,7 @@
 
 use std::collections::BTreeMap;
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::{self, Read, Write};
 use std::path::Path;
 
 use purrdf_lex::json::{
@@ -291,13 +291,16 @@ pub fn current_source_inventory(
         .map_err(|error| ActionCacheError::message(error.to_string()))
 }
 
-/// Stream the executable digest without holding its bytes in memory.
+/// Stream the SHA-256 of a file with a bounded buffer.
 pub fn sha256_file(path: &Path) -> Result<String, ActionCacheError> {
     let mut file = File::open(path)?;
     let mut hash = Sha256::new();
     let mut buffer = [0_u8; 64 * 1024];
     loop {
-        let count = file.read(&mut buffer)?;
+        let count = match file.read(&mut buffer) {
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+            result => result?,
+        };
         if count == 0 {
             break;
         }
