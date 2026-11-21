@@ -13,7 +13,9 @@
 //! through GTS fold without bnode relabeling, sorted iteration over the
 //! already-sorted model collections, and a trailing newline.
 
-use std::fmt::Write as _;
+use std::io::Write;
+
+use gmeow_errors::error::NQuadsWriteFailure;
 
 use crate::coverage::{CoverageContext, DIMENSIONS, slice_covered_dims, term_coverage};
 use crate::maturity::{
@@ -114,11 +116,24 @@ pub fn to_gmeow_rdf(
     model: &DocsModel,
     entailments: &BTreeMap<String, Vec<crate::exec::Entailment>>,
 ) -> String {
-    let graph = format!("<{DOCUMENTATION_GRAPH}>");
-    let mut lines = String::new();
+    let mut bytes = Vec::new();
+    write_gmeow_rdf(model, entailments, &mut bytes).expect("writing to a Vec cannot fail");
+    String::from_utf8(bytes).expect("formatted RDF is UTF-8")
+}
 
-    let triple = |s: &str, p: &str, o: &str, lines: &mut String| {
-        writeln!(lines, "{s} <{p}> {o} {graph} .").expect("writing to a String cannot fail");
+/// Write the documentation projection described by [`to_gmeow_rdf`] in row order.
+///
+/// # Errors
+///
+/// Returns [`NQuadsWriteFailure`] with the original writer error as its cause.
+pub fn write_gmeow_rdf<W: Write>(
+    model: &DocsModel,
+    entailments: &BTreeMap<String, Vec<crate::exec::Entailment>>,
+    lines: &mut W,
+) -> gmeow_errors::Result<()> {
+    let triple = |s: &str, p: &str, o: &str, lines: &mut W| {
+        writeln!(lines, "{s} <{p}> {o} <{DOCUMENTATION_GRAPH}> .")
+            .map_err(NQuadsWriteFailure::diagnostic)
     };
     let literal = |value: &str| format!("\"{}\"", nq_escape(value));
     let prose = |value: &str| format!("{}@{}", literal(value), gmeow_errors::abox::X_GMEOW_ENGLISH);
@@ -130,7 +145,7 @@ pub fn to_gmeow_rdf(
     // staying genuinely self-describing (the validator requires the box role and
     // a provenance link on every materialized individual). The shared
     // `gmeow_errors::abox::annotate_nquads` adapter supplies these annotations.
-    let annotate = |subject: &str, label: &str, definition: &str, lines: &mut String| {
+    let annotate = |subject: &str, label: &str, definition: &str, lines: &mut W| {
         // Every caller here already formats `subject` bracketed (`<iri>`) for its
         // OTHER triples in the same block; the shared adapter takes the bare IRI
         // and re-brackets it itself, so strip the brackets back off here rather
@@ -142,7 +157,7 @@ pub fn to_gmeow_rdf(
             definition,
             DOCUMENTATION_GRAPH,
             lines,
-        );
+        )
     };
 
     // The coarse-grain provenance shared by every documented term's
@@ -187,38 +202,38 @@ pub fn to_gmeow_rdf(
             &subject,
             RDF_TYPE,
             &format!("<{GMEOW}DocumentedTerm>"),
-            &mut lines,
-        );
+            lines,
+        )?;
         triple(
             &subject,
             &format!("{GMEOW}documents"),
             &format!("<{}>", term.iri),
-            &mut lines,
-        );
+            lines,
+        )?;
         triple(
             &subject,
             &format!("{GMEOW}docCategory"),
             &literal(category_name(term.category)),
-            &mut lines,
-        );
+            lines,
+        )?;
         triple(
             &subject,
             &format!("{GMEOW}docHasDefinition"),
             &boolean(term.definition.is_some()),
-            &mut lines,
-        );
+            lines,
+        )?;
         triple(
             &subject,
             &format!("{GMEOW}docUrl"),
             &literal(&format!("terms/{slug}/index.html")),
-            &mut lines,
-        );
+            lines,
+        )?;
         triple(
             &subject,
             &format!("{GMEOW}docOwnerSlice"),
             &format!("<{}>", term.owner_slice),
-            &mut lines,
-        );
+            lines,
+        )?;
         // Per-term native-reasoner status — projected ONLY when a verdict is
         // attached (the production docs-graph stage consumes stage-reason), so the
         // SPARQL surface never carries a fabricated satisfiability claim. A class
@@ -229,8 +244,8 @@ pub fn to_gmeow_rdf(
                 &subject,
                 &format!("{GMEOW}docReasoningStatus"),
                 &literal(status),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
         annotate(
             &subject,
@@ -240,8 +255,8 @@ pub fn to_gmeow_rdf(
                 term.iri,
                 category_name(term.category)
             ),
-            &mut lines,
-        );
+            lines,
+        )?;
 
         // Searchable content facets — the REAL display label, definition, advisory
         // prose, and crosswalk tokens (NOT the meta `annotate` label), so an offline
@@ -256,23 +271,23 @@ pub fn to_gmeow_rdf(
             &subject,
             &format!("{GMEOW}docSearchLabel"),
             &prose(term.label.as_deref().unwrap_or(&term.curie)),
-            &mut lines,
-        );
+            lines,
+        )?;
         if let Some(definition) = &term.definition {
             triple(
                 &subject,
                 &format!("{GMEOW}docSearchDefinition"),
                 &prose(definition),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
         for advice in term_advice_facet(term) {
             triple(
                 &subject,
                 &format!("{GMEOW}docSearchAdvice"),
                 &prose(&advice),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
         if let Some(tokens) = alignment_facets.get(term.iri.as_str()) {
             for token in tokens {
@@ -280,8 +295,8 @@ pub fn to_gmeow_rdf(
                     &subject,
                     &format!("{GMEOW}docSearchAlignment"),
                     &literal(token),
-                    &mut lines,
-                );
+                    lines,
+                )?;
             }
         }
 
@@ -296,11 +311,11 @@ pub fn to_gmeow_rdf(
                 &real,
                 GMEOW_DEFINITION_DIGEST,
                 &literal(&term.content_digest),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
         if let Some(version) = &term.added_in_version {
-            triple(&real, GMEOW_ADDED_IN_VERSION, &literal(version), &mut lines);
+            triple(&real, GMEOW_ADDED_IN_VERSION, &literal(version), lines)?;
         }
         for entry in &term.changelog {
             let identity = format!(
@@ -318,13 +333,13 @@ pub fn to_gmeow_rdf(
                 entry.source.wire(),
                 identity_digest
             );
-            triple(&real, GMEOW_HAS_CHANGELOG_ENTRY, &entry_iri, &mut lines);
+            triple(&real, GMEOW_HAS_CHANGELOG_ENTRY, &entry_iri, lines)?;
             triple(
                 &entry_iri,
                 RDF_TYPE,
                 &format!("<{GMEOW_CHANGELOG_ENTRY}>"),
-                &mut lines,
-            );
+                lines,
+            )?;
             // A changelog entry is generated A-Box instance data like every other doc
             // subject: annotate it (label / definition / provenance anchor / gmeow:boxABox
             // role) so the folded bundle satisfies the assertional-tier validation contract
@@ -344,16 +359,16 @@ pub fn to_gmeow_rdf(
                         entry.version, term.iri
                     )
                 }),
-                &mut lines,
-            );
+                lines,
+            )?;
             triple(
                 &entry_iri,
                 GMEOW_ENTRY_VERSION,
                 &literal(&entry.version),
-                &mut lines,
-            );
+                lines,
+            )?;
             if let Some(note) = &entry.note {
-                triple(&entry_iri, GMEOW_ENTRY_NOTE, &literal(note), &mut lines);
+                triple(&entry_iri, GMEOW_ENTRY_NOTE, &literal(note), lines)?;
             }
         }
 
@@ -371,71 +386,61 @@ pub fn to_gmeow_rdf(
         // validation contract.
         for ev in term_evidence(model, term, provenance.as_ref()) {
             let ev_iri = format!("<{GMEOW}documentation/evidence/{slug}/{}>", ev.kind);
-            triple(
-                &ev_iri,
-                RDF_TYPE,
-                &format!("<{GMEOW}DocEvidence>"),
-                &mut lines,
-            );
+            triple(&ev_iri, RDF_TYPE, &format!("<{GMEOW}DocEvidence>"), lines)?;
             triple(
                 &ev_iri,
                 &format!("{GMEOW}docEvidenceKind"),
                 &format!("<{GMEOW}docEvidenceKind{}>", ev.kind_suffix),
-                &mut lines,
-            );
+                lines,
+            )?;
             triple(
                 &ev_iri,
                 &format!("{GMEOW}documents"),
                 &format!("<{}>", term.iri),
-                &mut lines,
-            );
+                lines,
+            )?;
             triple(
                 &ev_iri,
                 &format!("{GMEOW}docClaim"),
                 &prose(&ev.claim),
-                &mut lines,
-            );
+                lines,
+            )?;
             // The grounding edge is mandatory and never empty — the fail-fast
             // grounding invariant (see `tests/doc_evidence.rs`).
             for grounded in &ev.grounded {
-                triple(
-                    &ev_iri,
-                    &format!("{GMEOW}docGroundedBy"),
-                    grounded,
-                    &mut lines,
-                );
+                triple(&ev_iri, &format!("{GMEOW}docGroundedBy"), grounded, lines)?;
             }
             if let Some((_, chain)) = &provenance {
                 triple(
                     &ev_iri,
                     &format!("{GMEOW}docProducedByChain"),
                     &literal(chain),
-                    &mut lines,
-                );
+                    lines,
+                )?;
             }
             if let Some(judgment) = &ev.judgment {
                 triple(
                     &ev_iri,
                     &format!("{GMEOW}docJudgment"),
                     &literal(judgment),
-                    &mut lines,
-                );
+                    lines,
+                )?;
             }
             for (predicate, value) in &ev.int_props {
                 triple(
                     &ev_iri,
                     &format!("{GMEOW}{predicate}"),
                     &integer(*value),
-                    &mut lines,
-                );
+                    lines,
+                )?;
             }
             for (predicate, value) in &ev.digest_props {
                 triple(
                     &ev_iri,
                     &format!("{GMEOW}{predicate}"),
                     &format!("{}^^<{GMEOW}blake3_256Digest>", literal(value)),
-                    &mut lines,
-                );
+                    lines,
+                )?;
             }
             annotate(
                 &ev_iri,
@@ -444,8 +449,8 @@ pub fn to_gmeow_rdf(
                     "{} documentation evidence for {} — {}.",
                     ev.kind, term.iri, ev.claim
                 ),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
 
         // Per-term documentation-coverage incidence: for each of the seventeen
@@ -470,8 +475,8 @@ pub fn to_gmeow_rdf(
                 &subject,
                 &format!("{GMEOW}{predicate}"),
                 &format!("<{GMEOW}{}>", dim.dimension.local_name()),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
     }
 
@@ -489,8 +494,8 @@ pub fn to_gmeow_rdf(
                 &format!("<{}>", creator.subject()),
                 creator.predicate().as_str(),
                 &object,
-                &mut lines,
-            );
+                lines,
+            )?;
         }
         let slug = slice_slug(slice);
         let subject = format!("<{GMEOW}documentation/slice/{slug}>");
@@ -498,26 +503,26 @@ pub fn to_gmeow_rdf(
             &subject,
             RDF_TYPE,
             &format!("<{GMEOW}DocumentedSlice>"),
-            &mut lines,
-        );
+            lines,
+        )?;
         triple(
             &subject,
             &format!("{GMEOW}documents"),
             &format!("<{}>", slice.iri),
-            &mut lines,
-        );
+            lines,
+        )?;
         triple(
             &subject,
             &format!("{GMEOW}docUrl"),
             &literal(&format!("slices/{slug}/index.html")),
-            &mut lines,
-        );
+            lines,
+        )?;
         annotate(
             &subject,
             &format!("Documentation entry: slice {slug}"),
             &format!("Documentation projection for slice {}.", slice.iri),
-            &mut lines,
-        );
+            lines,
+        )?;
         // The slice's REAL display name as a searchable facet (the site
         // `search-index.json` indexes the same `slice_display`), so `docs_search`
         // can surface a slice record by its title/label. A slice carries no
@@ -526,8 +531,8 @@ pub fn to_gmeow_rdf(
             &subject,
             &format!("{GMEOW}docSearchLabel"),
             &prose(&slice_display(slice)),
-            &mut lines,
-        );
+            lines,
+        )?;
 
         // Per-slice documentation-coverage incidence + FCA-derived maturity. The
         // slice's covered-dimension set is its concept intent over ALL nineteen
@@ -547,8 +552,8 @@ pub fn to_gmeow_rdf(
                 &subject,
                 &format!("{GMEOW}{predicate}"),
                 &format!("<{GMEOW}{}>", dim.local_name()),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
         // The bounded coverage fraction against the FULL anchor's intent — the
         // reference floor (`asserted-or-Full`; no per-slice asserted maturity is
@@ -562,8 +567,8 @@ pub fn to_gmeow_rdf(
             &subject,
             &format!("{GMEOW}coverageFraction"),
             &decimal(fraction),
-            &mut lines,
-        );
+            lines,
+        )?;
         // The FCA-derived earned floor: the largest anchor whose intent ⊆ the
         // slice's covered set. Emitted ONLY when an anchor is earned (an honest
         // absence otherwise) — deterministic next-closure over the incidence, never
@@ -573,8 +578,8 @@ pub fn to_gmeow_rdf(
                 &subject,
                 &format!("{GMEOW}docEarnedMaturity"),
                 &format!("<{GMEOW}{}>", anchor.local_name()),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
     }
 
@@ -599,42 +604,37 @@ pub fn to_gmeow_rdf(
                 &subject,
                 RDF_TYPE,
                 &format!("<{GMEOW}DocumentedDocument>"),
-                &mut lines,
-            );
+                lines,
+            )?;
             triple(
                 &subject,
                 &format!("{GMEOW}documents"),
                 &format!("<{}>", doc.slice_iri),
-                &mut lines,
-            );
+                lines,
+            )?;
             triple(
                 &subject,
                 &format!("{GMEOW}docSourcePath"),
                 &literal(&doc.source_path),
-                &mut lines,
-            );
+                lines,
+            )?;
             triple(
                 &subject,
                 &format!("{GMEOW}docTitle"),
                 &prose(&doc.title),
-                &mut lines,
-            );
+                lines,
+            )?;
             triple(
                 &subject,
                 &format!("{GMEOW}docRawDigest"),
                 &format!("{}^^<{GMEOW}sha256Digest>", literal(&doc.raw_digest)),
-                &mut lines,
-            );
+                lines,
+            )?;
             // The RESOLVED page location — the resolver projection. `page_of`
             // returns the trailing-slash page path the `SourceToPageMap` minted;
             // the top-level `docs.md` resolves to its slice page.
             if let Some(page) = page_map.page_of(&doc.slice_iri, &doc.source_path) {
-                triple(
-                    &subject,
-                    &format!("{GMEOW}docUrl"),
-                    &literal(page),
-                    &mut lines,
-                );
+                triple(&subject, &format!("{GMEOW}docUrl"), &literal(page), lines)?;
             }
             annotate(
                 &subject,
@@ -643,8 +643,8 @@ pub fn to_gmeow_rdf(
                     "Documentation page for `{}` in slice {}.",
                     doc.source_path, doc.slice_iri
                 ),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
     }
 
@@ -656,26 +656,26 @@ pub fn to_gmeow_rdf(
             &subject,
             RDF_TYPE,
             &format!("<{GMEOW}DocumentedConcern>"),
-            &mut lines,
-        );
+            lines,
+        )?;
         triple(
             &subject,
             &format!("{GMEOW}documents"),
             &format!("<{}>", concern.iri),
-            &mut lines,
-        );
+            lines,
+        )?;
         triple(
             &subject,
             &format!("{GMEOW}docUrl"),
             &literal(&format!("concerns/{slug}/index.html")),
-            &mut lines,
-        );
+            lines,
+        )?;
         annotate(
             &subject,
             &format!("Documentation entry: concern {slug}"),
             &format!("Documentation projection for concern {}.", concern.iri),
-            &mut lines,
-        );
+            lines,
+        )?;
         // The concern's REAL display name (and definition, when authored) as
         // searchable facets — the same fields the site `search-index.json` indexes
         // for a concern record.
@@ -683,15 +683,15 @@ pub fn to_gmeow_rdf(
             &subject,
             &format!("{GMEOW}docSearchLabel"),
             &prose(&concern_display(concern)),
-            &mut lines,
-        );
+            lines,
+        )?;
         if let Some(definition) = &concern.definition {
             triple(
                 &subject,
                 &format!("{GMEOW}docSearchDefinition"),
                 &prose(definition),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
     }
 
@@ -704,26 +704,26 @@ pub fn to_gmeow_rdf(
             &subject,
             RDF_TYPE,
             &format!("<{GMEOW}DocumentedMappingSet>"),
-            &mut lines,
-        );
+            lines,
+        )?;
         triple(
             &subject,
             &format!("{GMEOW}documents"),
             &format!("<{}>", set.iri),
-            &mut lines,
-        );
+            lines,
+        )?;
         triple(
             &subject,
             &format!("{GMEOW}docUrl"),
             &literal("linkages/index.html"),
-            &mut lines,
-        );
+            lines,
+        )?;
         annotate(
             &subject,
             &format!("Documentation entry: mapping set {slug}"),
             &format!("Documentation projection for mapping set {}.", set.iri),
-            &mut lines,
-        );
+            lines,
+        )?;
     }
 
     // ── Fixture bodies (first-class, term-keyed) ─────────────────────────────
@@ -749,12 +749,7 @@ pub fn to_gmeow_rdf(
         .map(|t| (t.curie.as_str(), t.iri.as_str()))
         .collect();
     for (subject, f) in &fixture_subjects {
-        triple(
-            subject,
-            RDF_TYPE,
-            &format!("<{GMEOW}DocFixture>"),
-            &mut lines,
-        );
+        triple(subject, RDF_TYPE, &format!("<{GMEOW}DocFixture>"), lines)?;
         // One `gmeow:documents` edge per referenced DOCUMENTED term (the
         // reference list is CURIEs; resolve each to its real term IRI so the edge
         // lands on the term node, never a CURIE literal). A referenced term that
@@ -765,8 +760,8 @@ pub fn to_gmeow_rdf(
                     subject,
                     &format!("{GMEOW}documents"),
                     &format!("<{}>", iri),
-                    &mut lines,
-                );
+                    lines,
+                )?;
             }
         }
         // The well-formed / counter-example kind as an enumerated individual
@@ -779,37 +774,37 @@ pub fn to_gmeow_rdf(
             subject,
             &format!("{GMEOW}docFixtureKind"),
             &format!("<{GMEOW}docFixtureKind{kind_suffix}>"),
-            &mut lines,
-        );
+            lines,
+        )?;
         triple(
             subject,
             &format!("{GMEOW}docFixtureText"),
             &literal(&f.text),
-            &mut lines,
-        );
+            lines,
+        )?;
         if let Some(outcome) = &f.expected_outcome {
             triple(
                 subject,
                 &format!("{GMEOW}docExpectedOutcome"),
                 &literal(outcome),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
         if let Some(code) = &f.violation_code {
             triple(
                 subject,
                 &format!("{GMEOW}docViolationCode"),
                 &literal(code),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
         for object in fixture_rationale_objects(model, f) {
             triple(
                 subject,
                 crate::model::conformance::RATIONALE,
                 &object,
-                &mut lines,
-            );
+                lines,
+            )?;
         }
         // Mandatory grounding: the owning slice IRI is the honest truthmaker (the
         // slice's tests/ tree is where the fixture body lives).
@@ -817,8 +812,8 @@ pub fn to_gmeow_rdf(
             subject,
             &format!("{GMEOW}docGroundedBy"),
             &format!("<{}>", f.slice),
-            &mut lines,
-        );
+            lines,
+        )?;
         annotate(
             subject,
             &format!("Conformance fixture: {}", f.title),
@@ -828,8 +823,8 @@ pub fn to_gmeow_rdf(
                 f.slice,
                 kind_suffix.to_ascii_lowercase()
             ),
-            &mut lines,
-        );
+            lines,
+        )?;
     }
 
     // ── Competency questions (query text + expected rows, first-class) ───────
@@ -845,16 +840,16 @@ pub fn to_gmeow_rdf(
             &subject,
             RDF_TYPE,
             &format!("<{GMEOW}DocumentedCompetency>"),
-            &mut lines,
-        );
+            lines,
+        )?;
         // Mandatory grounding: the real competency-question IRI the record is a
         // projection of.
         triple(
             &subject,
             &format!("{GMEOW}docGroundedBy"),
             &format!("<{}>", comp.iri),
-            &mut lines,
-        );
+            lines,
+        )?;
         // One `gmeow:documents` edge per exercised term (exercises is
         // sorted/deduped in the model).
         for term_iri in &comp.exercises {
@@ -862,94 +857,79 @@ pub fn to_gmeow_rdf(
                 &subject,
                 &format!("{GMEOW}documents"),
                 &format!("<{term_iri}>"),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
         if let Some(query) = &comp.query_text {
             triple(
                 &subject,
                 &format!("{GMEOW}cqQueryText"),
                 &literal(query),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
         if let Some(count) = comp.expected_row_count {
             triple(
                 &subject,
                 &format!("{GMEOW}cqExpectRowCount"),
                 &integer(count),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
         if let Some(exact) = comp.exact_rows {
             triple(
                 &subject,
                 &format!("{GMEOW}cqExactRows"),
                 &boolean(exact),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
         for rationale in &comp.rationales {
             let value =
                 purrdf::TermValue::from_rdf_term(&purrdf::RdfTerm::Literal(rationale.clone()));
             let mut object = String::new();
             purrdf_core::write_term_value(&value, &mut object);
-            triple(
-                &subject,
-                &format!("{GMEOW}cqRationale"),
-                &object,
-                &mut lines,
-            );
+            triple(&subject, &format!("{GMEOW}cqRationale"), &object, lines)?;
         }
         // The enumerated expected result rows, each a first-class node carrying
         // its per-variable cells — so the expected result set is queryable content,
         // not just a count. Rows arrive in the model's deterministic order.
         for (i, row) in comp.expected_rows.iter().enumerate() {
             let row_iri = format!("<{GMEOW}documentation/competency/{comp_slug}/row/{i}>");
-            triple(
-                &subject,
-                &format!("{GMEOW}cqExpectedRow"),
-                &row_iri,
-                &mut lines,
-            );
+            triple(&subject, &format!("{GMEOW}cqExpectedRow"), &row_iri, lines)?;
             triple(
                 &row_iri,
                 RDF_TYPE,
                 &format!("<{GMEOW}CompetencyExpectedRow>"),
-                &mut lines,
-            );
+                lines,
+            )?;
             for cell in &row.cells {
                 if let Some(var) = &cell.var {
-                    triple(
-                        &row_iri,
-                        &format!("{GMEOW}cqCellVar"),
-                        &literal(var),
-                        &mut lines,
-                    );
+                    triple(&row_iri, &format!("{GMEOW}cqCellVar"), &literal(var), lines)?;
                 }
                 if let Some(value_iri) = &cell.value_iri {
                     triple(
                         &row_iri,
                         &format!("{GMEOW}cqCellValueIri"),
                         &format!("<{value_iri}>"),
-                        &mut lines,
-                    );
+                        lines,
+                    )?;
                 }
                 if let Some(value_literal) = &cell.value_literal {
                     triple(
                         &row_iri,
                         &format!("{GMEOW}cqCellValueLiteral"),
                         &literal(value_literal),
-                        &mut lines,
-                    );
+                        lines,
+                    )?;
                 }
             }
             triple(
                 &row_iri,
                 &format!("{GMEOW}docGroundedBy"),
                 &format!("<{}>", comp.iri),
-                &mut lines,
-            );
+                lines,
+            )?;
             annotate(
                 &row_iri,
                 &format!("Expected row {i}: {}", comp.iri),
@@ -957,8 +937,8 @@ pub fn to_gmeow_rdf(
                     "Expected result row {i} of competency question {}.",
                     comp.iri
                 ),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
         annotate(
             &subject,
@@ -967,8 +947,8 @@ pub fn to_gmeow_rdf(
                 "Documentation projection of competency question {}.",
                 comp.iri
             ),
-            &mut lines,
-        );
+            lines,
+        )?;
     }
 
     // ── Entailment DAG (per-term reasoner derivations) ───────────────────────
@@ -982,45 +962,40 @@ pub fn to_gmeow_rdf(
         let term_slug_ent = iri_slug(term_iri);
         for (i, ent) in ents.iter().enumerate() {
             let ent_iri = format!("<{GMEOW}documentation/entailment/{term_slug_ent}/{i}>");
-            triple(
-                &ent_iri,
-                RDF_TYPE,
-                &format!("<{GMEOW}Entailment>"),
-                &mut lines,
-            );
+            triple(&ent_iri, RDF_TYPE, &format!("<{GMEOW}Entailment>"), lines)?;
             triple(
                 &ent_iri,
                 &format!("{GMEOW}documents"),
                 &format!("<{term_iri}>"),
-                &mut lines,
-            );
+                lines,
+            )?;
             triple(
                 &ent_iri,
                 &format!("{GMEOW}entailmentRule"),
                 &literal(&ent.rule),
-                &mut lines,
-            );
+                lines,
+            )?;
             triple(
                 &ent_iri,
                 &format!("{GMEOW}entailmentConclusion"),
                 &literal(&ent.conclusion),
-                &mut lines,
-            );
+                lines,
+            )?;
             for premise in &ent.premises {
                 triple(
                     &ent_iri,
                     &format!("{GMEOW}entailmentPremise"),
                     &literal(premise),
-                    &mut lines,
-                );
+                    lines,
+                )?;
             }
             // Mandatory grounding: the documented term the derivation is about.
             triple(
                 &ent_iri,
                 &format!("{GMEOW}docGroundedBy"),
                 &format!("<{term_iri}>"),
-                &mut lines,
-            );
+                lines,
+            )?;
             annotate(
                 &ent_iri,
                 &format!("Entailment {i}: {term_iri}"),
@@ -1028,12 +1003,12 @@ pub fn to_gmeow_rdf(
                     "Reasoner entailment {i} about {term_iri}: {}.",
                     ent.conclusion
                 ),
-                &mut lines,
-            );
+                lines,
+            )?;
         }
     }
 
-    lines
+    Ok(())
 }
 
 fn fixture_rationale_objects(

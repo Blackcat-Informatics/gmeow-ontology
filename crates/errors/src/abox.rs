@@ -20,8 +20,9 @@
 //! language tag, never bare `en` — see `docs/GROUNDING.md` for why the carrier
 //! tag exists.
 
-use std::fmt::Write as _;
+use std::io::Write;
 
+use crate::error::NQuadsWriteFailure;
 use crate::render::nq_escape;
 
 /// The GMEOW namespace IRI prefix.
@@ -110,13 +111,17 @@ pub fn abox_annotations(
 /// order of label, definition, isDefinedBy and graphBoxRole. Literals use
 /// [`nq_escape`] and carry the [`X_GMEOW_ENGLISH`] language tag. IRIs are
 /// angle-bracketed.
+///
+/// # Errors
+///
+/// Returns [`NQuadsWriteFailure`] with the original writer error as its cause.
 pub fn annotate_nquads(
     subject_iri: &str,
     label: &str,
     definition: &str,
     graph_iri: &str,
-    out: &mut String,
-) {
+    out: &mut impl Write,
+) -> crate::Result<()> {
     for (predicate, object) in abox_annotations(subject_iri, label, definition, graph_iri) {
         let object_text = match object {
             AboxObject::Iri(iri) => format!("<{iri}>"),
@@ -128,8 +133,9 @@ pub fn annotate_nquads(
             out,
             "<{subject_iri}> <{predicate}> {object_text} <{graph_iri}> ."
         )
-        .expect("writing to a String cannot fail");
+        .map_err(NQuadsWriteFailure::diagnostic)?;
     }
+    Ok(())
 }
 
 /// Builder-flavor adapter: push the four A-Box annotation quads for

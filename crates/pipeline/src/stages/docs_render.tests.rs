@@ -17,13 +17,16 @@ fn documentation_admission_preserves_stage_and_snapshot_identity() {
         }],
         ..Default::default()
     };
-    let rendered = to_gmeow_rdf(&model, &BTreeMap::new());
+    let entailments = BTreeMap::new();
+    let rendered = gmeow_docs::rdf::to_gmeow_rdf(&model, &entailments);
     assert!(!rendered.is_empty(), "the renderer emits a documented term");
     let reified = format!(
         "_:doc <urn:doc:label> \"A document\"@en <{GRAPH_DOCUMENTATION}> .\n\
+         <urn:doc:claim> <urn:doc:evidence> <urn:doc:source> <{GRAPH_DOCUMENTATION}> .\n\
          <urn:doc:claim> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> \
          <<( _:doc <urn:doc:label> \"A document\"@en )>> <{GRAPH_DOCUMENTATION}> .\n\
-         <urn:doc:claim> <urn:doc:evidence> <urn:doc:source> <{GRAPH_DOCUMENTATION}> .\n"
+         <urn:doc:claim> <urn:doc:detail> \"{detail}\" <{GRAPH_DOCUMENTATION}> .\n",
+        detail = "é".repeat(16_384),
     );
     let snapshot_id = |dataset: &RdfDataset| {
         let mut snapshot = purrdf::gts_compose::SnapshotBuilder::new();
@@ -38,8 +41,22 @@ fn documentation_admission_preserves_stage_and_snapshot_identity() {
             .digest
     };
 
-    for input in [rendered.as_str(), reified.as_str(), ""] {
-        let admitted = admit_rendered_documentation(input).expect("admit the rendered graph");
+    for (input, admitted) in [
+        (
+            rendered.as_str(),
+            stream_documentation(|writer| write_gmeow_rdf(&model, &entailments, writer)),
+        ),
+        (
+            reified.as_str(),
+            stream_documentation(|writer| {
+                writer
+                    .write_all(reified.as_bytes())
+                    .map_err(NQuadsWriteFailure::diagnostic)
+            }),
+        ),
+        ("", stream_documentation(|_| Ok(()))),
+    ] {
+        let admitted = admitted.expect("admit the rendered graph");
         assert_eq!(
             admitted.owned_named_graphs().collect::<Vec<_>>(),
             [RdfTerm::iri(GRAPH_DOCUMENTATION)]
@@ -64,9 +81,61 @@ fn documentation_admission_refuses_foreign_graph_rows() {
         "<urn:s> <urn:p> <urn:o> <urn:foreign> .",
     ] {
         let input = format!("<urn:s> <urn:p> <urn:o> <{GRAPH_DOCUMENTATION}> .\n{foreign}\n");
-        let error = admit_rendered_documentation(&input).expect_err("refuse misplaced RDF");
+        let error = stream_documentation(|writer| {
+            writer
+                .write_all(input.as_bytes())
+                .map_err(NQuadsWriteFailure::diagnostic)
+        })
+        .expect_err("refuse misplaced RDF");
         assert!(error.message().contains(GRAPH_DOCUMENTATION));
     }
+}
+
+/// Accept a graph only after the renderer and parser have both finished successfully.
+#[test]
+fn documentation_stream_refuses_partial_writer_output() {
+    let error = stream_documentation(|writer| {
+        writeln!(writer, "<urn:s> <urn:p> <urn:o> <{GRAPH_DOCUMENTATION}> .")
+            .map_err(NQuadsWriteFailure::diagnostic)?;
+        writer.flush().map_err(NQuadsWriteFailure::diagnostic)?;
+        let mut full: &mut [u8] = &mut [];
+        gmeow_errors::abox::annotate_nquads(
+            "urn:s",
+            "Subject",
+            "A documented subject.",
+            GRAPH_DOCUMENTATION,
+            &mut full,
+        )
+    })
+    .expect_err("a valid prefix cannot be published after a writer failure");
+    assert_eq!(
+        error
+            .downcast_ref::<NQuadsWriteFailure>()
+            .expect("N-Quads writer diagnostic")
+            .cause
+            .kind(),
+        io::ErrorKind::WriteZero,
+    );
+}
+
+/// An early parser refusal must release the blocked writer and preserve the RDF diagnostic.
+#[test]
+fn documentation_stream_keeps_parser_refusal_on_broken_pipe() {
+    use std::io::Read as _;
+
+    let invalid = b"invalid N-Quads\n";
+    let expected = admit_rendered_documentation(invalid.as_slice())
+        .expect_err("the native parser refuses the invalid row");
+    let error = stream_documentation(|writer| {
+        writer
+            .write_all(invalid)
+            .map_err(NQuadsWriteFailure::diagnostic)?;
+        io::copy(&mut io::repeat(b'x').take(2 * 1024 * 1024), writer)
+            .map_err(NQuadsWriteFailure::diagnostic)?;
+        Ok(())
+    })
+    .expect_err("parser refusal prevents publication");
+    assert_eq!(error.message(), expected.message());
 }
 
 fn repo_root() -> std::path::PathBuf {

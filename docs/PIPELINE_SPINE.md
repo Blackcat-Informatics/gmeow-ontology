@@ -103,9 +103,7 @@ Stage kinds (source-load, transform, reason, validate, docs-render) differ only 
 deliver by attaching to the carrier.
 
 `stage-docs-render` publishes `graph/documentation` in its frozen dataset.
-The documentation projector appends each row and its shared A-Box annotations
-to one N-Quads buffer and releases that text after native parsing. Snapshot
-selects the named graph through the declared dataset edge.
+Snapshot selects the named graph through the declared dataset edge.
 
 `stage-parse-sources` owns the original native root, module and import document
 parses. Its typed source catalog retains exact source receipts, document bases,
@@ -215,8 +213,9 @@ input blank scopes remain distinct. These producer inputs carry locations in the
 RDF and report payloads; unexpected physical row-location attachments fail admission
 before publication. Diagnostics retain their selected graph placement.
 
-The documentation producer parses the renderer's named N-Quads and publishes
-that native dataset. An empty render publishes the empty named graph. The
+The documentation producer streams the renderer's named N-Quads through a
+bounded pipe to the native parser. Both the renderer and parser must succeed
+before publication. An empty render publishes the empty named graph. The
 producer and snapshot assembly both check that the documentation graph is the
 sole declaration and owns every ordinary statement, reifier and annotation.
 Snapshot assembly places the dataset as an independently scoped source.
