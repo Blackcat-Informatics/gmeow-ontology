@@ -26,10 +26,13 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
+use gmeow_action_cache::{bytes_digest, executable::sha256_file};
 use rayon::prelude::*;
 
 use crate::run::{GTS_PATH, write_artifact};
-use crate::stages::superset::project_bundle;
+use crate::stages::superset::{
+    BundleProjection, SupersetReport, project_bundle, sweep_against_materialized,
+};
 
 /// The outcome of one fanout run: how many committed files the bundle projected and
 /// how many the write reconciler actually rewrote (vs. left unchanged).
@@ -55,20 +58,83 @@ pub struct FanoutReport {
 /// rayon pool of that many threads (clamped to `>= 1`), honouring the budget without
 /// touching the global pool (mirroring [`crate::scheduler`]).
 pub fn fanout(root: &Path, jobs: usize) -> Result<FanoutReport, gmeow_errors::Diag> {
+    let projection = project_bundle(&read_shipped_bundle(root)?)?;
+    write_projection(root, jobs, &projection)
+}
+
+/// The reconstructed outputs and exact input identity from update-mode fanout.
+pub(crate) struct FanoutProjection {
+    input_sha256: String,
+    projection: BundleProjection,
+}
+
+impl FanoutProjection {
+    /// Sweep the tree against the bundle currently on disk.
+    pub(crate) fn sweep_materialized_tree(
+        self,
+        root: &Path,
+    ) -> gmeow_errors::Result<SupersetReport> {
+        // GENERATED-READ-OK: the sweep verifies that fanout and the gate read
+        // the same shipped artifact.
+        let path = root.join(GTS_PATH);
+        let current_sha256 = sha256_file(&path).map_err(|source| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed::caused_by(
+                "fanout".to_owned(),
+                format!(
+                    "hash {} for the post-update sweep: {source}",
+                    path.display()
+                ),
+                source,
+            ))
+        })?;
+        let projection = if current_sha256 == self.input_sha256 {
+            self.projection
+        } else {
+            drop(self.projection);
+            project_bundle(&read_shipped_bundle(root)?)?
+        };
+        sweep_against_materialized(&projection, root)
+    }
+}
+
+pub(crate) fn fanout_for_update(
+    root: &Path,
+    jobs: usize,
+) -> gmeow_errors::Result<(FanoutReport, FanoutProjection)> {
+    let gts = read_shipped_bundle(root)?;
+    let input_sha256 = bytes_digest(&gts);
+    let projection = project_bundle(&gts)?;
+    drop(gts);
+    let report = write_projection(root, jobs, &projection)?;
+    Ok((
+        report,
+        FanoutProjection {
+            input_sha256,
+            projection,
+        },
+    ))
+}
+
+fn read_shipped_bundle(root: &Path) -> gmeow_errors::Result<Vec<u8>> {
     // GENERATED-READ-OK: fanout is the post-pipeline projection phase (PIPELINE_SPINE §6); it reads
     // the freshly-emitted terminal bundle gmeow.gts (the source of truth, never a fanout projection)
     // to write the rest of generated/ outward — the read result never folds into gmeow.gts, so it
     // cannot trigger the stale-disk-fold bug class.
     let gts_path = root.join(GTS_PATH);
-    let gts = std::fs::read(&gts_path).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            cause: None,
-            stage: "fanout".to_string(),
-            message: format!("read {}: {e}", gts_path.display()),
-        })
-    })?;
-    let projection = project_bundle(&gts)?;
+    std::fs::read(&gts_path).map_err(|source| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed::caused_by(
+            "fanout".to_owned(),
+            format!("read {}: {source}", gts_path.display()),
+            source,
+        ))
+    })
+}
 
+fn write_projection(
+    root: &Path,
+    jobs: usize,
+    projection: &BundleProjection,
+) -> gmeow_errors::Result<FanoutReport> {
     // Collect to a Vec of borrows so the parallel iterator is over a slice (no reliance
     // on `BTreeMap`'s parallel-iterator support). Order is irrelevant: writes are
     // independent and the counters are order-insensitive.
@@ -198,3 +264,7 @@ fn collect_generated_members(
     }
     Ok(())
 }
+
+#[path = "fanout.tests.rs"]
+#[cfg(test)]
+mod tests;

@@ -1127,7 +1127,7 @@ pub fn check_superset(root: &Path, gts_bytes: &[u8]) -> Result<SupersetReport, g
 /// tree (the orphan oracle). A pure function of the projection and the on-disk tree —
 /// no bundle parsing — so the sweep verdicts are unit-testable with an injected
 /// projection.
-fn sweep_against_materialized(
+pub(crate) fn sweep_against_materialized(
     projection: &BundleProjection,
     root: &Path,
 ) -> Result<SupersetReport, gmeow_errors::Diag> {
