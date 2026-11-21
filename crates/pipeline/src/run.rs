@@ -23,7 +23,7 @@
 //! subprocess and no disk-read dependency.
 
 use std::collections::BTreeMap;
-use std::io::ErrorKind;
+use std::io::{BufRead, BufReader, ErrorKind};
 use std::path::Path;
 use std::sync::Arc;
 use std::time::Instant;
@@ -1342,6 +1342,26 @@ fn certify_build_plan(spec: &PipelineSpec) -> Result<ReasoningResult, gmeow_erro
     Ok(cert.into_reasoning_result(BUILD_DAG_CONTRACT, BUILD_DAG_WORLD))
 }
 
+/// Compare file contents exactly with a fixed-size buffer.
+///
+/// Drain the file after a mismatch so that subsequent read errors still surface.
+pub(crate) fn file_matches_bytes(path: &Path, bytes: &[u8]) -> std::io::Result<bool> {
+    let mut file = BufReader::with_capacity(64 * 1024, std::fs::File::open(path)?);
+    let mut remaining = Some(bytes);
+    loop {
+        let chunk = match file.fill_buf() {
+            Err(error) if error.kind() == ErrorKind::Interrupted => continue,
+            result => result?,
+        };
+        let count = chunk.len();
+        if count == 0 {
+            return Ok(remaining.is_some_and(<[u8]>::is_empty));
+        }
+        remaining = remaining.and_then(|expected| expected.strip_prefix(chunk));
+        file.consume(count);
+    }
+}
+
 /// Write `bytes` to `root.join(path)` when content changed, creating parent directories.
 ///
 /// Returns `true` when the file was rewritten and `false` when the existing bytes
@@ -1352,9 +1372,9 @@ pub(crate) fn write_artifact(
     bytes: &[u8],
 ) -> Result<bool, gmeow_errors::Diag> {
     let target = root.join(path);
-    match std::fs::read(&target) {
-        Ok(existing) if existing == bytes => return Ok(false),
-        Ok(_) => {}
+    match file_matches_bytes(&target, bytes) {
+        Ok(true) => return Ok(false),
+        Ok(false) => {}
         Err(e) if e.kind() == ErrorKind::NotFound => {}
         Err(e) => return Err(e.into()),
     }

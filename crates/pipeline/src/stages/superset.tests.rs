@@ -166,7 +166,10 @@ fn sweep_against_materialized_detects_missing_mismatch_and_orphan() {
         f.write_all(bytes).unwrap();
     };
     write("match.ttl", b"SAME");
-    write("drift.ttl", b"DISK-BYTES");
+    let changed_byte = 128 * 1024;
+    let mut drift_bytes = vec![b'X'; changed_byte];
+    drift_bytes.push(b'D');
+    write("drift.ttl", &drift_bytes);
     write("orphan.ttl", b"UNDECLARED");
 
     // Projection keys: match.ttl agrees with disk; drift.ttl reconstructs to
@@ -174,10 +177,8 @@ fn sweep_against_materialized_detects_missing_mismatch_and_orphan() {
     // orphan.ttl is on disk but is NOT a projection key (orphan).
     let mut files = BTreeMap::new();
     files.insert("generated/x/match.ttl".to_string(), b"SAME".to_vec());
-    files.insert(
-        "generated/x/drift.ttl".to_string(),
-        b"BUNDLE-BYTES".to_vec(),
-    );
+    drift_bytes[changed_byte] = b'P';
+    files.insert("generated/x/drift.ttl".to_string(), drift_bytes);
     files.insert("generated/x/missing.ttl".to_string(), b"GONE".to_vec());
     let projection = BundleProjection { files };
 
@@ -187,6 +188,22 @@ fn sweep_against_materialized_detects_missing_mismatch_and_orphan() {
     assert_eq!(report.mismatch, vec!["generated/x/drift.ttl".to_string()]);
     assert_eq!(report.orphan, vec!["generated/x/orphan.ttl".to_string()]);
     assert!(!report.is_clean());
+
+    let directory = "generated/x/not-a-file.ttl";
+    std::fs::create_dir(dir.join(directory)).expect("create a directory in place of a file");
+    let unreadable = BundleProjection {
+        files: BTreeMap::from([(directory.to_owned(), b"FILE".to_vec())]),
+    };
+    let error = sweep_against_materialized(&unreadable, dir).expect_err("file read must fail");
+    let failure = error
+        .downcast_ref::<crate::error::StageFailed>()
+        .expect("retain the strict-sweep diagnostic");
+    assert!(
+        failure
+            .cause
+            .as_deref()
+            .is_some_and(|cause| cause.is::<std::io::Error>())
+    );
 }
 
 #[test]

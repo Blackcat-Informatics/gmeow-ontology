@@ -1141,14 +1141,19 @@ fn sweep_against_materialized(
     // `generated/` tree flags EVERY key as missing — no vacuous pass on a fresh
     // clone. A read error other than "not found" is a hard failure, never a skip. ──
     for (path, reconstructed) in &projection.files {
-        match std::fs::read(root.join(path)) {
-            Ok(disk_bytes) => {
-                if *reconstructed != disk_bytes {
-                    mismatch.push(path.clone());
-                }
-            }
+        match crate::run::file_matches_bytes(&root.join(path), reconstructed) {
+            Ok(false) => mismatch.push(path.clone()),
+            Ok(true) => {}
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => missing.push(path.clone()),
-            Err(e) => return Err(stage_err(&format!("read materialized {path}: {e}"))),
+            Err(error) => {
+                return Err(gmeow_errors::Diag::of_kind(
+                    crate::error::StageFailed::caused_by(
+                        "stage-superset-gate".to_owned(),
+                        format!("read materialized {path}: {error}"),
+                        error,
+                    ),
+                ));
+            }
         }
     }
 
