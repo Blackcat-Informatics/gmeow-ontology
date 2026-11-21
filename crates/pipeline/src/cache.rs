@@ -1147,6 +1147,51 @@ fn origin_kind_from_str(kind: &str) -> Result<OriginKind, gmeow_errors::Diag> {
     })
 }
 
+/// Resolve persisted quad content keys to ordinals in the restored dataset.
+fn restore_cached_provenance(
+    dataset: &purrdf::RdfDataset,
+    rows: &[CachedProvRow],
+) -> Result<DatasetProvenance, gmeow_errors::Diag> {
+    let mut provenance = DatasetProvenance::new();
+    if rows.is_empty() {
+        return Ok(provenance);
+    }
+
+    let mut quad_indices = BTreeMap::new();
+    for (index, quad) in dataset.owned_quads().enumerate() {
+        let key = quad_content_key(&quad);
+        if quad_indices.insert(key.clone(), index).is_some() {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode::new(
+                format!("cache: duplicate stable quad content key {key:?}"),
+            )));
+        }
+    }
+    for row in rows {
+        let kind = origin_kind_from_str(&row.kind)?;
+        let unit = provenance.register_unit(row.unit.clone(), kind)?;
+        let artifact = provenance.register_artifact(row.artifact.clone())?;
+        let quad_index = *quad_indices.get(&row.quad_key).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                cause: None,
+                expected: format!("restored asserted quad {}", row.quad_key),
+                actual: "no matching quad in restored dataset".to_string(),
+            })
+        })?;
+        let quad_ordinal = u32::try_from(quad_index).map_err(|_| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                "cache: provenance quad ordinal {quad_index} exceeds u32"
+            )))
+        })?;
+        provenance.record_occurrence(
+            QuadHandle::from_index(quad_ordinal),
+            unit,
+            artifact,
+            row.location.clone(),
+        );
+    }
+    Ok(provenance)
+}
+
 impl CachedLookaside {
     /// Mirror a kernel [`RdfLookaside`], HARD-failing if it carries a lane this
     /// mirror does not yet model (no silent loss).
@@ -1585,42 +1630,7 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
             })?;
         }
 
-        // Provenance: resolve every stable asserted-quad content key against the
-        // restored dataset, then re-register units/artifacts/occurrences. Numeric
-        // ordinals are deliberately derived here rather than persisted.
-        let mut quad_indices = BTreeMap::new();
-        for (index, quad) in dataset.owned_quads().enumerate() {
-            let key = quad_content_key(&quad);
-            if quad_indices.insert(key.clone(), index).is_some() {
-                return Err(gmeow_errors::Diag::of_kind(crate::error::Decode::new(
-                    format!("cache: duplicate stable quad content key {key:?}"),
-                )));
-            }
-        }
-        let mut provenance = DatasetProvenance::new();
-        for row in &self.provenance {
-            let kind = origin_kind_from_str(&row.kind)?;
-            let unit = provenance.register_unit(row.unit.clone(), kind)?;
-            let artifact = provenance.register_artifact(row.artifact.clone())?;
-            let quad_index = *quad_indices.get(&row.quad_key).ok_or_else(|| {
-                gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
-                    cause: None,
-                    expected: format!("restored asserted quad {}", row.quad_key),
-                    actual: "no matching quad in restored dataset".to_string(),
-                })
-            })?;
-            let quad_ordinal = u32::try_from(quad_index).map_err(|_| {
-                gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
-                    "cache: provenance quad ordinal {quad_index} exceeds u32"
-                )))
-            })?;
-            provenance.record_occurrence(
-                QuadHandle::from_index(quad_ordinal),
-                unit,
-                artifact,
-                row.location.clone(),
-            );
-        }
+        let provenance = restore_cached_provenance(&dataset, &self.provenance)?;
 
         // Assemble the bundle, then re-pin every handle (re-checks the digest invariant).
         let mut bundle = PipelineBundleAlias::new(dataset, lookaside, Arc::new(store), provenance);

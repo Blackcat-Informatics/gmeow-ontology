@@ -2245,10 +2245,16 @@ fn cached_reasoning_handle_re_derives_the_result() {
     let product = StageProduct::from_bundle("stage-reason", Arc::new(original.clone()))
         .expect("the stage carrier digests");
     let context = test_context("stage-reason", "reasoning-round-trip");
-    persist_test_product(&cache, &context, &product);
+    let cold = persist_test_product(&cache, &context, &product);
+    assert!(
+        cold.provenance.is_none(),
+        "fixture has no RDF provenance rows"
+    );
 
     let got = cache.get(&context).unwrap().expect("cache hit");
     let recon = got.product.bundle();
+    assert_eq!(got.receipt, cold, "warm receipt preserved");
+    assert!(recon.provenance().public_projection().is_empty());
 
     let graph_iri = gmeow_logic::result_rdf::GRAPH_REASONING;
     let entry = recon
