@@ -690,9 +690,11 @@ same way the existing drift gates keep the projections honest (Principle 7).
 The read-only reconcile consumes stage products one at a time and handles the
 declared terminal last. By the time the superset gate imports `gmeow.gts`, every
 non-terminal committed-artifact store has already been compared and released. The
-independent import therefore overlaps only the terminal bytes it is proving, not the
-entire post-DAG artifact frontier; check and update retain the same bounded-residency
-contract while exercising the same exact carrier.
+independent import therefore overlaps only the terminal bytes it is proving. In update
+mode, the strict sweep streams a digest of the on-disk bundle and reuses the fanout
+reconstruction when the SHA-256 matches. If the bundle changed, the sweep drops that
+reconstruction and projects the current bundle. Both modes compare the reconstructed bytes
+to the materialized files and check for missing and orphaned paths.
 
 ## 8. Consequences and non-goals
 

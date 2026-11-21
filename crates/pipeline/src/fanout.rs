@@ -26,10 +26,13 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
+use gmeow_action_cache::{bytes_digest, executable::sha256_file};
 use rayon::prelude::*;
 
 use crate::run::{GTS_PATH, write_artifact};
-use crate::stages::superset::project_bundle;
+use crate::stages::superset::{
+    BundleProjection, SupersetReport, project_bundle, sweep_against_materialized,
+};
 
 /// The outcome of one fanout run: how many committed files the bundle projected and
 /// how many the write reconciler actually rewrote (vs. left unchanged).
@@ -55,20 +58,83 @@ pub struct FanoutReport {
 /// rayon pool of that many threads (clamped to `>= 1`), honouring the budget without
 /// touching the global pool (mirroring [`crate::scheduler`]).
 pub fn fanout(root: &Path, jobs: usize) -> Result<FanoutReport, gmeow_errors::Diag> {
+    let projection = project_bundle(&read_shipped_bundle(root)?)?;
+    write_projection(root, jobs, &projection)
+}
+
+/// The reconstructed outputs and exact input identity from update-mode fanout.
+pub(crate) struct FanoutProjection {
+    input_sha256: String,
+    projection: BundleProjection,
+}
+
+impl FanoutProjection {
+    /// Sweep the tree against the bundle currently on disk.
+    pub(crate) fn sweep_materialized_tree(
+        self,
+        root: &Path,
+    ) -> gmeow_errors::Result<SupersetReport> {
+        // GENERATED-READ-OK: the sweep verifies that fanout and the gate read
+        // the same shipped artifact.
+        let path = root.join(GTS_PATH);
+        let current_sha256 = sha256_file(&path).map_err(|source| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed::caused_by(
+                "fanout".to_owned(),
+                format!(
+                    "hash {} for the post-update sweep: {source}",
+                    path.display()
+                ),
+                source,
+            ))
+        })?;
+        let projection = if current_sha256 == self.input_sha256 {
+            self.projection
+        } else {
+            drop(self.projection);
+            project_bundle(&read_shipped_bundle(root)?)?
+        };
+        sweep_against_materialized(&projection, root)
+    }
+}
+
+pub(crate) fn fanout_for_update(
+    root: &Path,
+    jobs: usize,
+) -> gmeow_errors::Result<(FanoutReport, FanoutProjection)> {
+    let gts = read_shipped_bundle(root)?;
+    let input_sha256 = bytes_digest(&gts);
+    let projection = project_bundle(&gts)?;
+    drop(gts);
+    let report = write_projection(root, jobs, &projection)?;
+    Ok((
+        report,
+        FanoutProjection {
+            input_sha256,
+            projection,
+        },
+    ))
+}
+
+fn read_shipped_bundle(root: &Path) -> gmeow_errors::Result<Vec<u8>> {
     // GENERATED-READ-OK: fanout is the post-pipeline projection phase (PIPELINE_SPINE §6); it reads
     // the freshly-emitted terminal bundle gmeow.gts (the source of truth, never a fanout projection)
     // to write the rest of generated/ outward — the read result never folds into gmeow.gts, so it
     // cannot trigger the stale-disk-fold bug class.
     let gts_path = root.join(GTS_PATH);
-    let gts = std::fs::read(&gts_path).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            cause: None,
-            stage: "fanout".to_string(),
-            message: format!("read {}: {e}", gts_path.display()),
-        })
-    })?;
-    let projection = project_bundle(&gts)?;
+    std::fs::read(&gts_path).map_err(|source| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed::caused_by(
+            "fanout".to_owned(),
+            format!("read {}: {source}", gts_path.display()),
+            source,
+        ))
+    })
+}
 
+fn write_projection(
+    root: &Path,
+    jobs: usize,
+    projection: &BundleProjection,
+) -> gmeow_errors::Result<FanoutReport> {
     // Collect to a Vec of borrows so the parallel iterator is over a slice (no reliance
     // on `BTreeMap`'s parallel-iterator support). Order is irrelevant: writes are
     // independent and the counters are order-insensitive.
@@ -197,4 +263,101 @@ fn collect_generated_members(
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const OUTPUT: &str = "generated/logic/sample.nt";
+    const ORPHAN: &str = "generated/logic/unexpected.nt";
+
+    fn synthetic_bundle(object: &str) -> Vec<u8> {
+        let trig = format!(
+            r#"
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+            @prefix owl: <http://www.w3.org/2002/07/owl#> .
+            @prefix dcterms: <http://purl.org/dc/terms/> .
+            <https://blackcatinformatics.ca/gmeow> a owl:Ontology ;
+                dcterms:title "GMEOW" ; owl:versionInfo "test" .
+            gmeow:pipeline-build gmeow:expectsGeneratedOutput "{OUTPUT}" .
+            gmeow:r1 a gmeow:FanoutExtraction ;
+                gmeow:extractsPath "{OUTPUT}" ; gmeow:extractsMatch "exact" ;
+                gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "ntriples" .
+            <https://blackcatinformatics.ca/gmeow/graph/fanout/logic/sample.nt> {{
+                <urn:subject> <urn:predicate> <{object}> .
+            }}
+            "#
+        );
+        let dataset = purrdf::parse_dataset(trig.as_bytes(), "application/trig", None)
+            .expect("parse synthetic fanout graph");
+        let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
+        builder
+            .add_dataset(dataset.as_ref())
+            .expect("admit synthetic graph");
+        // gmeow-test-input: synthetic-only
+        gmeow_gts_profile::emit_gmeow_gts(
+            builder,
+            Vec::new(),
+            Vec::new(),
+            None,
+            &gmeow_gts_profile::baseline_medium_plan(),
+        )
+        .expect("emit synthetic bundle")
+        .bytes
+    }
+
+    /// The update sweep checks disk outputs and never certifies a replaced bundle
+    /// using the previous bundle's reconstruction.
+    #[test]
+    fn update_sweep_follows_the_current_bundle() {
+        let work = tempfile::tempdir().expect("create isolated fanout root");
+        let root = work.path();
+        let bundle = root.join(GTS_PATH);
+        std::fs::create_dir_all(root.join("generated/dist")).expect("create terminal directory");
+        std::fs::write(&bundle, synthetic_bundle("urn:original")).expect("write initial bundle");
+
+        let (report, fanout) = fanout_for_update(root, 1).expect("write original projection");
+        assert_eq!(report.produced, 1);
+        assert!(
+            fanout
+                .sweep_materialized_tree(root)
+                .expect("sweep original")
+                .is_clean()
+        );
+
+        let (_, fanout) = fanout_for_update(root, 1).expect("retain original projection");
+        std::fs::write(root.join(OUTPUT), b"drift").expect("change materialized file");
+        let drift = fanout
+            .sweep_materialized_tree(root)
+            .expect("sweep modified tree");
+        assert_eq!(drift.mismatch, [OUTPUT]);
+
+        let (_, fanout) = fanout_for_update(root, 1).expect("restore original projection");
+        std::fs::rename(root.join(OUTPUT), root.join(ORPHAN)).expect("move materialized file");
+        let drift = fanout
+            .sweep_materialized_tree(root)
+            .expect("sweep incomplete tree");
+        assert_eq!(drift.missing, [OUTPUT]);
+        assert_eq!(drift.orphan, [ORPHAN]);
+
+        let (_, fanout) = fanout_for_update(root, 1).expect("restore original projection");
+        std::fs::write(&bundle, synthetic_bundle("urn:replacement")).expect("replace bundle");
+        let drift = fanout
+            .sweep_materialized_tree(root)
+            .expect("sweep replacement");
+        assert_eq!(drift.mismatch, [OUTPUT]);
+
+        let (_, fanout) = fanout_for_update(root, 1).expect("write replacement projection");
+        std::fs::rename(&bundle, work.path().join("retired.gts"))
+            .expect("move the published bundle");
+        let error = fanout
+            .sweep_materialized_tree(root)
+            .expect_err("an unreadable bundle must fail the sweep");
+        assert!(
+            error
+                .downcast_ref::<crate::error::StageFailed>()
+                .is_some_and(|failure| failure.cause.is_some())
+        );
+    }
 }
