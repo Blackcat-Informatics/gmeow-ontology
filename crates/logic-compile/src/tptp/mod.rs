@@ -50,9 +50,7 @@
 mod writer;
 
 mod canon_admission;
-pub use canon_admission::{
-    CANON_ADMISSION_CHANNEL, CANON_ADMISSION_MEMBER, CanonAdmissionPublication,
-};
+pub use canon_admission::{CANON_ADMISSION_CHANNEL, CanonAdmissionPublication};
 
 pub use writer::{
     FofProjection, FofProjectionBlocker, FofProjectionStatus, FofSentence, project_tptp_fof,

@@ -44,9 +44,9 @@ fn reason_product(result: &gmeow_logic::result::ReasoningResult) -> StageProduct
     StageProduct::from_bundle("stage-reason", Arc::new(bundle)).expect("the stage carrier digests")
 }
 
-/// `fold_coherence_certificate` folds a `graph/attestations` coherence artifact over the
-/// composed carrier, REUSING `stage-reason`'s single reasoning pass (never re-reasoning),
-/// so every terminal gmeow.gts carries the certificate the consumer read tool surfaces.
+/// The shipped coherence artifact commits to the flat canonical carrier before
+/// the certificate joins it, including independently scoped blank nodes and
+/// native statement metadata.
 #[test]
 fn fold_attaches_a_coherence_artifact_to_graph_attestations() {
     // A tiny consistent EDB → a real reasoned result (no forbidden violation).
@@ -58,10 +58,39 @@ fn fold_attaches_a_coherence_artifact_to_graph_attestations() {
     let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
     upstream.insert("stage-reason".to_string(), reason_product(&reasoned.result));
 
-    let composed = parse_dataset(edb.as_bytes(), "application/n-quads", None).unwrap();
-    let mut parts = CarrierParts::new(&upstream);
-    parts.push_dataset(Arc::clone(&composed));
-    let folded = fold_coherence_certificate(parts, &upstream).expect("fold certificate");
+    let sources = [
+        parse_dataset(edb.as_bytes(), "application/n-quads", None).expect("parse the EDB"),
+        parse_into_graph(
+            br#"_:member <urn:test:label> "member"@en .
+                <urn:test:claim> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies>
+                    <<( _:member <urn:test:label> "member"@en )>> ;
+                    <urn:test:source> <urn:test:evidence> ."#,
+            "text/turtle",
+            "urn:test:attributed",
+        )
+        .expect("parse attributed RDF in its own scope"),
+        parse_into_graph(
+            b"_:member <urn:test:label> <urn:test:other> .",
+            "text/turtle",
+            "urn:test:neighbour",
+        )
+        .expect("parse the independently scoped blank with the same spelling"),
+    ];
+    let parts = || {
+        let mut parts = CarrierParts::new(&upstream);
+        for dataset in &sources {
+            parts.push_dataset(Arc::clone(dataset));
+        }
+        parts
+    };
+    let canonical = purrdf::try_canonicalize_flat_view(
+        &parts().view().expect("compose the pre-certificate carrier"),
+        purrdf::CanonHash::Sha256,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("render the certificate's flat canonical preimage");
+    let expected = purrdf::gts::writer::digest_string(canonical.nquads().as_bytes());
+    let folded = fold_coherence_certificate(parts(), &upstream).expect("fold certificate");
 
     let attestations = folded
         .project_graph(Some(&purrdf::RdfTerm::iri(
@@ -76,19 +105,17 @@ fn fold_attaches_a_coherence_artifact_to_graph_attestations() {
         coherence_typed,
         "the fold must attach a typed logic:Coherence* artifact to graph/attestations"
     );
-    // The certificate pins a real bundle identity + per-graph axiom digest (the tamper
-    // surface), so the read tool can surface non-trivial hashes.
     let has_bundle_hash = attestations.owned_quads().any(|q| {
         q.predicate == "https://blackcatinformatics.ca/logic/bundleHash"
-            && matches!(&q.object, RdfTerm::Literal(l) if !l.lexical_form.is_empty())
+            && matches!(&q.object, RdfTerm::Literal(l) if l.lexical_form == expected)
     });
-    assert!(has_bundle_hash, "the folded certificate pins a bundle hash");
+    assert!(
+        has_bundle_hash,
+        "the folded certificate pins the BLAKE3 digest of the flat canonical carrier"
+    );
 
     // Deterministic: re-folding the same carrier + result is byte-identical.
-    let composed2 = parse_dataset(edb.as_bytes(), "application/n-quads", None).unwrap();
-    let mut parts2 = CarrierParts::new(&upstream);
-    parts2.push_dataset(Arc::clone(&composed2));
-    let folded2 = fold_coherence_certificate(parts2, &upstream).expect("fold again");
+    let folded2 = fold_coherence_certificate(parts(), &upstream).expect("fold again");
     let nq1 = purrdf::canonical_flat_nquads(
         folded.as_ref(),
         &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
@@ -104,4 +131,15 @@ fn fold_attaches_a_coherence_artifact_to_graph_attestations() {
         nq2.nquads(),
         "the folded certificate is deterministic"
     );
+
+    let mut refused = parts();
+    let reserved = format!("{}reserved", purrdf::RESERVED_NAMESPACE);
+    let invalid = format!("<{reserved}> <urn:test:label> <urn:test:other> .");
+    refused.push_dataset(
+        parse_dataset(invalid.as_bytes(), "application/n-quads", None)
+            .expect("the native parser admits the reserved IRI for the canonicalization control"),
+    );
+    let error = fold_coherence_certificate(refused, &upstream)
+        .expect_err("the certificate must refuse reserved canonical vocabulary");
+    assert!(error.message().contains(&reserved));
 }

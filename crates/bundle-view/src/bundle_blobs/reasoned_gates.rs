@@ -13,7 +13,7 @@ use super::{Bundle, BundleDecode};
 pub use gmeow_gts_profile::archive::REASONED_GATES_MEMBER;
 
 impl Bundle {
-    /// Read the native laws from this snapshot's reasoning archive once.
+    /// Read the native laws from this snapshot's prepared reasoning archive once.
     ///
     /// Reuses the retained GTS view, authenticates the selected archive blob, and scans
     /// borrowed tar members without cloning unrelated bodies. Only the compact selected
@@ -50,7 +50,7 @@ fn decode_error(message: impl Into<String>) -> gmeow_errors::Diag {
 fn read_member(graph: &Graph) -> gmeow_errors::Result<Arc<[u8]>> {
     gmeow_gts_profile::archive::required_member(
         graph,
-        gmeow_gts_profile::archive::REASONING_REP,
+        gmeow_gts_profile::archive::PREPARED_REASONING_REP,
         REASONED_GATES_MEMBER,
         gmeow_gts_profile::archive::MAX_NATIVE_MEMBER_BYTES,
     )

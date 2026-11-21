@@ -14,8 +14,6 @@ mod json;
 
 /// Producer artifact, captured before worked-example augmentation.
 pub const CANON_ADMISSION_CHANNEL: &str = "pipeline/canon-proof-admission.json";
-/// Required member of the bundle's reasoning archive.
-pub const CANON_ADMISSION_MEMBER: &str = "reason/canon-proof-admission.json";
 
 /// Typed observation of every source owner's admission, including all refusals.
 #[derive(Debug)]

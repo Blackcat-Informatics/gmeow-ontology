@@ -604,7 +604,7 @@ pub fn snapshot_frames<'a>(
             .into_iter()
             .map(GmeowGtsBlob::from),
     );
-    blobs.push(build_reasoning_blob(upstream)?.into());
+    blobs.extend(build_reasoning_blobs(upstream)?);
     let native_receipt = upstream
         .get("stage-reason")
         .and_then(|product| product.artifact(crate::stages::reason::NATIVE_RECEIPT_PATH))
@@ -1573,14 +1573,12 @@ fn fold_coherence_certificate(
         || parts.view(),
     )?;
 
-    // Bundle identity = digest of the composed carrier's canonical N-Quads, pinned with the
-    // SAME digest primitive as the axiom-set hashes (so the certificate's bundle_hash and
-    // axiom_hashes are computed under one deterministic primitive).
-    let composed_nq = crate::node::measure_stage_phase(
+    // Hash the exact flat canonical document as a stream.
+    let digest = crate::node::measure_stage_phase(
         "stage-snapshot",
         "canonicalize-coherence-carrier",
         || {
-            purrdf::try_canonicalize_flat_view(
+            purrdf::try_flat_blake3_view(
                 &composed,
                 purrdf::CanonHash::Sha256,
                 &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
@@ -1588,25 +1586,21 @@ fn fold_coherence_certificate(
         },
     )
     .map_err(|e| {
-        // Resident views cannot become unavailable. Preserve the original refusal
-        // exactly as canonical_flat_nquads did for the formerly owned carrier.
+        // The resident composite cannot report an unavailable source.
         let e = match e {
             purrdf::ViewCanonError::Refused(refused) => refused,
             purrdf::ViewCanonError::NotReady { error, .. } => match error {},
         };
         stage_err(&format!(
-            "serialize composed carrier for the coherence certificate: {e}"
+            "canonicalize composed carrier for the coherence certificate: {e}"
         ))
     })?;
-    let bundle_hash = purrdf::gts::writer::digest_string(composed_nq.nquads().as_bytes());
+    let bundle_hash = purrdf::gts::wire::digest_label(&digest);
     tracing::info!(
         target: "pipeline_phase", stage = "stage-snapshot",
         retained_source_rows = composed.stats().retained_rows,
-        canonical_bytes = composed_nq.nquads().len(),
         "coherence input size"
     );
-    // Only the digest is needed by the certificate and the final carrier.
-    drop(composed_nq);
 
     // `build_coherence_outcome` renders the carrier's quads once per graph for the axiom
     // hashes; it holds only one graph's text at a time.
@@ -3097,16 +3091,9 @@ fn nquads_escape(value: &str) -> String {
     out
 }
 
-/// The internal artifacts the reasoning archive folds, as `(bundle member, producer,
-/// internal artifact)`, in archive order. The sink reads each through an artifact-only
-/// dependency, so its `gmeow:BuildDataFlow` edge to the producer declares the read
-/// (`gmeow:flowReadsArtifact`) and the scheduler keeps the artifact through release.
-const REASONING_INTERNAL_MEMBERS: [(&str, &str, &str); 4] = [
-    (
-        gmeow_logic_compile::tptp::CANON_ADMISSION_MEMBER,
-        "stage-compile-logic",
-        gmeow_logic_compile::tptp::CANON_ADMISSION_CHANNEL,
-    ),
+/// The prepared inputs, in archive order, as bundle member, stage, and artifact.
+/// The sink's artifact edges retain these inputs through scheduling.
+const PREPARED_REASONING_MEMBERS: [(&str, &str, &str); 3] = [
     (
         gmeow_logic::operator_rules::PREPARED_OPERATOR_MEMBER,
         "stage-conformance",
@@ -3124,60 +3111,58 @@ const REASONING_INTERNAL_MEMBERS: [(&str, &str, &str); 4] = [
     ),
 ];
 
-/// Fold the native reasoner's explanation + DL/EL cross-check ledger REPORTS into a
-/// deterministic [`REP_REASONING`] archive blob. Sourced from
-/// `stage-reason`'s in-memory product (a `stage-snapshot` consumes-edge), so the fold
-/// is ONE-PASS: no disk read, no dependency on the post-snapshot `stage-export-logic`
-/// leaf, no convergence lag. The reasoning result is NOT re-bundled here: the carrier
-/// already carries its [`gmeow_logic::result_rdf::GRAPH_REASONING`] projection, the only
-/// `stage-reason` graph the snapshot selects. Each artifact MUST exist (no-optionality,
-/// fail-closed): a partial archive would silently strip the reasoning reports.
-fn build_reasoning_blob(
+/// Ship the exact stage products for reports, runtime inputs, and proof admission.
+/// Runtime readers select the small prepared archive independently of the evidence.
+fn build_reasoning_blobs(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<BlobRow, gmeow_errors::Diag> {
-    let get = |path: &str| {
+) -> Result<[GmeowGtsBlob<'_>; 3], gmeow_errors::Diag> {
+    let get = |stage: &str, artifact: &str| {
         upstream
-            .get("stage-reason")
-            .and_then(|p| p.artifact(path))
-            .ok_or_else(|| stage_err(&format!("missing stage-reason artifact {path}")))
-    };
-    let internal = |index: usize| -> Result<(&str, &[u8]), gmeow_errors::Diag> {
-        let (member, producer, artifact) = REASONING_INTERNAL_MEMBERS[index];
-        let bytes = upstream
-            .get(producer)
+            .get(stage)
             .and_then(|product| product.artifact(artifact))
             .ok_or_else(|| {
                 stage_err(&format!(
-                    "missing {producer} internal artifact {artifact} for the reasoning \
-                     archive; an artifact-only consumer receives it only when its dataflow \
-                     edge to {producer} declares `gmeow:flowReadsArtifact \"{artifact}\"`"
+                    "missing {stage} reasoning artifact {artifact}; the sink edge to \
+                     {stage} must declare gmeow:flowReadsArtifact for this input"
                 ))
-            })?;
-        Ok((member, bytes))
+            })
     };
-    // Bundle-relative keys under `reason/` — deliberately NOT `generated/logic/…`, so
-    // a consumer never mistakes these bundle-consistent reports (over the reasoning result
-    // whose projection rides the carrier) for the full-fold `generated/logic/` files
-    // owned by `stage-export-logic`.
-    let members = [
-        internal(0)?,
-        internal(1)?,
-        internal(2)?,
-        (
-            "reason/reasoning-explanations.rdf12.ttl",
-            get(crate::stages::reason::EXPLANATIONS_PATH)?,
-        ),
-        (
-            "reason/dl-el-crosscheck-report.ttl",
-            get(crate::stages::reason::LEDGER_PATH)?,
-        ),
-        (
-            "reason/perf-ledger.ttl",
-            get(crate::stages::reason::PERF_LEDGER_PATH)?,
-        ),
-        internal(3)?,
-    ];
-    archive_blob(REP_REASONING, &members)
+    let prepared_members = PREPARED_REASONING_MEMBERS
+        .into_iter()
+        .map(|(member, stage, artifact)| Ok((member, get(stage, artifact)?)))
+        .collect::<gmeow_errors::Result<Vec<_>>>()?;
+    let prepared = archive_blob(
+        gmeow_gts_profile::archive::PREPARED_REASONING_REP,
+        &prepared_members,
+    )?;
+    // These bundle-relative report names address the stage-reason product.
+    let reports = archive_blob(
+        REP_REASONING,
+        &[
+            (
+                "reason/reasoning-explanations.rdf12.ttl",
+                get("stage-reason", crate::stages::reason::EXPLANATIONS_PATH)?,
+            ),
+            (
+                "reason/dl-el-crosscheck-report.ttl",
+                get("stage-reason", crate::stages::reason::LEDGER_PATH)?,
+            ),
+            (
+                "reason/perf-ledger.ttl",
+                get("stage-reason", crate::stages::reason::PERF_LEDGER_PATH)?,
+            ),
+        ],
+    )?;
+    let canon = GmeowGtsBlob {
+        data: get(
+            "stage-compile-logic",
+            gmeow_logic_compile::tptp::CANON_ADMISSION_CHANNEL,
+        )?
+        .into(),
+        media_type: "application/json".to_owned(),
+        rep: gmeow_gts_profile::archive::CANON_ADMISSION_REP.to_owned(),
+    };
+    Ok([reports.into(), prepared.into(), canon])
 }
 
 /// Match documented IRIs in a native RDF 1.2 value without serializing it.
@@ -3609,7 +3594,7 @@ impl Stage for SnapshotStage {
     }
     /// Bind the complete snapshot contract, including required canon admission evidence.
     fn impl_version(&self) -> &str {
-        "snapshot.v43-reuse-rooted-documentation"
+        "snapshot.v44-stream-coherence-digest"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();

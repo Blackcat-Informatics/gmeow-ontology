@@ -259,11 +259,11 @@ function __wbg_get_imports() {
         __wbg___wbindgen_throw_4c88d8bf264fd984: function(arg0, arg1) {
             throw new Error(getStringFromWasm0(arg0, arg1));
         },
-        __wbg_now_80faebe4b1fd98e9: function() {
+        __wbg_now_22908f48c7150e17: function() {
             const ret = Date.now();
             return ret;
         },
-        __wbg_random_f755c57ee5c03213: function() {
+        __wbg_random_205cb441a822bfeb: function() {
             const ret = Math.random();
             return ret;
         },

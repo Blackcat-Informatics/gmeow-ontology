@@ -60,7 +60,7 @@ pub(super) const NAMES: &[&str] = &[
 /// artifact hits do not initialize this profile; any miss shares its one import.
 pub(super) const BLOB_SELECTORS: &[GtsBlobSelector<'static>] = &[
     GtsBlobSelector::Representation(REP_EXAMPLES),
-    GtsBlobSelector::Representation(archive::REASONING_REP),
+    GtsBlobSelector::Representation(archive::PREPARED_REASONING_REP),
     GtsBlobSelector::Representation("lang-projections-archive"),
     GtsBlobSelector::Representation(REP_SHAPES),
     GtsBlobSelector::Representation(REP_QUERIES),
@@ -203,7 +203,7 @@ impl<'a> Sources<'a> {
                 )
             }
             "prepared-verify-gates.json" => self.member(
-                archive::REASONING_REP,
+                archive::PREPARED_REASONING_REP,
                 archive::REASONED_GATES_MEMBER,
                 member_limit,
             ),
@@ -216,7 +216,7 @@ impl<'a> Sources<'a> {
                 &action_policy::policy_statements(self.dataset()?),
             )),
             action_policy::CORPUS_ARTIFACT => self.member(
-                archive::REASONING_REP,
+                archive::PREPARED_REASONING_REP,
                 action_policy::BUNDLE_MEMBER,
                 action_policy::MAX_BYTES,
             ),
