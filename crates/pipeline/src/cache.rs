@@ -2066,12 +2066,11 @@ impl PipelineCache {
         product: &StageProduct,
     ) -> Result<StageReceipt, gmeow_errors::Diag> {
         let manifest = CachedBundle::from_product(product, selection)?;
-        let bytes = bincode::serialize(&manifest).map_err(|e| {
+        let serialized_bytes = bincode::serialized_size(&manifest).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
-                "cannot serialize cached bundle: {e}"
+                "cannot measure cached bundle encoding: {e}"
             )))
         })?;
-        let serialized_bytes = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
         if serialized_bytes > MAX_ENTRY_BYTES || serialized_bytes > self.max_bytes {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 cause: None,
@@ -2083,25 +2082,43 @@ impl PipelineCache {
                 ),
             }));
         }
-        let digest_hex = gmeow_action_cache::bytes_digest(&bytes);
-        let receipt = StageReceipt::from_product(
-            context.clone(),
-            stability,
-            cache_disposition,
-            selection,
-            product,
-            Some(digest_hex.clone()),
-            serialized_bytes,
-        )?;
         let common = self
             .store
-            .publish(
+            .publish_stream::<_, PipelineActionError>(
                 &context.action_context(),
                 product.digest.clone(),
-                receipt.clone(),
-                &bytes,
+                move |writer| {
+                    bincode::serialize_into(writer, &manifest).map_err(|error| match *error {
+                        bincode::ErrorKind::Io(error) => {
+                            gmeow_action_cache::ActionCacheError::from(error).into()
+                        }
+                        error => gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                            "cannot serialize cached bundle: {error}"
+                        )))
+                        .into(),
+                    })
+                },
+                |blob| {
+                    if blob.bytes != serialized_bytes {
+                        return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                            expected: format!("{serialized_bytes} encoded cached bundle bytes"),
+                            actual: format!("{} encoded cached bundle bytes", blob.bytes),
+                        })
+                        .into());
+                    }
+                    StageReceipt::from_product(
+                        context.clone(),
+                        stability,
+                        cache_disposition,
+                        selection,
+                        product,
+                        Some(blob.digest.clone()),
+                        blob.bytes,
+                    )
+                    .map_err(PipelineActionError::from)
+                },
             )
-            .map_err(action_cache_diag)?;
+            .map_err(|error| error.0)?;
         validate_common_receipt(
             context,
             &common.action_key,
@@ -2235,14 +2252,17 @@ pub struct FixtureCoordinator {
     cache: PipelineCache,
 }
 
-enum FixtureCoordinateError {
-    Cache(gmeow_action_cache::ActionCacheError),
-    Pipeline(gmeow_errors::Diag),
+struct PipelineActionError(gmeow_errors::Diag);
+
+impl From<gmeow_action_cache::ActionCacheError> for PipelineActionError {
+    fn from(error: gmeow_action_cache::ActionCacheError) -> Self {
+        Self(action_cache_diag(error))
+    }
 }
 
-impl From<gmeow_action_cache::ActionCacheError> for FixtureCoordinateError {
-    fn from(error: gmeow_action_cache::ActionCacheError) -> Self {
-        Self::Cache(error)
+impl From<gmeow_errors::Diag> for PipelineActionError {
+    fn from(error: gmeow_errors::Diag) -> Self {
+        Self(error)
     }
 }
 
@@ -2280,19 +2300,22 @@ impl FixtureCoordinator {
         let coordinated = self
             .cache
             .store
-            .coordinate::<_, FixtureCoordinateError, _, _>(
+            .coordinate::<_, PipelineActionError, _, _>(
                 &key,
                 || {
                     self.fixture_hit(context, stability, cache_disposition, &select)
-                        .map_err(FixtureCoordinateError::Pipeline)
+                        .map_err(PipelineActionError::from)
                 },
                 || {
-                    let product = build().map_err(FixtureCoordinateError::Pipeline)?;
-                    let selection = select(&product).map_err(FixtureCoordinateError::Pipeline)?;
-                    let receipt = self
-                        .cache
-                        .put(context, stability, cache_disposition, &selection, &product)
-                        .map_err(FixtureCoordinateError::Pipeline)?;
+                    let product = build()?;
+                    let selection = select(&product)?;
+                    let receipt = self.cache.put(
+                        context,
+                        stability,
+                        cache_disposition,
+                        &selection,
+                        &product,
+                    )?;
                     Ok(FixtureOutcome {
                         transferred_bytes: receipt.product_blob_bytes,
                         product,
@@ -2301,10 +2324,7 @@ impl FixtureCoordinator {
                     })
                 },
             )
-            .map_err(|error| match error {
-                FixtureCoordinateError::Cache(error) => action_cache_diag(error),
-                FixtureCoordinateError::Pipeline(error) => error,
-            })?;
+            .map_err(|error| error.0)?;
         let mut outcome = coordinated.value;
         outcome.built = coordinated.built;
         Ok(outcome)

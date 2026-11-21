@@ -285,6 +285,32 @@ fn same_key_divergence_and_tampered_blob_hard_fail() {
     assert!(cache.get::<u32>(&context).is_err());
 }
 
+/// A stream that exceeds its byte quota leaves neither a staged blob nor a receipt.
+#[test]
+fn rejected_stream_leaves_the_store_empty() {
+    let temp = tempfile::tempdir().unwrap();
+    let cache = store(temp.path()).with_limits(StoreLimits {
+        max_entry_bytes: 4,
+        ..StoreLimits::default()
+    });
+    let key = context("stream-too-large", vec![]);
+    // Exercise both the buffered write and a direct write whose error the callback discards.
+    for input in [b"oversized".as_slice(), &[0; 16384]] {
+        let result = cache.publish_stream::<_, ActionCacheError>(
+            &key,
+            "product",
+            |writer| {
+                let _ = writer.write_all(input);
+                Ok(())
+            },
+            |_| Ok(1_u32),
+        );
+        assert!(result.unwrap_err().to_string().contains("byte bound"));
+    }
+    assert!(cache.get::<u32>(&key).unwrap().is_none());
+    assert_eq!(fs::read_dir(cache.root().join("blobs")).unwrap().count(), 0);
+}
+
 #[test]
 fn malformed_receipt_missing_blob_and_wrong_root_hard_fail() {
     let temp = tempfile::tempdir().unwrap();
