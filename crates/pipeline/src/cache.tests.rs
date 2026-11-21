@@ -22,6 +22,26 @@ fn test_context(stage_id: &str, salt: &str) -> StageKeyContext {
         .with_dimension("test-salt", salt)
 }
 
+/// Cache admission preserves the underlying I/O diagnostic when the store path is blocked.
+#[test]
+fn cache_open_preserves_io_cause() {
+    use std::error::Error;
+
+    let file = tempfile::NamedTempFile::new().expect("temporary file");
+    let error = PipelineCache::open(file.path())
+        .err()
+        .expect("a file cannot serve as the cache directory");
+    assert_eq!(error.code(), crate::error::CacheMismatch::register());
+    let source = error
+        .downcast_ref::<gmeow_action_cache::ActionCacheError>()
+        .expect("action-cache refusal is retained");
+    assert!(
+        source
+            .source()
+            .is_some_and(|cause| cause.is::<std::io::Error>())
+    );
+}
+
 #[test]
 fn prior_diagnostic_cache_revisions_are_misses_before_hydration() {
     for prior_version in [16, 17] {

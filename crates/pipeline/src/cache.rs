@@ -78,6 +78,7 @@ use gmeow_action_cache::{
     ActionContext, ActionInput, ActionKey, ActionStore, BlobRef, FileKind, ProducerIdentity,
     STORE_FORMAT_VERSION, StoreLimits,
 };
+use gmeow_errors::DiagKind;
 use purrdf::provenance::{DatasetProvenance, OriginKind};
 use purrdf::{
     ContentDigest, ContentStore, PackBuilder, QuadHandle, RdfBlobOrigin, RdfBlobRecord,
@@ -2188,11 +2189,12 @@ impl PipelineCache {
 }
 
 fn action_cache_diag(error: gmeow_action_cache::ActionCacheError) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+    let mismatch = crate::error::CacheMismatch {
         expected: "a verified immutable action-cache entry".to_string(),
         actual: error.to_string(),
-    })
-    .with_source(error)
+    };
+    gmeow_errors::Diag::new(mismatch.code(), mismatch.grade(), mismatch.to_string())
+        .with_source(error)
 }
 
 fn validate_common_receipt(
