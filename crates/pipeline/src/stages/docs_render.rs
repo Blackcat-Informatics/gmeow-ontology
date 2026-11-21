@@ -2,38 +2,88 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Project the typed slice documentation model into `graph/documentation`.
-//! The renderer's N-Quads are a transient input to native parsing. Snapshot
+//! The renderer streams N-Quads to the native parser. Snapshot
 //! reads the frozen documentation graph from this stage's dataset.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::io::{self, BufRead, BufReader, BufWriter, PipeWriter, Write};
 use std::path::Path;
 use std::sync::Arc;
+use std::thread;
 
 use gmeow_docs::model::{
     ConsistencyAssessment, ConstraintRule, DiagnosticsDigest, DocDiagFinding, DocsModel,
     ReasoningVerdict,
 };
-use gmeow_docs::rdf::to_gmeow_rdf;
+use gmeow_docs::rdf::write_gmeow_rdf;
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfTerm};
 
 use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::carrier::{GRAPH_DOCUMENTATION, require_rooted_graph};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const STAGE: &str = "stage-docs-render";
 
 /// Publish the already named graph the N-Quads renderer supplies.
-fn admit_rendered_documentation(rendered: &str) -> gmeow_errors::Result<Arc<RdfDataset>> {
-    let dataset = if rendered.is_empty() {
+fn admit_rendered_documentation(
+    mut rendered: impl BufRead,
+) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    let empty = rendered
+        .fill_buf()
+        .map_err(|source| documentation_io("read rendered N-Quads", source))?
+        .is_empty();
+    let dataset = if empty {
         let mut builder = RdfDatasetBuilder::new();
         let graph = builder.intern_iri(GRAPH_DOCUMENTATION)?;
         builder.declare_named_graph(graph)?;
         builder.freeze().map_err(gmeow_errors::Diag::from)?
     } else {
-        purrdf::parse_dataset(rendered.as_bytes(), "application/n-quads", None)
+        purrdf::parse_dataset_from_reader(rendered, "application/n-quads", None)
             .map_err(gmeow_errors::Diag::from)?
     };
-    require_rooted_graph(&dataset, "stage-docs-render", GRAPH_DOCUMENTATION)?;
+    require_rooted_graph(&dataset, STAGE, GRAPH_DOCUMENTATION)?;
     Ok(dataset)
+}
+
+fn documentation_io(operation: &str, source: io::Error) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::StageFailed::caused_by(
+        STAGE.to_owned(),
+        format!("{operation}: {source}"),
+        source,
+    ))
+}
+
+fn stream_documentation(
+    emit: impl FnOnce(&mut BufWriter<PipeWriter>) -> io::Result<()>,
+) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    let (reader, writer) =
+        io::pipe().map_err(|source| documentation_io("open the documentation RDF pipe", source))?;
+    thread::scope(|scope| {
+        let parser = thread::Builder::new()
+            .name("documentation-rdf-parser".into())
+            .spawn_scoped(scope, move || {
+                admit_rendered_documentation(BufReader::new(reader))
+            })
+            .map_err(|source| documentation_io("start the documentation RDF parser", source))?;
+        let mut writer = BufWriter::new(writer);
+        let written = emit(&mut writer).and_then(|()| writer.flush());
+
+        // Close the writer before joining. Discard buffered bytes after a write
+        // failure so the destructor cannot retry them.
+        drop(writer.into_parts());
+        let parsed = parser.join().unwrap_or_else(|_| {
+            Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: STAGE.to_owned(),
+                message: "documentation RDF parser thread panicked".into(),
+                cause: None,
+            }))
+        });
+        match (written, parsed) {
+            (Err(write), Err(parse)) if write.kind() == io::ErrorKind::BrokenPipe => Err(parse),
+            (Err(source), _) => Err(documentation_io("write rendered N-Quads", source)),
+            (Ok(()), parsed) => parsed,
+        }
+    })
 }
 
 /// Select the declared in-DAG reasoning owner. Post-DAG documentation explicitly
@@ -648,8 +698,8 @@ pub(crate) fn schema_fragments_from_json(
 
 /// Discover the docs model under `root`, attach the native-reasoner `verdict`, the
 /// diagnostics→term join digest, and the dynamic per-term projection-loss join
-/// digest (all from `upstream`), and project it to the documentation named graph
-/// (N-Quads). The verdict is required so the SPARQL surface always carries the
+/// digest (all from `upstream`), and stream the N-Quads into the documentation
+/// named graph. The verdict is required so the SPARQL surface always carries the
 /// per-term reasoning status (never a fabricated default); the diagnostics digest
 /// is required (hard-fails on a missing `stage-validate`/`stage-compile-logic`
 /// upstream product) so the per-term "Diagnostics you might hit" surface and any
@@ -665,11 +715,11 @@ pub(crate) fn schema_fragments_from_json(
 /// `gmeow_docs::model::DocsModel::discover_with_manifest_and_catalog`, never the committed
 /// `generated/catalog/term-content-manifest.nq`, which lags one regenerate behind
 /// whenever a term's definition digest changes (the same stale-disk-fold class).
-pub fn render_docs_graph(
+fn render_docs_graph(
     root: &Path,
     verdict: ReasoningVerdict,
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<String, gmeow_errors::Diag> {
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     // The per-term content manifest, read off THIS run's stage-term-manifest product
     // (hard-fails on a missing artifact) — never the committed
     // generated/catalog/term-content-manifest.nq, which is the PREVIOUS run's bytes
@@ -713,6 +763,7 @@ pub fn render_docs_graph(
                     e,
                 ))
             })?;
+    drop(catalog_bytes);
     model.attach_reasoning(verdict);
     let known_term_iris: BTreeSet<String> = model.terms.iter().map(|t| t.iri.clone()).collect();
     let diagnostics =
@@ -735,7 +786,8 @@ pub fn render_docs_graph(
     // derivations (rule → conclusion, all premises) as first-class queryable RDF.
     let entailments =
         crate::stages::carrier::term_entailments_from_upstream(upstream, &known_term_iris)?;
-    Ok(to_gmeow_rdf(&model, &entailments))
+    drop(known_term_iris);
+    stream_documentation(move |writer| write_gmeow_rdf(&model, &entailments, writer))
 }
 
 /// Recursively collect every regular file under `dir` into `out` (fail-fast on a
@@ -1060,12 +1112,11 @@ impl Stage for DocsRenderStage {
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let verdict = reasoning_verdict_from_reason(input.upstream)?;
-        let dataset = {
-            let graph = render_docs_graph(input.root, verdict, input.upstream)?;
-            crate::node::measure_stage_phase(self.id(), "parse-documentation-rdf", || {
-                admit_rendered_documentation(&graph)
-            })?
-        };
+        let dataset = crate::node::measure_stage_phase(
+            self.id(),
+            "render-and-parse-documentation-rdf",
+            || render_docs_graph(input.root, verdict, input.upstream),
+        )?;
         Ok(StageOutput::new(StageProduct::from_artifacts_over(
             self.id(),
             dataset,
