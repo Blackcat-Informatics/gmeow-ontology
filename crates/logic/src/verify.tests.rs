@@ -217,17 +217,15 @@ fn dl_coverage_gap_makes_verify_fail() {
         report.findings
     );
 
-    // The error finding code must reference the gap.
-    let gap_finding = report
-        .findings
-        .iter()
-        .find(|f| f.severity == Severity::Error && f.code.contains("dl-gap"))
-        .expect("an error finding with 'dl-gap' in the code must be present");
     assert!(
-        gap_finding.code.contains("maxCardinality")
-            || gap_finding.message.contains("maxCardinality"),
-        "the finding must name the undecided construct: {:?}",
-        gap_finding
+        report.findings.iter().any(|finding| {
+            finding.severity == Severity::Error
+                && finding.code.contains("dl-gap")
+                && (finding.code.contains("maxCardinality")
+                    || finding.message.contains("maxCardinality"))
+        }),
+        "the findings must include the undecided construct: {:?}",
+        report.findings
     );
 
     // The summary note must say "aborted".

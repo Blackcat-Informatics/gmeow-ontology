@@ -275,37 +275,9 @@ fn materialize_closure_base(
     edb: &RdfDataset,
     result: &ReasoningResult,
 ) -> gmeow_errors::Result<ClosureBaseOutcome> {
-    // 1. Flat asserted graph (default graph; literals + owl:members lists kept).
-    //    A no-GRAPH verify query then matches it, exactly like ROBOT's single
-    //    merged reasoned graph. The native flatten re-materializes the RDF 1.2
-    //    statement layer (rdf:reifies reifiers + annotations) into the default
-    //    graph, byte-for-byte the same set the oxigraph FlattenToDefaultGraph path
-    //    produced.
-    let mut store = MutableDataset::new(purrdf::RdfDatasetBuilder::new().freeze()?);
-    for quad in edb.flat_default_graph_quads() {
-        store.insert(quad).map_err(reasoned_insert_err)?;
-    }
-
-    // 2. Native EL/DL closure; layer the derived (non-EDB) edges on top, also in
-    //    the default graph. The native closure only materializes subsumption /
-    //    type / equivalent-class edges, which is what the inferred-edge verify
-    //    queries (class-in-two-disjoint-axes, class-without-stereotype) rely on.
-    // The DL coverage gaps are reconstructed from the shared model's
-    // unsupported-construct set via the one recipe `verdict_from_inferred` uses,
-    // so the verify findings stay byte-identical. The committed bundle is
-    // gap-zero, so this is empty on a healthy run.
+    // An incomplete native closure cannot support the verification queries.
+    // Report coverage gaps before allocating the asserted graph.
     let gaps = gaps_from_unsupported(result.preservation.unsupported_constructs.iter());
-
-    // 2a. Hard-fail on any DL coverage gap.
-    //
-    // A gap means the native reasoner could NOT genuinely decide the consequences
-    // of one or more OWL constructs present in the bundle: the reasoned closure is
-    // potentially INCOMPLETE for those constructs, so the negative-test queries
-    // below may produce false negatives. Defense-in-depth: surface each gap as an
-    // error Finding so `make verify` fails fast rather than silently passing an
-    // incomplete closure. The committed bundle is genuinely gap-zero, so this
-    // branch is dead on a healthy run — it fires only when a new undecided
-    // construct is introduced without being wired into the native handler first.
     if !gaps.is_empty() {
         let mut findings: Vec<Finding> = gaps
             .iter()
@@ -327,9 +299,6 @@ fn materialize_closure_base(
                 finding
             })
             .collect();
-        // Return early: the closure is incomplete, so running the verify queries
-        // against it would be misleading. The gap findings above are sufficient
-        // for the caller to diagnose and fix the coverage hole.
         findings.push(
             Finding::new(
                 Severity::Note,
@@ -343,6 +312,13 @@ fn materialize_closure_base(
             .with_tool("verify"),
         );
         return Ok(ClosureBaseOutcome::IncompleteClosure(findings));
+    }
+
+    // Queries without GRAPH evaluate against the default graph. Put the asserted
+    // rows, reifiers and annotations there before adding native derived edges.
+    let mut store = MutableDataset::new(purrdf::RdfDatasetBuilder::new().freeze()?);
+    for quad in edb.flat_default_graph_quads() {
+        store.insert(quad).map_err(reasoned_insert_err)?;
     }
 
     // The predicate IRIs of the DERIVED (non-EDB) edges — the finite-closure oracle
