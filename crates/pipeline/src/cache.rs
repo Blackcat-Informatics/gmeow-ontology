@@ -447,12 +447,29 @@ impl StageReceipt {
         let mut graph_names = selection.graphs.clone();
         graph_names.sort();
         graph_names.dedup();
+        let dataset = bundle.dataset();
+        let mut graph_counts: BTreeMap<_, usize> = graph_names
+            .iter()
+            .filter_map(|graph| dataset.term_id_by_iri(graph))
+            .map(|id| (id, 0))
+            .collect();
+        // The frozen quad table is already deduplicated. Count asserted quads
+        // in one pass without expanding terms or projecting a new dataset.
+        if !graph_counts.is_empty() {
+            for graph_id in dataset.quads().filter_map(|quad| quad.g) {
+                if let Some(count) = graph_counts.get_mut(&graph_id) {
+                    *count += 1;
+                }
+            }
+        }
         let graphs = graph_names
             .into_iter()
             .map(|graph| {
-                let projected = bundle
-                    .dataset()
-                    .project_graph(Some(&purrdf::RdfTerm::iri(&graph)))?;
+                let count = dataset
+                    .term_id_by_iri(&graph)
+                    .and_then(|id| graph_counts.get(&id))
+                    .copied()
+                    .unwrap_or_default();
                 Ok(ReceiptEntity {
                     identity: graph.clone(),
                     digest: bundle
@@ -464,7 +481,7 @@ impl StageReceipt {
                             ),
                         )?
                         .to_hex(),
-                    structural_count: u64::try_from(projected.quad_count()).map_err(|_| {
+                    structural_count: u64::try_from(count).map_err(|_| {
                         gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
                             "receipt graph <{graph}> quad count exceeds u64"
                         )))

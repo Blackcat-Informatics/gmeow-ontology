@@ -249,6 +249,73 @@ fn default_graph_commitment_covers_rdf12_reifiers_and_annotations() {
     assert_ne!(complete.digest, reifier_only.digest);
 }
 
+/// A named receipt counts unique asserted quads in its own graph and gives
+/// RDF statement metadata and absent graphs zero asserted quads.
+#[test]
+fn named_graph_receipts_count_only_their_asserted_quads() {
+    let overlay = "http://example.org/overlay";
+    let missing = "http://example.org/missing";
+    let mut builder = RdfDatasetBuilder::new();
+    let (s, p, o, graph) = (
+        iri(&mut builder, "s"),
+        iri(&mut builder, "p"),
+        iri(&mut builder, "o"),
+        iri(&mut builder, "graph"),
+    );
+    builder.push_quad(s, p, o, None).expect("default quad");
+    for _ in 0..2 {
+        builder.push_quad(s, p, o, Some(graph)).expect("named quad");
+    }
+    let reifier_term = RdfTerm::iri("http://example.org/reifier");
+    let mut reifier = purrdf::RdfReifier::new(
+        reifier_term.clone(),
+        purrdf::RdfTriple::new(
+            RdfTerm::iri("http://example.org/s"),
+            "http://example.org/p",
+            RdfTerm::iri("http://example.org/o"),
+        ),
+    );
+    reifier.graph = Some(RdfTerm::iri(overlay));
+    builder.push_owned_reifier(&reifier).expect("named reifier");
+    let mut annotation = purrdf::RdfAnnotation::new(
+        reifier_term,
+        "http://example.org/evidence",
+        RdfTerm::iri("http://example.org/source"),
+    );
+    annotation.graph = Some(RdfTerm::iri(overlay));
+    builder
+        .push_owned_annotation(&annotation)
+        .expect("named annotation");
+    let product = StageProduct::from_artifacts_over(
+        "named-counts",
+        builder.freeze().expect("valid named graphs"),
+        BTreeMap::new(),
+    )
+    .expect("the carrier digests");
+    let selection = ReceiptOutputSelection {
+        graphs: [overlay, GRAPH_IRI, missing, GRAPH_IRI]
+            .map(str::to_owned)
+            .to_vec(),
+        ..ReceiptOutputSelection::default()
+    };
+    let receipt = PipelineCache::receipt_only(
+        &test_context("named-counts", "graph-structure"),
+        "stable",
+        "recompute",
+        &selection,
+        &product,
+    )
+    .expect("the named graph identities are admitted");
+    assert_eq!(
+        receipt
+            .graphs
+            .iter()
+            .map(|record| (record.identity.as_str(), record.structural_count))
+            .collect::<Vec<_>>(),
+        [(GRAPH_IRI, 1), (missing, 0), (overlay, 0)],
+    );
+}
+
 fn full_selection(product: &StageProduct) -> ReceiptOutputSelection {
     ReceiptOutputSelection {
         graphs: product_graph_names(product),
