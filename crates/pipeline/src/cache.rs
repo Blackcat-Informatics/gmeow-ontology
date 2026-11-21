@@ -2192,6 +2192,7 @@ fn action_cache_diag(error: gmeow_action_cache::ActionCacheError) -> gmeow_error
         expected: "a verified immutable action-cache entry".to_string(),
         actual: error.to_string(),
     })
+    .with_source(error)
 }
 
 fn validate_common_receipt(

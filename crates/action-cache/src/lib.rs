@@ -19,7 +19,7 @@ pub use receipt_json::EmptyPayload;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{self, File, OpenOptions, TryLockError};
-use std::io::{BufWriter, Read, Seek, Write};
+use std::io::{self, BufWriter, Read, Seek, Write};
 use std::path::{Path, PathBuf};
 
 use purrdf_lex::json::{
@@ -39,32 +39,48 @@ pub const STORE_FORMAT_VERSION: u32 = 1;
 
 /// A compact error kept independent of every caller's diagnostic substrate.
 #[derive(Debug)]
-pub struct ActionCacheError(String);
+pub struct ActionCacheError(ActionCacheFailure);
+
+#[derive(Debug)]
+enum ActionCacheFailure {
+    Message(String),
+    Io(io::Error),
+}
 
 impl ActionCacheError {
     #[must_use]
     pub fn message(message: impl Into<String>) -> Self {
-        Self(message.into())
+        Self(ActionCacheFailure::Message(message.into()))
     }
 }
 
 impl std::fmt::Display for ActionCacheError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        formatter.write_str(&self.0)
+        match &self.0 {
+            ActionCacheFailure::Message(message) => formatter.write_str(message),
+            ActionCacheFailure::Io(error) => write!(formatter, "action cache I/O: {error}"),
+        }
     }
 }
 
-impl std::error::Error for ActionCacheError {}
+impl std::error::Error for ActionCacheError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match &self.0 {
+            ActionCacheFailure::Message(_) => None,
+            ActionCacheFailure::Io(error) => Some(error),
+        }
+    }
+}
 
-impl From<std::io::Error> for ActionCacheError {
-    fn from(error: std::io::Error) -> Self {
-        Self(format!("action cache I/O: {error}"))
+impl From<io::Error> for ActionCacheError {
+    fn from(error: io::Error) -> Self {
+        Self(ActionCacheFailure::Io(error))
     }
 }
 
 impl From<serde_json::Error> for ActionCacheError {
     fn from(error: serde_json::Error) -> Self {
-        Self(format!("action cache JSON: {error}"))
+        Self::message(format!("action cache JSON: {error}"))
     }
 }
 
@@ -631,19 +647,21 @@ impl ActionStore {
             digest: Sha256::new(),
             failure: None,
         });
-        encode(&mut writer)?;
+        let encoded = encode(&mut writer).and_then(|()| {
+            writer.flush().map_err(ActionCacheError::from)?;
+            Ok(())
+        });
         let BlobWriter {
             bytes,
             digest,
             failure,
             ..
-        } = writer
-            .into_inner()
-            .map_err(|error| error.into_error())
-            .map_err(ActionCacheError::from)?;
+        } = writer.into_parts().0;
+        // Prefer the original write failure even if the encoder wrapped or ignored it.
         if let Some(error) = failure {
-            return Err(error.into());
+            return Err(ActionCacheError::from(error).into());
         }
+        encoded?;
         let blob = BlobRef {
             bytes,
             digest: format!("{:x}", digest.finalize()),
@@ -1422,26 +1440,25 @@ struct BlobWriter<'a> {
     remaining: u64,
     bytes: u64,
     digest: Sha256,
-    failure: Option<ActionCacheError>,
+    failure: Option<io::Error>,
 }
 
 impl BlobWriter<'_> {
-    fn remember_error(&mut self, error: std::io::Error) -> std::io::Error {
-        self.failure
-            .get_or_insert_with(|| ActionCacheError::message(format!("action cache I/O: {error}")));
-        error
+    fn remember_error(&mut self, error: io::Error) -> io::Error {
+        let original = self.failure.get_or_insert(error);
+        io::Error::new(original.kind(), original.to_string())
     }
 }
 
 impl Write for BlobWriter<'_> {
-    fn write(&mut self, buffer: &[u8]) -> std::io::Result<usize> {
+    fn write(&mut self, buffer: &[u8]) -> io::Result<usize> {
         if let Some(error) = &self.failure {
-            return Err(std::io::Error::other(error.to_string()));
+            return Err(io::Error::new(error.kind(), error.to_string()));
         }
         let count = u64::try_from(buffer.len()).unwrap_or(u64::MAX);
         if count > self.remaining {
-            return Err(self.remember_error(std::io::Error::new(
-                std::io::ErrorKind::FileTooLarge,
+            return Err(self.remember_error(io::Error::new(
+                io::ErrorKind::FileTooLarge,
                 "streamed action product exceeds its entry or store byte bound",
             )));
         }
@@ -1454,7 +1471,10 @@ impl Write for BlobWriter<'_> {
         Ok(buffer.len())
     }
 
-    fn flush(&mut self) -> std::io::Result<()> {
+    fn flush(&mut self) -> io::Result<()> {
+        if let Some(error) = &self.failure {
+            return Err(io::Error::new(error.kind(), error.to_string()));
+        }
         self.file
             .flush()
             .map_err(|error| self.remember_error(error))

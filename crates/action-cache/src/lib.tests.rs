@@ -285,27 +285,44 @@ fn same_key_divergence_and_tampered_blob_hard_fail() {
     assert!(cache.get::<u32>(&context).is_err());
 }
 
-/// A stream that exceeds its byte quota leaves neither a staged blob nor a receipt.
+/// A stream that exceeds its byte quota preserves the I/O cause and publishes nothing.
 #[test]
 fn rejected_stream_leaves_the_store_empty() {
+    use std::error::Error;
+
     let temp = tempfile::tempdir().unwrap();
     let cache = store(temp.path()).with_limits(StoreLimits {
         max_entry_bytes: 4,
         ..StoreLimits::default()
     });
     let key = context("stream-too-large", vec![]);
-    // Exercise both the buffered write and a direct write whose error the callback discards.
-    for input in [b"oversized".as_slice(), &[0; 16384]] {
+    // Cover failure on flush and a direct write whose error the encoder ignores or replaces.
+    let large = [0; 16384];
+    for (input, replace_error) in [
+        (b"oversized".as_slice(), false),
+        (&large, false),
+        (&large, true),
+    ] {
         let result = cache.publish_stream::<_, ActionCacheError>(
             &key,
             "product",
             |writer| {
-                let _ = writer.write_all(input);
+                if writer.write_all(input).is_err() && replace_error {
+                    return Err(ActionCacheError::message("encoding stopped"));
+                }
                 Ok(())
             },
             |_| Ok(1_u32),
         );
-        assert!(result.unwrap_err().to_string().contains("byte bound"));
+        let error = result.unwrap_err();
+        let cause = error
+            .source()
+            .and_then(|source| source.downcast_ref::<io::Error>());
+        assert_eq!(
+            cause.map(io::Error::kind),
+            Some(io::ErrorKind::FileTooLarge)
+        );
+        assert!(error.to_string().contains("byte bound"));
     }
     assert!(cache.get::<u32>(&key).unwrap().is_none());
     assert_eq!(fs::read_dir(cache.root().join("blobs")).unwrap().count(), 0);
