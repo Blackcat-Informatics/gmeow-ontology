@@ -1357,7 +1357,7 @@ impl Stage for MappingsStage {
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        let compiled = compile_mappings_with_sources(
+        let mut compiled = compile_mappings_with_sources(
             input.root,
             crate::stages::parse_sources::catalog(&input)?,
         )?;
@@ -1436,8 +1436,10 @@ impl Stage for MappingsStage {
         // carried as a named graph so the presenter reads it via `producer_graph`. Like
         // the projection-ledger and alignments graphs it stays OUT of the reasoned EDB
         // (the object-level EDB assembly never selects this named graph).
+        // Each parsed graph owns its terms. Consume the source buffers here so
+        // they can be freed before the union and product digest.
         let lang_translation_graph = crate::stages::carrier::parse_into_graph(
-            &compiled.lang_translation_corpus,
+            &std::mem::take(&mut compiled.lang_translation_corpus),
             "application/n-triples",
             crate::stages::carrier::GRAPH_LANG_TRANSLATION_CORPUS,
         )?;
@@ -1447,7 +1449,7 @@ impl Stage for MappingsStage {
         // translation-corpus graph it stays OUT of the reasoned EDB (the object-level
         // EDB assembly never selects it).
         let lang_form_graph = crate::stages::carrier::parse_into_graph(
-            &compiled.lang_form_corpus,
+            &std::mem::take(&mut compiled.lang_form_corpus),
             "application/n-triples",
             crate::stages::carrier::GRAPH_LANG_FORM_CORPUS,
         )?;
@@ -1457,7 +1459,7 @@ impl Stage for MappingsStage {
         // `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the
         // reasoned EDB (the object-level EDB assembly never selects it).
         let lang_projection_graph = crate::stages::carrier::parse_into_graph(
-            &compiled.lang_projection_corpus,
+            &std::mem::take(&mut compiled.lang_projection_corpus),
             "application/n-triples",
             crate::stages::carrier::GRAPH_LANG_PROJECTION_CORPUS,
         )?;
@@ -1467,7 +1469,7 @@ impl Stage for MappingsStage {
         // it via `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the
         // reasoned EDB (the object-level EDB assembly never selects it).
         let lang_lowering_graph = crate::stages::carrier::parse_into_graph(
-            &compiled.lang_lowering_corpus,
+            &std::mem::take(&mut compiled.lang_lowering_corpus),
             "application/n-triples",
             crate::stages::carrier::GRAPH_LANG_LOWERING_CORPUS,
         )?;
@@ -1477,7 +1479,7 @@ impl Stage for MappingsStage {
         // `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the reasoned
         // EDB (the object-level EDB assembly never selects it).
         let lang_docs_rendering_graph = crate::stages::carrier::parse_into_graph(
-            &compiled.lang_docs_rendering_corpus,
+            &std::mem::take(&mut compiled.lang_docs_rendering_corpus),
             "application/n-triples",
             crate::stages::carrier::GRAPH_LANG_DOCS_RENDERING_CORPUS,
         )?;
@@ -1486,7 +1488,7 @@ impl Stage for MappingsStage {
         // `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the reasoned
         // EDB (the object-level EDB assembly never selects it).
         let lang_glossary_graph = crate::stages::carrier::parse_into_graph(
-            &compiled.lang_glossary_corpus,
+            &std::mem::take(&mut compiled.lang_glossary_corpus),
             "application/n-triples",
             crate::stages::carrier::GRAPH_LANG_GLOSSARY_CORPUS,
         )?;
@@ -1497,7 +1499,7 @@ impl Stage for MappingsStage {
         // graph — the verdicts are
         // presenter/provenance RDF, not reasoned facts).
         let correspondence_laws_graph = crate::stages::carrier::parse_into_graph(
-            &compiled.correspondence_laws_corpus,
+            &std::mem::take(&mut compiled.correspondence_laws_corpus),
             "application/n-triples",
             crate::stages::carrier::GRAPH_CORRESPONDENCE_LAWS,
         )?;
