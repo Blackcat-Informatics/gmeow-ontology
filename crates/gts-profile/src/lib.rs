@@ -372,9 +372,10 @@ impl From<BlobRow> for GmeowGtsBlob<'_> {
 /// accepted prefix is never published after a selected input failed. The exact
 /// ingestion receipt is returned beside the bytes.
 ///
-/// The builder's canonical tables are released before the writer encodes and
-/// compresses the owned payload. The explicit transform makes a second payload
-/// serialization for size-dependent codec selection unnecessary.
+/// The writer emits the blob frames before materializing the owned snapshot
+/// payload. The builder's canonical tables are released before the writer
+/// encodes and compresses that payload. The explicit transform makes a second
+/// payload serialization for size-dependent codec selection unnecessary.
 ///
 /// # Errors
 /// Refuses a poisoned builder, a medium outside the mandatory level-12 profile,
@@ -397,12 +398,18 @@ pub fn emit_gmeow_gts(
         )));
     }
     let ingestion = builder.ingest_totals();
-    let payload = builder.snapshot_payload();
-    // The payload owns all of its wire terms/rows. Releasing the interning tables
-    // before encoding keeps them out of the writer's canonical/compression peak.
-    drop(builder);
-    let bytes =
-        emit_snapshot_payload_with_medium(payload, archive_blobs, report_blobs, signing, medium)?;
+    let build_payload = move || {
+        let payload = builder.snapshot_payload();
+        drop(builder);
+        payload
+    };
+    let bytes = emit_snapshot_payload_with_medium(
+        build_payload,
+        archive_blobs,
+        report_blobs,
+        signing,
+        medium,
+    )?;
     Ok(GmeowGtsEmission {
         bytes,
         ingestion,
@@ -429,7 +436,7 @@ fn selected_dictionary<'a>(
 }
 
 fn emit_snapshot_payload_with_medium(
-    payload: Value,
+    build_payload: impl FnOnce() -> Value,
     archive_blobs: Vec<GmeowGtsBlob<'_>>,
     report_blobs: Vec<GmeowGtsBlob<'_>>,
     signing: Option<GmeowGtsSigning>,
@@ -506,6 +513,7 @@ fn emit_snapshot_payload_with_medium(
     }
 
     let dictionary = selected_dictionary(medium, &FrameSlot::Snapshot)?;
+    let payload = build_payload();
     writer
         .add_frame_with_options(
             "snapshot",
