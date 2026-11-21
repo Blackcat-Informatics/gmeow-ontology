@@ -201,10 +201,16 @@ define_diag_kind! {
 define_diag_kind! {
     /// A cached `StageProduct` failed its self-verifying digest recheck. The
     /// cache is never silently repaired (no-optionality).
-    pub struct CacheMismatch { expected: String, actual: String }
+    pub struct CacheMismatch {
+        cause: Option<std::sync::Arc<gmeow_action_cache::ActionCacheError>>,
+        expected: String,
+        actual: String,
+    }
     code = "pipeline.cache.mismatch";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "pipeline cache digest mismatch: expected {}, got {}", expected, actual;
+    source = failure => failure.cause.as_deref()
+        .map(|cause| cause as &(dyn std::error::Error + 'static));
 }
 
 define_diag_kind! {

@@ -33,7 +33,8 @@ fn cache_open_preserves_io_cause() {
         .expect("a file cannot serve as the cache directory");
     assert_eq!(error.code(), crate::error::CacheMismatch::register());
     let source = error
-        .downcast_ref::<gmeow_action_cache::ActionCacheError>()
+        .downcast_ref::<crate::error::CacheMismatch>()
+        .and_then(Error::source)
         .expect("action-cache refusal is retained");
     assert!(
         source

@@ -78,7 +78,6 @@ use gmeow_action_cache::{
     ActionContext, ActionInput, ActionKey, ActionStore, BlobRef, FileKind, ProducerIdentity,
     STORE_FORMAT_VERSION, StoreLimits,
 };
-use gmeow_errors::DiagKind;
 use purrdf::provenance::{DatasetProvenance, OriginKind};
 use purrdf::{
     ContentDigest, ContentStore, PackBuilder, QuadHandle, RdfBlobOrigin, RdfBlobRecord,
@@ -1562,6 +1561,7 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
             })?;
             store.insert_checked(digest, bytes.into()).map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    cause: None,
                     expected: hex.clone(),
                     actual: format!("{e}"),
                 })
@@ -1587,6 +1587,7 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
             let artifact = provenance.register_artifact(row.artifact.clone())?;
             let quad_index = *quad_indices.get(&row.quad_key).ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    cause: None,
                     expected: format!("restored asserted quad {}", row.quad_key),
                     actual: "no matching quad in restored dataset".to_string(),
                 })
@@ -1637,6 +1638,7 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
             let payload_digest = handle_payload_digest(&payload);
             if payload_digest != h.payload_digest {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    cause: None,
                     expected: format!("{}:{}", h.graph, h.payload_digest),
                     actual: format!("{}:{payload_digest}", h.graph),
                 }));
@@ -1678,6 +1680,7 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
                 || carrier_digest(product.raw_bundle())? != carrier_digest(&empty)?
             {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    cause: None,
                     expected: self.digest,
                     actual: product.digest,
                 }));
@@ -1734,6 +1737,7 @@ impl<Bytes: AsRef<[u8]>> CachedBundle<Bytes> {
         let actual_names: BTreeSet<&str> = references.keys().copied().collect();
         if actual_names != expected_names {
             return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                cause: None,
                 expected: format!("logical artifacts {expected_names:?}"),
                 actual: format!("logical artifacts {actual_names:?}"),
             }));
@@ -1743,6 +1747,7 @@ impl<Bytes: AsRef<[u8]>> CachedBundle<Bytes> {
         for entity in &receipt.logical_artifacts {
             if entity.structural_count != 1 {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    cause: None,
                     expected: format!("{} structural-count=1", entity.identity),
                     actual: format!(
                         "{} structural-count={}",
@@ -1753,12 +1758,14 @@ impl<Bytes: AsRef<[u8]>> CachedBundle<Bytes> {
             let referenced_digest = references[entity.identity.as_str()];
             if referenced_digest != entity.digest {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    cause: None,
                     expected: format!("{}:{}", entity.identity, entity.digest),
                     actual: format!("{}:{referenced_digest}", entity.identity),
                 }));
             }
             let bytes = self.blobs.get(referenced_digest).ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    cause: None,
                     expected: referenced_digest.to_string(),
                     actual: format!("<missing artifact blob for {}>", entity.identity),
                 })
@@ -1768,6 +1775,7 @@ impl<Bytes: AsRef<[u8]>> CachedBundle<Bytes> {
             let actual_bytes = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
             if actual_digest != entity.digest || actual_bytes != entity.decoded_bytes {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    cause: None,
                     expected: format!("{}:{}", entity.digest, entity.decoded_bytes),
                     actual: format!("{actual_digest}:{actual_bytes}"),
                 }));
@@ -1905,6 +1913,7 @@ impl PipelineCache {
         let product = cached.into_product()?;
         if product.stage_id != context.stage_id || product.digest != receipt.product_digest {
             return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                cause: None,
                 expected: format!("{}:{}", context.stage_id, receipt.product_digest),
                 actual: format!("{}:{}", product.stage_id, product.digest),
             }));
@@ -2016,6 +2025,7 @@ impl PipelineCache {
         }
         if cached.stage_id != context.stage_id || cached.digest != receipt.product_digest {
             return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                cause: None,
                 expected: format!("{}:{}", context.stage_id, receipt.product_digest),
                 actual: format!("{}:{}", cached.stage_id, cached.digest),
             }));
@@ -2102,6 +2112,7 @@ impl PipelineCache {
                 |blob| {
                     if blob.bytes != serialized_bytes {
                         return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                            cause: None,
                             expected: format!("{serialized_bytes} encoded cached bundle bytes"),
                             actual: format!("{} encoded cached bundle bytes", blob.bytes),
                         })
@@ -2170,6 +2181,7 @@ impl PipelineCache {
         )?;
         if expected != hit.receipt {
             return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                cause: None,
                 expected: expected.digest(),
                 actual: hit.receipt.digest(),
             }));
@@ -2189,12 +2201,11 @@ impl PipelineCache {
 }
 
 fn action_cache_diag(error: gmeow_action_cache::ActionCacheError) -> gmeow_errors::Diag {
-    let mismatch = crate::error::CacheMismatch {
+    gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
         expected: "a verified immutable action-cache entry".to_string(),
         actual: error.to_string(),
-    };
-    gmeow_errors::Diag::new(mismatch.code(), mismatch.grade(), mismatch.to_string())
-        .with_source(error)
+        cause: Some(Arc::new(error)),
+    })
 }
 
 fn validate_common_receipt(
@@ -2217,6 +2228,7 @@ fn validate_common_receipt(
         || common_blob.bytes != receipt.product_blob_bytes
     {
         return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+            cause: None,
             expected: format!(
                 "key={expected_key};product={};blob={stage_blob_digest}:{}",
                 receipt.product_digest, receipt.product_blob_bytes
