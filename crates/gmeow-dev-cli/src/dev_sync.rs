@@ -15,6 +15,7 @@ use std::sync::Arc;
 use std::time::Instant;
 use std::time::UNIX_EPOCH;
 
+use gmeow_action_cache::{ActionCacheError, executable::sha256_file};
 use gmeow_cli_core::{ConsoleMode, Reporter};
 use gmeow_pipeline::cache::{BUILD_FINGERPRINT, BuildIdentity};
 use gmeow_pipeline::run::{RunMode, RunOutputScope, RunReport, run_full_scoped_with_progress};
@@ -983,9 +984,7 @@ fn manifest_is_current(
         if metadata.len() == witness.len && modified_ns(&metadata) == witness.modified_ns {
             return true;
         }
-        std::fs::read(&path)
-            .map(|bytes| sha256(&bytes) == witness.sha256)
-            .unwrap_or(false)
+        sha256_file(&path).is_ok_and(|digest| digest == witness.sha256)
     })
 }
 
@@ -1016,7 +1015,7 @@ fn capture_outputs(
     root: &Path,
     logical_outputs: &[String],
     managed_roots: &[String],
-) -> std::io::Result<Vec<FileWitness>> {
+) -> Result<Vec<FileWitness>, ActionCacheError> {
     let mut paths = logical_outputs
         .iter()
         .filter(|path| root.join(path).is_file())
@@ -1032,12 +1031,11 @@ fn capture_outputs(
         .map(|path| {
             let absolute = root.join(&path);
             let metadata = std::fs::metadata(&absolute)?;
-            let bytes = std::fs::read(&absolute)?;
             Ok(FileWitness {
                 path,
                 len: metadata.len(),
                 modified_ns: modified_ns(&metadata),
-                sha256: sha256(&bytes),
+                sha256: sha256_file(&absolute)?,
             })
         })
         .collect()
@@ -1183,10 +1181,6 @@ fn write_manifest(path: &Path, manifest: &SyncManifest) -> std::io::Result<()> {
     let tmp = parent.join(format!(".sync-manifest-{}.tmp", std::process::id()));
     std::fs::write(&tmp, bytes)?;
     std::fs::rename(tmp, path)
-}
-
-fn sha256(bytes: &[u8]) -> String {
-    purrdf_hash::hex::encode(&Sha256::digest(bytes))
 }
 
 #[path = "dev_sync.tests.rs"]

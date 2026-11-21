@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use gmeow_action_cache::bytes_digest;
 
 /// Preserve complete metadata lines without invoking a generator or synchronizing.
 #[test]
@@ -154,7 +155,7 @@ fn managed_output_root_binds_content_but_not_observational_mtime() {
         path: "generated/example".to_string(),
         len: 3,
         modified_ns: 1,
-        sha256: sha256(b"one"),
+        sha256: bytes_digest(b"one"),
     };
     let root = managed_output_root(std::slice::from_ref(&witness));
     let mut changed_mtime = witness.clone();
@@ -165,8 +166,59 @@ fn managed_output_root_binds_content_but_not_observational_mtime() {
         "mtime is run telemetry, never immutable output identity"
     );
     let mut changed_digest = witness;
-    changed_digest.sha256 = sha256(b"two");
+    changed_digest.sha256 = bytes_digest(b"two");
     assert_ne!(managed_output_root(&[changed_digest]), root);
+}
+
+/// A stale metadata witness may match the file by digest but must reject changed bytes.
+#[test]
+fn sync_manifest_rechecks_managed_content_after_metadata_changes() {
+    let directory = tempfile::tempdir().expect("create isolated sync output");
+    let root = directory.path();
+    let relative = "generated/example";
+    let path = root.join(relative);
+    std::fs::create_dir(root.join("generated")).expect("create managed output directory");
+    let mut bytes = vec![b'a'; 128 * 1024];
+    bytes.push(b'b');
+    std::fs::write(&path, &bytes).expect("write managed output");
+    let managed_roots = vec!["generated".to_owned()];
+    let mut files = capture_outputs(root, &[], &managed_roots).expect("capture output witness");
+    assert_eq!(files.len(), 1);
+    assert_eq!(files[0].path, relative);
+    assert_eq!(files[0].len, bytes.len() as u64);
+    assert_eq!(files[0].sha256, bytes_digest(&bytes));
+    files[0].modified_ns = u128::MAX;
+    let manifest = SyncManifest {
+        version: MANIFEST_VERSION,
+        build_fingerprint: BUILD_FINGERPRINT.to_owned(),
+        build_identity: BuildIdentity::current(),
+        input_digest: "same".to_owned(),
+        output: SyncOutput::Generated.as_str().to_owned(),
+        profile: SyncProfile::Ordinary.as_str().to_owned(),
+        language: "default".to_owned(),
+        strict_checked: true,
+        materialized: true,
+        docs_rendered: false,
+        managed_roots,
+        managed_output_root: managed_output_root(&files),
+        files,
+        stage_receipt_root: "0".repeat(64),
+    };
+    let is_current = || {
+        manifest_is_current(
+            root,
+            &manifest,
+            SyncMode::Update,
+            SyncOutput::Generated,
+            SyncProfile::Ordinary,
+            "default",
+            "same",
+        )
+    };
+    assert!(is_current());
+    *bytes.last_mut().expect("output has a final byte") = b'c';
+    std::fs::write(&path, bytes).expect("change final byte without changing size");
+    assert!(!is_current());
 }
 
 #[test]

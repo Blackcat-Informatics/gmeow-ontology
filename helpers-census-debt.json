@@ -1729,14 +1729,6 @@
   {
    "kind": "shim",
    "members": [
-    "gmeow_dev_cli::dev_sync::sha256",
-    "gmeow_logic::conjecture_eval::sha256_hex",
-    "gmeow_mcp::libraries::sha256_hex"
-   ]
-  },
-  {
-   "kind": "shim",
-   "members": [
     "gmeow_dev_cli::test_crate::loss_bearing_domain::read",
     "gmeow_dev_cli::test_crate::npm_packaging_contract::read"
    ]
@@ -2025,6 +2017,13 @@
     "gmeow_logic::reason::dl::invalid",
     "gmeow_logic::reason::refute::native::invalid",
     "gmeow_logic::seam::source_error"
+   ]
+  },
+  {
+   "kind": "shim",
+   "members": [
+    "gmeow_logic::conjecture_eval::sha256_hex",
+    "gmeow_mcp::libraries::sha256_hex"
    ]
   },
   {
