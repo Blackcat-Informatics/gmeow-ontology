@@ -645,9 +645,9 @@ fn cached_compiled_logic_rejects_report_metadata_and_loss_tampering() {
     for mutation in 0..8 {
         let product = report_product(report_publication());
         let mut cached = CachedBundle::from_product(&product, &full_selection(&product)).unwrap();
-        let original = cached.handles[0].typed_payload.as_ref().unwrap();
+        let original = cached.handles[0].typed_payload.as_deref().unwrap();
         let mut changed: crate::bundle::CompiledLogicPublication =
-            ciborium::de::from_reader(original.as_slice()).unwrap();
+            ciborium::de::from_reader(original).unwrap();
         match mutation {
             0 => changed.report.header.formula_count += 1,
             1 => changed.report.base_correspondence_count += 1,
@@ -674,7 +674,7 @@ fn cached_compiled_logic_rejects_report_metadata_and_loss_tampering() {
             }
         }
         let changed = PipelineHandle::CompiledLogic(Arc::new(changed));
-        cached.handles[0].typed_payload = Some(encode_handle(&changed).unwrap());
+        cached.handles[0].typed_payload = Some(encode_handle(&changed).unwrap().into());
         let encoded = bincode::serialize(&cached).unwrap();
         let stale_handle: CachedBundle = bincode::deserialize(&encoded).unwrap();
         assert!(
@@ -868,8 +868,18 @@ fn cached_bundle_structural_round_trip() {
 fn cached_payloads_borrow_authenticated_input_without_changing_wire_bytes() {
     let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()))
         .expect("the stage carrier digests");
-    let owned = CachedBundle::from_product(&product, &full_selection(&product)).unwrap();
-    let encoded = bincode::serialize(&owned).unwrap();
+    let publisher = CachedBundle::from_product(&product, &full_selection(&product)).unwrap();
+    assert!(
+        !publisher.blobs.is_empty(),
+        "the fixture must exercise a blob"
+    );
+    for (digest, bytes) in product.raw_bundle().blobs().iter() {
+        let published = &publisher.blobs[&digest.to_hex()];
+        assert!(std::ptr::eq::<[u8]>(bytes.as_ref(), published.as_ref()));
+    }
+    let encoded = bincode::serialize(&publisher).unwrap();
+    let owned: CachedBundle<Vec<u8>> = bincode::deserialize(&encoded).unwrap();
+    assert_eq!(bincode::serialize(&owned).unwrap(), encoded);
     let borrowed: CachedBundle<&[u8]> = bincode::deserialize(&encoded).unwrap();
     let assert_borrowed = |bytes: &[u8]| {
         assert!(!bytes.is_empty(), "the fixture must exercise a payload");
@@ -1097,7 +1107,7 @@ fn restored_typed_product_rejects_a_changed_payload_under_the_old_digest() {
     let mut program: LogicProgram =
         bincode::deserialize(handle.typed_payload.as_ref().unwrap()).unwrap();
     program.source_iri = Some("https://example.org/forged-source".into());
-    handle.typed_payload = Some(bincode::serialize(&program).unwrap());
+    handle.typed_payload = Some(bincode::serialize(&program).unwrap().into());
     handle.payload_digest = handle_payload_digest(&PipelineHandle::Logic(Arc::new(program)));
     let error = manifest
         .into_product()

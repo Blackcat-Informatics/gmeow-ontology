@@ -70,6 +70,7 @@ mod build_identity_json;
 
 mod receipt_json;
 
+use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -287,9 +288,9 @@ pub fn stage_key(context: &StageKeyContext) -> String {
 /// The serde-able mirror of a [`PipelineBundle<PipelineHandle>`] sufficient to
 /// reconstruct a digest- and structure-equal bundle. The kernel bundle has no serde
 /// (ring-fence), so this pipeline-side manifest captures every lane the bundle uses.
-/// The same schema owns bytes when publishing and borrows them when reading.
-/// Bincode encodes both byte representations identically; no second wire model
-/// or cached carrier is introduced.
+/// The publisher borrows content-store bytes and owns the lanes it encodes.
+/// The reader borrows all byte lanes from the authenticated entry. Bincode
+/// encodes the byte lanes identically across their in-memory representations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct CachedBundle<Bytes = Vec<u8>> {
     /// The on-disk cache-shape revision; a mismatch is a clean miss (greenfield).
@@ -1412,10 +1413,10 @@ impl CachedBundle {
     }
 
     /// Project a [`StageProduct`] into its serde manifest (every lane captured).
-    fn from_product(
-        product: &StageProduct,
+    fn from_product<'a>(
+        product: &'a StageProduct,
         selection: &ReceiptOutputSelection,
-    ) -> Result<Self, gmeow_errors::Diag> {
+    ) -> Result<CachedBundle<Cow<'a, [u8]>>, gmeow_errors::Diag> {
         Self::validate_bounded_contribution(product, selection)?;
         let bundle = product.raw_bundle();
 
@@ -1433,11 +1434,11 @@ impl CachedBundle {
 
         let lookaside = CachedLookaside::from_lookaside(bundle.lookaside())?;
 
-        // blobs → digest hex → bytes.
-        let mut blobs: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        for (digest, bytes) in bundle.blobs().iter() {
-            blobs.insert(digest.to_hex(), bytes.clone());
-        }
+        let blobs = bundle
+            .blobs()
+            .iter()
+            .map(|(digest, bytes)| (digest.to_hex(), Cow::Borrowed(bytes.as_ref())))
+            .collect();
 
         // provenance → PUBLIC projection rows only.
         let provenance = bundle.provenance().public_projection();
@@ -1493,8 +1494,7 @@ impl CachedBundle {
             let arm = handle_arm_tag(&entry.payload);
             let payload_digest = handle_payload_digest(&entry.payload);
             let encoded = encode_handle(&entry.payload)?;
-            let typed_payload = Some(encoded);
-            let rebuilt = rebuild_handle(arm, typed_payload.as_deref())?;
+            let rebuilt = rebuild_handle(arm, Some(&encoded))?;
             if let PipelineHandle::Reasoning(result) = &rebuilt
                 && result.provenance.native_execution.is_some()
             {
@@ -1526,15 +1526,15 @@ impl CachedBundle {
                 graph: graph.clone(),
                 arm: arm.to_string(),
                 payload_digest,
-                typed_payload,
+                typed_payload: Some(Cow::Owned(encoded)),
             });
         }
 
-        Ok(Self {
+        Ok(CachedBundle {
             version: CACHE_VERSION,
             stage_id: product.stage_id.clone(),
             digest: product.digest.clone(),
-            dataset_pack,
+            dataset_pack: Cow::Owned(dataset_pack),
             lookaside,
             blobs,
             provenance,
