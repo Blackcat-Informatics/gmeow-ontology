@@ -34,6 +34,7 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
+bytes.workspace = true
 # The substrate's one lowercase-hex spelling for digests.
 purrdf-hash.workspace = true
 # The RDF 1.2 kernel: stages exchange an in-memory dataset / bundle and stamp

@@ -138,7 +138,11 @@ fn write_projection(
     // Collect to a Vec of borrows so the parallel iterator is over a slice (no reliance
     // on `BTreeMap`'s parallel-iterator support). Order is irrelevant: writes are
     // independent and the counters are order-insensitive.
-    let items: Vec<(&String, &Vec<u8>)> = projection.files.iter().collect();
+    let items: Vec<_> = projection
+        .files
+        .iter()
+        .map(|(path, bytes)| (path, bytes.as_ref()))
+        .collect();
 
     let pool = rayon::ThreadPoolBuilder::new()
         .num_threads(jobs.max(1))

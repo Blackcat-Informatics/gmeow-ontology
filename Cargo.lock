@@ -1885,6 +1885,7 @@ version = "0.4.0"
 dependencies = [
  "ahash",
  "bincode",
+ "bytes",
  "ciborium",
  "docs-print",
  "gmeow-action-cache",

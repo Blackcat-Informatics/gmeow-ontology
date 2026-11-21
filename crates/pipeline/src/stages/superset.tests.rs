@@ -176,10 +176,19 @@ fn sweep_against_materialized_detects_missing_mismatch_and_orphan() {
     // different bytes than disk (mismatch); missing.ttl has NO disk file (missing).
     // orphan.ttl is on disk but is NOT a projection key (orphan).
     let mut files = BTreeMap::new();
-    files.insert("generated/x/match.ttl".to_string(), b"SAME".to_vec());
+    files.insert(
+        "generated/x/match.ttl".to_string(),
+        Bytes::from_static(b"SAME"),
+    );
     drift_bytes[changed_byte] = b'P';
-    files.insert("generated/x/drift.ttl".to_string(), drift_bytes);
-    files.insert("generated/x/missing.ttl".to_string(), b"GONE".to_vec());
+    files.insert(
+        "generated/x/drift.ttl".to_string(),
+        Bytes::from(drift_bytes),
+    );
+    files.insert(
+        "generated/x/missing.ttl".to_string(),
+        Bytes::from_static(b"GONE"),
+    );
     let projection = BundleProjection { files };
 
     let report = sweep_against_materialized(&projection, dir).unwrap();
@@ -192,7 +201,7 @@ fn sweep_against_materialized_detects_missing_mismatch_and_orphan() {
     let directory = "generated/x/not-a-file.ttl";
     std::fs::create_dir(dir.join(directory)).expect("create a directory in place of a file");
     let unreadable = BundleProjection {
-        files: BTreeMap::from([(directory.to_owned(), b"FILE".to_vec())]),
+        files: BTreeMap::from([(directory.to_owned(), Bytes::from_static(b"FILE"))]),
     };
     let error = sweep_against_materialized(&unreadable, dir).expect_err("file read must fail");
     let failure = error
@@ -213,8 +222,8 @@ fn superset_empty_materialized_tree_hard_fails() {
     // flagged missing. Prove it for both an empty generated/ dir and a wholly
     // absent one.
     let mut files = BTreeMap::new();
-    files.insert("generated/x/a.ttl".to_string(), b"A".to_vec());
-    files.insert("generated/y/b.ttl".to_string(), b"B".to_vec());
+    files.insert("generated/x/a.ttl".to_string(), Bytes::from_static(b"A"));
+    files.insert("generated/y/b.ttl".to_string(), Bytes::from_static(b"B"));
     let projection = BundleProjection { files };
 
     // (a) An empty-but-present generated/ directory. RAII: removed when
