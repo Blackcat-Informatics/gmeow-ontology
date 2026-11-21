@@ -273,6 +273,7 @@ fn settled_source_load_digest(
     })?;
     if hit.receipt != *source {
         return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+            cause: None,
             expected: source.digest(),
             actual: hit.receipt.digest(),
         }));
@@ -700,6 +701,7 @@ pub fn prepare_docs_catalog_fixtures(
             .ok_or_else(|| fixture_miss(stage))?;
         if hit.receipt != *expected {
             return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                cause: None,
                 expected: expected.digest(),
                 actual: hit.receipt.digest(),
             }));
@@ -801,6 +803,7 @@ fn admit_current_fixture_receipt(
         };
         if cached != *recorded {
             return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                cause: None,
                 expected: recorded.digest(),
                 actual: cached.digest(),
             }));
@@ -833,6 +836,7 @@ fn verify_compiler_owner_artifact(
         .ok_or_else(|| fixture_miss("stage-compile-logic"))?;
     if selected.receipt != *receipt {
         return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+            cause: None,
             expected: receipt.digest(),
             actual: selected.receipt.digest(),
         }));
@@ -1126,6 +1130,7 @@ pub fn stage_fixture(
         .ok_or_else(|| fixture_miss(stage_id))?;
     if hit.receipt != expected_receipt {
         return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+            cause: None,
             expected: expected_receipt.digest(),
             actual: hit.receipt.digest(),
         }));
@@ -1240,6 +1245,7 @@ fn verify_selected_stage_receipts(
             .ok_or_else(|| fixture_miss(stage_id))?;
         if &actual_receipt != expected_receipt {
             return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                cause: None,
                 expected: expected_receipt.digest(),
                 actual: actual_receipt.digest(),
             }));
@@ -1475,6 +1481,7 @@ fn export_selected_source_artifacts(
             .ok_or_else(|| fixture_miss(stage))?;
         if hit.receipt != *expected {
             return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                cause: None,
                 expected: expected.digest(),
                 actual: hit.receipt.digest(),
             }));
@@ -1662,6 +1669,7 @@ fn selected_artifacts(
     .ok_or_else(|| fixture_miss(stage_id))?;
     if hit.receipt != expected_receipt {
         return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+            cause: None,
             expected: expected_receipt.digest(),
             actual: hit.receipt.digest(),
         }));

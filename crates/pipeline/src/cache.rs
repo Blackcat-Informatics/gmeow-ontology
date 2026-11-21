@@ -1561,6 +1561,7 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
             })?;
             store.insert_checked(digest, bytes.into()).map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    cause: None,
                     expected: hex.clone(),
                     actual: format!("{e}"),
                 })
@@ -1586,6 +1587,7 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
             let artifact = provenance.register_artifact(row.artifact.clone())?;
             let quad_index = *quad_indices.get(&row.quad_key).ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    cause: None,
                     expected: format!("restored asserted quad {}", row.quad_key),
                     actual: "no matching quad in restored dataset".to_string(),
                 })
@@ -1636,6 +1638,7 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
             let payload_digest = handle_payload_digest(&payload);
             if payload_digest != h.payload_digest {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    cause: None,
                     expected: format!("{}:{}", h.graph, h.payload_digest),
                     actual: format!("{}:{payload_digest}", h.graph),
                 }));
@@ -1677,6 +1680,7 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
                 || carrier_digest(product.raw_bundle())? != carrier_digest(&empty)?
             {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    cause: None,
                     expected: self.digest,
                     actual: product.digest,
                 }));
@@ -1733,6 +1737,7 @@ impl<Bytes: AsRef<[u8]>> CachedBundle<Bytes> {
         let actual_names: BTreeSet<&str> = references.keys().copied().collect();
         if actual_names != expected_names {
             return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                cause: None,
                 expected: format!("logical artifacts {expected_names:?}"),
                 actual: format!("logical artifacts {actual_names:?}"),
             }));
@@ -1742,6 +1747,7 @@ impl<Bytes: AsRef<[u8]>> CachedBundle<Bytes> {
         for entity in &receipt.logical_artifacts {
             if entity.structural_count != 1 {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    cause: None,
                     expected: format!("{} structural-count=1", entity.identity),
                     actual: format!(
                         "{} structural-count={}",
@@ -1752,12 +1758,14 @@ impl<Bytes: AsRef<[u8]>> CachedBundle<Bytes> {
             let referenced_digest = references[entity.identity.as_str()];
             if referenced_digest != entity.digest {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    cause: None,
                     expected: format!("{}:{}", entity.identity, entity.digest),
                     actual: format!("{}:{referenced_digest}", entity.identity),
                 }));
             }
             let bytes = self.blobs.get(referenced_digest).ok_or_else(|| {
                 gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    cause: None,
                     expected: referenced_digest.to_string(),
                     actual: format!("<missing artifact blob for {}>", entity.identity),
                 })
@@ -1767,6 +1775,7 @@ impl<Bytes: AsRef<[u8]>> CachedBundle<Bytes> {
             let actual_bytes = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
             if actual_digest != entity.digest || actual_bytes != entity.decoded_bytes {
                 return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    cause: None,
                     expected: format!("{}:{}", entity.digest, entity.decoded_bytes),
                     actual: format!("{actual_digest}:{actual_bytes}"),
                 }));
@@ -1904,6 +1913,7 @@ impl PipelineCache {
         let product = cached.into_product()?;
         if product.stage_id != context.stage_id || product.digest != receipt.product_digest {
             return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                cause: None,
                 expected: format!("{}:{}", context.stage_id, receipt.product_digest),
                 actual: format!("{}:{}", product.stage_id, product.digest),
             }));
@@ -2015,6 +2025,7 @@ impl PipelineCache {
         }
         if cached.stage_id != context.stage_id || cached.digest != receipt.product_digest {
             return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                cause: None,
                 expected: format!("{}:{}", context.stage_id, receipt.product_digest),
                 actual: format!("{}:{}", cached.stage_id, cached.digest),
             }));
@@ -2066,12 +2077,11 @@ impl PipelineCache {
         product: &StageProduct,
     ) -> Result<StageReceipt, gmeow_errors::Diag> {
         let manifest = CachedBundle::from_product(product, selection)?;
-        let bytes = bincode::serialize(&manifest).map_err(|e| {
+        let serialized_bytes = bincode::serialized_size(&manifest).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
-                "cannot serialize cached bundle: {e}"
+                "cannot measure cached bundle encoding: {e}"
             )))
         })?;
-        let serialized_bytes = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
         if serialized_bytes > MAX_ENTRY_BYTES || serialized_bytes > self.max_bytes {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 cause: None,
@@ -2083,25 +2093,44 @@ impl PipelineCache {
                 ),
             }));
         }
-        let digest_hex = gmeow_action_cache::bytes_digest(&bytes);
-        let receipt = StageReceipt::from_product(
-            context.clone(),
-            stability,
-            cache_disposition,
-            selection,
-            product,
-            Some(digest_hex.clone()),
-            serialized_bytes,
-        )?;
         let common = self
             .store
-            .publish(
+            .publish_stream::<_, PipelineActionError>(
                 &context.action_context(),
                 product.digest.clone(),
-                receipt.clone(),
-                &bytes,
+                move |writer| {
+                    bincode::serialize_into(writer, &manifest).map_err(|error| match *error {
+                        bincode::ErrorKind::Io(error) => {
+                            gmeow_action_cache::ActionCacheError::from(error).into()
+                        }
+                        error => gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                            "cannot serialize cached bundle: {error}"
+                        )))
+                        .into(),
+                    })
+                },
+                |blob| {
+                    if blob.bytes != serialized_bytes {
+                        return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                            cause: None,
+                            expected: format!("{serialized_bytes} encoded cached bundle bytes"),
+                            actual: format!("{} encoded cached bundle bytes", blob.bytes),
+                        })
+                        .into());
+                    }
+                    StageReceipt::from_product(
+                        context.clone(),
+                        stability,
+                        cache_disposition,
+                        selection,
+                        product,
+                        Some(blob.digest.clone()),
+                        blob.bytes,
+                    )
+                    .map_err(PipelineActionError::from)
+                },
             )
-            .map_err(action_cache_diag)?;
+            .map_err(|error| error.0)?;
         validate_common_receipt(
             context,
             &common.action_key,
@@ -2152,6 +2181,7 @@ impl PipelineCache {
         )?;
         if expected != hit.receipt {
             return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                cause: None,
                 expected: expected.digest(),
                 actual: hit.receipt.digest(),
             }));
@@ -2174,6 +2204,7 @@ fn action_cache_diag(error: gmeow_action_cache::ActionCacheError) -> gmeow_error
     gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
         expected: "a verified immutable action-cache entry".to_string(),
         actual: error.to_string(),
+        cause: Some(Arc::new(error)),
     })
 }
 
@@ -2197,6 +2228,7 @@ fn validate_common_receipt(
         || common_blob.bytes != receipt.product_blob_bytes
     {
         return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+            cause: None,
             expected: format!(
                 "key={expected_key};product={};blob={stage_blob_digest}:{}",
                 receipt.product_digest, receipt.product_blob_bytes
@@ -2235,14 +2267,17 @@ pub struct FixtureCoordinator {
     cache: PipelineCache,
 }
 
-enum FixtureCoordinateError {
-    Cache(gmeow_action_cache::ActionCacheError),
-    Pipeline(gmeow_errors::Diag),
+struct PipelineActionError(gmeow_errors::Diag);
+
+impl From<gmeow_action_cache::ActionCacheError> for PipelineActionError {
+    fn from(error: gmeow_action_cache::ActionCacheError) -> Self {
+        Self(action_cache_diag(error))
+    }
 }
 
-impl From<gmeow_action_cache::ActionCacheError> for FixtureCoordinateError {
-    fn from(error: gmeow_action_cache::ActionCacheError) -> Self {
-        Self::Cache(error)
+impl From<gmeow_errors::Diag> for PipelineActionError {
+    fn from(error: gmeow_errors::Diag) -> Self {
+        Self(error)
     }
 }
 
@@ -2280,19 +2315,22 @@ impl FixtureCoordinator {
         let coordinated = self
             .cache
             .store
-            .coordinate::<_, FixtureCoordinateError, _, _>(
+            .coordinate::<_, PipelineActionError, _, _>(
                 &key,
                 || {
                     self.fixture_hit(context, stability, cache_disposition, &select)
-                        .map_err(FixtureCoordinateError::Pipeline)
+                        .map_err(PipelineActionError::from)
                 },
                 || {
-                    let product = build().map_err(FixtureCoordinateError::Pipeline)?;
-                    let selection = select(&product).map_err(FixtureCoordinateError::Pipeline)?;
-                    let receipt = self
-                        .cache
-                        .put(context, stability, cache_disposition, &selection, &product)
-                        .map_err(FixtureCoordinateError::Pipeline)?;
+                    let product = build()?;
+                    let selection = select(&product)?;
+                    let receipt = self.cache.put(
+                        context,
+                        stability,
+                        cache_disposition,
+                        &selection,
+                        &product,
+                    )?;
                     Ok(FixtureOutcome {
                         transferred_bytes: receipt.product_blob_bytes,
                         product,
@@ -2301,10 +2339,7 @@ impl FixtureCoordinator {
                     })
                 },
             )
-            .map_err(|error| match error {
-                FixtureCoordinateError::Cache(error) => action_cache_diag(error),
-                FixtureCoordinateError::Pipeline(error) => error,
-            })?;
+            .map_err(|error| error.0)?;
         let mut outcome = coordinated.value;
         outcome.built = coordinated.built;
         Ok(outcome)

@@ -19,7 +19,7 @@ pub use receipt_json::EmptyPayload;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{self, File, OpenOptions, TryLockError};
-use std::io::{Read, Write};
+use std::io::{self, BufWriter, Read, Seek, Write};
 use std::path::{Path, PathBuf};
 
 use purrdf_lex::json::{
@@ -39,32 +39,48 @@ pub const STORE_FORMAT_VERSION: u32 = 1;
 
 /// A compact error kept independent of every caller's diagnostic substrate.
 #[derive(Debug)]
-pub struct ActionCacheError(String);
+pub struct ActionCacheError(ActionCacheFailure);
+
+#[derive(Debug)]
+enum ActionCacheFailure {
+    Message(String),
+    Io(io::Error),
+}
 
 impl ActionCacheError {
     #[must_use]
     pub fn message(message: impl Into<String>) -> Self {
-        Self(message.into())
+        Self(ActionCacheFailure::Message(message.into()))
     }
 }
 
 impl std::fmt::Display for ActionCacheError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        formatter.write_str(&self.0)
+        match &self.0 {
+            ActionCacheFailure::Message(message) => formatter.write_str(message),
+            ActionCacheFailure::Io(error) => write!(formatter, "action cache I/O: {error}"),
+        }
     }
 }
 
-impl std::error::Error for ActionCacheError {}
+impl std::error::Error for ActionCacheError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match &self.0 {
+            ActionCacheFailure::Message(_) => None,
+            ActionCacheFailure::Io(error) => Some(error),
+        }
+    }
+}
 
-impl From<std::io::Error> for ActionCacheError {
-    fn from(error: std::io::Error) -> Self {
-        Self(format!("action cache I/O: {error}"))
+impl From<io::Error> for ActionCacheError {
+    fn from(error: io::Error) -> Self {
+        Self(ActionCacheFailure::Io(error))
     }
 }
 
 impl From<serde_json::Error> for ActionCacheError {
     fn from(error: serde_json::Error) -> Self {
-        Self(format!("action cache JSON: {error}"))
+        Self::message(format!("action cache JSON: {error}"))
     }
 }
 
@@ -577,11 +593,7 @@ impl ActionStore {
     where
         P: Clone + FromJson + PartialEq + ToJson,
     {
-        if self.inert || self.read_only {
-            return Err(ActionCacheError::message(
-                "cannot publish through an inert or read-only action cache",
-            ));
-        }
+        self.require_writable()?;
         let byte_count = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
         if byte_count > self.limits.max_entry_bytes || byte_count > self.limits.max_total_bytes {
             return Err(ActionCacheError::message(format!(
@@ -593,11 +605,106 @@ impl ActionStore {
             digest: bytes_digest(bytes),
             bytes: byte_count,
         };
+        let lease = self.lock_store(false)?;
+        let (receipt, inserted) =
+            self.publish_prepared(context, product_digest.into(), payload, blob, |path| {
+                write_content_addressed(path, bytes, self.limits.max_entry_bytes)
+            })?;
+        drop(lease);
+        if inserted {
+            self.prune(Some(&receipt.action_key))?;
+        }
+        Ok(receipt)
+    }
+
+    /// Encode a bounded product directly into staging and use its byte identity
+    /// to construct the caller's receipt payload before immutable publication.
+    /// An encoding or payload error leaves no new receipt or published blob.
+    /// Keep both callbacks independent of this store while its lease is held.
+    ///
+    /// # Errors
+    /// Propagates encoding, quota, I/O, receipt construction and identity failures.
+    pub fn publish_stream<P, E>(
+        &self,
+        context: &ActionContext,
+        product_digest: impl Into<String>,
+        encode: impl FnOnce(&mut dyn Write) -> Result<(), E>,
+        payload: impl FnOnce(&BlobRef) -> Result<P, E>,
+    ) -> Result<ActionReceipt<P>, E>
+    where
+        P: Clone + FromJson + PartialEq + ToJson,
+        E: From<ActionCacheError>,
+    {
+        self.require_writable()?;
+        // Pruning scans the blob lane under the exclusive store lock. Keep the
+        // temporary in this lease through publication or error-path cleanup.
+        let lease = self.lock_store(false)?;
+        let mut temporary = temporary_blob(&self.dir.join("blobs"))?;
+        let mut writer = BufWriter::new(BlobWriter {
+            file: temporary.as_file_mut(),
+            remaining: self.limits.max_entry_bytes.min(self.limits.max_total_bytes),
+            bytes: 0,
+            digest: Sha256::new(),
+            failure: None,
+        });
+        let encoded = encode(&mut writer).and_then(|()| {
+            writer.flush().map_err(ActionCacheError::from)?;
+            Ok(())
+        });
+        let BlobWriter {
+            bytes,
+            digest,
+            failure,
+            ..
+        } = writer.into_parts().0;
+        // Prefer the original write failure even if the encoder wrapped or ignored it.
+        if let Some(error) = failure {
+            return Err(ActionCacheError::from(error).into());
+        }
+        encoded?;
+        let blob = BlobRef {
+            bytes,
+            digest: format!("{:x}", digest.finalize()),
+        };
+        let payload = payload(&blob)?;
+        let (receipt, inserted) =
+            self.publish_prepared(context, product_digest.into(), payload, blob, |path| {
+                publish_staged_blob(path, temporary, bytes)
+            })?;
+        drop(lease);
+        if inserted {
+            self.prune(Some(&receipt.action_key))?;
+        }
+        Ok(receipt)
+    }
+
+    fn require_writable(&self) -> Result<(), ActionCacheError> {
+        if self.inert || self.read_only {
+            return Err(ActionCacheError::message(
+                "cannot publish through an inert or read-only action cache",
+            ));
+        }
+        Ok(())
+    }
+
+    // The caller holds the shared store lease until the staged payload is gone.
+    fn publish_prepared<P>(
+        &self,
+        context: &ActionContext,
+        product_digest: String,
+        payload: P,
+        blob: BlobRef,
+        publish_blob: impl FnOnce(&Path) -> Result<(), ActionCacheError>,
+    ) -> Result<(ActionReceipt<P>, bool), ActionCacheError>
+    where
+        P: Clone + FromJson + PartialEq + ToJson,
+    {
+        let byte_count = blob.bytes;
         let receipt = ActionReceipt {
             schema_version: RECEIPT_SCHEMA_VERSION,
             action_key: context.key(),
             context: context.clone(),
-            product_digest: product_digest.into(),
+            product_digest,
             product_blob: blob.clone(),
             payload,
         };
@@ -618,31 +725,23 @@ impl ActionStore {
                 "action receipt plus product exceeds the total store bound",
             ));
         }
-        {
-            let _store = self.lock_store(false)?;
-            let _action = self.lock_action(&receipt.action_key, true)?;
-            let path = self.receipt_path(&receipt.action_key);
-            if path_entry_exists(&path)? {
-                let existing = self.read_receipt::<P>(&path)?;
-                if existing != receipt {
-                    return Err(ActionCacheError::message(format!(
-                        "same action key produced divergent receipts: existing={} candidate={}",
-                        existing.digest(),
-                        receipt.digest()
-                    )));
-                }
-                self.verify_blob(&blob)?;
-                return Ok(existing);
+        let _action = self.lock_action(&receipt.action_key, true)?;
+        let path = self.receipt_path(&receipt.action_key);
+        if path_entry_exists(&path)? {
+            let existing = self.read_receipt::<P>(&path)?;
+            if existing != receipt {
+                return Err(ActionCacheError::message(format!(
+                    "same action key produced divergent receipts: existing={} candidate={}",
+                    existing.digest(),
+                    receipt.digest()
+                )));
             }
-            write_content_addressed(
-                &self.blob_path(&blob.digest),
-                bytes,
-                self.limits.max_entry_bytes,
-            )?;
-            write_atomic(&path, &receipt_bytes)?;
+            self.verify_blob(&blob)?;
+            return Ok((existing, false));
         }
-        self.prune(Some(&receipt.action_key))?;
-        Ok(receipt)
+        publish_blob(&self.blob_path(&blob.digest))?;
+        write_atomic(&path, &receipt_bytes)?;
+        Ok((receipt, true))
     }
 
     /// Probe, elect one process on a miss, re-probe, then build while holding the
@@ -1303,7 +1402,7 @@ fn write_content_addressed(
     if path_entry_exists(path)? {
         let existing = read_bounded(path, max_bytes, "content-addressed blob")?;
         if existing == bytes {
-            return Ok(());
+            return sync_blob_directory(path);
         }
         return Err(ActionCacheError::message(format!(
             "content-addressed collision: expected {}, found {}",
@@ -1314,10 +1413,7 @@ fn write_content_addressed(
     let parent = path
         .parent()
         .ok_or_else(|| ActionCacheError::message("action blob path has no parent"))?;
-    let mut temporary = tempfile::Builder::new()
-        .prefix(".action-blob-")
-        .suffix(".tmp")
-        .tempfile_in(parent)?;
+    let mut temporary = temporary_blob(parent)?;
     temporary.write_all(bytes)?;
     temporary.as_file().sync_all()?;
     match temporary.persist_noclobber(path) {
@@ -1328,7 +1424,7 @@ fn write_content_addressed(
         Err(error) if error.error.kind() == std::io::ErrorKind::AlreadyExists => {
             let existing = read_bounded(path, max_bytes, "concurrent content-addressed blob")?;
             if existing == bytes {
-                Ok(())
+                sync_blob_directory(path)
             } else {
                 Err(ActionCacheError::message(
                     "concurrent content-addressed collision",
@@ -1337,6 +1433,119 @@ fn write_content_addressed(
         }
         Err(error) => Err(error.error.into()),
     }
+}
+
+struct BlobWriter<'a> {
+    file: &'a mut File,
+    remaining: u64,
+    bytes: u64,
+    digest: Sha256,
+    failure: Option<io::Error>,
+}
+
+impl BlobWriter<'_> {
+    fn remember_error(&mut self, error: io::Error) -> io::Error {
+        let original = self.failure.get_or_insert(error);
+        io::Error::new(original.kind(), original.to_string())
+    }
+}
+
+impl Write for BlobWriter<'_> {
+    fn write(&mut self, buffer: &[u8]) -> io::Result<usize> {
+        if let Some(error) = &self.failure {
+            return Err(io::Error::new(error.kind(), error.to_string()));
+        }
+        let count = u64::try_from(buffer.len()).unwrap_or(u64::MAX);
+        if count > self.remaining {
+            return Err(self.remember_error(io::Error::new(
+                io::ErrorKind::FileTooLarge,
+                "streamed action product exceeds its entry or store byte bound",
+            )));
+        }
+        self.file
+            .write_all(buffer)
+            .map_err(|error| self.remember_error(error))?;
+        self.remaining -= count;
+        self.bytes += count;
+        self.digest.update(buffer);
+        Ok(buffer.len())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        if let Some(error) = &self.failure {
+            return Err(io::Error::new(error.kind(), error.to_string()));
+        }
+        self.file
+            .flush()
+            .map_err(|error| self.remember_error(error))
+    }
+}
+
+fn temporary_blob(directory: &Path) -> Result<tempfile::NamedTempFile, ActionCacheError> {
+    Ok(tempfile::Builder::new()
+        .prefix(".action-blob-")
+        .suffix(".tmp")
+        .tempfile_in(directory)?)
+}
+
+fn publish_staged_blob(
+    path: &Path,
+    temporary: tempfile::NamedTempFile,
+    bytes: u64,
+) -> Result<(), ActionCacheError> {
+    temporary.as_file().sync_all()?;
+    match temporary.persist_noclobber(path) {
+        Ok(_) => {}
+        Err(error) if error.error.kind() == std::io::ErrorKind::AlreadyExists => {
+            verify_staged_blob(path, error.file, bytes)?;
+        }
+        Err(error) => return Err(error.error.into()),
+    }
+    sync_blob_directory(path)
+}
+
+fn verify_staged_blob(
+    path: &Path,
+    mut staged: tempfile::NamedTempFile,
+    bytes: u64,
+) -> Result<(), ActionCacheError> {
+    let metadata = fs::symlink_metadata(path)?;
+    let collision =
+        || ActionCacheError::message(format!("content-addressed collision at {}", path.display()));
+    if !metadata.is_file() || metadata.len() != bytes {
+        return Err(collision());
+    }
+    let staged = staged.as_file_mut();
+    staged.rewind()?;
+    let mut existing = File::open(path)?;
+    let mut left = [0_u8; 8192];
+    let mut right = [0_u8; 8192];
+    let mut remaining = bytes;
+    while remaining != 0 {
+        let chunk = usize::try_from(remaining)
+            .unwrap_or(usize::MAX)
+            .min(left.len());
+        existing.read_exact(&mut left[..chunk])?;
+        staged.read_exact(&mut right[..chunk])?;
+        if left[..chunk] != right[..chunk] {
+            return Err(collision());
+        }
+        remaining -= u64::try_from(chunk).unwrap_or(u64::MAX);
+    }
+    if existing.read(&mut left[..1])? != 0 || staged.read(&mut right[..1])? != 0 {
+        return Err(collision());
+    }
+    Ok(())
+}
+
+// A concurrent writer may see an installed blob before its owner syncs the
+// directory. Every first receipt for a blob needs its own durability barrier.
+fn sync_blob_directory(path: &Path) -> Result<(), ActionCacheError> {
+    let directory = path
+        .parent()
+        .ok_or_else(|| ActionCacheError::message("action blob path has no parent"))?;
+    File::open(directory)?.sync_all()?;
+    Ok(())
 }
 
 fn publish_identical(path: &Path, bytes: &[u8], max_bytes: u64) -> Result<(), ActionCacheError> {

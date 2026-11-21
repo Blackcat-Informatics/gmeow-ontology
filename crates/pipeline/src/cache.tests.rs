@@ -22,6 +22,27 @@ fn test_context(stage_id: &str, salt: &str) -> StageKeyContext {
         .with_dimension("test-salt", salt)
 }
 
+/// Cache admission preserves the underlying I/O diagnostic when the store path is blocked.
+#[test]
+fn cache_open_preserves_io_cause() {
+    use std::error::Error;
+
+    let file = tempfile::NamedTempFile::new().expect("temporary file");
+    let error = PipelineCache::open(file.path())
+        .err()
+        .expect("a file cannot serve as the cache directory");
+    assert_eq!(error.code(), crate::error::CacheMismatch::register());
+    let source = error
+        .downcast_ref::<crate::error::CacheMismatch>()
+        .and_then(Error::source)
+        .expect("action-cache refusal is retained");
+    assert!(
+        source
+            .source()
+            .is_some_and(|cause| cause.is::<std::io::Error>())
+    );
+}
+
 #[test]
 fn prior_diagnostic_cache_revisions_are_misses_before_hydration() {
     for prior_version in [16, 17] {
@@ -1517,6 +1538,13 @@ fn receipt_is_cold_warm_identical_and_structurally_complete() {
     let context = test_context("stage-rich", "receipt-parity");
     let selection = full_selection(&product);
     let cold = persist_test_product(&cache, &context, &product);
+    let buffered = bincode::serialize(&CachedBundle::from_product(&product, &selection).unwrap())
+        .expect("the legacy encoder renders the same product");
+    let blob = cold.product_blob_digest.as_deref().unwrap();
+    assert_eq!(
+        std::fs::read(cache.store.blob_path(blob)).unwrap(),
+        buffered
+    );
     let warm = cache.get(&context).unwrap().expect("cache hit");
     assert_eq!(cold, warm.receipt);
     assert_eq!(cold.digest(), warm.receipt.digest());
@@ -1691,7 +1719,7 @@ fn concurrent_publication_is_atomic_and_nondeterminism_fails() {
     );
     assert_eq!(PipelineCache::open(dir.path()).unwrap().len(), 1);
 
-    // Different keys publish independently and neither receipt is lost.
+    // Different keys can concurrently publish identical bytes under one blob address.
     let dir = tempfile::tempdir().unwrap();
     let barrier = Arc::new(Barrier::new(2));
     let handles: Vec<_> = ["left", "right"]
@@ -1701,14 +1729,26 @@ fn concurrent_publication_is_atomic_and_nondeterminism_fails() {
             let context = test_context("stage", salt);
             let barrier = Arc::clone(&barrier);
             std::thread::spawn(move || {
-                race(root, context, StageProduct::new("stage", salt), barrier)
+                race(root, context, StageProduct::new("stage", "shared"), barrier)
             })
         })
         .collect();
-    for handle in handles {
-        handle.join().unwrap().unwrap();
-    }
-    assert_eq!(PipelineCache::open(dir.path()).unwrap().len(), 2);
+    let receipts: Vec<_> = handles
+        .into_iter()
+        .map(|handle| handle.join().unwrap().unwrap())
+        .collect();
+    assert_eq!(
+        receipts[0].product_blob_digest,
+        receipts[1].product_blob_digest
+    );
+    let cache = PipelineCache::open(dir.path()).unwrap();
+    assert_eq!(cache.len(), 2);
+    assert_eq!(
+        std::fs::read_dir(cache.store.root().join("blobs"))
+            .unwrap()
+            .count(),
+        1
+    );
 }
 
 #[test]

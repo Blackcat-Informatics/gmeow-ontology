@@ -285,6 +285,49 @@ fn same_key_divergence_and_tampered_blob_hard_fail() {
     assert!(cache.get::<u32>(&context).is_err());
 }
 
+/// A stream that exceeds its byte quota preserves the I/O cause and publishes nothing.
+#[test]
+fn rejected_stream_leaves_the_store_empty() {
+    use std::error::Error;
+
+    let temp = tempfile::tempdir().unwrap();
+    let cache = store(temp.path()).with_limits(StoreLimits {
+        max_entry_bytes: 4,
+        ..StoreLimits::default()
+    });
+    let key = context("stream-too-large", vec![]);
+    // Cover failure on flush and a direct write whose error the encoder ignores or replaces.
+    let large = [0; 16384];
+    for (input, replace_error) in [
+        (b"oversized".as_slice(), false),
+        (&large, false),
+        (&large, true),
+    ] {
+        let result = cache.publish_stream::<_, ActionCacheError>(
+            &key,
+            "product",
+            |writer| {
+                if writer.write_all(input).is_err() && replace_error {
+                    return Err(ActionCacheError::message("encoding stopped"));
+                }
+                Ok(())
+            },
+            |_| Ok(1_u32),
+        );
+        let error = result.unwrap_err();
+        let cause = error
+            .source()
+            .and_then(|source| source.downcast_ref::<io::Error>());
+        assert_eq!(
+            cause.map(io::Error::kind),
+            Some(io::ErrorKind::FileTooLarge)
+        );
+        assert!(error.to_string().contains("byte bound"));
+    }
+    assert!(cache.get::<u32>(&key).unwrap().is_none());
+    assert_eq!(fs::read_dir(cache.root().join("blobs")).unwrap().count(), 0);
+}
+
 #[test]
 fn malformed_receipt_missing_blob_and_wrong_root_hard_fail() {
     let temp = tempfile::tempdir().unwrap();
