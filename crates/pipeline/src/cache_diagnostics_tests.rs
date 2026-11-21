@@ -321,10 +321,9 @@ fn diagnostics_codec_rejects_report_only_evidence_tampering() {
         let product =
             diagnostic_test_support::product(owner, diagnostic_test_support::rich_report(owner));
         let mut cached = CachedBundle::from_product(&product, &selection(&product)).unwrap();
-        let mut publication = DiagnosticsPublication::read_cbor(
-            cached.handles[0].typed_payload.as_ref().unwrap().as_slice(),
-        )
-        .unwrap();
+        let mut publication =
+            DiagnosticsPublication::read_cbor(cached.handles[0].typed_payload.as_deref().unwrap())
+                .unwrap();
         let report = Arc::make_mut(publication.reports.get_mut(&owner).unwrap());
         match mutation {
             0 => {
@@ -349,7 +348,7 @@ fn diagnostics_codec_rejects_report_only_evidence_tampering() {
             _ => report.findings[1].related_labels[0].message = "substituted source label".into(),
         }
         let changed = PipelineHandle::Diagnostics(Arc::new(publication));
-        cached.handles[0].typed_payload = Some(encode_handle(&changed).unwrap());
+        cached.handles[0].typed_payload = Some(encode_handle(&changed).unwrap().into());
         let stale: CachedBundle =
             bincode::deserialize(&bincode::serialize(&cached).unwrap()).unwrap();
         assert!(
