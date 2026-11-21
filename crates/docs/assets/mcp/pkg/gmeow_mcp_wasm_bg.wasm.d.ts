@@ -1,6 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
+export const admit_artifact: (a: number, b: number, c: number) => void;
 export const init: (a: number, b: number, c: number) => void;
 export const mcp: (a: number, b: number, c: number) => void;
 export const ready: () => number;

@@ -3,20 +3,21 @@
 
 use std::sync::Mutex;
 
+use gmeow_gts_profile::archive::{CANON_ADMISSION_REP, PREPARED_REASONING_REP};
+use purrdf::gts::model::BlobEntry;
 use purrdf::gts_view::GtsFoldView;
 use purrdf_lex::cbor::Value;
 
 use super::*;
-use crate::bundle_blobs::REP_REASONING;
 
 /// Package inert members through the real archive codec, without invoking producers.
 fn graph(members: &[(&str, &[u8])]) -> Graph {
     let bytes = purrdf::ustar::write_archive_borrowed(members.iter().copied()).unwrap();
-    archive_graph(bytes)
+    blob_graph(PREPARED_REASONING_REP, bytes)
 }
 
-/// Bind retained archive bytes to their actual digest and reasoning representation.
-fn archive_graph(bytes: Vec<u8>) -> Graph {
+/// Bind retained bytes to their actual digest and representation.
+fn blob_graph(rep: &str, bytes: Vec<u8>) -> Graph {
     let digest = format!(
         "blake3:{}",
         purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&bytes).as_bytes())
@@ -25,10 +26,7 @@ fn archive_graph(bytes: Vec<u8>) -> Graph {
     graph.set_blob(digest.clone(), bytes);
     graph.set_blob_meta(
         digest,
-        Value::Map(vec![(
-            Value::Text("rep".into()),
-            Value::Text(REP_REASONING.into()),
-        )]),
+        Value::Map(vec![(Value::Text("rep".into()), Value::Text(rep.into()))]),
     );
     graph
 }
@@ -94,7 +92,7 @@ fn selected_native_laws_do_not_hide_a_malformed_later_archive_member() {
     // The selected body's header plus padded body occupy 1024 bytes. Corrupt
     // the following member's size while retaining a correct whole-blob digest.
     bytes[1024 + 124] = b'8';
-    let error = read_member(&archive_graph(bytes)).unwrap_err();
+    let error = read_member(&blob_graph(PREPARED_REASONING_REP, bytes)).unwrap_err();
     let refusal = error
         .downcast_ref::<gmeow_gts_profile::error::NativeArchive>()
         .expect("the selected-member boundary retains native archive refusal");
@@ -107,12 +105,11 @@ fn selected_native_laws_do_not_hide_a_malformed_later_archive_member() {
 }
 
 #[test]
-/// Admission access consumes only the retained archive, never a source checkout.
-fn canon_admission_reader_retains_typed_observation_and_rejects_bad_members() {
+/// Canon admission authenticates its own blob and applies the byte cap to decoding.
+fn canon_admission_reader_authenticates_the_blob_under_the_caller_limit() {
     use gmeow_logic_compile::frontend::{
         DocumentSelection, FofSemanticProfile, RootSelection, SourceGraphSelection, SourceSelection,
     };
-    use gmeow_logic_compile::tptp::CANON_ADMISSION_MEMBER;
 
     let selection = SourceSelection {
         graph: SourceGraphSelection::DefaultGraph,
@@ -135,13 +132,29 @@ fn canon_admission_reader_retains_typed_observation_and_rejects_bad_members() {
         }
     }))
     .unwrap();
-    let selected = bundle(graph(&[(CANON_ADMISSION_MEMBER, &bytes)]));
+    let mut graph_with_canon = blob_graph(CANON_ADMISSION_REP, bytes.clone());
+    let encoded = purrdf::gts::codec::encode_chain(&["gzip".to_owned()], &bytes)
+        .expect("synthetic canon admission compresses");
+    graph_with_canon.blobs[0].1 = BlobEntry::lazy(
+        encoded,
+        vec![purrdf::gts::codec::Codec::new("gzip", "compress")],
+    );
+    let selected = bundle(graph_with_canon);
     let observation = selected.canon_proof_admission(bytes.len()).unwrap();
     assert_eq!(
         observation.admission().source_digest,
         "synthetic source identity"
     );
-    assert!(selected.canon_proof_admission(bytes.len() - 1).is_err());
+    let limit_error = selected.canon_proof_admission(bytes.len() - 1).unwrap_err();
+    let refusal = limit_error
+        .downcast_ref::<gmeow_gts_profile::error::Archive>()
+        .expect("canon admission retains the archive diagnostic");
+    let cause = std::error::Error::source(refusal)
+        .and_then(|cause| cause.downcast_ref::<purrdf::gts::codec::CodecError>());
+    assert!(matches!(
+        cause,
+        Some(purrdf::gts::codec::CodecError::Limit { limit }) if *limit == bytes.len() - 1
+    ));
     assert!(
         bundle(Graph::default())
             .canon_proof_admission(bytes.len())
@@ -152,20 +165,16 @@ fn canon_admission_reader_retains_typed_observation_and_rejects_bad_members() {
             .canon_proof_admission(bytes.len())
             .is_err()
     );
+    let mut ambiguous = blob_graph(CANON_ADMISSION_REP, bytes.clone());
+    ambiguous
+        .blob_meta
+        .push(("another-digest".into(), ambiguous.blob_meta[0].1.clone()));
     assert!(
-        bundle(graph(&[
-            (CANON_ADMISSION_MEMBER, &bytes),
-            (CANON_ADMISSION_MEMBER, &bytes)
-        ]))
-        .canon_proof_admission(bytes.len())
-        .is_err()
-    );
-    assert!(
-        bundle(archive_graph(b"not an archive".to_vec()))
+        bundle(ambiguous)
             .canon_proof_admission(bytes.len())
             .is_err()
     );
-    let error = bundle(graph(&[(CANON_ADMISSION_MEMBER, b"not JSON")]))
+    let error = bundle(blob_graph(CANON_ADMISSION_REP, b"invalid JSON".to_vec()))
         .canon_proof_admission(bytes.len())
         .unwrap_err();
     assert_eq!(

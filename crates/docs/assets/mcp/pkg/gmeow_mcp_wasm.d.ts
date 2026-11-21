@@ -2,6 +2,14 @@
 /* eslint-disable */
 
 /**
+ * Authenticate a complete result before exposing facets to a browser client.
+ *
+ * # Errors
+ * Throws when any required native receipt, closure or transport is invalid.
+ */
+export function admit_artifact(bytes: Uint8Array | number[]): string;
+
+/**
  * Load a `gmeow.gts` snapshot and build the consumer MCP engine over it.
  *
  * `snapshot` is the raw bundle bytes — the identical artifact the native `gmeow mcp`
@@ -69,6 +77,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly admit_artifact: (a: number, b: number, c: number) => void;
     readonly init: (a: number, b: number, c: number) => void;
     readonly mcp: (a: number, b: number, c: number) => void;
     readonly ready: () => number;

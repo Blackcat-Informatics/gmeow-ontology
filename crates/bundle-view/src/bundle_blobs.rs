@@ -64,8 +64,8 @@ pub const REP_TESTS: &str = "tests-archive";
 /// while the statements stay out of the closure. Sibling of [`REP_CELLS`]/[`REP_TESTS`],
 /// which carry the mapping and test-DSL sources on the same terms.
 pub const REP_EXAMPLES: &str = "examples-archive";
-/// tar of native reasoning reports, the DL/EL ledger and prepared verification laws.
-pub const REP_REASONING: &str = "reasoning-archive";
+/// tar of the native explanations, DL/EL cross-check, and performance ledger.
+pub use gmeow_gts_profile::archive::REASONING_REP as REP_REASONING;
 /// tar of the OKF (Open Knowledge Format) bundle.
 pub const REP_OKF: &str = "okf-export";
 /// tar of the Rust-rendered ontology-docs static site (per-language member paths).
@@ -341,8 +341,8 @@ impl Bundle {
     }
 
     /// The native reasoner's report artifacts as `{member: ttl-bytes}`
-    /// ([`REP_REASONING`]): entailment explanations, the DL/EL cross-check ledger
-    /// and the prepared verification laws over the bundle's reasoned closure.
+    /// ([`REP_REASONING`]): entailment explanations, the DL/EL cross-check ledger,
+    /// and the performance ledger.
     pub fn reasoning(&self) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
         self.archive(REP_REASONING)
     }
@@ -356,9 +356,9 @@ impl Bundle {
         &self,
         max_bytes: usize,
     ) -> Result<gmeow_logic_compile::tptp::CanonAdmissionPublication, gmeow_errors::Diag> {
-        let bytes = self.required_archive_member(
-            REP_REASONING,
-            gmeow_logic_compile::tptp::CANON_ADMISSION_MEMBER,
+        let bytes = gmeow_gts_profile::archive::required_blob_bounded(
+            self.view.graph(),
+            gmeow_gts_profile::archive::CANON_ADMISSION_REP,
             max_bytes,
         )?;
         gmeow_logic_compile::tptp::CanonAdmissionPublication::from_bytes(&bytes)

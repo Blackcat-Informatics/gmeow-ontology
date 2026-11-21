@@ -3,13 +3,17 @@
 
 //! Bounded access to required native artifacts in an already imported GMEOW bundle.
 
-use purrdf::gts::model::Graph;
+use purrdf::gts::model::{BlobEntry, Graph};
 use purrdf_lex::cbor::Value;
 use std::borrow::Cow;
 use std::sync::Arc;
 
-/// Archive representation containing the native laws and their reasoning reports.
+/// Archive representation containing native reasoning reports.
 pub const REASONING_REP: &str = "reasoning-archive";
+/// Archive representation containing the prepared native reasoning inputs.
+pub const PREPARED_REASONING_REP: &str = "prepared-reasoning-archive";
+/// Standalone JSON representation of the complete canon proof admission.
+pub const CANON_ADMISSION_REP: &str = "canon-proof-admission";
 /// Native verification laws produced with the matching reasoning result.
 pub const REASONED_GATES_MEMBER: &str = "reason/prepared-verify-gates.json";
 /// Aggregate decoded archive budget for a selected native bundle view.
@@ -46,7 +50,25 @@ pub fn required_blob<'a>(
     graph: &'a Graph,
     representation: &str,
 ) -> gmeow_errors::Result<Cow<'a, [u8]>> {
-    let fail = |message: String| gmeow_errors::Diag::of_kind(crate::error::Archive { message });
+    required_blob_bounded(graph, representation, usize::MAX)
+}
+
+/// Authenticate a unique representation and enforce the caller's decoded byte bound.
+///
+/// # Errors
+/// Rejects reader diagnostics, missing or ambiguous representations, oversized
+/// payloads, codec failures and content digest mismatches.
+pub fn required_blob_bounded<'a>(
+    graph: &'a Graph,
+    representation: &str,
+    max_bytes: usize,
+) -> gmeow_errors::Result<Cow<'a, [u8]>> {
+    let fail = |message| {
+        gmeow_errors::Diag::of_kind(crate::error::Archive {
+            message,
+            cause: None,
+        })
+    };
     if !graph.diagnostics.is_empty() {
         return Err(fail(format!(
             "snapshot has reader diagnostics: {:?}",
@@ -77,9 +99,22 @@ pub fn required_blob<'a>(
     if blobs.next().is_some() {
         return Err(fail(format!("archive blob {digest} is ambiguous")));
     }
-    let bytes = entry
-        .decoded_bytes()
-        .map_err(|error| fail(error.to_string()))?;
+    let bytes = match entry {
+        BlobEntry::Bytes(bytes) if bytes.len() <= max_bytes => Cow::Borrowed(bytes.as_slice()),
+        BlobEntry::Bytes(_) => {
+            return Err(fail(format!(
+                "blob {digest} exceeds {max_bytes} decoded bytes"
+            )));
+        }
+        BlobEntry::Lazy { raw, chain } => Cow::Owned(
+            purrdf::gts::codec::decode_chain_bounded(chain, raw, max_bytes).map_err(|cause| {
+                gmeow_errors::Diag::of_kind(crate::error::Archive {
+                    message: format!("decode blob {digest}: {cause}"),
+                    cause: Some(Arc::new(cause)),
+                })
+            })?,
+        ),
+    };
     let actual = purrdf::gts::wire::digest_str(&bytes);
     if &actual != digest {
         return Err(fail(format!(
@@ -97,7 +132,12 @@ pub fn archive_member<'a>(
     member_path: &str,
     max_bytes: usize,
 ) -> gmeow_errors::Result<&'a [u8]> {
-    let fail = |message: String| gmeow_errors::Diag::of_kind(crate::error::Archive { message });
+    let fail = |message| {
+        gmeow_errors::Diag::of_kind(crate::error::Archive {
+            message,
+            cause: None,
+        })
+    };
     let mut selected = None;
     for member in purrdf::ustar::archive_members(bytes) {
         let member = member.map_err(|cause| {
@@ -143,7 +183,12 @@ pub fn required_imported_blob<'a>(
                 })
             })
     });
-    let fail = |message| gmeow_errors::Diag::of_kind(crate::error::Archive { message });
+    let fail = |message| {
+        gmeow_errors::Diag::of_kind(crate::error::Archive {
+            message,
+            cause: None,
+        })
+    };
     let blob = selected.next().ok_or_else(|| {
         fail(format!(
             "required imported archive {representation} is missing"

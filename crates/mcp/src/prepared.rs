@@ -5,7 +5,8 @@
 
 use std::sync::Arc;
 
-use gmeow_bundle_view::bundle_blobs::{Bundle, REP_REASONING};
+use gmeow_bundle_view::bundle_blobs::Bundle;
+use gmeow_gts_profile::archive::PREPARED_REASONING_REP;
 use gmeow_logic_compile::action_policy::{self, PreparedActionPolicy};
 
 use crate::McpView;
@@ -114,7 +115,7 @@ impl McpView {
         }
         let bytes = self.prepared_member(
             action_policy::CORPUS_ARTIFACT,
-            REP_REASONING,
+            PREPARED_REASONING_REP,
             action_policy::BUNDLE_MEMBER,
             action_policy::MAX_BYTES,
         )?;
@@ -197,7 +198,7 @@ pub fn prepared_action_policy(snapshot: &[u8]) -> gmeow_errors::Result<PreparedA
     }
     let bundle = Bundle::from_snapshot(snapshot)?;
     decode_policy(&bundle.required_archive_member(
-        REP_REASONING,
+        PREPARED_REASONING_REP,
         action_policy::BUNDLE_MEMBER,
         action_policy::MAX_BYTES,
     )?)
