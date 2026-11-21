@@ -127,8 +127,8 @@ pub(super) fn build_docs_print_blob(
     .map(gmeow_docs::formats::format_capabilities)
     .collect();
 
-    let typ = docs_print::render_typ(model, &axioms, &bib, &losses);
-    let pdf = docs_print::compile_pdf(&typ, &bib)?;
+    let typ = docs_print::render_typ(model, &axioms, bib, &losses);
+    let pdf = docs_print::compile_pdf(&typ, bib)?;
     // The raw `gmeow.pdf` byte digest — BEFORE it is packed into the docs-print tar —
     // so the docs-format grounding graph (F4) can attest the PDF itself, not just the
     // archive that carries it. Computed here, the ONLY point the un-tarred bytes exist.

@@ -15,6 +15,7 @@
 //! It assembles a [`purrdf::gts_compose::SnapshotBuilder`] directly, routing each
 //! source into its named graph.
 
+use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -2472,15 +2473,14 @@ fn producer_artifacts(
 }
 
 /// One byte-artifact `path` off a producing `stage`'s product (see [`producer_artifacts`]).
-fn producer_artifact(
+fn producer_artifact<'a>(
     stage: &str,
     path: &str,
-    upstream: &BTreeMap<String, StageProduct>,
-) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    upstream: &'a BTreeMap<String, StageProduct>,
+) -> Result<&'a [u8], gmeow_errors::Diag> {
     upstream
         .get(stage)
         .and_then(|p| p.artifact(path))
-        .map(<[u8]>::to_vec)
         .ok_or_else(|| {
             stage_err(&format!(
                 "missing {path} in {stage} for the fanout presenter"
@@ -2490,11 +2490,11 @@ fn producer_artifact(
 
 /// Fold the opaque (non-RDF, not-already-carried) members of one leaf's output into
 /// the fanout member map.
-fn take_opaque(members: &mut BTreeMap<String, Vec<u8>>, arts: BTreeMap<String, Vec<u8>>) {
+fn take_opaque(members: &mut BTreeMap<String, Cow<'_, [u8]>>, arts: BTreeMap<String, Vec<u8>>) {
     for (path, bytes) in arts {
         if !is_rdf_member(&path) && !is_internal_lane_path(&path) && !opaque_already_carried(&path)
         {
-            members.insert(path, bytes);
+            members.insert(path, bytes.into());
         }
     }
 }
@@ -2648,10 +2648,9 @@ fn build_validation_shape_typed_blobs(
 /// ([`build_fanout_opaque_manifest`]) from one build-time computation — the rows and the
 /// bytes can never disagree about which paths the opaque archive carries.
 fn opaque_blob_from_members(
-    members: BTreeMap<String, Vec<u8>>,
+    members: BTreeMap<String, Cow<'_, [u8]>>,
 ) -> Result<BlobRow, gmeow_errors::Diag> {
-    let mut members: Vec<(String, Vec<u8>)> = members.into_iter().collect();
-    members.sort_by(|a, b| a.0.cmp(&b.0));
+    let members: Vec<_> = members.into_iter().collect();
     archive_blob(REP_GENERATED, &members)
 }
 
@@ -2665,11 +2664,11 @@ fn opaque_blob_from_members(
 /// byte-identical to the committed files, which the superset gate proves; the member key
 /// set is ALSO the source the `opaque` fanout rows are derived from
 /// ([`build_fanout_opaque_manifest`]).
-fn collect_fanout_opaque_members(
+fn collect_fanout_opaque_members<'a>(
     carrier: &purrdf::RdfDataset,
-    upstream: &BTreeMap<String, StageProduct>,
-) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
-    let mut members: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    upstream: &'a BTreeMap<String, StageProduct>,
+) -> Result<BTreeMap<String, Cow<'a, [u8]>>, gmeow_errors::Diag> {
+    let mut members = BTreeMap::new();
 
     take_opaque(
         &mut members,
@@ -2791,9 +2790,8 @@ fn collect_fanout_opaque_members(
         let bytes = upstream
             .get(stage)
             .and_then(|p| p.artifact(path))
-            .map(<[u8]>::to_vec)
             .ok_or_else(|| stage_err(&format!("missing {path} in {stage} for fanout archive")))?;
-        members.insert(path.to_string(), bytes);
+        members.insert(path.to_string(), bytes.into());
     }
 
     // Byte-decorated RDF artifacts: these are valid RDF, but their committed files
@@ -2810,13 +2808,12 @@ fn collect_fanout_opaque_members(
         let bytes = upstream
             .get(stage)
             .and_then(|p| p.artifact(path))
-            .map(<[u8]>::to_vec)
             .ok_or_else(|| {
                 stage_err(&format!(
                     "missing byte-decorated RDF artifact {path} in {stage}"
                 ))
             })?;
-        members.insert(path.to_string(), bytes);
+        members.insert(path.to_string(), bytes.into());
     }
 
     // NOT HERE: the statement-layer OWL + RDF-1.2 byte projections. They are still
@@ -2833,34 +2830,43 @@ fn collect_fanout_opaque_members(
     // they can never double-carry.
     // metadata (void.ttl + dcat.ttl) — byte-decorated, carried as byte projections; read
     // off the stage-export-metadata product (rendered once from the same snapshot carrier).
-    members.extend(producer_artifacts("stage-export-metadata", upstream)?);
+    members.extend(
+        producer_artifacts("stage-export-metadata", upstream)?
+            .into_iter()
+            .map(|(path, bytes)| (path, bytes.into())),
+    );
     members.insert(
         crate::stages::yaml_ld::PRESERVATION_PATH.to_string(),
-        crate::stages::yaml_ld::preservation_ledger().into_bytes(),
+        crate::stages::yaml_ld::preservation_ledger()
+            .into_bytes()
+            .into(),
     );
 
     // loss matrices: deterministic, code-derived (verified by tests, not stage-built),
     // recomputed verbatim — the committed files equal the function output exactly.
     members.insert(
         "generated/rdf-loss-matrix.json".to_string(),
-        purrdf::loss_matrix_json().into_bytes(),
+        purrdf::loss_matrix_json().into_bytes().into(),
     );
     members.insert(
         "generated/transcode-loss-matrix.json".to_string(),
-        crate::transcode::transcode_loss_matrix_json().into_bytes(),
+        crate::transcode::transcode_loss_matrix_json()
+            .into_bytes()
+            .into(),
     );
     members.insert(
         "generated/transcode-matrix.json".to_string(),
-        crate::transcode::transcode_matrix_json().into_bytes(),
+        crate::transcode::transcode_matrix_json()
+            .into_bytes()
+            .into(),
     );
 
     // n3 rides in from the sink-consumed stage-compile-logic product (no recompute).
     let n3 = upstream
         .get("stage-compile-logic")
         .and_then(|p| p.artifact(crate::stages::compile_logic::N3_PATH))
-        .map(<[u8]>::to_vec)
         .ok_or_else(|| stage_err("missing generated/n3/gmeow.n3 in stage-compile-logic"))?;
-    members.insert(crate::stages::compile_logic::N3_PATH.to_string(), n3);
+    members.insert(crate::stages::compile_logic::N3_PATH.to_string(), n3.into());
 
     // CLIF rides in from the sink-consumed stage-compile-logic product. It is a
     // non-RDF text projection whose committed form carries generated `;;` comments and
@@ -2869,9 +2875,11 @@ fn collect_fanout_opaque_members(
     let clif = upstream
         .get("stage-compile-logic")
         .and_then(|p| p.artifact(crate::stages::compile_logic::CLIF_PATH))
-        .map(<[u8]>::to_vec)
         .ok_or_else(|| stage_err("missing generated/cl/gmeow.clif in stage-compile-logic"))?;
-    members.insert(crate::stages::compile_logic::CLIF_PATH.to_string(), clif);
+    members.insert(
+        crate::stages::compile_logic::CLIF_PATH.to_string(),
+        clif.into(),
+    );
 
     // CGIF (the conceptual-graph dialect) rides in from the same sink-consumed
     // stage-compile-logic product. It is a non-RDF text projection whose committed form carries
@@ -2880,9 +2888,11 @@ fn collect_fanout_opaque_members(
     let cgif = upstream
         .get("stage-compile-logic")
         .and_then(|p| p.artifact(crate::stages::compile_logic::CGIF_PATH))
-        .map(<[u8]>::to_vec)
         .ok_or_else(|| stage_err("missing generated/cl/gmeow.cgif in stage-compile-logic"))?;
-    members.insert(crate::stages::compile_logic::CGIF_PATH.to_string(), cgif);
+    members.insert(
+        crate::stages::compile_logic::CGIF_PATH.to_string(),
+        cgif.into(),
+    );
 
     // XCL (the XML dialect) rides in from the same sink-consumed stage-compile-logic
     // product. It is a non-RDF text projection whose committed form carries an XML
@@ -2891,9 +2901,11 @@ fn collect_fanout_opaque_members(
     let xcl = upstream
         .get("stage-compile-logic")
         .and_then(|p| p.artifact(crate::stages::compile_logic::XCL_PATH))
-        .map(<[u8]>::to_vec)
         .ok_or_else(|| stage_err("missing generated/cl/gmeow.xcl in stage-compile-logic"))?;
-    members.insert(crate::stages::compile_logic::XCL_PATH.to_string(), xcl);
+    members.insert(
+        crate::stages::compile_logic::XCL_PATH.to_string(),
+        xcl.into(),
+    );
 
     // The SHACL-AF rule (computation) surface rides in from the same sink-consumed
     // compile-logic product (byte-decorated Turtle with a GENERATED banner — not a plain
@@ -2901,13 +2913,12 @@ fn collect_fanout_opaque_members(
     let shacl_af = upstream
         .get("stage-compile-logic")
         .and_then(|p| p.artifact(crate::stages::compile_logic::SHACL_AF_PATH))
-        .map(<[u8]>::to_vec)
         .ok_or_else(|| {
             stage_err("missing generated/shacl-af/gmeow.shacl-af.ttl in stage-compile-logic")
         })?;
     members.insert(
         crate::stages::compile_logic::SHACL_AF_PATH.to_string(),
-        shacl_af,
+        shacl_af.into(),
     );
 
     // The validation-shape surfaces (SHACL Core + ShEx) — the OPT/ADL constraint axis lifted
@@ -2917,11 +2928,11 @@ fn collect_fanout_opaque_members(
     let (validation_shacl, validation_shex) = validation_shape_surfaces(upstream)?;
     members.insert(
         crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH.to_string(),
-        validation_shacl.to_vec(),
+        validation_shacl.into(),
     );
     members.insert(
         crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH.to_string(),
-        validation_shex.to_vec(),
+        validation_shex.into(),
     );
 
     // context.jsonld + dsl-stats ride in from the sink-consumed stage-mappings product
@@ -2932,7 +2943,8 @@ fn collect_fanout_opaque_members(
             "stage-mappings",
             crate::stages::mappings::JSONLD_CONTEXT_PATH,
             upstream,
-        )?,
+        )?
+        .into(),
     );
     members.insert(
         crate::stages::mappings::DSL_STATS_PATH.to_string(),
@@ -2940,7 +2952,8 @@ fn collect_fanout_opaque_members(
             "stage-mappings",
             crate::stages::mappings::DSL_STATS_PATH,
             upstream,
-        )?,
+        )?
+        .into(),
     );
 
     // The EmotionML XML projection of the affect vocabulary rides in from the sink-consumed
@@ -2954,7 +2967,8 @@ fn collect_fanout_opaque_members(
             "stage-mappings",
             crate::stages::mappings::EMOTIONML_PATH,
             upstream,
-        )?,
+        )?
+        .into(),
     );
 
     // NOT HERE: the `lang:` projection deliverables under `generated/projections/lang/`.

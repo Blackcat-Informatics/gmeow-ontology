@@ -105,7 +105,7 @@ fn the_lang_projection_family_is_the_same_set_the_archive_selects() {
 /// else's rep.
 #[test]
 fn a_non_rdf_lang_projection_is_refused_by_take_opaque() {
-    let mut members: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    let mut members = BTreeMap::new();
     take_opaque(
         &mut members,
         [
