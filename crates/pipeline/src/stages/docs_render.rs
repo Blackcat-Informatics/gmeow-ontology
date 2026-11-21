@@ -16,6 +16,7 @@ use gmeow_docs::model::{
     ReasoningVerdict,
 };
 use gmeow_docs::rdf::write_gmeow_rdf;
+use gmeow_errors::error::NQuadsWriteFailure;
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfTerm};
 
 use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
@@ -54,7 +55,7 @@ fn documentation_io(operation: &str, source: io::Error) -> gmeow_errors::Diag {
 }
 
 fn stream_documentation(
-    emit: impl FnOnce(&mut BufWriter<PipeWriter>) -> io::Result<()>,
+    emit: impl FnOnce(&mut BufWriter<PipeWriter>) -> gmeow_errors::Result<()>,
 ) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let (reader, writer) =
         io::pipe().map_err(|source| documentation_io("open the documentation RDF pipe", source))?;
@@ -66,7 +67,8 @@ fn stream_documentation(
             })
             .map_err(|source| documentation_io("start the documentation RDF parser", source))?;
         let mut writer = BufWriter::new(writer);
-        let written = emit(&mut writer).and_then(|()| writer.flush());
+        let written =
+            emit(&mut writer).and_then(|()| writer.flush().map_err(NQuadsWriteFailure::diagnostic));
 
         // Close the writer before joining. Discard buffered bytes after a write
         // failure so the destructor cannot retry them.
@@ -79,8 +81,14 @@ fn stream_documentation(
             }))
         });
         match (written, parsed) {
-            (Err(write), Err(parse)) if write.kind() == io::ErrorKind::BrokenPipe => Err(parse),
-            (Err(source), _) => Err(documentation_io("write rendered N-Quads", source)),
+            (Err(write), Err(parse))
+                if write
+                    .downcast_ref::<NQuadsWriteFailure>()
+                    .is_some_and(|failure| failure.cause.kind() == io::ErrorKind::BrokenPipe) =>
+            {
+                Err(parse)
+            }
+            (Err(write), _) => Err(write),
             (Ok(()), parsed) => parsed,
         }
     })

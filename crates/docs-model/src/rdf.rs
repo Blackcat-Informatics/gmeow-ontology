@@ -13,7 +13,9 @@
 //! through GTS fold without bnode relabeling, sorted iteration over the
 //! already-sorted model collections, and a trailing newline.
 
-use std::io::{self, Write};
+use std::io::Write;
+
+use gmeow_errors::error::NQuadsWriteFailure;
 
 use crate::coverage::{CoverageContext, DIMENSIONS, slice_covered_dims, term_coverage};
 use crate::maturity::{
@@ -123,14 +125,15 @@ pub fn to_gmeow_rdf(
 ///
 /// # Errors
 ///
-/// Returns the first output error.
+/// Returns [`NQuadsWriteFailure`] with the original writer error as its cause.
 pub fn write_gmeow_rdf<W: Write>(
     model: &DocsModel,
     entailments: &BTreeMap<String, Vec<crate::exec::Entailment>>,
     lines: &mut W,
-) -> io::Result<()> {
+) -> gmeow_errors::Result<()> {
     let triple = |s: &str, p: &str, o: &str, lines: &mut W| {
         writeln!(lines, "{s} <{p}> {o} <{DOCUMENTATION_GRAPH}> .")
+            .map_err(NQuadsWriteFailure::diagnostic)
     };
     let literal = |value: &str| format!("\"{}\"", nq_escape(value));
     let prose = |value: &str| format!("{}@{}", literal(value), gmeow_errors::abox::X_GMEOW_ENGLISH);

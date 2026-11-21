@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Substrate-model diagnostic kinds.
+//! Diagnostic kinds for the substrate model and its RDF output.
 //!
 //! Parsing a user/tool-supplied [`Severity`] or
 //! [`FindingCategory`] wire label is a HARD
@@ -10,6 +10,8 @@
 //! [`DiagKind`](crate::diag::DiagKind) minted by `define_diag_kind!`, carrying a
 //! stable registered [`Code`], a [`Grade`], and staying downcastable off the
 //! [`Diag`](crate::diag::Diag) source.
+
+use std::sync::Arc;
 
 use crate::code::Code;
 use crate::grade::{Grade, Severity, Standpoint};
@@ -35,18 +37,42 @@ crate::define_diag_kind! {
     message = "unknown finding category `{}`; expected one of the ten logic:FindingCategory wire values", value;
 }
 
-/// The complete `gmeow-errors` model diagnostic-code catalog, in registration
+crate::define_diag_kind! {
+    /// The destination refused an N-Quads write or flush.
+    pub struct NQuadsWriteFailure { cause: Arc<std::io::Error> }
+    code = "errors.rdf.nquads-write";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "write N-Quads output: {}", cause;
+    source = failure => Some(failure.cause.as_ref());
+}
+
+impl NQuadsWriteFailure {
+    /// Report the refusal while preserving its original I/O error.
+    #[must_use]
+    pub fn diagnostic(cause: std::io::Error) -> crate::Diag {
+        crate::Diag::of_kind(Self {
+            cause: Arc::new(cause),
+        })
+    }
+}
+
+/// The complete `gmeow-errors` diagnostic-code catalog, in registration
 /// order. Every [`DiagKind`](crate::diag::DiagKind) minted here appears once —
 /// [`register_all`] seeds them and the collision test proves the code strings are
 /// distinct.
-pub const ERRORS_DIAG_CODES: &[&str] = &[UnknownSeverityLabel::CODE, UnknownFindingCategory::CODE];
+pub const ERRORS_DIAG_CODES: &[&str] = &[
+    UnknownSeverityLabel::CODE,
+    UnknownFindingCategory::CODE,
+    NQuadsWriteFailure::CODE,
+];
 
-/// Eagerly intern every `gmeow-errors` model diagnostic code, seeding the
+/// Eagerly intern every `gmeow-errors` diagnostic code, seeding the
 /// process-wide code registry. Idempotent (each `register()` is a `LazyLock`).
 pub fn register_all() -> Vec<Code> {
     vec![
         UnknownSeverityLabel::register(),
         UnknownFindingCategory::register(),
+        NQuadsWriteFailure::register(),
     ]
 }
 

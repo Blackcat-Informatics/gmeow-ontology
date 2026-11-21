@@ -48,7 +48,11 @@ fn documentation_admission_preserves_stage_and_snapshot_identity() {
         ),
         (
             reified.as_str(),
-            stream_documentation(|writer| writer.write_all(reified.as_bytes())),
+            stream_documentation(|writer| {
+                writer
+                    .write_all(reified.as_bytes())
+                    .map_err(NQuadsWriteFailure::diagnostic)
+            }),
         ),
         ("", stream_documentation(|_| Ok(()))),
     ] {
@@ -77,8 +81,12 @@ fn documentation_admission_refuses_foreign_graph_rows() {
         "<urn:s> <urn:p> <urn:o> <urn:foreign> .",
     ] {
         let input = format!("<urn:s> <urn:p> <urn:o> <{GRAPH_DOCUMENTATION}> .\n{foreign}\n");
-        let error = stream_documentation(|writer| writer.write_all(input.as_bytes()))
-            .expect_err("refuse misplaced RDF");
+        let error = stream_documentation(|writer| {
+            writer
+                .write_all(input.as_bytes())
+                .map_err(NQuadsWriteFailure::diagnostic)
+        })
+        .expect_err("refuse misplaced RDF");
         assert!(error.message().contains(GRAPH_DOCUMENTATION));
     }
 }
@@ -87,17 +95,26 @@ fn documentation_admission_refuses_foreign_graph_rows() {
 #[test]
 fn documentation_stream_refuses_partial_writer_output() {
     let error = stream_documentation(|writer| {
-        writeln!(writer, "<urn:s> <urn:p> <urn:o> <{GRAPH_DOCUMENTATION}> .")?;
-        writer.flush()?;
-        Err(io::Error::other(
-            "documentation writer failed after a valid row",
-        ))
+        writeln!(writer, "<urn:s> <urn:p> <urn:o> <{GRAPH_DOCUMENTATION}> .")
+            .map_err(NQuadsWriteFailure::diagnostic)?;
+        writer.flush().map_err(NQuadsWriteFailure::diagnostic)?;
+        let mut full: &mut [u8] = &mut [];
+        gmeow_errors::abox::annotate_nquads(
+            "urn:s",
+            "Subject",
+            "A documented subject.",
+            GRAPH_DOCUMENTATION,
+            &mut full,
+        )
     })
     .expect_err("a valid prefix cannot be published after a writer failure");
-    assert!(
+    assert_eq!(
         error
-            .message()
-            .contains("documentation writer failed after a valid row")
+            .downcast_ref::<NQuadsWriteFailure>()
+            .expect("N-Quads writer diagnostic")
+            .cause
+            .kind(),
+        io::ErrorKind::WriteZero,
     );
 }
 
@@ -110,8 +127,11 @@ fn documentation_stream_keeps_parser_refusal_on_broken_pipe() {
     let expected = admit_rendered_documentation(invalid.as_slice())
         .expect_err("the native parser refuses the invalid row");
     let error = stream_documentation(|writer| {
-        writer.write_all(invalid)?;
-        io::copy(&mut io::repeat(b'x').take(2 * 1024 * 1024), writer)?;
+        writer
+            .write_all(invalid)
+            .map_err(NQuadsWriteFailure::diagnostic)?;
+        io::copy(&mut io::repeat(b'x').take(2 * 1024 * 1024), writer)
+            .map_err(NQuadsWriteFailure::diagnostic)?;
         Ok(())
     })
     .expect_err("parser refusal prevents publication");
