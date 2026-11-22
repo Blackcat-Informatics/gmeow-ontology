@@ -24,7 +24,7 @@
 //! * `wasm-import-date-now` and `wasm-import-reflect-get`: a `#[wasm_bindgen]`
 //!   `extern` block that imports `Date.now` or `Reflect.get`. Each host import is
 //!   declared once, in the lowest crate every user reaches
-//!   (`purrdf_sparql_eval::wasm_host` for the clock, `purrdf_wasm::host` for
+//!   (`js_sys::Date` for the clock, `purrdf_wasm::host` for
 //!   `Reflect.get`), so a second declaration in another crate, or another file of
 //!   the home crate, is a copy. Read in every file, tests and fixtures included:
 //!   an import in test code is an import.
@@ -64,7 +64,7 @@ const REIFIER_DETAIL: &str = "an `RdfQuad::new` reifier row is built in the defa
 const HASHER_DETAIL: &str = "`std`'s `DefaultHasher` is an unspecified algorithm; hash through purrdf_hash \
      (`fnv`, `mix`, or a `Domain`-keyed digest)";
 const HOST_IMPORT_DETAIL: &str = "a second wasm host import of `Date.now` or `Reflect.get`; call the one home's \
-     function (`purrdf_sparql_eval::wasm_host::date_now`, `purrdf_wasm::host::reflect_get`)";
+     function (`js_sys::Date::now`, `purrdf_wasm::host::reflect_get`)";
 const LIST_DETAIL: &str = "a hand-rolled `rdf:first`/`rdf:rest` walk; walk lists through \
      `DatasetView::rdf_list_with`, whose policy names the malformed-list contract";
 

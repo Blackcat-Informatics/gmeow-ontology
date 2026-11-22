@@ -65,6 +65,21 @@ test("the SHIPPED engine round-trips the corpus preserving named graphs", () => 
   assert.match(nquads, /graph\/named/, "a named graph was flattened away");
 });
 
+test("SPARQL reads the JavaScript clock and entropy", () => {
+  const ds = Dataset.parse(CORPUS, "trig");
+  const clock = Date.now;
+  const instant = "2026-01-15T10:05:20Z";
+  Date.now = () => Date.parse(instant);
+  try {
+    const json = ds.query("SELECT (NOW() AS ?time) (RAND() AS ?sample) WHERE {}");
+    const [{ time, sample }] = JSON.parse(json).results.bindings;
+    assert.equal(time.value, instant);
+    assert.ok(Number(sample.value) >= 0 && Number(sample.value) < 1);
+  } finally {
+    Date.now = clock;
+  }
+});
+
 test("the SHIPPED engine's Dataset.fromGts is callable and refuses garbage bytes", () => {
   // A structural smoke test only: the full quad-count + named-graph-survival proof
   // against a real profile-emitted `gmeow.gts` lives natively

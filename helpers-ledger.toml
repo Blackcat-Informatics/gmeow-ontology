@@ -1141,7 +1141,7 @@ names = ['^(collect_)?(term|triple)_pattern_var(s|iable|iables)$']
 [[job]]
 id = "wasm-host-clock"
 summary = "The wasm host's Date.now import, declared once where every user reaches it; a second #[wasm_bindgen] Date.now import fails the gate"
-home = "extern:purrdf_sparql_eval::wasm_host::date_now"
+home = "extern:js_sys::Date::now"
 entry_points = []
 spec = "wasm_bindgen imports one symbol per declaration, so a second Date.now declaration is a second host binding for the same clock; the host seal of scripts/check-wasm-test-runner.sh replaces the global, and every reader must reach it through one import"
 vectors = []

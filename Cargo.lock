@@ -1368,6 +1368,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-browser-host"
+version = "0.4.0"
+dependencies = [
+ "js-sys",
+ "purrdf",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "gmeow-build-inputs"
 version = "0.4.0"
 dependencies = [
@@ -1821,6 +1830,7 @@ dependencies = [
 name = "gmeow-mcp-core-wasm"
 version = "0.4.0"
 dependencies = [
+ "gmeow-browser-host",
  "gmeow-bundle-import",
  "gmeow-mcp",
  "purrdf-lex",
@@ -1845,6 +1855,7 @@ dependencies = [
 name = "gmeow-mcp-wasm"
 version = "0.4.0"
 dependencies = [
+ "gmeow-browser-host",
  "gmeow-bundle-import",
  "gmeow-mcp",
  "purrdf",
@@ -1933,6 +1944,7 @@ dependencies = [
 name = "gmeow-query-wasm"
 version = "0.4.0"
 dependencies = [
+ "gmeow-browser-host",
  "gmeow-gts-profile",
  "purrdf",
  "purrdf-hash",
@@ -2088,6 +2100,7 @@ name = "gmeow-validate-wasm"
 version = "0.4.0"
 dependencies = [
  "gmeow-action-cache",
+ "gmeow-browser-host",
  "gmeow-lang-bridge",
  "gmeow-validate",
  "purrdf-lex",
@@ -2631,6 +2644,16 @@ name = "itoa"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
+
+[[package]]
+name = "js-sys"
+version = "0.3.107"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8dc09d2154098bbf4ef54eab6b117a3c24cbbffe94046b16ee6d6d4510584d3a"
+dependencies = [
+ "cfg-if",
+ "wasm-bindgen",
+]
 
 [[package]]
 name = "kamadak-exif"

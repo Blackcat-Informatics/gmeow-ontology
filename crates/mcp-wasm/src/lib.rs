@@ -72,6 +72,16 @@ use std::cell::RefCell;
 use gmeow_mcp::{McpServer, SegmentSet};
 use wasm_bindgen::prelude::*;
 
+/// Install the evaluator's clock and entropy when the module starts.
+///
+/// # Errors
+/// Returns an error if the instance has already installed a source.
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen(start)]
+pub fn install_sparql_host() -> Result<(), JsError> {
+    gmeow_browser_host::install()
+}
+
 /// Route a Rust panic's MESSAGE to the host before the trap reaches it.
 ///
 /// Without this a panic in the engine reaches JavaScript as a bare

@@ -164,6 +164,7 @@ members = [
     # across the quality axes, bound by both the dev CLI and the pipeline MCP.
     "crates/slice-quality",
     "crates/validate",
+    "crates/browser-host",
     # wasm32 bindings for the repo-free Tier-1 validator: client-side conformance in
     # editors / browsers / LLM clients, over the wasm-clean gmeow-validate core.
     "crates/validate-wasm",
@@ -300,6 +301,8 @@ tracing = "0.1"
 # glue that loads them. `make *-wasm-pkg` and the CI Node lane install the
 # `wasm-bindgen-cli` matching THIS version.
 wasm-bindgen = "=0.2.130"
+js-sys = { version = "0.3.107", default-features = false }
+gmeow-browser-host = { path = "crates/browser-host" }
 
 [workspace.package]
 version = "0.4.0"

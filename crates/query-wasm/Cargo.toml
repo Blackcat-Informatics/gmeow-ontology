@@ -30,6 +30,9 @@ wasm-bindgen.workspace = true
 # rather than the site verifying under a second, weaker algorithm.
 purrdf-hash.workspace = true
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+gmeow-browser-host.workspace = true
+
 [dev-dependencies]
 # `tests/witness_query.rs` reads the committed `js/tests/queries.json` corpus. A
 # hand-rolled string splitter cannot see JSON escaping and truncates any query
