@@ -43,8 +43,8 @@ macro_rules! install_sparql_host_on_start {
         ///
         /// # Errors
         /// Returns an error if the instance has already installed a source.
-        #[::wasm_bindgen::prelude::wasm_bindgen(start)]
-        pub fn install_sparql_host() -> Result<(), ::wasm_bindgen::JsError> {
+        #[::wasm_bindgen::prelude::wasm_bindgen(start, private)]
+        fn install_sparql_host() -> Result<(), ::wasm_bindgen::JsError> {
             $crate::install()
         }
     };
