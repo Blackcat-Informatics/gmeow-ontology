@@ -1050,14 +1050,14 @@ fn build_logic_bundle(
     )?;
     let pinned = bundle.graph_digest(
         GRAPH_LOGIC,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )?;
     bundle
         .pin_handle(
             GRAPH_LOGIC,
             PipelineHandle::CompiledLogic(Arc::new(publication)),
             pinned,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .map_err(|e| stage_err(format!("pin Logic handle to <{GRAPH_LOGIC}>: {e}")))?;
     // The REAL typed RelationalCore handle (C8): the typed dialect, pinned to its
@@ -1065,14 +1065,14 @@ fn build_logic_bundle(
     // mismatch, so a handle that disagrees with its backing graph can never attach.
     let pinned_rc = bundle.graph_digest(
         GRAPH_RELATIONAL_CORE,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )?;
     bundle
         .pin_handle(
             GRAPH_RELATIONAL_CORE,
             PipelineHandle::RelationalCore(Arc::new(relational_core)),
             pinned_rc,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .map_err(|e| {
             stage_err(format!(
@@ -1084,14 +1084,14 @@ fn build_logic_bundle(
     // a digest mismatch, so a handle that disagrees with its backing graph can never attach.
     let pinned_corr = bundle.graph_digest(
         GRAPH_CORRESPONDENCE,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )?;
     bundle
         .pin_handle(
             GRAPH_CORRESPONDENCE,
             PipelineHandle::Correspondence(Arc::new(correspondence)),
             pinned_corr,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .map_err(|e| {
             stage_err(format!(

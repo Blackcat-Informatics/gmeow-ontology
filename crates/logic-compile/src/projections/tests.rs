@@ -59,21 +59,14 @@ fn rdf_projections_preserve_blank_subjects_as_blank_resources() {
     let (program, diagnostics) = parse_logic_str(source, None).expect("parse blank subject");
     assert!(diagnostics.is_empty(), "{diagnostics:?}");
     assert!(
-        program
-            .axioms
-            .iter()
-            .any(|axiom| axiom.subject.starts_with("c14n")),
+        program.axioms.iter().any(|axiom| axiom.subject == "0"),
         "the fixture must exercise a canonical blank-node subject"
     );
 
     let canonical = rdf::project_canonical_rdf12(&program).expect("canonical projection");
-    assert!(
-        canonical.content.contains("_:c14n"),
-        "{}",
-        canonical.content
-    );
+    assert!(canonical.content.contains("_:0 "), "{}", canonical.content);
     let dl = rdf::project_owl_dl(&program, &mut LossLedger::new()).expect("OWL projection");
-    assert!(dl.content.contains("_:c14n"), "{}", dl.content);
+    assert!(dl.content.contains("_:0 "), "{}", dl.content);
 }
 
 #[test]

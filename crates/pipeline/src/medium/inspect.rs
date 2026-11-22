@@ -673,7 +673,7 @@ pub fn verify(
     } else {
         for envelope in envelopes.values() {
             if envelope.stratum == DigestStratum::PayloadExcludingMediumEnvelope {
-                verify_snapshot_envelope(dataset.as_ref(), envelope)?;
+                verify_snapshot_envelope(&dataset, envelope)?;
                 opened += 1;
             }
         }
@@ -743,14 +743,13 @@ fn envelope_index(
 /// The self-referential snapshot envelope, checked through the one commitment a reader
 /// CAN recompute.
 fn verify_snapshot_envelope(
-    dataset: &purrdf::RdfDataset,
+    dataset: &std::sync::Arc<purrdf::RdfDataset>,
     envelope: &MediumEnvelope,
 ) -> Result<(), gmeow_errors::Diag> {
     // The profile BEFORE the digest: the stratum digest is a function of canonical RDF, so
     // a profile change must not surface as corruption.
     super::envelope::check_canon_profile(envelope)?;
-    let stratum = crate::stages::carrier::snapshot_stratum_nquads(dataset)?;
-    let expected = blake3_digest(stratum.as_bytes());
+    let expected = crate::stages::carrier::verify_snapshot_stratum_digest(dataset)?;
     if expected != envelope.strata_digest {
         return Err(digest_mismatch(format!(
             "the snapshot envelope carries gmeow:strataDigest {}, but the payload MINUS its \

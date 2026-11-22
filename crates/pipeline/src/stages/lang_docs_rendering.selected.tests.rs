@@ -31,7 +31,7 @@ g:AuthoredFormula a l:Formula ; r:isDefinedBy <{owner}> .
     let catalog = purrdf::slice::SliceCatalog::discover(
         root.path(),
         gmeow_ns::gmeow_slice_vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap();
     let ownership = purrdf::slice::OwnershipAnalyzer::new(&catalog)

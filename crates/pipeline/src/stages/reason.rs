@@ -109,14 +109,14 @@ fn reason_product_from_artifacts(
     );
     let pinned = bundle.graph_digest(
         GRAPH_REASONING,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )?;
     bundle
         .pin_handle(
             GRAPH_REASONING,
             PipelineHandle::Reasoning(Arc::new(reasoned.result)),
             pinned,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -356,7 +356,7 @@ pub(crate) fn canonicalize_edb(
 ) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     purrdf::canonical_relabel(
         edb,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map(Arc::new)
     .map_err(|e| {
@@ -893,7 +893,7 @@ impl Stage for ReasonStage {
                     bundle.graph_digest(
                         GRAPH_REASONING,
                         &mut purrdf::CanonicalizationControl::new(
-                            purrdf::RDFC_V2_CORPUS_POLICY,
+                            purrdf::CANON_CORPUS_POLICY,
                             None,
                         ),
                     )
@@ -904,7 +904,7 @@ impl Stage for ReasonStage {
                         PipelineHandle::Reasoning(Arc::new(reasoned.result)),
                         pinned,
                         &mut purrdf::CanonicalizationControl::new(
-                            purrdf::RDFC_V2_CORPUS_POLICY,
+                            purrdf::CANON_CORPUS_POLICY,
                             None,
                         ),
                     )

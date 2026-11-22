@@ -148,7 +148,7 @@ fn grounding_catalog(root: &Path) -> SliceCatalog {
     SliceCatalog::discover(
         &root.join("slices"),
         vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap()
 }
@@ -563,7 +563,7 @@ fn class_filter_catalog(root: &Path) -> SliceCatalog {
     SliceCatalog::discover(
         &root.join("slices"),
         vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap()
 }
@@ -630,7 +630,7 @@ fn a_slice_iri_really_is_a_validated_owned_term_so_class_a_is_reachable() {
     let catalog = SliceCatalog::discover(
         &root.join("slices"),
         vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap();
     let report = purrdf::slice::OwnershipAnalyzer::new(&catalog)
@@ -1202,7 +1202,7 @@ fn tier_catalog(root: &Path) -> SliceCatalog {
     SliceCatalog::discover(
         &root.join("slices"),
         vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap()
 }
@@ -1318,7 +1318,7 @@ fn declared_forbidden_catalog(root: &Path) -> SliceCatalog {
     SliceCatalog::discover(
         &root.join("slices"),
         vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap()
 }
@@ -1477,7 +1477,7 @@ fn grounding_doctrine_catalog(root: &Path) -> SliceCatalog {
     SliceCatalog::discover(
         &root.join("slices"),
         vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap()
 }
@@ -1655,7 +1655,7 @@ fn a_declared_grounding_to_domain_dependency_alone_is_not_a_doctrine_breach() {
     let catalog = SliceCatalog::discover(
         &root.join("slices"),
         vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap();
     let report = OwnershipReport {
@@ -1779,7 +1779,7 @@ fn a_marker_naming_an_undeclared_grounding_domain_does_not_fire() {
     let catalog = SliceCatalog::discover(
         &root.join("slices"),
         vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap();
     let report = OwnershipReport {
@@ -1818,7 +1818,7 @@ fn the_real_corpus_marks_the_box_role_cluster_and_owns_every_marked_concept() {
     let catalog = SliceCatalog::discover(
         &dir,
         vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap();
     let corpus = CorpusIndex::build(&catalog).unwrap();

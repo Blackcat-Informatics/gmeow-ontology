@@ -393,6 +393,9 @@ impl ToJson for SourceContext {
         }
         object.insert("focus", self.focus.to_json());
         object.insert("term_role", self.term_role.to_json());
+        if let Some(occurrence) = &self.loss_occurrence {
+            object.insert("loss_occurrence", occurrence.to_json());
+        }
         Value::Object(object)
     }
 }
@@ -407,6 +410,7 @@ impl FromJson for SourceContext {
             })?,
             focus: record.optional("focus")?,
             term_role: record.optional("term_role")?,
+            loss_occurrence: record.optional("loss_occurrence")?,
         })
     }
 }

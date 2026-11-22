@@ -244,7 +244,7 @@ pub fn bundle_from_artifacts_over(
     let mut lookaside = RdfLookaside::default();
     // BTreeMap iterates in sorted key order — the lane is deterministic.
     for (path, bytes) in artifacts {
-        let digest = blobs.insert(bytes);
+        let digest = blobs.insert(bytes.into());
         lookaside.resources.push(
             RdfLookasideResource::new(ARTIFACT_KIND)
                 .with_name(path)
@@ -277,7 +277,7 @@ pub fn bundle_from_artifacts_over_with_rep_blob(
     let mut blobs = ContentStore::new();
     let mut lookaside = RdfLookaside::default();
     for (path, bytes) in artifacts {
-        let digest = blobs.insert(bytes);
+        let digest = blobs.insert(bytes.into());
         lookaside.resources.push(
             RdfLookasideResource::new(ARTIFACT_KIND)
                 .with_name(path)
@@ -285,7 +285,7 @@ pub fn bundle_from_artifacts_over_with_rep_blob(
         );
     }
     let decoded_len = blob_bytes.len() as u64;
-    let digest = blobs.insert(blob_bytes);
+    let digest = blobs.insert(blob_bytes.into());
     lookaside.blobs.push(RdfBlobRecord {
         digest: digest.to_hex(),
         media_type: Some(media_type.to_owned()),
@@ -309,18 +309,11 @@ pub fn attach_rep_blob(
     media_type: &str,
     blob_bytes: Vec<u8>,
 ) -> Result<PipelineBundle<PipelineHandle>, gmeow_errors::Diag> {
-    // Clone the content store contents into a fresh mutable store, add the rep blob.
-    let mut blobs = ContentStore::new();
-    for (digest, bytes) in bundle.blobs().iter() {
-        blobs.insert_checked(*digest, bytes.clone()).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
-                "attach_rep_blob: re-insert content-store blob: {e}"
-            )))
-        })?;
-    }
+    // The index clone keeps the authenticated, immutable payloads shared.
+    let mut blobs = bundle.blobs().clone();
     let mut lookaside = bundle.lookaside().clone();
     let decoded_len = blob_bytes.len() as u64;
-    let digest = blobs.insert(blob_bytes);
+    let digest = blobs.insert(blob_bytes.into());
     lookaside.blobs.push(RdfBlobRecord {
         digest: digest.to_hex(),
         media_type: Some(media_type.to_owned()),
@@ -343,7 +336,7 @@ pub fn attach_rep_blob(
                 graph.clone(),
                 entry.payload.clone(),
                 entry.content_digest,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
@@ -367,7 +360,7 @@ pub fn bundle_rep_blob<'b>(
         .iter()
         .find(|r| r.representation.as_deref() == Some(representation))?;
     let digest = ContentDigest::from_hex(&record.digest)?;
-    bundle.blobs().get(&digest).map(Vec::as_slice)
+    bundle.blobs().get(&digest).map(AsRef::as_ref)
 }
 
 /// Rebuild `bundle` WITHOUT its `representation`-keyed raw blob — the inverse of
@@ -437,7 +430,7 @@ pub fn strip_rep_blob(
                 graph.clone(),
                 entry.payload.clone(),
                 entry.content_digest,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
@@ -463,7 +456,7 @@ pub fn bundle_artifact<'b>(
         .find(|r| r.name.as_deref() == Some(logical_path))?;
     let hex = resource.content_digest.as_deref()?;
     let digest = purrdf::ContentDigest::from_hex(hex)?;
-    bundle.blobs().get(&digest).map(Vec::as_slice)
+    bundle.blobs().get(&digest).map(AsRef::as_ref)
 }
 
 /// Reconstruct the full `(logical_path → bytes)` map of a bundle's byte-artifact
@@ -496,7 +489,7 @@ pub fn bundle_artifacts_where(
         if let Some(bytes) = bundle.blobs().get(&digest)
             && wanted(name)
         {
-            out.insert(name.to_owned(), bytes.clone());
+            out.insert(name.to_owned(), bytes.to_vec());
         }
     }
     out
@@ -538,7 +531,7 @@ pub fn bundle_artifact_refs(
                 "byte-artifact resource {name:?} references missing content-store digest {hex}"
             )))
         })?;
-        if out.insert(name, bytes.as_slice()).is_some() {
+        if out.insert(name, bytes.as_ref()).is_some() {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Decode::new(
                 format!("byte-artifact lane carries duplicate logical name {name:?}"),
             )));

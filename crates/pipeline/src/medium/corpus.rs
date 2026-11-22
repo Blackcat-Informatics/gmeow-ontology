@@ -571,7 +571,7 @@ pub fn assemble_with_cache(
                         let ntriples = purrdf::canonical_flat_nquads(
                             &projected,
                             &mut purrdf::CanonicalizationControl::new(
-                                purrdf::RDFC_V2_CORPUS_POLICY,
+                                purrdf::CANON_CORPUS_POLICY,
                                 None,
                             ),
                         )

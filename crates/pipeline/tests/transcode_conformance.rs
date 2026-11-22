@@ -61,7 +61,7 @@ fn canonical_quads(bytes: &[u8], fmt: NativeRdfFormat) -> gmeow_errors::Result<V
         .map_err(|e| transform(format!("RDF parse error: {e}")))?;
     let canonical = purrdf::canonical_flat_nquads(
         &dataset,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|e| transform(format!("RDF canonicalization error: {e}")))?;
     let mut strings: Vec<String> = canonical.nquads().lines().map(str::to_owned).collect();
@@ -100,7 +100,7 @@ fn canonical_quads_star(bytes: &[u8], to_codec: &str) -> gmeow_errors::Result<Ve
         parse_jsonld_star(&json_bytes).map_err(|e| transform(format!("parse jsonld-star: {e}")))?;
     let canonical = purrdf::canonical_flat_nquads(
         &dataset,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|e| transform(format!("RDF canonicalization error: {e}")))?;
     let mut strings: Vec<String> = canonical.nquads().lines().map(str::to_owned).collect();

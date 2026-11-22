@@ -325,10 +325,18 @@ fn an_unmarked_envelope_is_refused() {
         },
     )
     .expect("seal");
-    let quads = project(&registry, &[], std::slice::from_ref(&envelope)).expect("project");
+    let mut quads = project(&registry, &[], std::slice::from_ref(&envelope)).expect("project");
+    let decoy = RdfQuad {
+        subject: RdfTerm::iri("https://e/foreign-envelope"),
+        predicate: RDF_TYPE.to_owned(),
+        object: RdfTerm::iri(gm("MediumEnvelope")),
+        graph_name: Some(RdfTerm::iri("https://e/foreign-graph")),
+        location: None,
+    };
+    quads.push(decoy);
 
     let marked = purrdf::dataset_from_quads(&quads).expect("freeze");
-    let read = envelopes(marked.as_ref()).expect("a marked envelope reads back");
+    let read = envelopes(marked.as_ref()).expect("only the marked registry envelope reads back");
     assert_eq!(read, vec![envelope]);
 
     let unmarked: Vec<RdfQuad> = quads

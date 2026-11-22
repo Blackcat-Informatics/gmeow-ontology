@@ -1186,17 +1186,12 @@ fn build_ro_crate_source(
 /// (Croissant | DataCite | Frictionless) lowering loss is silently dropped. Mirrors
 /// `export.rs`'s `report_projection_losses`.
 fn report_projection_losses(surface: &str, ledger: &purrdf::LossLedger) {
-    let mut grouped: BTreeMap<(&str, &str), Vec<&str>> = BTreeMap::new();
+    let mut grouped: BTreeMap<(&str, &str), Vec<&purrdf::loss::LossSubject>> = BTreeMap::new();
     for loss in ledger.entries() {
-        let subject = loss
-            .location
-            .as_deref()
-            .and_then(|location| location.subject.as_deref())
-            .unwrap_or("<unlocated>");
         grouped
             .entry((loss.code.as_ref(), loss.note.as_ref()))
             .or_default()
-            .push(subject);
+            .push(&loss.subject);
     }
     for ((construct, reason), mut subjects) in grouped {
         subjects.sort_unstable();
@@ -1204,7 +1199,7 @@ fn report_projection_losses(surface: &str, ledger: &purrdf::LossLedger) {
         let examples = subjects
             .iter()
             .take(5)
-            .copied()
+            .map(|subject| subject.text().unwrap_or_else(|| "<unlocated>".to_owned()))
             .collect::<Vec<_>>()
             .join(", ");
         let suffix = if subjects.len() > 5 {

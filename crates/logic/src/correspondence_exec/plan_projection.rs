@@ -13,7 +13,8 @@ mod json;
 use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
-use purrdf::{CanonHash, RdfDataset, RdfLiteral, RdfQuad, RdfTerm};
+use purrdf::rdfc12::CanonHash;
+use purrdf::{RdfDataset, RdfLiteral, RdfQuad, RdfTerm};
 use serde::{Deserialize, Serialize};
 
 use super::stable_digest::StableDigest;
@@ -543,10 +544,10 @@ fn iri_value(value: &RdfTerm) -> Option<&str> {
 }
 
 fn input_digest(dataset: &RdfDataset) -> gmeow_errors::Result<String> {
-    Ok(purrdf::try_flat_digest_view(
+    Ok(purrdf::rdfc12::try_flat_digest_view(
         dataset,
         CanonHash::Sha256,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|error| exec_error(format!("canonicalize plan input: {error}")))?
     .to_hex())

@@ -20,7 +20,8 @@ use gmeow_errors::Finding;
 use gmeow_logic::math_expression::check_math_expression_findings;
 use gmeow_logic::reason::reason_all;
 use gmeow_logic::verify::{ReasonedGraphOutcome, materialize_reasoned_closure};
-use purrdf::{CanonHash, CompositeDatasetView, RdfDataset, RdfDatasetBuilder, RdfTerm, ViewLimits};
+use purrdf::rdfc12::CanonHash;
+use purrdf::{CompositeDatasetView, RdfDataset, RdfDatasetBuilder, RdfTerm, ViewLimits};
 
 use crate::cache::BuildIdentity;
 use crate::stages::parse_sources::SourceCatalog;
@@ -114,10 +115,10 @@ pub(super) fn record(
         .dataset;
     let context_source_digest = catalog.document_digest(MATH)?.to_owned();
     let reasoning_context = expression_reasoning_context(math)?;
-    let reasoning_projection_digest = purrdf::try_flat_digest_view(
+    let reasoning_projection_digest = purrdf::rdfc12::try_flat_digest_view(
         reasoning_context.as_ref(),
         CanonHash::Sha256,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(fail)?
     .to_hex();

@@ -216,16 +216,17 @@ fn definition_digest(
             message: e.to_string(),
         })
     })?;
-    let canon = sub
-        .canonical_nquads_flat(&mut purrdf::CanonicalizationControl::new(
-            purrdf::RDFC_V2_CORPUS_POLICY,
-            None,
-        ))
-        .map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: e.to_string(),
-            })
-        })?;
+    // The term release authority commits to the flat RDFC document.
+    let canon = purrdf::canonical_flat_nquads_with(
+        sub.inner(),
+        purrdf::rdfc12::CanonHash::Sha256,
+        &mut purrdf::CanonicalizationControl::new(purrdf::rdfc12::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: e.to_string(),
+        })
+    })?;
     Ok(digest_string(canon.nquads().as_bytes()))
 }
 

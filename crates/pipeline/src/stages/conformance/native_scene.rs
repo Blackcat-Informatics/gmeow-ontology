@@ -131,7 +131,7 @@ fn modal_product(dataset: &RdfDataset) -> Result<ModalProduct, gmeow_errors::Dia
             .bundle()
             .graph_digest(
                 GRAPH_REASONING,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )?
             .to_hex(),
         pinned_graph_digest: handle.content_digest.to_hex(),

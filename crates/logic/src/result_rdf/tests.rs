@@ -1346,7 +1346,7 @@ fn native_reasoning_summary_matches_the_wire_projection() {
         purrdf::datasets_isomorphic(
             &native,
             &wire,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .expect("isomorphism is decided by canonical bytes")
     );
@@ -1491,7 +1491,7 @@ fn typed_inferred_objects_survive_closure_and_receipt_projections() {
         purrdf::datasets_isomorphic(
             &appended,
             &routed,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap(),
         "direct append must retain the complete formerly routed projection"

@@ -92,7 +92,7 @@ pub fn discover(root: &Path) -> gmeow_errors::Result<Vec<OwnedGroundingSource>> 
     let catalog = SliceCatalog::discover(
         &root.join("slices"),
         gmeow_ns::gmeow_slice_vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|why| {
         gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!(
@@ -110,7 +110,7 @@ pub fn load(
     let catalog = SliceCatalog::discover(
         &root.join("slices"),
         gmeow_ns::gmeow_slice_vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|why| {
         gmeow_errors::Diag::of_kind(crate::error::Parse::new(format!(

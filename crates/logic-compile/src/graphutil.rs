@@ -350,12 +350,12 @@ fn object_id<D: DatasetView<ReadError = Infallible> + ?Sized>(
 /// projection at the source (greenfield: one deterministic front door, not a
 /// per-back-end patch).
 ///
-/// Apply PurRDF's native RDFC-1.0 label mapping directly to the typed dataset.
+/// Apply PurRDF's native nested-refinement mapping directly to the typed dataset.
 /// This preserves the full RDF 1.2 statement layer and removes the former canonical
 /// N-Quads allocation and immediate parser round trip. Canonicalization refusals remain
 /// hard compiler errors; there is no weaker labeling fallback.
 pub(crate) fn canonicalize_blank_nodes(ds: &RdfDataset) -> gmeow_errors::Result<Arc<RdfDataset>> {
-    let mut control = purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None);
+    let mut control = purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None);
     canonical_relabel(ds, &mut control)
         .map(Arc::new)
         .map_err(|error| canonicalization_failure(error, &control))

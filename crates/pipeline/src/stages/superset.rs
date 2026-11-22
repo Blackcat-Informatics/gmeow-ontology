@@ -1239,7 +1239,7 @@ pub(crate) fn canonical_ntriples(dataset: &RdfDataset) -> gmeow_errors::Result<V
     // one N-Quads — byte-identical to the prior oxigraph-flat path.
     purrdf::canonical_flat_nquads(
         dataset,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map(|canonical| canonical.nquads().as_bytes().to_vec())
     .map_err(|e| stage_err(&format!("RDFC-1.0 canonicalize: {e}")))

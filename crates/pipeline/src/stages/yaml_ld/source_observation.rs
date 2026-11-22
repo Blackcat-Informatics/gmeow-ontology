@@ -33,7 +33,7 @@ pub(crate) fn record(
         .map_err(|error| error.with_context(SOURCE))?;
     let pack = purrdf::PackBuilder::build_bytes(
         &native,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|error| fail(error.to_string()))?;
     artifacts.insert(CHANNEL.to_owned(), pack);

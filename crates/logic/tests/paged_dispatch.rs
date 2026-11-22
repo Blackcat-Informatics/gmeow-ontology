@@ -116,7 +116,7 @@ fn resident_paged_and_pack_views_produce_identical_recursive_answers() {
     .expect("seal paged dataset");
     let pack_bytes = PackBuilder::build_bytes(
         &resident,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .expect("build succinct pack");
     let pack = PackView::from_bytes(&pack_bytes).expect("open succinct pack");

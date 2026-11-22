@@ -61,9 +61,9 @@ fn graph_key(program: &RelationalCoreProgram, ordered: bool) -> gmeow_errors::Re
         graph.edge(root, "residue", value)?;
     }
     let dataset = graph.builder.freeze().map_err(Diag::from)?;
-    let canonical = purrdf::try_canonicalize(
+    let canonical = purrdf::rdfc12::try_canonicalize(
         &dataset,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::rdfc12::RDFC_V2_CORPUS_POLICY, None),
     )
     .map_err(error)?;
     Ok(frame(

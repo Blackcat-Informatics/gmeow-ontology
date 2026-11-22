@@ -1767,7 +1767,7 @@ fn slice_catalog_and_ownership(
     let catalog = SliceCatalog::discover(
         Path::new(slices_dir),
         gmeow_ns::gmeow_slice_vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|e| {
         Diag::of_kind(crate::error::Catalog {

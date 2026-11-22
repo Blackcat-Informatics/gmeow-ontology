@@ -212,7 +212,7 @@ impl GateProgram {
         let verdicts = self.derived_verdict_dataset(dataset.as_ref(), graph_iri)?;
         purrdf::canonical_flat_nquads(
             &verdicts,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .map(|canonical| canonical.nquads().to_owned())
         .map_err(|error| gate_error(format!("render derived gate verdicts: {error}")))

@@ -256,7 +256,7 @@ pub fn check_gmn1_shipped_projections(
     let catalog = SliceCatalog::discover(
         &root.join("slices"),
         gmeow_ns::gmeow_slice_vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|e| stage_err(&format!("discover slice catalog: {e}")))?;
     let sources: Vec<NamedSource> =

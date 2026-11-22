@@ -37,6 +37,32 @@ fn shared_bytes_dedup_but_both_paths_reconstruct() {
     assert_eq!(bundle_artifacts(&bundle), artifacts);
 }
 
+/// Representation attachment and reclamation keep the surviving artifact's backing.
+#[test]
+fn artifact_backing_survives_representation_attachment_and_reclamation() {
+    let original =
+        bundle_from_artifacts(arts(&[("artifact", b"shared")]), DatasetProvenance::new());
+    let backing = bundle_artifact(&original, "artifact").expect("original artifact");
+    let attached = attach_rep_blob(
+        original.clone(),
+        "diagnostic",
+        "application/octet-stream",
+        b"shared".to_vec(),
+    )
+    .expect("attach a representation sharing the artifact's bytes");
+    let representation = bundle_rep_blob(&attached, "diagnostic").expect("resident representation");
+    assert!(std::ptr::eq(representation, backing));
+
+    let stripped = strip_rep_blob(&attached, "diagnostic").expect("strip the representation");
+    assert_eq!(bundle_rep_blob(&stripped, "diagnostic"), None);
+    let released = release_carrier(&attached, &std::collections::BTreeSet::new())
+        .expect("release the carrier and keep committed artifacts");
+    for bundle in [&stripped, &released] {
+        let artifact = bundle_artifact(bundle, "artifact").expect("surviving artifact");
+        assert!(std::ptr::eq(artifact, backing));
+    }
+}
+
 #[test]
 fn bundle_digest_changes_with_artifacts_and_is_stable() {
     let a = bundle_from_artifacts(arts(&[("p", b"one")]), DatasetProvenance::new());
@@ -45,7 +71,7 @@ fn bundle_digest_changes_with_artifacts_and_is_stable() {
     let digest = |bundle: &purrdf::PipelineBundle<PipelineHandle>| {
         bundle
             .digest(&mut purrdf::CanonicalizationControl::new(
-                purrdf::RDFC_V2_CORPUS_POLICY,
+                purrdf::CANON_CORPUS_POLICY,
                 None,
             ))
             .expect("the carrier digests")

@@ -1945,7 +1945,7 @@ fn typed_payload_changes_invalidate_selected_and_whole_action_keys() {
         let pin = bundle
             .graph_digest(
                 GRAPH,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .unwrap();
         graph_digests.push(pin);
@@ -1959,7 +1959,7 @@ fn typed_payload_changes_invalidate_selected_and_whole_action_keys() {
                     source.map(str::to_string),
                 ))),
                 pin,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .unwrap();
         let product = StageProduct::from_bundle("source", Arc::new(bundle))
@@ -2178,7 +2178,7 @@ fn lane_product(
     let mut lookaside = RdfLookaside::default();
     let mut store = ContentStore::new();
     if with_content {
-        let digest = store.insert(b"lane-content".to_vec());
+        let digest = store.insert(bytes::Bytes::from_static(b"lane-content"));
         lookaside.resources.push(
             RdfLookasideResource::new(RdfLookasideKind::Blob)
                 .with_name("generated/lane.bin")

@@ -1285,7 +1285,7 @@ pub fn replay_corpus(dataset: &purrdf::RdfDataset) -> Result<Vec<String>, gmeow_
     )))?;
     let ntriples = purrdf::canonical_flat_nquads(
         &projected,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|err| {
         invalid_declaration(format!(

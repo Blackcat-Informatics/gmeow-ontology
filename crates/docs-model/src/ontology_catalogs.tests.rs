@@ -41,7 +41,7 @@ fn projection_literal_i18n_uses_actual_dsl_owner_across_native_index_export_and_
     let catalog = SliceCatalog::discover(
         &root.path().join("slices"),
         gmeow_ns::gmeow_slice_vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap();
     let sources = for_repository(root.path(), &catalog).unwrap();
@@ -167,7 +167,7 @@ fn cq_rationale_i18n_test_dsl_owner_reaches_all_shared_catalog_consumers() {
     let catalog = SliceCatalog::discover(
         &root.path().join("slices"),
         gmeow_ns::gmeow_slice_vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap();
     let sources = for_repository(root.path(), &catalog).unwrap();

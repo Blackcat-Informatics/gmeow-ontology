@@ -276,7 +276,7 @@ fn assembled_bundle_retains_full_native_handles_loss_artifacts_and_diagnostic_lo
     let diagnostics = gmeow_errors::render::to_gmeow_dataset(&findings).unwrap();
     let expected_diagnostics = purrdf::try_canonicalize(
         &diagnostics,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap()
     .nquads()
@@ -310,7 +310,7 @@ fn assembled_bundle_retains_full_native_handles_loss_artifacts_and_diagnostic_lo
             bundle
                 .graph_digest(
                     graph,
-                    &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                    &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
                 )
                 .unwrap()
         );
@@ -345,7 +345,7 @@ fn assembled_bundle_retains_full_native_handles_loss_artifacts_and_diagnostic_lo
     assert_eq!(
         purrdf::try_canonicalize(
             &restored,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .unwrap()
         .nquads(),

@@ -112,7 +112,7 @@ fn build_fixture() -> Fixture {
         .expect("empty RDF dataset");
     let (source, source_bytes) = CertifiedEmbeddingSource::from_dataset(
         &dataset,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .expect("certified source pack");
     let dataset_target = source.dataset_target(true).expect("dataset target");
@@ -206,7 +206,7 @@ fn build_statement_fixture() -> Fixture {
         .expect("empty RDF dataset");
     let (source, source_bytes) = CertifiedEmbeddingSource::from_dataset(
         &dataset,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .expect("certified source pack");
     let dataset_target = source.dataset_target(true).expect("dataset target");

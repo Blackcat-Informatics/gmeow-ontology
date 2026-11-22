@@ -10,7 +10,7 @@ fn packed_view_retains_borrowed_proof_context_and_session() {
     let dataset = consistent_dataset();
     let bytes = purrdf::PackBuilder::build_bytes(
         &dataset,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap();
     let view = purrdf::PackView::from_bytes(&bytes).unwrap();
@@ -28,7 +28,7 @@ fn packed_view_retains_borrowed_proof_context_and_session() {
                 &Question::Consistency,
                 Some(result.certificate()),
                 &context,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .unwrap();
     }
@@ -188,7 +188,7 @@ fn recorded_cancellation_preserves_completed_proofs_and_later_stop_receipts() {
                 &Question::Consistency,
                 Some(result.certificate()),
                 &context,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .unwrap();
     }
@@ -245,7 +245,7 @@ fn recorded_cancellation_retains_the_selected_preparation_budget() {
     let native = Reasoner::with_proofs_and_preparation_budget(
         &dataset,
         budget,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap()
     .consistency();
@@ -545,7 +545,7 @@ fn recorded_service_result_survives_the_gmeow_boundary_without_evidence_loss() {
             &Question::Consistency,
             Some(result.certificate()),
             &context,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .expect("the retained proof and complete certificate check together");
     assert_eq!(replay.runs(), replay.replayed());
@@ -557,7 +557,7 @@ fn recorded_service_result_survives_the_gmeow_boundary_without_evidence_loss() {
                 &Question::Consistency,
                 Some(result.certificate()),
                 &context,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             )
             .is_err(),
         "a GMEOW result cannot be rebound to different source premises"
@@ -651,7 +651,7 @@ fn canonical_language_tagged_data_reaches_the_native_recorded_service() {
                 &Question::Consistency,
                 Some(result.certificate()),
                 &context,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .unwrap();
     }
@@ -684,7 +684,7 @@ fn native_proof_checker_prepares_the_selected_question_through_the_gmeow_adapter
             &question,
             Some(result.certificate()),
             &context,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .expect("the GMEOW boundary preserves a checkable question-bound proof");
     assert!(
@@ -694,7 +694,7 @@ fn native_proof_checker_prepares_the_selected_question_through_the_gmeow_adapter
                 &Question::Consistency,
                 Some(result.certificate()),
                 &context,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             )
             .is_err(),
         "a different question is not the selected proof task"

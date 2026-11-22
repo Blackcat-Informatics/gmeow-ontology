@@ -72,7 +72,7 @@ fn canonical_quads(text: &str, media_type: &str) -> gmeow_errors::Result<Vec<Str
     // the same canonical quad set the comparator compared before.
     let canonical = purrdf::canonical_flat_nquads(
         &dataset,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|e| {
         Diag::of_kind(RdfCompare {

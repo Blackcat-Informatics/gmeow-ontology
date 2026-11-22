@@ -18,11 +18,12 @@ use std::sync::Arc;
 use gmeow_logic_compile::ir::{Correspondence, CorrespondenceComposition, LegPath};
 use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use gmeow_logic_compile::projections::paths::{leg_path_canonical, lower_leg_path};
+use purrdf::RdfDataset;
+use purrdf::rdfc12::CanonHash;
 use purrdf::sparql::{
     Child, GraphPattern, NativeSparqlEngine, PreparedQuery, Query, QueryOptions, SparqlResult,
     TermPattern, Variable,
 };
-use purrdf::{CanonHash, RdfDataset};
 use serde::{Deserialize, Serialize};
 
 use super::stable_digest::StableDigest;
@@ -397,10 +398,10 @@ impl PreparedCompositionPlan {
                 (execute_fused(&self.engine, dataset, query)?, 0)
             }
         };
-        let input_digest = purrdf::try_flat_digest_view(
+        let input_digest = purrdf::rdfc12::try_flat_digest_view(
             dataset.as_ref(),
             CanonHash::Sha256,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .map_err(|error| {
             exec_error(format!(

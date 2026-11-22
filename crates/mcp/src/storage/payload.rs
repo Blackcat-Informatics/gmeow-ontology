@@ -492,7 +492,7 @@ fn json_value(
 pub(super) fn serialize(graph: &RdfDataset) -> Result<String> {
     let graph = purrdf::canonical_relabel(
         graph,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )?;
     let bytes = purrdf::serialize_dataset(
         &graph,

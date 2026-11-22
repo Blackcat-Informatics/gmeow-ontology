@@ -334,12 +334,12 @@ fn measure_source(
     let reconstructed = back.to_dataset()?;
     if purrdf::try_canonicalize(
         &normalized,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )?
     .nquads()
         != purrdf::try_canonicalize(
             &reconstructed,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )?
         .nquads()
     {

@@ -88,7 +88,7 @@ pub fn observe_shipped(dataset: &RdfDataset) -> gmeow_errors::Result<ShippedObse
         graph_digest: purrdf::try_graph_digest_view(
             dataset,
             GRAPH,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .map_err(Diag::from)?
         .to_hex(),

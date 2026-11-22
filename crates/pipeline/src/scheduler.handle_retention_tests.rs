@@ -87,7 +87,7 @@ fn handle_product() -> gmeow_errors::Result<StageOutput> {
     let dataset = purrdf::parse_dataset(quads.as_bytes(), "application/n-quads", None)
         .expect("synthetic typed backing graphs");
     let mut bundle = bundle_from_artifacts_over(dataset, BTreeMap::new(), DatasetProvenance::new());
-    let mut control = purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None);
+    let mut control = purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None);
     for graph in [EARLY, LATE, UNREAD] {
         let pin = bundle
             .graph_digest(graph, &mut control)

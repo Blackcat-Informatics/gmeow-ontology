@@ -2818,11 +2818,11 @@ fn registry_json_selection(root: &Path, alias: &str) -> ProductionSelection {
         root,
         "Cargo.lock",
         &format!(
-            "version=4\n[[package]]\nname='purrdf-lex'\nversion='4.0.0'\nsource='{source}'\nchecksum='{}'\n",
+            "version=4\n[[package]]\nname='purrdf-lex'\nversion='5.0.0'\nsource='{source}'\nchecksum='{}'\n",
             "a".repeat(64)
         ),
     );
-    selected.units[1].package = format!("{source}#purrdf-lex@4.0.0");
+    selected.units[1].package = format!("{source}#purrdf-lex@5.0.0");
     selected
 }
 
@@ -2835,7 +2835,7 @@ fn reviewed_registry_json_macros_require_the_exact_declared_locked_selected_owne
             "::{binding}::json_record!(impl ToJson for Record {{ include_str!(\"label.txt\") => value }});"
         ));
         write(root.path(), "crate/src/label.txt", "registry field");
-        let declaration = format!("{alias}={{package='purrdf-lex',version='=4'}}");
+        let declaration = format!("{alias}={{package='purrdf-lex',version='=5'}}");
         let manifest = format!(
             "[package]\nname='example'\nversion='1.0.0'\nedition='2024'\n[dependencies]\n{declaration}\n"
         );
@@ -2844,13 +2844,16 @@ fn reviewed_registry_json_macros_require_the_exact_declared_locked_selected_owne
         let first = InputInventory::collect(root.path(), &selected).unwrap();
         assert!(first.files.contains_key("crate/src/label.txt"));
         let mut wrong = selected.clone();
-        wrong.units[1].package = wrong.units[1].package.replace("@4.0.0", "@4.0.1");
+        wrong.units[1].package = wrong.units[1].package.replace("@5.0.0", "@5.0.1");
         assert!(InputInventory::collect(root.path(), &wrong).is_err());
         let lock = std::fs::read_to_string(root.path().join("Cargo.lock")).unwrap();
+        let unreviewed = lock.replace("version='5.0.0'", "version='5.0.1'");
+        write(root.path(), "Cargo.lock", &unreviewed);
+        assert!(InputInventory::collect(root.path(), &wrong).is_err());
         for invalid in [
             lock.replace(&"a".repeat(64), "bad"),
             lock.replace(&"a".repeat(64), &"A".repeat(64)),
-            lock.replace("version='4.0.0'", "version='4.0.1'"),
+            unreviewed,
             lock.replace(
                 "registry+https://github.com/rust-lang/crates.io-index",
                 "registry+https://example.invalid/index",
@@ -2867,7 +2870,7 @@ fn reviewed_registry_json_macros_require_the_exact_declared_locked_selected_owne
         write(
             root.path(),
             "crate/Cargo.toml",
-            &manifest.replace("version='=4'", "version='=3'"),
+            &manifest.replace("version='=5'", "version='=4'"),
         );
         assert!(InputInventory::collect(root.path(), &selected).is_err());
         write(root.path(), "crate/Cargo.toml", &manifest);
@@ -2903,11 +2906,11 @@ fn native_registry_json_macro_must_be_the_substrates_delegated_leaf() {
     write(
         root.path(),
         "Cargo.toml",
-        "[workspace.dependencies]\npurrdf='=4'\npurrdf-lex='=4'\n",
+        "[workspace.dependencies]\npurrdf='=5'\npurrdf-lex='=5'\n",
     );
     let source = "registry+https://github.com/rust-lang/crates.io-index";
     let lock = format!(
-        "[[package]]\nname='purrdf'\nversion='4.0.0'\nsource='{source}'\nchecksum='{}'\n[[package]]\nname='purrdf-lex'\nversion='4.0.0'\nsource='{source}'\nchecksum='{}'\n",
+        "[[package]]\nname='purrdf'\nversion='5.0.0'\nsource='{source}'\nchecksum='{}'\n[[package]]\nname='purrdf-lex'\nversion='5.0.0'\nsource='{source}'\nchecksum='{}'\n",
         "a".repeat(64),
         "b".repeat(64)
     );
@@ -2930,7 +2933,7 @@ fn native_registry_json_macro_must_be_the_substrates_delegated_leaf() {
         root.path(),
         "Cargo.toml",
         &format!(
-            "[workspace.dependencies]\npurrdf={{git='https://github.com/Blackcat-Informatics/purrdf',rev='{JSON_REVISION}'}}\npurrdf-lex='=4'\n"
+            "[workspace.dependencies]\npurrdf={{git='https://github.com/Blackcat-Informatics/purrdf',rev='{JSON_REVISION}'}}\npurrdf-lex='=5'\n"
         ),
     );
     assert!(

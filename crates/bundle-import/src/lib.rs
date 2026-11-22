@@ -55,7 +55,7 @@ pub fn register_all() -> Vec<Code> {
 }
 
 const SCHEMA_VERSION: u32 = 1;
-const CODEC: &str = "gts-events-to-purrpack1-graph-preserving-v1";
+const CODEC: &str = "gts-events-to-purrpack1-graph-preserving-v2";
 const MAX_PACK_BYTES: u64 = 512 * 1024 * 1024;
 const MAX_RECEIPT_BYTES: u64 = 1024 * 1024;
 const RETAINED_IMPORTS: usize = 2;
@@ -988,7 +988,7 @@ fn import_graph_preserving_under_root(
     let dataset = import(gts_bytes)?;
     let pack = PackBuilder::build_bytes(
         dataset.as_ref(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|error| diag(format!("bundle import: build PURRPCK1 image: {error}")))?;
     let pack_bytes = u64::try_from(pack.len()).unwrap_or(u64::MAX);

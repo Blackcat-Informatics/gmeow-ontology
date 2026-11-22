@@ -74,7 +74,7 @@ fn authored_product(
         let pin = bundle
             .graph_digest(
                 graph,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .unwrap();
         bundle
@@ -82,7 +82,7 @@ fn authored_product(
                 graph,
                 PipelineHandle::GroundingCatalog(Arc::new(catalog)),
                 pin,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .unwrap();
     }

@@ -13,9 +13,13 @@ fn schema_publication_carries_located_losses_and_exact_artifacts() {
             from: Cow::Borrowed("shacl"),
             to: Cow::Borrowed("json-schema"),
             note: Cow::Borrowed("cross-node constraint is not representable"),
-            location: Some(Box::new(
-                purrdf::RdfLocation::logical("authored.ttl").with_subject(subject),
-            )),
+            site: purrdf::loss::LossSite::Document {
+                path: Some("authored.ttl".into()),
+                line: None,
+                column: None,
+            },
+            subject: purrdf::loss::LossSubject::Term(purrdf::loss::LossTerm::Iri(subject.into())),
+            detail: Vec::new(),
         });
     }
     let output = publish_schema(
@@ -155,9 +159,15 @@ fn schema_publication_preserves_coalesced_loss_observations_in_rdf() {
             from: "shacl".into(),
             to: target.into(),
             note: "cross-node constraint is not representable".into(),
-            location: Some(Box::new(
-                purrdf::RdfLocation::logical("authored.ttl").with_subject("urn:constraint"),
+            site: purrdf::loss::LossSite::Document {
+                path: Some("authored.ttl".into()),
+                line: None,
+                column: None,
+            },
+            subject: purrdf::loss::LossSubject::Term(purrdf::loss::LossTerm::Iri(
+                "urn:constraint".into(),
             )),
+            detail: Vec::new(),
         });
     }
     let output = publish_schema(

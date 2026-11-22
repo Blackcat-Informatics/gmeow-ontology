@@ -39,9 +39,10 @@ fn streamed_flat_union_matches_the_prior_flat_canonical_path() {
     ];
     let old_refs: Vec<&[RdfQuad]> = old_sources.iter().map(Vec::as_slice).collect();
     let old_union = purrdf::flat_dataset_from_quad_sources(&old_refs).expect("old flat union");
-    let expected = purrdf::canonical_flat_nquads(
+    let expected = purrdf::canonical_flat_nquads_with(
         old_union.as_ref(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        purrdf::rdfc12::CanonHash::Sha256,
+        &mut purrdf::CanonicalizationControl::new(purrdf::rdfc12::RDFC_V2_CORPUS_POLICY, None),
     )
     .expect("old flat union canonicalizes");
 
@@ -76,9 +77,10 @@ fn medium_stratum_identity_binds_the_world_of_attributed_claims() {
     let (first_digest, first_len) = snapshot_stratum_digest(&first, &[]).unwrap();
     let (second_digest, _) = snapshot_stratum_digest(&second, &[]).unwrap();
     assert_ne!(first_digest, second_digest);
-    let expected = purrdf::canonical_flat_nquads(
+    let expected = purrdf::canonical_flat_nquads_with(
         &first,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        purrdf::rdfc12::CanonHash::Sha256,
+        &mut purrdf::CanonicalizationControl::new(purrdf::rdfc12::RDFC_V2_CORPUS_POLICY, None),
     )
     .unwrap();
     assert_eq!(
@@ -95,9 +97,10 @@ fn medium_stratum_identity_binds_the_world_of_attributed_claims() {
     ];
     let union =
         purrdf::flat_dataset_from_quad_sources(&[&source_quads[0], &source_quads[1]]).unwrap();
-    let expected = purrdf::canonical_flat_nquads(
+    let expected = purrdf::canonical_flat_nquads_with(
         &union,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        purrdf::rdfc12::CanonHash::Sha256,
+        &mut purrdf::CanonicalizationControl::new(purrdf::rdfc12::RDFC_V2_CORPUS_POLICY, None),
     )
     .unwrap();
     let (digest, len) = snapshot_stratum_digest(&first, &[second]).unwrap();
@@ -309,9 +312,10 @@ fn composite_stratum_digest_equals_the_flattened_union_digest() {
         .collect();
     let refs: Vec<&[RdfQuad]> = flattened.iter().map(Vec::as_slice).collect();
     let union = purrdf::flat_dataset_from_quad_sources(&refs).expect("flattened union");
-    let expected = purrdf::canonical_flat_nquads(
+    let expected = purrdf::canonical_flat_nquads_with(
         union.as_ref(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        purrdf::rdfc12::CanonHash::Sha256,
+        &mut purrdf::CanonicalizationControl::new(purrdf::rdfc12::RDFC_V2_CORPUS_POLICY, None),
     )
     .expect("flattened union canonicalizes");
 
@@ -321,4 +325,45 @@ fn composite_stratum_digest_equals_the_flattened_union_digest() {
         crate::medium::blake3_digest(expected.nquads().as_bytes())
     );
     assert_eq!(len, expected.nquads().len());
+}
+
+/// The reader excludes every physical row belonging to each declared envelope
+/// in the registry graph and preserves its other RDF 1.2 records.
+#[test]
+fn reader_strips_registry_envelopes_without_losing_other_claims() {
+    let prefixes_and_stratum = r#"
+        @prefix ex: <https://example.org/> .
+        @prefix gm: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        <https://blackcatinformatics.ca/gmeow/graph/medium-registry> {
+            ex:unrelated rdf:reifies <<( _:item ex:p ex:o )>> ;
+                ex:annotation ex:note .
+        }
+        ex:otherGraph {
+            ex:envelope a gm:MediumEnvelope ;
+                ex:ordinary _:item .
+        }
+    "#;
+    let envelope_projection = r#"
+        <https://blackcatinformatics.ca/gmeow/graph/medium-registry> {
+            ex:envelope a gm:MediumEnvelope ;
+                rdf:reifies <<( _:item ex:p ex:o )>> ;
+                ex:newField ex:extension .
+        }
+    "#;
+    let parse = |text: &str| {
+        parse_dataset(text.as_bytes(), "application/trig", None).expect("snapshot fixture")
+    };
+    let stratum = parse(prefixes_and_stratum);
+    let payload = parse(&format!("{prefixes_and_stratum}{envelope_projection}"));
+    let (expected, _) = snapshot_stratum_digest(&stratum, &[]).expect("producer stratum");
+    assert_eq!(
+        verify_snapshot_stratum_digest(&payload).expect("reader stratum"),
+        expected
+    );
+
+    let overlay_alias = parse("<urn:purrdf:rdfc:annotation> { <urn:s> <urn:p> <urn:o> . }");
+    let refused = verify_snapshot_stratum_digest(&overlay_alias)
+        .expect_err("reserved overlay rows cannot substitute for native roles");
+    assert!(refused.to_string().contains("reserved RDFC overlay"));
 }

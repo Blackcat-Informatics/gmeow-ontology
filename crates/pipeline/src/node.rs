@@ -291,7 +291,7 @@ impl StageProduct {
             measure_stage_phase(&stage_id, "capture-handle-commitments", || {
                 crate::handle_identity::handle_commitments(&bundle)
             });
-        let mut control = purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None);
+        let mut control = purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None);
         let digest = measure_stage_phase(&stage_id, "digest-stage-product", || {
             crate::handle_identity::product_digest(&bundle, &handle_commitments, &mut control)
         })

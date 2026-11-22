@@ -2520,7 +2520,7 @@ impl DocsModel {
         let catalog = SliceCatalog::discover(
             &root.join("slices"),
             gmeow_ns::gmeow_slice_vocab(),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )?;
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
         let central_sets = read_central_mapping_sets(root)?;
@@ -2616,7 +2616,7 @@ impl DocsModel {
         let catalog = SliceCatalog::discover(
             slice_dir,
             gmeow_ns::gmeow_slice_vocab(),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .map_err(|e| {
             attribute_mapping_parse_failure(slice_dir, &e).unwrap_or(DocsError::Slice(e))

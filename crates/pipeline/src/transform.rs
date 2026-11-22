@@ -467,9 +467,8 @@ impl TransformDatasetReport {
 }
 
 fn skolemized_graph(raw_nt: &str) -> gmeow_errors::Result<Graph> {
-    // Native full RDFC-1.0 (SHA-256) canonical N-Quads — the canonical `_:c14nN`
-    // labels (hence the persisted skolem IRIs) are stable. We canonicalize the parsed
-    // input then map each canonical blank to its deterministic skolem IRI.
+    // Relabel the parsed graph using PurRDF's canonical profile before deriving
+    // deterministic skolem IRIs.
     let parsed = purrdf::parse_dataset(
         raw_nt.as_bytes(),
         NativeRdfFormat::NTriples.media_type(),
@@ -483,7 +482,7 @@ fn skolemized_graph(raw_nt: &str) -> gmeow_errors::Result<Graph> {
 fn skolemized_dataset(parsed: &RdfDataset) -> gmeow_errors::Result<Graph> {
     let canon = purrdf::canonical_relabel(
         parsed,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Transform {

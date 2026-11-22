@@ -94,7 +94,7 @@ fn projection_ledger_canonicalizes_stably() {
     gmeow:structuralDrop [ gmeow:dropKind gmeow:StatementLayer ] .
 "#;
 
-    // Native path: the C3 helper, then RDFC-1.0 canonicalize.
+    // Exercise the native projection-ledger canonicalization.
     let native = turtle_to_nquads(report_ttl).expect("native turtle → n-quads");
     let native_canon = canonicalize_nq(&native, "projledger").expect("canon native");
 
@@ -102,17 +102,16 @@ fn projection_ledger_canonicalizes_stably() {
     let recanon = canonicalize_nq(native_canon.as_bytes(), "projledger").expect("recanon");
     assert_eq!(
         native_canon, recanon,
-        "RDFC-1.0 canonicalization of the projection-ledger N-Quads must be idempotent"
+        "canonicalization of the projection-ledger N-Quads must be idempotent"
     );
 
-    // Content fidelity: every authored triple survives (typed literal + blank-node
-    // structural-drop list), and a canonical blank label (`_:c14n…`) is minted.
+    // The typed literal and decimal-labelled structural-drop node survive.
     assert!(native_canon.contains("<https://blackcatinformatics.ca/gmeow/projection/okf>"));
     assert!(native_canon.contains("\"3\"^^<http://www.w3.org/2001/XMLSchema#integer>"));
     assert!(native_canon.contains("<https://blackcatinformatics.ca/gmeow/StatementLayer>"));
     assert!(
-        native_canon.contains("_:c14n"),
-        "the blank structural-drop node must carry a canonical RDFC-1.0 label"
+        native_canon.contains("_:0 "),
+        "the blank structural-drop node must carry a canonical decimal label"
     );
 }
 
@@ -173,10 +172,10 @@ fn projection_report_reuse_preserves_carrier_and_rejects_a_mismatch() {
     shared.place_graph_source(selection, &report_iri);
 
     let canonical = |parts: CarrierParts<'_>| {
-        purrdf::try_canonicalize_flat_view(
+        purrdf::rdfc12::try_canonicalize_flat_view(
             &parts.view().expect("compose the report carrier"),
-            purrdf::CanonHash::Sha256,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            purrdf::rdfc12::CanonHash::Sha256,
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .expect("canonicalize the report carrier")
         .nquads()
@@ -214,10 +213,10 @@ fn rooted_documentation_reuse_preserves_snapshot_identity() {
     )
     .expect("parse an independently scoped neighbouring graph");
     let canonical = |view: &purrdf::CompositeDatasetView| {
-        purrdf::try_canonicalize_flat_view(
+        purrdf::rdfc12::try_canonicalize_flat_view(
             view,
-            purrdf::CanonHash::Sha256,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            purrdf::rdfc12::CanonHash::Sha256,
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .expect("canonicalize the documentation carrier")
     };

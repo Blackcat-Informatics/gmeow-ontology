@@ -112,12 +112,19 @@ fn feed_source_ctx(hasher: &mut purrdf_hash::blake3::Hasher, ctx: &SourceContext
 
 impl DiagFingerprint {
     /// Compute the fingerprint from the identity fields — `(code, category,
-    /// source-context anchor, focus)`. Never keys on message/frames/grade.
+    /// source-context anchor, focus, loss occurrence)`. Never keys on message/frames/grade.
     pub fn compute(code: &str, category: FindingCategory, ctx: &SourceContext) -> Self {
         let mut hasher = purrdf_hash::blake3::Hasher::new();
         feed(&mut hasher, b"code", code.as_bytes());
         feed(&mut hasher, b"category", category.as_str().as_bytes());
         feed_source_ctx(&mut hasher, ctx);
+        if let Some(occurrence) = &ctx.loss_occurrence {
+            feed(
+                &mut hasher,
+                b"purrdf-loss-occurrence-v2",
+                occurrence.as_bytes(),
+            );
+        }
         let digest = hasher.finalize();
         let mut bytes = [0u8; 16];
         bytes.copy_from_slice(&digest.as_bytes()[..16]);

@@ -1524,7 +1524,7 @@ ex:iri a logic:PathNodeKindConstraint ;
     }));
     let mut native = purrdf::entail::Reasoner::with_proofs(
         &reader,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .expect("annotation integrity must not create invalid logical role restrictions");
     native
@@ -1542,7 +1542,7 @@ ex:iri a logic:PathNodeKindConstraint ;
             &purrdf::entail::Question::Consistency,
             Some(result.certificate()),
             &context,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     let generated = project_procedural_constraints(&program);

@@ -14,7 +14,9 @@
 //! `gmeow-validate` (the orphan-rule detour is gone now that both the RDF types'
 //! consumer and the diagnostics model live in one leaf crate).
 
-use purrdf_core::{LossEntry, LossLedger, RdfDiagnostic, RdfLocation, RdfSeverity};
+use purrdf_core::{
+    LossEntry, LossLedger, LossSite, LossSubject, LossTerm, RdfDiagnostic, RdfLocation, RdfSeverity,
+};
 
 use crate::code::register_code;
 use crate::diag::{Diag, StageId};
@@ -68,7 +70,13 @@ struct NativeLoss(LossEntry);
 
 impl std::fmt::Display for NativeLoss {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} → {}: {}", self.0.from, self.0.to, self.0.note)
+        write!(
+            f,
+            "{} → {}: {}",
+            self.0.from,
+            self.0.to,
+            self.0.presentation()
+        )
     }
 }
 
@@ -90,13 +98,49 @@ impl Diag {
             ),
             source.to_string(),
         );
-        if let Some(location) = &source.0.location {
-            diag = diag.with_location(Location::from_rdf(location));
-            if let Some(subject) = &location.subject {
-                diag = diag.with_focus(subject.clone());
+        let location = match &source.0.site {
+            LossSite::Document { path, line, column } => {
+                Location::new(path.clone(), *line, *column, None)
             }
+            LossSite::Gts {
+                segment,
+                frame,
+                term,
+                quad,
+                reifier,
+            } => Location {
+                gts_segment_index: *segment,
+                gts_frame_index: *frame,
+                gts_term_id: *term,
+                gts_quad_index: *quad,
+                gts_reifier_id: *reifier,
+                ..Location::default()
+            },
+            LossSite::Stage { name } => Location::new(None, None, None, Some(name.clone())),
+            _ => Location::default(),
+        };
+        if !location.is_empty() {
+            diag = diag.with_location(location);
         }
-        diag.with_source(source)
+        let focus = match &source.0.subject {
+            LossSubject::Term(LossTerm::Iri(iri)) => Some(iri.clone()),
+            other => other.text(),
+        };
+        if let Some(focus) = focus {
+            diag = diag.with_focus(focus);
+        }
+        // PurRDF's versioned ledger encodes typed subjects and coordinates.
+        // The diagnostic already fingerprints the code. Clear it here to
+        // exclude the registry's intent classification, and omit prose notes.
+        let mut occurrence = LossLedger::new();
+        occurrence.record(LossEntry {
+            code: "".into(),
+            note: "".into(),
+            ..source.0.clone()
+        });
+        let digest = purrdf_hash::blake3::hash(occurrence.render_json().as_bytes());
+        diag.with_loss_occurrence(purrdf_hash::hex::encode(digest.as_bytes()))
+            .with_source(source)
     }
     /// Ingest a native diagnostic, retaining its original typed value as the
     /// live cause and its subject as the focus. The caller attaches the parent;
