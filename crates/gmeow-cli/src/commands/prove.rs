@@ -1782,7 +1782,7 @@ fn check_proof(
                 let diagnostic = canonicalization_limit_failure(
                     &budget,
                     "proof source binding",
-                    failure("PROOF_SOURCE_BINDING", error.to_string()),
+                    caused_failure("PROOF_SOURCE_BINDING", error, "bind the proof source"),
                     &loaded.identities,
                 );
                 return publish_check(

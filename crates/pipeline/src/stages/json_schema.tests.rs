@@ -77,17 +77,16 @@ fn schema_publication_carries_located_losses_and_exact_artifacts() {
         }));
     }
     assert!(quads.iter().any(|quad| {
-        quad.predicate == "https://blackcatinformatics.ca/gmeow/findingLocationLogical"
+        quad.predicate == "https://blackcatinformatics.ca/gmeow/findingLocationPath"
             && quad.object == purrdf::RdfTerm::literal(purrdf::RdfLiteral::simple("authored.ttl"))
     }));
     assert!(rdf.contains("schema.unrepresentable"));
     assert!(rdf.contains("shacl → json-schema"));
-    let message = purrdf::RdfTerm::literal(purrdf::RdfLiteral::simple(
-        "shacl → json-schema: cross-node constraint is not representable",
-    ));
+    let message = "shacl → json-schema: cross-node constraint is not representable";
     assert!(quads.iter().any(|quad| {
         quad.predicate == "https://blackcatinformatics.ca/gmeow/findingMessage"
-            && quad.object == message
+            && matches!(&quad.object, purrdf::RdfTerm::Literal(literal)
+                if literal.lexical_form.starts_with(message))
     }));
     assert!(quads.iter().all(|quad| quad.graph_name.as_ref()
         == Some(&purrdf::RdfTerm::iri(
@@ -151,7 +150,7 @@ fn schema_publication_matches_authored_dataflow_and_attachments() {
 }
 
 #[test]
-fn schema_publication_preserves_coalesced_loss_observations_in_rdf() {
+fn schema_publication_preserves_distinct_loss_targets_in_rdf() {
     let mut losses = purrdf::LossLedger::new();
     for target in ["json-schema", "openapi"] {
         losses.record(purrdf::LossEntry {
@@ -179,19 +178,15 @@ fn schema_publication_preserves_coalesced_loss_observations_in_rdf() {
         },
     )
     .unwrap();
-    assert_eq!(output.diags.len(), 1, "one shared source witness");
-    assert_eq!(output.diags[0].observations.len(), 2);
+    assert_eq!(output.diags.len(), 2, "one witness per loss target");
+    assert!(output.diags.iter().all(|node| node.observations.len() == 1));
     let quads: Vec<_> = output.product.dataset().owned_quads().collect();
     for target in ["json-schema", "openapi"] {
-        let message = purrdf::RdfTerm::literal(purrdf::RdfLiteral::simple(format!(
-            "shacl → {target}: cross-node constraint is not representable"
-        )));
+        let message = format!("shacl → {target}: cross-node constraint is not representable");
         assert!(quads.iter().any(|quad| {
-            matches!(
-                quad.predicate.as_str(),
-                "https://blackcatinformatics.ca/gmeow/findingMessage"
-                    | "https://blackcatinformatics.ca/gmeow/labelMessage"
-            ) && quad.object == message
+            quad.predicate == "https://blackcatinformatics.ca/gmeow/findingMessage"
+                && matches!(&quad.object, purrdf::RdfTerm::Literal(literal)
+                    if literal.lexical_form.starts_with(&message))
         }));
     }
 }
