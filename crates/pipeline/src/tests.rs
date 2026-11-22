@@ -3029,6 +3029,38 @@ fn a_declared_internal_read_survives_every_release_of_its_producer() {
     }
 }
 
+/// A skipped sink's declared internal input remains in the stage product
+/// after the scheduler releases the carrier. Its bytes and digest agree
+/// with a run that retains the entire carrier.
+#[test]
+fn a_declared_post_run_artifact_stays_borrowable_after_carrier_release() {
+    let ArtifactOnlyPair { graph, bound, .. } =
+        artifact_only_pair(vec![("source", "pipeline/source.nq")]);
+    let bound = bound.expect("the artifact-only graph binds");
+    let sink = bound
+        .iter()
+        .find(|stage| stage.id() == "late")
+        .expect("the graph includes its sink");
+    let skip = std::collections::BTreeSet::from(["late".to_owned()]);
+    let dir = tempfile::tempdir().expect("fixture directory");
+    let mut ctx = RunContext::open_uncached(dir.path(), 2);
+    let reference = crate::scheduler::run_without(&graph, &bound, &mut ctx, &skip)
+        .expect("retain-all control completes");
+
+    ctx.carrier_retention = crate::scheduler::CarrierRetention::DropAfterLastConsumer;
+    ctx.retain_post_run_inputs(sink.reads());
+    let released = crate::scheduler::run_without(&graph, &bound, &mut ctx, &skip)
+        .expect("the post-run input survives");
+    assert_eq!(released.combined_digest, reference.combined_digest);
+    let source = &released.products["source"];
+    assert!(source.carrier_released);
+    let expected = reference.products["source"]
+        .artifact("pipeline/source.nq")
+        .expect("the control published the selected artifact");
+    assert_eq!(source.artifact("pipeline/source.nq"), Some(expected));
+    assert!(released.retained_artifacts.is_empty());
+}
+
 /// Handing a product to an artifact-only consumer copies no byte: the consumer reads the
 /// producer's committed and declared internal artifacts at the very address the
 /// producer's product holds, whether that product was still whole when the consumer was

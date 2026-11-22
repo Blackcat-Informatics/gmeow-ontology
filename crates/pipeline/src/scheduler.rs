@@ -172,9 +172,8 @@ pub struct RunContext {
     ///
     /// [`CarrierRetention::RetainAll`] on every constructor — the conservative identity
     /// — so a caller that reads an intermediate carrier post-run keeps working until it
-    /// explicitly opts in. [`crate::run::run_full_scoped_with_progress`] selects
-    /// [`CarrierRetention::DropAfterLastConsumer`]; that is the only whole-repository
-    /// path and the one whose peak residency has to be bounded.
+    /// explicitly opts in. Whole-repository callers select
+    /// [`CarrierRetention::DropAfterLastConsumer`] and declare their post-run inputs.
     pub carrier_retention: CarrierRetention,
     /// Intermediate carriers an explicit out-of-band caller will read after the DAG.
     ///
@@ -188,6 +187,9 @@ pub struct RunContext {
     /// The scheduler copies only these bytes before releasing their carriers. A
     /// missing stage or artifact is an error; selection never changes execution.
     pub retained_artifacts: BTreeSet<(String, String)>,
+    /// Inputs borrowed from the run products by a reader outside the DAG. Internal
+    /// byte artifacts stay in the producer's released product.
+    post_run_inputs: BTreeMap<String, crate::reads::ReadSet>,
     /// What the run does when a stage's recorded reads differ from the reads its
     /// dataflow edges declare. Every context starts at
     /// [`ReadPolicy::Enforce`](crate::reads::ReadPolicy::Enforce); only the maintainer
@@ -224,6 +226,7 @@ impl RunContext {
             carrier_retention: CarrierRetention::RetainAll,
             retained_carriers: BTreeSet::new(),
             retained_artifacts: BTreeSet::new(),
+            post_run_inputs: BTreeMap::new(),
             read_policy: crate::reads::ReadPolicy::Enforce,
             ready_order: ReadyOrder::default(),
             // Persistent boundary: the cache lives under the repo's `.cache/`, not a
@@ -265,6 +268,7 @@ impl RunContext {
             carrier_retention: CarrierRetention::RetainAll,
             retained_carriers: BTreeSet::new(),
             retained_artifacts: BTreeSet::new(),
+            post_run_inputs: BTreeMap::new(),
             read_policy: crate::reads::ReadPolicy::Enforce,
             ready_order: ReadyOrder::default(),
             _ephemeral_cache_dir: Some(dir),
@@ -288,6 +292,7 @@ impl RunContext {
             carrier_retention: CarrierRetention::RetainAll,
             retained_carriers: BTreeSet::new(),
             retained_artifacts: BTreeSet::new(),
+            post_run_inputs: BTreeMap::new(),
             read_policy: crate::reads::ReadPolicy::Enforce,
             ready_order: ReadyOrder::default(),
             // Inert boundary: no cache I/O at all, so no temporary directory.
@@ -310,6 +315,21 @@ impl RunContext {
     {
         self.retained_carriers
             .extend(stage_ids.into_iter().map(Into::into));
+    }
+
+    pub(crate) fn retain_post_run_inputs(
+        &mut self,
+        inputs: impl IntoIterator<Item = (String, crate::reads::ReadSet)>,
+    ) {
+        for (producer, reads) in inputs {
+            if crate::reads::needs_carrier(&reads) {
+                self.retained_carriers.insert(producer.clone());
+            }
+            self.post_run_inputs
+                .entry(producer)
+                .or_default()
+                .extend(reads);
+        }
     }
 }
 
@@ -534,6 +554,7 @@ pub fn run_without(
         .retained_carriers
         .iter()
         .chain(ctx.retained_artifacts.iter().map(|(stage, _)| stage))
+        .chain(ctx.post_run_inputs.keys())
     {
         if !by_id.contains_key(retained.as_str()) || skip.contains(retained) {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -627,7 +648,7 @@ pub fn run_without(
     // completion order.
     let mut remaining_dependencies: BTreeMap<String, usize> = BTreeMap::new();
     let mut dependents: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let mut logically_consumed: BTreeSet<String> = BTreeSet::new();
+    let mut logically_consumed: BTreeSet<String> = ctx.post_run_inputs.keys().cloned().collect();
     let mut remaining_carrier_readers: BTreeMap<String, usize> = BTreeMap::new();
     let mut span_consumers_remaining = 0usize;
     for stage_id in &executed {
@@ -677,6 +698,12 @@ pub fn run_without(
         for (producer, artifact) in by_id[stage_id.as_str()].internal_artifact_reads() {
             kept_internal.entry(producer).or_default().insert(artifact);
         }
+    }
+    for (producer, reads) in &ctx.post_run_inputs {
+        kept_internal
+            .entry(producer.clone())
+            .or_default()
+            .extend(crate::reads::internal_artifacts(reads).map(str::to_owned));
     }
     // The same names, shared by every artifact-lane view of that producer.
     let kept_shared: BTreeMap<String, Arc<BTreeSet<String>>> = kept_internal
