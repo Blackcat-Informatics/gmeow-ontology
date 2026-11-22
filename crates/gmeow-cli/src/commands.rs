@@ -89,6 +89,13 @@ use gmeow_pipeline::diagnostics_reader::{
 
 use crate::{BUNDLE_GTS, NAMESPACE, OutputFormat};
 
+/// Render a reasoning term for line-oriented CLI output.
+/// Use the term's debug representation when it has no IRI.
+fn render_term(term: &TermValue) -> String {
+    term.as_iri()
+        .map_or_else(|| format!("{term:?}"), str::to_owned)
+}
+
 /// Build an Error-grade CLI diagnostic carrying a per-site stable code — the
 /// pre-carrier graded witness a handled `gmeow` failure lowers to (never a bare
 /// string). The `code` is interned once (idempotently) and the message carries
