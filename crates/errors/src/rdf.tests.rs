@@ -289,6 +289,16 @@ fn loss_subjects_remain_distinct_witnesses() {
         .find(|node| node.code == "lang.projection")
         .unwrap();
     assert_eq!(parent.antecedents.len(), 4);
+    let repeated = nodes
+        .iter()
+        .find(|node| {
+            node.source_ctx
+                .focus
+                .as_ref()
+                .is_some_and(|focus| focus.0 == "urn:subject:a")
+        })
+        .unwrap();
+    assert_eq!(repeated.observations.len(), 2);
     let mut focuses = std::collections::BTreeSet::new();
     for child in nodes
         .iter()

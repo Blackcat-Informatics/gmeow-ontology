@@ -14,6 +14,8 @@
 //! `gmeow-validate` (the orphan-rule detour is gone now that both the RDF types'
 //! consumer and the diagnostics model live in one leaf crate).
 
+use std::collections::HashSet;
+
 use purrdf_core::{
     LossEntry, LossLedger, LossSite, LossSubject, LossTerm, RdfDiagnostic, RdfLocation, RdfSeverity,
 };
@@ -171,8 +173,8 @@ impl Diag {
 
     /// Project a purrdf [`RdfDiagnostic`] and its unified [`LossLedger`] into a
     /// [`Diag`]. Each loss is attached to `ledger` as a non-gating
-    /// `ProjectionLoss` child witness, and the returned parent carries those
-    /// children as DAG antecedents.
+    /// `ProjectionLoss` child witness. The returned parent references each
+    /// distinct witness once, in first-seen order.
     #[track_caller]
     pub fn from_rdf_with_losses(
         diagnostic: RdfDiagnostic,
@@ -183,9 +185,13 @@ impl Diag {
         // Losses become ProjectionLoss child witnesses, attached first so the
         // parent's antecedent handles are already resident.
         let mut antecedents = Vec::with_capacity(losses.entries().len());
+        let mut seen = HashSet::with_capacity(losses.entries().len());
         for loss in losses.entries() {
             let child = Diag::from_rdf_loss(loss.clone());
-            antecedents.push(ledger.attach(child, stage.clone()));
+            let witness = ledger.attach(child, stage.clone());
+            if seen.insert(witness) {
+                antecedents.push(witness);
+            }
         }
 
         Self::from_rdf(diagnostic).with_antecedents(antecedents)
