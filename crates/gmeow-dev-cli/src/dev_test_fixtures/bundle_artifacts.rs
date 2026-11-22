@@ -9,7 +9,7 @@ use gmeow_gts_profile::archive;
 use gmeow_logic::coherence_observations as coherence;
 use gmeow_logic_compile::action_policy;
 use gmeow_mcp::corpus_observations as mcp_native;
-use gmeow_pipeline::bundle_blobs::{REP_EXAMPLES, REP_MAPPINGS, REP_QUERIES, REP_SHAPES};
+use gmeow_pipeline::bundle_blobs::{REP_MAPPINGS, REP_QUERIES, REP_SHAPES};
 use gmeow_pipeline::stages::conformance::production_shapes::PreparedProductionShapes;
 use gmeow_pipeline::stages::conformance::{advice_wing, contextual_results, flagship_unwired};
 use gmeow_pipeline::stages::validate::norm_claims;
@@ -59,7 +59,6 @@ pub(super) const NAMES: &[&str] = &[
 /// Exact archive profile required by every artifact in `NAMES`. Independent
 /// artifact hits do not initialize this profile; any miss shares its one import.
 pub(super) const BLOB_SELECTORS: &[GtsBlobSelector<'static>] = &[
-    GtsBlobSelector::Representation(REP_EXAMPLES),
     GtsBlobSelector::Representation(archive::PREPARED_REASONING_REP),
     GtsBlobSelector::Representation("lang-projections-archive"),
     GtsBlobSelector::Representation(REP_SHAPES),
@@ -183,15 +182,9 @@ impl<'a> Sources<'a> {
                 )
             }
             gmeow_docs::gmn1_primer::teachability::ARTIFACT => {
-                let bytes = self.member(
-                    REP_EXAMPLES,
-                    gmeow_docs::gmn1_primer::teachability::SOURCE,
-                    member_limit,
-                )?;
-                let heldout = purrdf::parse_dataset(&bytes, "text/turtle", None).map_err(fail)?;
                 let observation = gmeow_docs::gmn1_primer::teachability::observe(
                     self.dataset()?,
-                    &heldout,
+                    gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES,
                     self.gmn_codebook()?.dictionary(),
                 )
                 .map_err(fail)?;
