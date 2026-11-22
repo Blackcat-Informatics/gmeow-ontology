@@ -3,226 +3,226 @@
   "engine_identity": [
     {
       "name": "purrdf",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "a56b729b1d99644bae18fae41a84525844bd82cd0d2a15e9334e9227370266c1"
+      "checksum": "0089bac4286c36e40903814f1a11e69ddb44e4bf5e4d1c64360ed2753e7d4689"
     },
     {
       "name": "purrdf-cdt",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "d15f642288681d71c89433ae164d76133a02dec4ec96025d59920f2484de64eb"
+      "checksum": "8d75b3daada32d4306d21cd213a13aa0d2b426174d77928145d896f5e637a1d8"
     },
     {
       "name": "purrdf-columnar",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "047eb81e6d0721f79e12916ac6f371d9f47a336cf76910539c1e1bc47b922d8f"
+      "checksum": "0d8bc9152d953ba9af47f1feca4a6afe5d2e45b09774ed46ece1e55b851646e4"
     },
     {
       "name": "purrdf-core",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "c2300935791cd68dd5f70f4cd6ff583c77dfefb65a0fbfbd6cec20fb55b496da"
+      "checksum": "de8eb959ca67e1a5b281cb6d6da928862fcb32feaf9ed2d3234eb2e185562d38"
     },
     {
       "name": "purrdf-datalog",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "b5585c878f9ecbbc104fd7dbb963025072bee732965313dac8aacaeb1b8e08b2"
+      "checksum": "e32a9e9b92d414006f17be10cdd1a99b49189db9e05d6b5c53a384dd43c1423c"
     },
     {
       "name": "purrdf-deflate",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "95d6de392562a7f833a854dcd5288d30c99c8f3723ada926b5f46b08e8f3a8ee"
+      "checksum": "60e831a29c24830ec066b956ad4fa247f2891325d88152e19fcba6de0d87e456"
     },
     {
       "name": "purrdf-ed25519",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "22c380d2eefe4eb5f91e1c3b8bada2e7cc8172107382f82aca70f117a262207b"
+      "checksum": "a768ea55e7f1c0b2eab7d03beac6b7c2acd544449683a25c3972de6ee0ab3e1a"
     },
     {
       "name": "purrdf-entail",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "8219fcf1f43727863a466ccda912895beff5f86afd39821fea0aee0283012026"
+      "checksum": "0963e489931156c211cb2bb7a4a0ff31f2271185ce46d34146cd489e8e596900"
     },
     {
       "name": "purrdf-events",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "3cf9dbf448947c966bd0c8a859a373482c012139aacb76a9df3b1d1f53b8a45b"
+      "checksum": "d33bc8fd9fa879cdfece60442da01f6cc9148423eda49027dc1f24577fc7624a"
     },
     {
       "name": "purrdf-geo",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "9e1e19aff0d12dd868abcfee3cbcb389fa5d990a7148972846ce500dac7dfa0c"
+      "checksum": "97266e6294fe7db4d059d7363adf2a396ba55edfce2236b830946be3432ae50d"
     },
     {
       "name": "purrdf-geo-kernel",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "fd1a6884443d603f7a86e14d94e6242e6c910f6d77ae503fac61a9bf30d426db"
+      "checksum": "6dd1fa46bd86b92ef850a7bba4bb2f6738fd6fac3227c81ad802702ae4df42c0"
     },
     {
       "name": "purrdf-glob",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "c191e2c5de449feb24381484b8d922466f7d67b05d1bf1274575f3c9db507440"
+      "checksum": "48c5d3ac6d29c152c214a1f5a4733dfe835314860e6da52c6cbe3351b2af818b"
     },
     {
       "name": "purrdf-gts",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "ba74ac9ed54ee75bb00ceabcce3058cead881b47f9b0c2b1813b7d3f435324ea"
+      "checksum": "238e79640dc48891775b187000cfecdb74e3518efddaca1cf9950daf1b4c7803"
     },
     {
       "name": "purrdf-hash",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "a3bb9beec719fdbadfd6b81ddc666b48682cada7447a59ad703f6ec529315452"
+      "checksum": "7298a6b130f7ab915d9587c60e72c9d4cfba3764fd1abab403cb958dd4431d5c"
     },
     {
       "name": "purrdf-hnsw",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "2b6741c4cbc5b5e415bd1d1322c3fba3d02d23a821c2403e13ab99d552e2f864"
+      "checksum": "c6fd5c264a41dd5840460bd22ba2d2884a775c52d6c63b2edde425de11d82459"
     },
     {
       "name": "purrdf-iri",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "f877f2bc24bebdb93ce15c75c4d9f64ae78bf13e742921cc90dbc7e1a1cca7aa"
+      "checksum": "1140da8a8cf39688e0740953a29390738ae45b81f45b13353899e5e3700ea37e"
     },
     {
       "name": "purrdf-json",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "08c6a23f44e5d41bb2d14db71991e1876142b65153acaee1e384e19c5703ec47"
+      "checksum": "cd187697174696c8dcec56989d468befb07b7adbb0e47916795c1db564b9cb69"
     },
     {
       "name": "purrdf-jsonschema",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "462fe723108bf70b9333f2e9a7b178456ba15d42fa33316b46d65035e8b441c4"
+      "checksum": "da9c3f004c3672499468c062034bf3cc4b6c35794a1423add51a91b6465f7c5c"
     },
     {
       "name": "purrdf-lex",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "7b9d65f454ffda694b36ecd44947b892480a53251342ef01244f49b0f913dbe0"
+      "checksum": "21d8c1311fde4a0b5de40c4a11f8cbe2f7f88f4d27580504cb6e11ee0ee08c8a"
     },
     {
       "name": "purrdf-markdown",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "0146eb8309df9a8c87051776bc3ab7504fe266fc2952a85ecccc35f9f35bd683"
+      "checksum": "200bea248f5442ab49e2fb80e402cb75bbaf4d21ea867f21e83cc860a1426ab1"
     },
     {
       "name": "purrdf-mime",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "8b3149191efde2846438ffc9de8c1e634460e3d9c2483b4c8275c04fd051079e"
+      "checksum": "7aaa9c7bd26cb5ceeacb1084754318517c28286c3f2b2476779a858008bcf965"
     },
     {
       "name": "purrdf-rdf",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "249a4d311787b0c83b4194abfb749e398035f9cb1865673ecce310c48a94d01d"
+      "checksum": "013abc8f6e09207393981e435fbf3e0a465ff0f24b87427127ca5f4b46bff11b"
     },
     {
       "name": "purrdf-retrieval",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "a0529c327696c896c5c118660fb6687b74760c633af7d6e8a108eeec53026f2b"
+      "checksum": "abcc52af2f29ff5bd2667afba5c2ea6ac44b444a8d7e7acea0252d1724214488"
     },
     {
       "name": "purrdf-shapes",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "772f3b994e42ba9d0ceab6805ef8b4478b05d6301c0acfa901c58ecf5ff5056b"
+      "checksum": "469979c5bf00f5568891441276f560b7958fa81229033631e9ea2925293d7529"
     },
     {
       "name": "purrdf-shex",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "b6da8e243265d7295346e4b3eefaea08202aa52b86bf758a25b4ede644f01352"
+      "checksum": "fc6eabb36ffae2cb4887eaf4b0f2813e5e3cae3841f387003b1e5dba90f4db5b"
     },
     {
       "name": "purrdf-slice",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "534dd6e8d7d25f7bc343b7c15b523a553874c62374c94b4b20ee4372982e5601"
+      "checksum": "e3f362bfba87fa45c26d0d98c74fa04ebba45b95f9134ba429de9e33d63fb86d"
     },
     {
       "name": "purrdf-sparql-algebra",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "d78f6c02d8ea5e8f661cccf0c75a6ef462592d15a2a6786eb0f69f0e6d00345c"
+      "checksum": "4e25a6b72fe7af89969cbf4486d3dfd91566361f0be7a6515f896c7e2e740705"
     },
     {
       "name": "purrdf-sparql-eval",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "db13cd37679c88cce205f57db10951bf0cc460e2cbd4908dcb7d68f177ccac94"
+      "checksum": "56e6a6e9f1a943b068ca7962bd2db1c72a1bcb5fb715344b6be345ef492d11ee"
     },
     {
       "name": "purrdf-sparql-results",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "9a7967cb21b02657be52665cd05b6c64409b4784a6ceec91356b1702475583dc"
+      "checksum": "136ac6b8f337146c324cdf4548e39641c7b6fc18f4674d6bdf122cb973bef903"
     },
     {
       "name": "purrdf-stack",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "7fa701647675a5b69268e83002ec8247d0edff7b25d03802487a399476fd5eb9"
+      "checksum": "7ee93547ba57920cc7e8ae7077a36bd3a4707a09d7f022d89a4cf1743e2d81af"
     },
     {
       "name": "purrdf-text",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "7a0ae78339401b564a868eb93ecfb7a8d8ec9b226130c09367259f2ffbbd3e27"
+      "checksum": "71ada017a8f3380f502b6149c24270d47a0efe06243661ac94289a6d369b2889"
     },
     {
       "name": "purrdf-toml",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "ad2613144863e5415c1a4aaefb4a1dd2acaff9cb470fb3b55c3b6d477546b3b6"
+      "checksum": "e99d9b9f82d8f00a67cecf3991827b171a7e6c999e8594931e1090cd072faddb"
     },
     {
       "name": "purrdf-validate",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "c98a5c0aa69d324f43ed0b4e2de9e01d333075b46fd8267a5afaffed13541ce8"
+      "checksum": "ac355d05f5ea23c0c3b902cd1b147b1cce1c7749785c3e81f477a1a54ec8c95e"
     },
     {
       "name": "purrdf-xsd",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "8a80102da09c8328099fa82a860eaeb0e6fd7b656d5850e6cd8a6f8755cee33c"
+      "checksum": "e9794ed78c4d272995693238bfc63d98cf134242d913c98dce5cd9a654d2ffc3"
     },
     {
       "name": "purrdf-yaml",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "c3c513655ecf24929343b083800d1052f619b7f9d5ca37689d570f37c10fb046"
+      "checksum": "6aa685315b366d98d4366019d4b65ff085366df14d07bf3771b96f2d4617025a"
     },
     {
       "name": "purrdf-zstd",
-      "version": "4.0.0",
+      "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "checksum": "40e55f1e9b7f8c991ddc11bb5c0c5ed00184e930b9237d52e9196c7f5ca9d9b6"
+      "checksum": "eba7cbfdb83e1e1e72bc1fac3c91dd35de3b9ab20e65e2dd03ac0a0cc5750fbd"
     }
   ],
   "codec_sweep": {
     "mandated_codec": "zstd-rsyncable",
     "mandated_level": 12,
     "corpus_frame_count": 22,
-    "corpus_bytes": 1780303756,
+    "corpus_bytes": 1779692095,
     "excluded_reps": [
       "docs-book",
       "docs-print",
@@ -233,42 +233,42 @@
       {
         "codec": "zstd",
         "level": 3,
-        "bytes": 156614092
+        "bytes": 156748719
       },
       {
         "codec": "zstd",
         "level": 9,
-        "bytes": 143369925
+        "bytes": 143355929
       },
       {
         "codec": "zstd",
         "level": 12,
-        "bytes": 142096673
+        "bytes": 142086444
       },
       {
         "codec": "zstd",
         "level": 19,
-        "bytes": 119558839
+        "bytes": 119527236
       },
       {
         "codec": "zstd-rsyncable",
         "level": 3,
-        "bytes": 197070189
+        "bytes": 197017126
       },
       {
         "codec": "zstd-rsyncable",
         "level": 9,
-        "bytes": 189772412
+        "bytes": 189757171
       },
       {
         "codec": "zstd-rsyncable",
         "level": 12,
-        "bytes": 188286270
+        "bytes": 188251855
       },
       {
         "codec": "zstd-rsyncable",
         "level": 19,
-        "bytes": 180484750
+        "bytes": 180478477
       }
     ],
     "mandated_is_argmin": false
@@ -282,11 +282,11 @@
       "winning_strategy": "trained",
       "winning_target_length": 262144,
       "declared_is_argmin": true,
-      "bytes_on_disk": 71748481,
-      "bytes_on_disk_baseline": 79258190,
+      "bytes_on_disk": 71757675,
+      "bytes_on_disk_baseline": 79274702,
       "dictionary_in_band_bytes": 262142,
-      "two_part_code_bytes": 72010623,
-      "dictionary_gain_fraction": "0.091442",
+      "two_part_code_bytes": 72019817,
+      "dictionary_gain_fraction": "0.091516",
       "corpus_sample_count": 1010,
       "held_out_sample_count": 18,
       "corpus_digest": "blake3:d70a9d9259cbd77b75e2a1fb1f85ef872cf7dca4a14a01e39ae67c8ad1b64174",
@@ -296,73 +296,73 @@
           "strategy": "trained",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 76251148
+          "two_part_code_bytes": 76268163
         },
         {
           "strategy": "trained",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 74268220
+          "two_part_code_bytes": 74283538
         },
         {
           "strategy": "trained",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 72123583
+          "two_part_code_bytes": 72139905
         },
         {
           "strategy": "trained",
           "target_length": 262144,
           "dictionary_bytes": 262142,
-          "two_part_code_bytes": 72010623
+          "two_part_code_bytes": 72019817
         },
         {
           "strategy": "raw-content",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 78408055
+          "two_part_code_bytes": 78433256
         },
         {
           "strategy": "raw-content",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 77606558
+          "two_part_code_bytes": 77634728
         },
         {
           "strategy": "raw-content",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 76081983
+          "two_part_code_bytes": 76110810
         },
         {
           "strategy": "raw-content",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 75798881
+          "two_part_code_bytes": 75827393
         },
         {
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 80090099
+          "two_part_code_bytes": 80092640
         },
         {
           "strategy": "term-table",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 81411089
+          "two_part_code_bytes": 81425242
         },
         {
           "strategy": "term-table",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 82045689
+          "two_part_code_bytes": 82065662
         },
         {
           "strategy": "term-table",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 80754729
+          "two_part_code_bytes": 80767601
         }
       ]
     },
@@ -436,25 +436,25 @@
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 13496419
+          "two_part_code_bytes": 13496414
         },
         {
           "strategy": "term-table",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 13498295
+          "two_part_code_bytes": 13498305
         },
         {
           "strategy": "term-table",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 13511930
+          "two_part_code_bytes": 13511929
         },
         {
           "strategy": "term-table",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 13559405
+          "two_part_code_bytes": 13559409
         }
       ]
     },
@@ -466,87 +466,87 @@
       "winning_strategy": "trained",
       "winning_target_length": 65536,
       "declared_is_argmin": true,
-      "bytes_on_disk": 5925043,
-      "bytes_on_disk_baseline": 6929588,
+      "bytes_on_disk": 5954670,
+      "bytes_on_disk_baseline": 6931460,
       "dictionary_in_band_bytes": 65536,
-      "two_part_code_bytes": 5990579,
-      "dictionary_gain_fraction": "0.135507",
+      "two_part_code_bytes": 6020206,
+      "dictionary_gain_fraction": "0.131466",
       "corpus_sample_count": 162,
       "held_out_sample_count": 1,
-      "corpus_digest": "blake3:b867632fa7e45872b858a56cbc2a08f7c889a9c2babb9321130ea6de0a324640",
+      "corpus_digest": "blake3:7d59f44384263e11b325dfadfd8e546d1a5420f37535d28ffc97d5ea066e6e16",
       "evaluated_frame_count": 6,
       "grid": [
         {
           "strategy": "trained",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 6577548
+          "two_part_code_bytes": 6580457
         },
         {
           "strategy": "trained",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 6287364
+          "two_part_code_bytes": 6304332
         },
         {
           "strategy": "trained",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 5990579
+          "two_part_code_bytes": 6020206
         },
         {
           "strategy": "trained",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 6037323
+          "two_part_code_bytes": 6050056
         },
         {
           "strategy": "raw-content",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 6853138
+          "two_part_code_bytes": 6855008
         },
         {
           "strategy": "raw-content",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 6703254
+          "two_part_code_bytes": 6705107
         },
         {
           "strategy": "raw-content",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 6543943
+          "two_part_code_bytes": 6545726
         },
         {
           "strategy": "raw-content",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 6676240
+          "two_part_code_bytes": 6677995
         },
         {
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 6929746
+          "two_part_code_bytes": 6931648
         },
         {
           "strategy": "term-table",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 6945673
+          "two_part_code_bytes": 6947637
         },
         {
           "strategy": "term-table",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 6994783
+          "two_part_code_bytes": 6996718
         },
         {
           "strategy": "term-table",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 7096432
+          "two_part_code_bytes": 7098332
         }
       ]
     },
@@ -558,87 +558,87 @@
       "winning_strategy": "trained",
       "winning_target_length": 4096,
       "declared_is_argmin": true,
-      "bytes_on_disk": 390831,
-      "bytes_on_disk_baseline": 422367,
+      "bytes_on_disk": 392759,
+      "bytes_on_disk_baseline": 421804,
       "dictionary_in_band_bytes": 4096,
-      "two_part_code_bytes": 394927,
-      "dictionary_gain_fraction": "0.064967",
+      "two_part_code_bytes": 396855,
+      "dictionary_gain_fraction": "0.059148",
       "corpus_sample_count": 1,
       "held_out_sample_count": 0,
-      "corpus_digest": "blake3:1a2c802191771b25ab13f2aa0f3dc886ecd550c4ac3db97ffbbc354f5945b317",
+      "corpus_digest": "blake3:551ff590e5929dd3cc0134cfa211b52c86e652661c6abe28a2548c4959f82d26",
       "evaluated_frame_count": 512,
       "grid": [
         {
           "strategy": "trained",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 394927
+          "two_part_code_bytes": 396855
         },
         {
           "strategy": "trained",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 406731
+          "two_part_code_bytes": 403228
         },
         {
           "strategy": "trained",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 448592
+          "two_part_code_bytes": 444786
         },
         {
           "strategy": "trained",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 638561
+          "two_part_code_bytes": 644322
         },
         {
           "strategy": "raw-content",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 408678
+          "two_part_code_bytes": 407386
         },
         {
           "strategy": "raw-content",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 412649
+          "two_part_code_bytes": 420012
         },
         {
           "strategy": "raw-content",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 461880
+          "two_part_code_bytes": 468737
         },
         {
           "strategy": "raw-content",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 658452
+          "two_part_code_bytes": 664518
         },
         {
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 435319
+          "two_part_code_bytes": 434839
         },
         {
           "strategy": "term-table",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 448692
+          "two_part_code_bytes": 448271
         },
         {
           "strategy": "term-table",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 499331
+          "two_part_code_bytes": 498818
         },
         {
           "strategy": "term-table",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 678735
+          "two_part_code_bytes": 677857
         }
       ]
     },
@@ -650,87 +650,87 @@
       "winning_strategy": "trained",
       "winning_target_length": 4096,
       "declared_is_argmin": true,
-      "bytes_on_disk": 392127,
-      "bytes_on_disk_baseline": 422347,
+      "bytes_on_disk": 390679,
+      "bytes_on_disk_baseline": 421840,
       "dictionary_in_band_bytes": 4096,
-      "two_part_code_bytes": 396223,
-      "dictionary_gain_fraction": "0.061854",
+      "two_part_code_bytes": 394775,
+      "dictionary_gain_fraction": "0.064159",
       "corpus_sample_count": 3,
       "held_out_sample_count": 0,
-      "corpus_digest": "blake3:ef74910ee8e057ba082d747894261ffd2a9ede3be42e7788b4b803e0b35502a7",
+      "corpus_digest": "blake3:ad9255f68548d74cb7e106b0c19c89a65f91aa4315bda8a2ddc662cd92617b86",
       "evaluated_frame_count": 512,
       "grid": [
         {
           "strategy": "trained",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 396223
+          "two_part_code_bytes": 394775
         },
         {
           "strategy": "trained",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 401843
+          "two_part_code_bytes": 404510
         },
         {
           "strategy": "trained",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 445659
+          "two_part_code_bytes": 443133
         },
         {
           "strategy": "trained",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 630438
+          "two_part_code_bytes": 630957
         },
         {
           "strategy": "raw-content",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 408599
+          "two_part_code_bytes": 407504
         },
         {
           "strategy": "raw-content",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 412687
+          "two_part_code_bytes": 420045
         },
         {
           "strategy": "raw-content",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 462077
+          "two_part_code_bytes": 468788
         },
         {
           "strategy": "raw-content",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 658373
+          "two_part_code_bytes": 664541
         },
         {
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 435432
+          "two_part_code_bytes": 434834
         },
         {
           "strategy": "term-table",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 448717
+          "two_part_code_bytes": 448282
         },
         {
           "strategy": "term-table",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 499211
+          "two_part_code_bytes": 498980
         },
         {
           "strategy": "term-table",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 678593
+          "two_part_code_bytes": 677878
         }
       ]
     },
@@ -742,87 +742,87 @@
       "winning_strategy": "trained",
       "winning_target_length": 4096,
       "declared_is_argmin": true,
-      "bytes_on_disk": 85614377,
-      "bytes_on_disk_baseline": 88572647,
+      "bytes_on_disk": 85573242,
+      "bytes_on_disk_baseline": 88519848,
       "dictionary_in_band_bytes": 4096,
-      "two_part_code_bytes": 85618473,
-      "dictionary_gain_fraction": "0.033353",
+      "two_part_code_bytes": 85577338,
+      "dictionary_gain_fraction": "0.033241",
       "corpus_sample_count": 3,
       "held_out_sample_count": 0,
-      "corpus_digest": "blake3:125043ee6b858fe0cec485a24a2b36b96eb3af56230902ab932f3c841fee77a3",
+      "corpus_digest": "blake3:bbaf900c8b70c471776c714194c9b74c2db4458a33d7b4a2d34c7a97c6947e76",
       "evaluated_frame_count": 4,
       "grid": [
         {
           "strategy": "trained",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 85618473
+          "two_part_code_bytes": 85577338
         },
         {
           "strategy": "trained",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 85666610
+          "two_part_code_bytes": 85800662
         },
         {
           "strategy": "trained",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 86334821
+          "two_part_code_bytes": 86351149
         },
         {
           "strategy": "trained",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 87151090
+          "two_part_code_bytes": 87063564
         },
         {
           "strategy": "raw-content",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 87042077
+          "two_part_code_bytes": 87000723
         },
         {
           "strategy": "raw-content",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 87135512
+          "two_part_code_bytes": 87083402
         },
         {
           "strategy": "raw-content",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 87459338
+          "two_part_code_bytes": 87354101
         },
         {
           "strategy": "raw-content",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 88790474
+          "two_part_code_bytes": 88702695
         },
         {
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 89337018
+          "two_part_code_bytes": 89273375
         },
         {
           "strategy": "term-table",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 90560542
+          "two_part_code_bytes": 90498593
         },
         {
           "strategy": "term-table",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 91189968
+          "two_part_code_bytes": 91129383
         },
         {
           "strategy": "term-table",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 90407888
+          "two_part_code_bytes": 90343126
         }
       ]
     }
