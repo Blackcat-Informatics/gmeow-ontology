@@ -19,6 +19,7 @@ fn refresh_hashes_the_new_substrate_stamp() {
         export_checks: &[],
         refresh_target: "synthetic-refresh",
         witness_attestation: None,
+        tested_witnesses: &[],
     };
     let dir = asset.asset_dir(root);
     std::fs::create_dir_all(&dir).unwrap();

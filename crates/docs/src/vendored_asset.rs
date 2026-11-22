@@ -128,6 +128,8 @@ pub struct VendoredWasmAsset {
     /// `wasm-parity`). `Option` so a future non-witnessed asset need not reshape the
     /// descriptor.
     pub witness_attestation: Option<&'static str>,
+    /// Vendored witness files paired with the repository paths consumed by parity tests.
+    pub tested_witnesses: &'static [(&'static str, &'static str)],
 }
 
 impl VendoredWasmAsset {
@@ -189,6 +191,7 @@ impl VendoredWasmAsset {
     /// current (F4/F5). Current means: the attestation file exists and is non-empty,
     /// AND the on-disk vendored bytes match the pinned `DIGESTS.blake3` — so the engine
     /// the witness proved byte-equivalent to native is EXACTLY the engine that ships.
+    /// Files listed in `tested_witnesses` must also match the copies used in parity tests.
     ///
     /// An asset with no `witness_attestation` (a non-witnessed asset) is vacuously OK.
     /// Returns `Some(message)` describing the first failure, or `None` when the
@@ -212,6 +215,27 @@ impl VendoredWasmAsset {
                     "witness attestation '{witness}' for engine '{}' is missing \
                      (run make {}): {e}",
                     self.name, self.refresh_target
+                ));
+            }
+        }
+        for &(vendored, tested) in self.tested_witnesses {
+            let vendored_path = dir.join(vendored);
+            let tested_path = root.join(tested);
+            let (vendored_bytes, tested_bytes) =
+                match (std::fs::read(&vendored_path), std::fs::read(&tested_path)) {
+                    (Ok(vendored_bytes), Ok(tested_bytes)) => (vendored_bytes, tested_bytes),
+                    (Err(error), _) => {
+                        return Some(format!("cannot read {}: {error}", vendored_path.display()));
+                    }
+                    (_, Err(error)) => {
+                        return Some(format!("cannot read {}: {error}", tested_path.display()));
+                    }
+                };
+            if vendored_bytes != tested_bytes {
+                return Some(format!(
+                    "vendored witness '{}' differs from the tested witness '{tested}' (run make {})",
+                    vendored_path.display(),
+                    self.refresh_target
                 ));
             }
         }
@@ -518,6 +542,7 @@ pub static MCP_CORE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     // core image returns for a reasoning tool, which the shipped wasm reproduces
     // byte-for-byte. It attests the ROUTING, which is what the tiering rests on.
     witness_attestation: Some("WITNESS.core-deferral.json"),
+    tested_witnesses: &[],
 };
 
 /// The console's DEMAND-LOADED MCP segment — the full engine including the reasoner.
@@ -565,6 +590,7 @@ pub static MCP_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     // byte-identical both to the shipped wasm's answer and to what the FULL native engine
     // returns for the same frame.
     witness_attestation: Some("WITNESS.mcp.json"),
+    tested_witnesses: &[],
 };
 
 pub static QUERY_ASSET: VendoredWasmAsset = VendoredWasmAsset {
@@ -645,6 +671,7 @@ pub static QUERY_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     // the corpus it claims to attest) cannot slip through re-vendoring undetected.
     // The explorer consumes this to gate its interactive capability.
     witness_attestation: Some("WITNESS.query.txt"),
+    tested_witnesses: &[],
 };
 
 /// The vendored gmeow-validate-wasm engine — the repo-free Tier-1 GMEOW validator
@@ -703,6 +730,7 @@ pub static VALIDATE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     // `crates/validate/tests/witness_parity.rs`). The interactive validator consumes it to gate the
     // interactive validate Capability.
     witness_attestation: Some("WITNESS.validate.json"),
+    tested_witnesses: &[],
 };
 
 /// The vendored gmeow-reason-wasm engine — the native GMEOW structured-DL reasoner
@@ -723,6 +751,7 @@ pub static REASON_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     ],
     vendored_files: &[
         "WITNESS.reason.gts",
+        "WITNESS.reason.json",
         "gmeow_reason_wasm.d.ts",
         "gmeow_reason_wasm.js",
         "gmeow_reason_wasm_bg.wasm",
@@ -768,6 +797,16 @@ pub static REASON_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     // `crates/reason-wasm/tests/witness_reason.rs` + the Node lane). The live reasoner consumes
     // it to gate the LiveReasoning capability.
     witness_attestation: Some("WITNESS.reason.json"),
+    tested_witnesses: &[
+        (
+            "WITNESS.reason.gts",
+            "crates/reason-wasm/tests/WITNESS.reason.gts",
+        ),
+        (
+            "WITNESS.reason.json",
+            "crates/reason-wasm/tests/WITNESS.reason.json",
+        ),
+    ],
 };
 
 /// The vendored `gmeow-gmn-wasm` engine — the shipped GMN-0↔GMN-1 codec + glyph
@@ -823,6 +862,7 @@ pub static GMN_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     // `crates/gmn-wasm/tests/witness_gmn.rs` + the Node lane). The GMN transcoder consumes it to
     // gate the GMN transcode capability.
     witness_attestation: Some("WITNESS.gmn1.txt"),
+    tested_witnesses: &[],
 };
 
 /// The vendored engines whose native↔wasm witness-attestation backs each interactive
