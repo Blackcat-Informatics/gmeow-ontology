@@ -36,6 +36,9 @@ gmeow-mcp = { path = "../mcp", default-features = false, features = ["core"] }
 # the `wasm-bindgen-cli` matching the workspace version.
 wasm-bindgen.workspace = true
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+gmeow-browser-host.workspace = true
+
 [dev-dependencies]
 gmeow-bundle-import = { path = "../bundle-import" }
 # The deferral witness parses the JSON-RPC response frame back to assert the ROUTING

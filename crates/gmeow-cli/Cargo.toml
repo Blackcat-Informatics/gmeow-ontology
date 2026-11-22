@@ -80,6 +80,7 @@ gmeow-docs = { path = "../docs" }
 # (`gts::read`, `flattened_dataset_from_bytes`, `serialize_dataset`). A published
 # runtime dependency, never a repo-maintenance one.
 purrdf.workspace = true
+purrdf-core.workspace = true
 purrdf-hash.workspace = true
 purrdf-lex.workspace = true
 # SHA-256 of the embedded bundle and codebook for `gmeow version --verbose`. The

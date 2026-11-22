@@ -1022,7 +1022,7 @@ impl GraphStore {
         self.slice_ds.get_or_init(|| {
             let canonical = canonical_flat_nquads(
                 &self.ds,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .unwrap_or_else(|e| panic!("canonical slice n-quads failed: {e}"));
             SliceDataset::parse(

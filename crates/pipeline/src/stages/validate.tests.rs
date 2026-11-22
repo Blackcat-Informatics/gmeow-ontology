@@ -546,7 +546,7 @@ ex:world {
     .unwrap();
     let nq = purrdf::canonical_flat_nquads(
         &source,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap();
     let output = run_full_stage_with_reason("", "", nq.nquads().as_bytes());

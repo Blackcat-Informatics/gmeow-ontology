@@ -477,7 +477,7 @@ impl StageReceipt {
                         .graph_digest(
                             &graph,
                             &mut purrdf::CanonicalizationControl::new(
-                                purrdf::RDFC_V2_CORPUS_POLICY,
+                                purrdf::CANON_CORPUS_POLICY,
                                 None,
                             ),
                         )?
@@ -953,7 +953,7 @@ fn validate_handle_projection(
             purrdf::datasets_isomorphic(
                 graph,
                 &expected,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .map_err(|e| error(e.to_string()))?
         }
@@ -1044,23 +1044,6 @@ fn encode_handle(handle: &PipelineHandle) -> Result<Vec<u8>, gmeow_errors::Diag>
             handle_arm_tag(handle)
         )))
     })
-}
-
-/// The pin of one restored handle graph: SHA-256 over the canonical document of the
-/// projected graph, in the presentation that renders statement rows through the
-/// profile's reserved terms.
-///
-/// PurRDF's digest entry returns that digest without handing the document back, so
-/// the restore keeps no canonical text of a handle graph. The bytes hashed are those
-/// `try_canonicalize` returns for the same dataset under the same policy.
-fn restored_handle_graph_pin(
-    subgraph: &purrdf::RdfDataset,
-) -> Result<ContentDigest, purrdf::CanonError> {
-    purrdf::try_canonical_sha256_view(
-        subgraph,
-        purrdf::CanonHash::Sha256,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-    )
 }
 
 /// Restore a complete native payload without reparsing a governed RDF projection.
@@ -1469,7 +1452,7 @@ impl CachedBundle {
         // value and its query indexes without serializing through RDF text.
         let dataset_pack = PackBuilder::build_bytes(
             bundle.dataset(),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
@@ -1621,7 +1604,8 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
                     "cache: malformed blob digest hex {hex:?}"
                 )))
             })?;
-            store.insert_checked(digest, bytes.into()).map_err(|e| {
+            let bytes: Vec<u8> = bytes.into();
+            store.insert_checked(digest, bytes).map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
                     cause: None,
                     expected: hex.clone(),
@@ -1638,16 +1622,19 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
             let subgraph = bundle
                 .dataset()
                 .project_graph(Some(&purrdf::RdfTerm::iri(&h.graph)))?;
-            // Derive the pin from the live graph projection; the typed payload is rebuilt
-            // from its persisted bytes and checked against its own recorded digest below.
-            // `pin_handle` independently checks that pin against the restored carrier,
-            // preserving the hard-fail invariant without a duplicate persisted graph.
-            let pinned = restored_handle_graph_pin(&subgraph).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
-                    "cache: canonicalize handle graph <{}> failed: {e}",
-                    h.graph
-                )))
-            })?;
+            // Derive the pin using the same canonicalization as a fresh publication.
+            // The carrier reuses this digest when pinning the authenticated typed payload.
+            let pinned = bundle
+                .graph_digest(
+                    &h.graph,
+                    &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
+                )
+                .map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                        "cache: canonicalize handle graph <{}> failed: {e}",
+                        h.graph
+                    )))
+                })?;
             let payload = rebuild_handle(&h.arm, h.typed_payload.as_ref().map(AsRef::as_ref))?;
             validate_handle_projection(
                 &payload,
@@ -1675,7 +1662,7 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
                     h.graph.clone(),
                     payload,
                     pinned,
-                    &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                    &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
                 )
                 .map_err(|e| {
                     gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
@@ -1694,7 +1681,7 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
             let carrier_digest = |bundle: &PipelineBundleAlias| {
                 bundle
                     .digest(&mut purrdf::CanonicalizationControl::new(
-                        purrdf::RDFC_V2_CORPUS_POLICY,
+                        purrdf::CANON_CORPUS_POLICY,
                         None,
                     ))
                     .map_err(|e| {

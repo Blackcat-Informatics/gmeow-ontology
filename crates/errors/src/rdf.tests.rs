@@ -175,7 +175,9 @@ fn losses_with_dropped_lang_tag() -> LossLedger {
         from: Cow::Borrowed("rdf-1.2-dataset"),
         to: Cow::Borrowed("fixture-codec"),
         note: Cow::Borrowed("the @en language tag was dropped by the target codec"),
-        location: None,
+        site: LossSite::Unspecified,
+        subject: LossSubject::Absent,
+        detail: Vec::new(),
     });
     losses
 }
@@ -187,24 +189,28 @@ fn standalone_projection_loss_retains_original_direction_and_coordinates() {
         from: Cow::Borrowed("shacl"),
         to: Cow::Borrowed("json-schema"),
         note: Cow::Borrowed("cross-node constraint is not representable"),
-        location: Some(Box::new(RdfLocation {
-            path: Some("authored.ttl".into()),
-            line: Some(0),
-            column: Some(0),
-            gts_quad_index: Some(0),
-            ..RdfLocation::logical("constraint").with_subject("urn:constraint")
-        })),
+        site: LossSite::Gts {
+            segment: Some(1),
+            frame: Some(2),
+            term: Some(3),
+            quad: Some(0),
+            reifier: Some(4),
+        },
+        subject: LossSubject::Term(LossTerm::Iri("urn:constraint".into())),
+        detail: Vec::new(),
     };
     let diag = Diag::from_rdf_loss(loss.clone());
     let original = &diag.downcast_ref::<NativeLoss>().unwrap().0;
-    assert_eq!(original.code, loss.code);
-    assert_eq!(original.from, loss.from);
-    assert_eq!(original.to, loss.to);
-    assert_eq!(original.note, loss.note);
-    assert_eq!(original.location, loss.location);
-    assert_eq!(diag.inner().source_ctx.location.line, Some(0));
-    assert_eq!(diag.inner().source_ctx.location.column, Some(0));
-    assert_eq!(diag.inner().source_ctx.location.gts_quad_index, Some(0));
+    assert_eq!(original, &loss);
+    assert_eq!(
+        diag.inner().source_ctx.location,
+        Location::default()
+            .with_gts_segment(1)
+            .with_gts_frame(2)
+            .with_gts_term(3)
+            .with_gts_quad(0)
+            .with_gts_reifier(4)
+    );
     assert_eq!(
         diag.inner().source_ctx.focus.as_ref().unwrap().0,
         "urn:constraint"
@@ -220,18 +226,47 @@ fn standalone_projection_loss_retains_original_direction_and_coordinates() {
 
 #[test]
 fn loss_subjects_remain_distinct_witnesses() {
+    use purrdf_core::LossGraphName;
+    use purrdf_lex::json::record::{FromJson, ToJson};
+
     let mut losses = LossLedger::new();
-    for subject in ["urn:subject:a", "urn:subject:b"] {
+    let scoped_blank = LossTerm::Blank {
+        label: "shape".into(),
+        scope: Some("input-a".into()),
+    };
+    let blank_graph = LossSubject::Graph(LossGraphName::Blank {
+        label: "shape".into(),
+        scope: Some("input-a".into()),
+    });
+    assert_eq!(
+        LossSubject::Term(scoped_blank.clone()).text(),
+        blank_graph.text()
+    );
+    for subject in [
+        LossSubject::Term(LossTerm::Iri("urn:subject:a".into())),
+        LossSubject::Term(scoped_blank),
+        LossSubject::Term(LossTerm::Blank {
+            label: "shape".into(),
+            scope: Some("input-b".into()),
+        }),
+        blank_graph,
+    ] {
         losses.record(LossEntry {
             code: Cow::Borrowed("dropped-language-tag"),
             from: Cow::Borrowed("rdf-1.2-dataset"),
             to: Cow::Borrowed("fixture-codec"),
             note: Cow::Borrowed("language tag dropped"),
-            location: Some(Box::new(
-                RdfLocation::logical("projection-stage").with_subject(subject),
-            )),
+            site: LossSite::Stage {
+                name: "projection-stage".into(),
+            },
+            subject,
+            detail: Vec::new(),
         });
     }
+    losses.record(LossEntry {
+        note: Cow::Borrowed("the selected language tag did not survive"),
+        ..losses.entries()[0].clone()
+    });
     let mut ledger = DiagLedger::new();
     let parent = Diag::from_rdf_with_losses(
         diagnostic_with_dropped_lang_tag(),
@@ -239,15 +274,32 @@ fn loss_subjects_remain_distinct_witnesses() {
         &mut ledger,
         StageId::new("project"),
     );
-    assert_eq!(ledger.len(), 2);
+    assert_eq!(ledger.len(), 4);
     ledger.attach(parent, StageId::new("project"));
     let nodes = ledger.emit_sorted();
+    let serialized = nodes
+        .iter()
+        .map(|node| crate::DiagNode::from_json(&node.to_json()).unwrap())
+        .collect::<Vec<_>>();
+    let mut replay = DiagLedger::new();
+    replay.replay(serialized);
+    assert_eq!(replay.len(), ledger.len());
     let parent = nodes
         .iter()
         .find(|node| node.code == "lang.projection")
         .unwrap();
-    assert_eq!(parent.antecedents.len(), 2);
-    assert_ne!(parent.antecedents[0], parent.antecedents[1]);
+    assert_eq!(parent.antecedents.len(), 4);
+    let repeated = nodes
+        .iter()
+        .find(|node| {
+            node.source_ctx
+                .focus
+                .as_ref()
+                .is_some_and(|focus| focus.0 == "urn:subject:a")
+        })
+        .unwrap();
+    assert_eq!(repeated.observations.len(), 2);
+    let mut focuses = std::collections::BTreeSet::new();
     for child in nodes
         .iter()
         .filter(|node| node.code == "dropped-language-tag")
@@ -256,11 +308,16 @@ fn loss_subjects_remain_distinct_witnesses() {
             child.source_ctx.location.logical.as_deref(),
             Some("projection-stage")
         );
-        assert!(matches!(
-            child.source_ctx.focus.as_ref().unwrap().0.as_str(),
-            "urn:subject:a" | "urn:subject:b"
-        ));
+        focuses.insert(child.source_ctx.focus.as_ref().unwrap().0.as_str());
     }
+    assert_eq!(
+        focuses,
+        std::collections::BTreeSet::from([
+            "urn:subject:a",
+            "_:shape (scope input-a)",
+            "_:shape (scope input-b)",
+        ])
+    );
 }
 
 #[test]

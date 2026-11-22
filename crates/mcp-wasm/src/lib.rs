@@ -72,6 +72,9 @@ use std::cell::RefCell;
 use gmeow_mcp::{McpServer, SegmentSet};
 use wasm_bindgen::prelude::*;
 
+#[cfg(target_arch = "wasm32")]
+gmeow_browser_host::install_sparql_host_on_start!();
+
 /// Route a Rust panic's MESSAGE to the host before the trap reaches it.
 ///
 /// Without this a panic in the engine reaches JavaScript as a bare

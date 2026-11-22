@@ -100,7 +100,7 @@ pub fn build_corpus(root: &std::path::Path) -> Result<LangDocsRenderingCorpus, g
     let catalog = purrdf::slice::SliceCatalog::discover(
         &root.join("slices"),
         gmeow_ns::gmeow_slice_vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )?;
     let ownership = purrdf::slice::OwnershipAnalyzer::new(&catalog).analyze()?;
     let pages = gmeow_docs::model::documented_term_iris(&catalog, &ownership)?;

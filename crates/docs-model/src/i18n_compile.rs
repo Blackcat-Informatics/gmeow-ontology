@@ -1188,7 +1188,7 @@ pub fn extract_catalog(
     let catalog = SliceCatalog::discover(
         &root.join("slices"),
         gmeow_ns::gmeow_slice_vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )?;
     let by_iri: BTreeMap<String, (String, String)> = catalog
         .records()

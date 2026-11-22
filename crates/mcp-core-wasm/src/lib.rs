@@ -67,6 +67,9 @@ use std::cell::RefCell;
 use gmeow_mcp::{McpServer, SegmentSet};
 use wasm_bindgen::prelude::*;
 
+#[cfg(target_arch = "wasm32")]
+gmeow_browser_host::install_sparql_host_on_start!();
+
 thread_local! {
     /// The loaded engine, owned by the module for the lifetime of the wasm instance.
     ///

@@ -30,7 +30,7 @@ fn reason_product(result: &gmeow_logic::result::ReasoningResult) -> StageProduct
     let pinned = bundle
         .graph_digest(
             GRAPH_REASONING,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     bundle
@@ -38,7 +38,7 @@ fn reason_product(result: &gmeow_logic::result::ReasoningResult) -> StageProduct
             GRAPH_REASONING,
             PipelineHandle::Reasoning(Arc::new(result.clone())),
             pinned,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     StageProduct::from_bundle("stage-reason", Arc::new(bundle)).expect("the stage carrier digests")
@@ -59,6 +59,13 @@ fn fold_attaches_a_coherence_artifact_to_graph_attestations() {
     upstream.insert("stage-reason".to_string(), reason_product(&reasoned.result));
 
     let composed = parse_dataset(edb.as_bytes(), "application/n-quads", None).unwrap();
+    let document = purrdf::canonical_flat_nquads_with(
+        composed.as_ref(),
+        purrdf::rdfc12::CanonHash::Sha256,
+        &mut purrdf::CanonicalizationControl::new(purrdf::rdfc12::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("canonical document of the pre-certificate dataset");
+    let expected_hash = purrdf::gts::writer::digest_string(document.nquads().as_bytes());
     let mut parts = CarrierParts::new(&upstream);
     parts.push_dataset(Arc::clone(&composed));
     let folded = fold_coherence_certificate(parts, &upstream).expect("fold certificate");
@@ -76,27 +83,28 @@ fn fold_attaches_a_coherence_artifact_to_graph_attestations() {
         coherence_typed,
         "the fold must attach a typed logic:Coherence* artifact to graph/attestations"
     );
-    // The certificate pins a real bundle identity + per-graph axiom digest (the tamper
-    // surface), so the read tool can surface non-trivial hashes.
     let has_bundle_hash = attestations.owned_quads().any(|q| {
         q.predicate == "https://blackcatinformatics.ca/logic/bundleHash"
-            && matches!(&q.object, RdfTerm::Literal(l) if !l.lexical_form.is_empty())
+            && matches!(&q.object, RdfTerm::Literal(l) if l.lexical_form == expected_hash)
     });
-    assert!(has_bundle_hash, "the folded certificate pins a bundle hash");
+    assert!(
+        has_bundle_hash,
+        "the certificate pins the pre-fold identity"
+    );
 
     // Deterministic: re-folding the same carrier + result is byte-identical.
     let composed2 = parse_dataset(edb.as_bytes(), "application/n-quads", None).unwrap();
     let mut parts2 = CarrierParts::new(&upstream);
     parts2.push_dataset(Arc::clone(&composed2));
     let folded2 = fold_coherence_certificate(parts2, &upstream).expect("fold again");
-    let nq1 = purrdf::canonical_flat_nquads(
+    let nq1 = purrdf::try_canonicalize(
         folded.as_ref(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap();
-    let nq2 = purrdf::canonical_flat_nquads(
+    let nq2 = purrdf::try_canonicalize(
         folded2.as_ref(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .unwrap();
     assert_eq!(

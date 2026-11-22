@@ -131,9 +131,15 @@ fn diagnostic_contributions_survive_persistent_cache_and_warm_replay() {
                     from: "shacl".into(),
                     to: "json-schema".into(),
                     note: "cross-node constraint is not representable".into(),
-                    location: Some(Box::new(
-                        purrdf::RdfLocation::logical("authored.ttl").with_subject(*subject),
+                    site: purrdf::loss::LossSite::Document {
+                        path: Some("authored.ttl".into()),
+                        line: None,
+                        column: None,
+                    },
+                    subject: purrdf::loss::LossSubject::Term(purrdf::loss::LossTerm::Iri(
+                        (*subject).into(),
                     )),
+                    detail: Vec::new(),
                 }),
                 gmeow_errors::StageId::new(stage),
             );
@@ -504,7 +510,7 @@ fn rich_bundle() -> PipelineBundle<PipelineHandle> {
     let pinned = bundle
         .graph_digest(
             GRAPH_IRI,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     bundle
@@ -512,7 +518,7 @@ fn rich_bundle() -> PipelineBundle<PipelineHandle> {
             GRAPH_IRI,
             PipelineHandle::Logic(program),
             pinned,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .expect("pin handle over the named graph");
     bundle
@@ -583,7 +589,7 @@ fn report_product(publication: crate::bundle::CompiledLogicPublication) -> Stage
     let pin = bundle
         .graph_digest(
             GRAPH_IRI,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     bundle
@@ -591,7 +597,7 @@ fn report_product(publication: crate::bundle::CompiledLogicPublication) -> Stage
             GRAPH_IRI,
             PipelineHandle::CompiledLogic(Arc::new(publication)),
             pin,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle))
@@ -761,7 +767,7 @@ fn native_publication_codecs_refuse_missing_truncated_and_trailing_payloads() {
 fn canon_hex(ds: &purrdf::RdfDataset) -> String {
     let canonical = purrdf::try_canonicalize(
         ds,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .expect("the fixture graph canonicalizes");
     ContentDigest::of(canonical.nquads().as_bytes()).to_hex()
@@ -821,11 +827,18 @@ fn cached_bundle_structural_round_trip() {
         recon
             .graph_digest(
                 GRAPH_IRI,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             )
             .unwrap(),
         "handle pin matches the reconstituted graph"
     );
+    let published_pin = purrdf::try_graph_digest_view(
+        original.dataset(),
+        GRAPH_IRI,
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
+    )
+    .expect("the published graph has a canonical line-sequence digest");
+    assert_eq!(entry.content_digest.as_bytes(), published_pin.as_bytes());
 
     // provenance: public projection equal.
     assert_eq!(
@@ -838,13 +851,13 @@ fn cached_bundle_structural_round_trip() {
     assert_eq!(
         recon
             .digest(&mut purrdf::CanonicalizationControl::new(
-                purrdf::RDFC_V2_CORPUS_POLICY,
+                purrdf::CANON_CORPUS_POLICY,
                 None
             ))
             .expect("the restored carrier digests"),
         original
             .digest(&mut purrdf::CanonicalizationControl::new(
-                purrdf::RDFC_V2_CORPUS_POLICY,
+                purrdf::CANON_CORPUS_POLICY,
                 None
             ))
             .expect("the original carrier digests"),
@@ -2094,7 +2107,7 @@ fn reasoning_bundle_with_result(
     let pinned = bundle
         .graph_digest(
             graph_iri,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     bundle
@@ -2102,7 +2115,7 @@ fn reasoning_bundle_with_result(
             graph_iri,
             PipelineHandle::Reasoning(Arc::new(result)),
             pinned,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .expect("pin Reasoning handle");
     bundle
@@ -2285,7 +2298,7 @@ fn cached_reasoning_handle_re_derives_the_result() {
         recon
             .graph_digest(
                 graph_iri,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             )
             .unwrap()
     );
@@ -2293,13 +2306,13 @@ fn cached_reasoning_handle_re_derives_the_result() {
     assert_eq!(
         recon
             .digest(&mut purrdf::CanonicalizationControl::new(
-                purrdf::RDFC_V2_CORPUS_POLICY,
+                purrdf::CANON_CORPUS_POLICY,
                 None
             ))
             .expect("the restored carrier digests"),
         original
             .digest(&mut purrdf::CanonicalizationControl::new(
-                purrdf::RDFC_V2_CORPUS_POLICY,
+                purrdf::CANON_CORPUS_POLICY,
                 None
             ))
             .expect("the original carrier digests"),
@@ -2456,7 +2469,7 @@ fn relational_core_bundle() -> (
     let pinned = bundle
         .graph_digest(
             graph_iri,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     bundle
@@ -2464,7 +2477,7 @@ fn relational_core_bundle() -> (
             graph_iri,
             PipelineHandle::RelationalCore(Arc::new(lowered.clone())),
             pinned,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .expect("pin RelationalCore handle");
     (bundle, lowered)
@@ -2482,7 +2495,7 @@ fn cached_relational_core_refuses_changed_body_order_even_when_semantically_equa
     let digest = bundle
         .graph_digest(
             graph_iri,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     bundle
@@ -2490,7 +2503,7 @@ fn cached_relational_core_refuses_changed_body_order_even_when_semantically_equa
             graph_iri,
             PipelineHandle::RelationalCore(Arc::new(program)),
             digest,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     let product = StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle))
@@ -2543,7 +2556,7 @@ fn cached_relational_core_handle_re_derives_the_dialect() {
         recon
             .graph_digest(
                 graph_iri,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             )
             .unwrap()
     );
@@ -2551,13 +2564,13 @@ fn cached_relational_core_handle_re_derives_the_dialect() {
     assert_eq!(
         recon
             .digest(&mut purrdf::CanonicalizationControl::new(
-                purrdf::RDFC_V2_CORPUS_POLICY,
+                purrdf::CANON_CORPUS_POLICY,
                 None
             ))
             .expect("the restored carrier digests"),
         original
             .digest(&mut purrdf::CanonicalizationControl::new(
-                purrdf::RDFC_V2_CORPUS_POLICY,
+                purrdf::CANON_CORPUS_POLICY,
                 None
             ))
             .expect("the original carrier digests"),
@@ -2600,7 +2613,7 @@ fn correspondence_bundle() -> (
     let pinned = bundle
         .graph_digest(
             graph_iri,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     bundle
@@ -2608,7 +2621,7 @@ fn correspondence_bundle() -> (
             graph_iri,
             PipelineHandle::Correspondence(Arc::new(program.clone())),
             pinned,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .expect("pin Correspondence handle");
     (bundle, program)
@@ -2624,7 +2637,7 @@ fn cached_correspondence_publications_refuse_a_changed_standpoint() {
         let backing_digest = bundle
             .graph_digest(
                 graph_iri,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .unwrap();
         program.correspondences[0].according_to = Some("https://example.org/other-observer".into());
@@ -2645,7 +2658,7 @@ fn cached_correspondence_publications_refuse_a_changed_standpoint() {
                 graph_iri,
                 handle,
                 backing_digest,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .expect("graph bytes still match; the cache must also admit the semantic payload");
         let product = StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle))
@@ -2702,72 +2715,23 @@ fn cached_correspondence_handle_re_derives_the_program() {
         recon
             .graph_digest(
                 graph_iri,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             )
             .unwrap()
     );
     assert_eq!(
         recon
             .digest(&mut purrdf::CanonicalizationControl::new(
-                purrdf::RDFC_V2_CORPUS_POLICY,
+                purrdf::CANON_CORPUS_POLICY,
                 None
             ))
             .expect("the restored carrier digests"),
         original
             .digest(&mut purrdf::CanonicalizationControl::new(
-                purrdf::RDFC_V2_CORPUS_POLICY,
+                purrdf::CANON_CORPUS_POLICY,
                 None
             ))
             .expect("the original carrier digests"),
         "bundle digest preserved"
     );
-}
-
-/// A restored handle graph's pin is the SHA-256 of the canonical document of its
-/// projected graph. The restore takes that digest from PurRDF's digest entry and keeps
-/// no canonical text; this pins that the digest equals the hash of the document the
-/// canonical-text entry returns, for one graph projected out of a two-graph carrier
-/// and for the whole carrier, over blank nodes, a reifier with a triple term, and
-/// language-tagged, directional and typed literals.
-#[test]
-fn restored_handle_pin_equals_the_hash_of_the_canonical_document() {
-    let carrier = parse_dataset(
-        br#"@prefix ex: <https://example.org/> .
-            @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-            @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-            ex:first {
-                _:item ex:name "chat"@fr , "name"@en , "0.70"^^xsd:decimal .
-                _:item ex:next _:other .
-                _:other ex:name "plain" .
-                ex:claim rdf:reifies <<( _:item ex:name "quoted"@ar--rtl )>> ;
-                    ex:confidence "1"^^xsd:integer .
-            }
-            ex:second {
-                _:item ex:next [ ex:name "nested" ] .
-                ex:claim rdf:reifies <<( ex:s ex:p _:item )>> .
-            }"#,
-        "application/trig",
-        None,
-    )
-    .expect("the synthetic two-graph RDF 1.2 carrier parses");
-    let projected = carrier
-        .project_graph(Some(&RdfTerm::iri("https://example.org/first")))
-        .expect("the first graph projects");
-
-    for dataset in [&projected, carrier.as_ref()] {
-        let document = purrdf::try_canonicalize(
-            dataset,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-        )
-        .expect("the canonical-text entry canonicalizes");
-        assert!(
-            document.nquads().contains("_:c14n") && document.nquads().contains("@fr"),
-            "the fixture exercises blank labels and language tags: {}",
-            document.nquads()
-        );
-        assert_eq!(
-            restored_handle_graph_pin(dataset).expect("the digest entry canonicalizes"),
-            ContentDigest::of(document.nquads().as_bytes()),
-        );
-    }
 }

@@ -294,6 +294,9 @@ pub struct SourceContext {
     pub graph: Option<purrdf_core::BaseIri>,
     pub focus: Option<Focus>,
     pub term_role: Option<TermRole>,
+    /// Digest of the typed PurRDF loss occurrence carried by a projection witness.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub loss_occurrence: Option<String>,
 }
 
 impl SourceContext {
@@ -590,6 +593,10 @@ impl Diag {
     }
     pub fn with_focus(mut self, focus: impl Into<String>) -> Self {
         self.0.source_ctx.focus = Some(Focus(focus.into()));
+        self
+    }
+    pub(crate) fn with_loss_occurrence(mut self, digest: String) -> Self {
+        self.0.source_ctx.loss_occurrence = Some(digest);
         self
     }
     /// Retain the original named graph as a typed source-identity coordinate.

@@ -245,7 +245,7 @@ fn logic_handle_commitment_tracks_reinserted_metadata_and_excludes_diagnostics()
     let expected = commitment_bundle(Arc::clone(&source))
         .graph_digest(
             GRAPH_LOGIC,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     let mut selected = compile_logic_carrier_graphs(&compile_inputs(source)).unwrap();
@@ -255,7 +255,7 @@ fn logic_handle_commitment_tracks_reinserted_metadata_and_excludes_diagnostics()
             GRAPH_LOGIC,
             (),
             expected,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .expect("reinsertion preserves the logic pin");
     assert_eq!(bundle.handle(GRAPH_LOGIC).unwrap().content_digest, expected);
@@ -270,7 +270,7 @@ fn logic_handle_commitment_tracks_reinserted_metadata_and_excludes_diagnostics()
         changed
             .graph_digest(
                 GRAPH_LOGIC,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             )
             .unwrap(),
         expected
@@ -280,7 +280,7 @@ fn logic_handle_commitment_tracks_reinserted_metadata_and_excludes_diagnostics()
             GRAPH_LOGIC,
             (),
             expected,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         ),
         Err(purrdf::PipelineBundleError::HandleDigestMismatch { .. })
     ));
@@ -295,7 +295,7 @@ fn logic_handle_commitment_tracks_reinserted_metadata_and_excludes_diagnostics()
         diagnostic_only
             .graph_digest(
                 GRAPH_LOGIC,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             )
             .unwrap(),
         expected
@@ -433,19 +433,20 @@ fn composed_carrier_certifies_exactly_what_the_rooted_union_did() {
     let composed = parts.materialize().expect("composed carrier");
 
     let canonical = |dataset: &RdfDataset| {
-        purrdf::canonical_flat_nquads(
+        purrdf::canonical_flat_nquads_with(
             dataset,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            purrdf::rdfc12::CanonHash::Sha256,
+            &mut purrdf::CanonicalizationControl::new(purrdf::rdfc12::RDFC_V2_CORPUS_POLICY, None),
         )
         .expect("carrier canonicalizes")
         .nquads()
         .to_owned()
     };
     assert_eq!(canonical(composed.as_ref()), canonical(&former));
-    let view_canonical = purrdf::try_canonicalize_flat_view(
+    let view_canonical = purrdf::rdfc12::try_canonicalize_flat_view(
         &view,
-        purrdf::CanonHash::Sha256,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        purrdf::rdfc12::CanonHash::Sha256,
+        &mut purrdf::CanonicalizationControl::new(purrdf::rdfc12::RDFC_V2_CORPUS_POLICY, None),
     )
     .expect("pre-certificate view canonicalizes");
     let owned_canonical = canonical(composed.as_ref());
@@ -635,7 +636,7 @@ fn axiom_hashes_distinguish_producers_blank_nodes_that_share_a_label() {
     let canonical = |dataset: &RdfDataset| {
         purrdf::canonical_flat_nquads(
             dataset,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .expect("carrier canonicalizes")
         .nquads()

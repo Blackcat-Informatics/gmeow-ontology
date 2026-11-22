@@ -42,15 +42,19 @@ fn main() -> gmeow_errors::Result<()> {
     }
     assert!(closure.lines().any(|line| line.starts_with("<https://blackcatinformatics.ca/gmeow/skolem/") && line.ends_with(" <https://blackcatinformatics.ca/logic/instanceOf> <https://blackcatinformatics.ca/logic/Thing> .")), "missing nonempty-domain witness");
     let witness = conjecture_witness::verified_witness()?;
+    let (closure_envelope, closure_gts) =
+        closure_witness::split_artifact(&artifact, &response["artifact"])?;
     let output = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/WITNESS.conjecture.json");
     std::fs::write(&output, witness.attestation.as_bytes())?;
     let closure_output =
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/WITNESS.reason.json");
-    std::fs::write(&closure_output, artifact.as_bytes())?;
+    std::fs::write(closure_output.with_extension("gts"), &closure_gts)?;
+    std::fs::write(&closure_output, closure_envelope.as_bytes())?;
     println!(
-        "refreshed {} ({} bytes)",
+        "refreshed {} ({} envelope bytes, {} GTS bytes)",
         closure_output.display(),
-        artifact.len()
+        closure_envelope.len(),
+        closure_gts.len()
     );
     println!(
         "refreshed {} from verified {} + {} verdicts ({} bytes)",

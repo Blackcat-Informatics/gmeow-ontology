@@ -118,7 +118,7 @@ impl DlReasoner {
     ) -> Result<Self> {
         let inner = Reasoner::with_proofs(
             dataset,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .map_err(map_entail_err)?;
         Ok(Self {
@@ -140,10 +140,8 @@ impl DlReasoner {
         budget: purrdf::entail::reasoner::SchemaPreparationBudget,
         stop: std::sync::Arc<dyn purrdf::StopSignal>,
     ) -> Result<Self> {
-        let mut control = purrdf::CanonicalizationControl::new(
-            purrdf::RDFC_V2_CORPUS_POLICY,
-            Some(stop.as_ref()),
-        );
+        let mut control =
+            purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, Some(stop.as_ref()));
         Reasoner::with_proofs_and_stop(dataset, budget, std::sync::Arc::clone(&stop), &mut control)
             .map(|inner| Self { inner })
             .map_err(map_entail_err)
@@ -308,7 +306,7 @@ pub fn extract_module(
         dataset,
         signature,
         method,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(map_entail_err)
 }

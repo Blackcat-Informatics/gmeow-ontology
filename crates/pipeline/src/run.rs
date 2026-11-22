@@ -1275,7 +1275,7 @@ fn canonical_quad_set(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>
             let flat = purrdf::flat_dataset_from_quads(&quads).ok()?;
             let set: std::collections::BTreeSet<String> = purrdf::try_canonicalize(
                 &flat,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .ok()?
             .nquads()

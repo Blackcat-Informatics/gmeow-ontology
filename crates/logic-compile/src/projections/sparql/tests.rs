@@ -71,7 +71,7 @@ fn run(query: &Query, text: &str, input: &Arc<RdfDataset>) -> purrdf::backend::D
         purrdf::datasets_isomorphic(
             result.as_ref(),
             rendered.as_ref(),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .expect("isomorphism is decided by canonical bytes"),
         "emitted mapping changed native execution"
@@ -98,7 +98,7 @@ fn typed_and_emitted_binding_preserve_get_suppression_and_unguarded_put() {
         purrdf::datasets_isomorphic(
             get.as_ref(),
             &dataset("<urn:visible> <urn:view> <urn:value> ."),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .expect("isomorphism is decided by canonical bytes")
     );
@@ -111,7 +111,7 @@ fn typed_and_emitted_binding_preserve_get_suppression_and_unguarded_put() {
         purrdf::datasets_isomorphic(
             put.as_ref(),
             &dataset("<urn:hidden> <urn:source> <urn:edit> ."),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .expect("isomorphism is decided by canonical bytes")
     );
@@ -142,7 +142,7 @@ fn typed_cell_domains_stay_isolated_from_profile_union_and_other_contexts() {
         purrdf::datasets_isomorphic(
             isolated.as_ref(),
             &dataset("<urn:item> <urn:view> <urn:value> ."),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .expect("isomorphism is decided by canonical bytes")
     );
@@ -187,7 +187,7 @@ fn typed_mapping_executes_nested_paths_optionals_values_and_legalized_expression
         purrdf::datasets_isomorphic(
             output.as_ref(),
             &dataset("<urn:s> a <urn:Target> ."),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .expect("isomorphism is decided by canonical bytes")
     );
@@ -218,7 +218,7 @@ fn typed_retag_preserves_script_selection_and_hidden_bearer_guard() {
         purrdf::datasets_isomorphic(
             output.as_ref(),
             &dataset("<urn:visible> <urn:label> \"hello\"@en-Latn ."),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .expect("isomorphism is decided by canonical bytes")
     );
@@ -238,7 +238,7 @@ fn unsupported_expression_has_loss_evidence_without_a_placeholder_binding() {
         purrdf::datasets_isomorphic(
             output.as_ref(),
             &dataset("<urn:s> <urn:view> <urn:o> ."),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .expect("isomorphism is decided by canonical bytes")
     );
@@ -350,7 +350,7 @@ fn full_profiles_equal_independent_binding_execution_despite_shared_variable_nam
             purrdf::datasets_isomorphic(
                 actual.as_ref(),
                 &dataset(expected),
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             )
             .expect("isomorphism is decided by canonical bytes"),
             "another binding's template crossed its branch"
@@ -359,7 +359,7 @@ fn full_profiles_equal_independent_binding_execution_despite_shared_variable_nam
             purrdf::datasets_isomorphic(
                 actual.as_ref(),
                 &independent_output(&lowered, put, &input),
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             )
             .expect("isomorphism is decided by canonical bytes")
         );
@@ -391,7 +391,7 @@ fn candidate_ground_rows_and_template_blanks_belong_only_to_their_successful_bra
         purrdf::datasets_isomorphic(
             recovered.as_ref(),
             &dataset("<urn:item> <urn:source> <urn:value> ."),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .expect("isomorphism is decided by canonical bytes"),
         "inactive claim branches must not emit ground import metadata or partial blank claims"
@@ -406,7 +406,7 @@ fn candidate_ground_rows_and_template_blanks_belong_only_to_their_successful_bra
             purrdf::datasets_isomorphic(
                 actual.as_ref(),
                 &independent_output(&lowered, true, &input),
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             )
             .expect("isomorphism is decided by canonical bytes"),
             "candidate templates must allocate independent blanks and retain branch-local claims"
@@ -430,7 +430,7 @@ fn optional_binding_remains_unbound_in_its_own_profile_branch() {
         purrdf::datasets_isomorphic(
             output.as_ref(),
             &dataset("<urn:item> <urn:view> <urn:value> ."),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .expect("isomorphism is decided by canonical bytes")
     );
@@ -438,7 +438,7 @@ fn optional_binding_remains_unbound_in_its_own_profile_branch() {
         purrdf::datasets_isomorphic(
             output.as_ref(),
             &independent_output(&lowered, false, &input),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .expect("isomorphism is decided by canonical bytes")
     );
@@ -620,7 +620,7 @@ fn retag_helpers_never_capture_an_authored_value_with_the_same_name() {
             purrdf::datasets_isomorphic(
                 output.as_ref(),
                 &dataset("<urn:item> <urn:label> \"hello\"@en ."),
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             )
             .expect("isomorphism is decided by canonical bytes"),
             "authored value ?{value} must remain distinct from generated retag roles"
@@ -658,7 +658,7 @@ fn authored_language_final_value_and_hidden_bearer_roles_keep_their_own_bindings
         purrdf::datasets_isomorphic(
             output.as_ref(),
             &dataset("<urn:visible> <urn:label> \"hello\"@en-Latn ."),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .expect("isomorphism is decided by canonical bytes"),
         "authored language correlation, final-value filter and hidden-bearer exclusion must all survive fresh helper allocation"
@@ -684,7 +684,7 @@ fn value_class_lookup_does_not_capture_an_authored_class_suffixed_variable() {
         purrdf::datasets_isomorphic(
             output.as_ref(),
             &dataset("<urn:item> a <urn:Target> ."),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .expect("isomorphism is decided by canonical bytes")
     );
@@ -773,7 +773,7 @@ fn name_part_retag_reuses_an_authored_parent_language_binding() {
         purrdf::datasets_isomorphic(
             output.as_ref(),
             &dataset("<urn:part> <urn:label> \"hello\"@en ."),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .expect("isomorphism is decided by canonical bytes"),
         "allocated helper names must not disconnect a real authored parent-language correlation"

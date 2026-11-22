@@ -50,6 +50,9 @@ use gmeow_lang_bridge::{
 };
 use wasm_bindgen::prelude::*;
 
+#[cfg(target_arch = "wasm32")]
+gmeow_browser_host::install_sparql_host_on_start!();
+
 // ── GMN-1 validator: the embedded codebook ──────────────────────────────────────────
 
 /// Full native codebook projected from the producer's shared source dictionary.

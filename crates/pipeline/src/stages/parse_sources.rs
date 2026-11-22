@@ -445,14 +445,14 @@ fn source_catalog_product(catalog: Arc<SourceCatalog>) -> gmeow_errors::Result<S
         crate::bundle::bundle_from_artifacts_over(dataset, Default::default(), Default::default());
     let pin = bundle.graph_digest(
         GRAPH_SOURCE_CATALOG,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )?;
     bundle
         .pin_handle(
             GRAPH_SOURCE_CATALOG,
             PipelineHandle::SourceCatalog(catalog.clone()),
             pin,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .map_err(|error| stage_error(error.to_string()))?;
     StageProduct::from_bundle(STAGE_ID, Arc::new(bundle))

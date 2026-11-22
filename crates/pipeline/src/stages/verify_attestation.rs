@@ -253,7 +253,7 @@ fn build_output_from_report(
 
     let verify_input_digest = purrdf::canonical_flat_nquads(
         edb,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map(|canonical| ContentDigest::of(canonical.nquads().as_bytes()))
     .map_err(|e| stage_err(format!("canonicalize verification input digest: {e}")))?;
@@ -413,12 +413,12 @@ pub fn grade_shipped_attestation(
     }
     let expected_graph_bytes = purrdf::canonical_flat_nquads(
         &expected_graph,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|error| stage_err(format!("canonicalize fresh graph/verify: {error}")))?;
     let shipped_graph_bytes = purrdf::canonical_flat_nquads(
         &shipped_graph,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|error| stage_err(format!("canonicalize shipped graph/verify: {error}")))?;
     let expected_graph_digest =

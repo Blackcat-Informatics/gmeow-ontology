@@ -3,6 +3,7 @@
 export const memory: WebAssembly.Memory;
 export const admit_artifact: (a: number, b: number, c: number) => void;
 export const init: (a: number, b: number, c: number) => void;
+export const install_sparql_host: () => void;
 export const mcp: (a: number, b: number, c: number) => void;
 export const ready: () => number;
 export const version: (a: number) => void;

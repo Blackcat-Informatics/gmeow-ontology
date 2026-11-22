@@ -4,6 +4,7 @@ export const memory: WebAssembly.Memory;
 export const bundle_dataset: (a: number, b: number, c: number) => void;
 export const gmn_codebook_digest: (a: number) => void;
 export const gmn_validate: (a: number, b: number, c: number) => void;
+export const install_sparql_host: () => void;
 export const validate: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => void;
 export const version: (a: number) => void;
 export const __wbindgen_externrefs: WebAssembly.Table;

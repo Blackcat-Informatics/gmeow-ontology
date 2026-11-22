@@ -111,7 +111,7 @@ fn complete_rdf_state(
 ) -> gmeow_errors::Result<purrdf::DatasetStateDigest> {
     purrdf::DatasetStateDigest::from_view(
         dataset,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|cause| {
         gmeow_errors::Diag::of_kind(crate::error::Result::caused_by(context.into(), cause))

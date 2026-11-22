@@ -19,9 +19,12 @@
 //! decode-side expectations, and a realization silently claiming the authored intent
 //! would be a second source of truth for what actually happened.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
-use purrdf::{RdfLiteral, RdfQuad, RdfTerm};
+use purrdf::ir::RecordKind;
+use purrdf::{
+    DatasetView, GraphMatch, QuadIds, RdfDataset, RdfLiteral, RdfQuad, RdfTerm, TermId, TermRef,
+};
 
 use gmeow_logic::certificate::CanonProfileMarker;
 
@@ -783,6 +786,46 @@ fn blake3_digest_value(
     })
 }
 
+/// Select the registry's native rows without copying the rest of the artifact.
+pub(crate) fn registry_records(
+    dataset: &RdfDataset,
+) -> impl Iterator<Item = (RecordKind, QuadIds)> + '_ {
+    dataset
+        .term_id_by_iri(MEDIUM_REGISTRY_GRAPH)
+        .into_iter()
+        .flat_map(move |graph| {
+            let graph = GraphMatch::Named(graph);
+            dataset
+                .quads_for_pattern(None, None, None, graph)
+                .map(|row| (RecordKind::Ordinary, row))
+                .chain(
+                    dataset
+                        .reifier_quads_in_graph(graph)
+                        .map(|row| (RecordKind::Reifier, row)),
+                )
+                .chain(
+                    dataset
+                        .annotation_quads_in_graph(graph)
+                        .map(|row| (RecordKind::Annotation, row)),
+                )
+        })
+}
+
+/// IRI subjects declared as medium envelopes in the registry graph.
+pub(crate) fn envelope_subjects(dataset: &RdfDataset) -> BTreeSet<TermId> {
+    let Some(predicate) = dataset.term_id_by_iri(RDF_TYPE) else {
+        return BTreeSet::new();
+    };
+    let Some(class) = dataset.term_id_by_iri(&gm("MediumEnvelope")) else {
+        return BTreeSet::new();
+    };
+    registry_records(dataset)
+        .filter(|(_, row)| row.p == predicate && row.o == class)
+        .map(|(_, row)| row.s)
+        .filter(|id| matches!(dataset.resolve(*id), TermRef::Iri(_)))
+        .collect()
+}
+
 /// Read the emitted `gmeow:MediumEnvelope` records back off a folded artifact.
 ///
 /// The inverse of the envelope half of [`project`], and the door
@@ -793,21 +836,31 @@ fn blake3_digest_value(
 /// An envelope missing one of its six payload coordinates (`invalid_declaration`) or any of
 /// its four canonical-profile coordinates (`MediumProfileMismatch`), or naming a
 /// `gmeow:DigestStratum` individual the vocabulary does not declare.
-pub fn envelopes(graph: &purrdf::RdfDataset) -> Result<Vec<MediumEnvelope>, gmeow_errors::Diag> {
+pub fn envelopes(dataset: &RdfDataset) -> Result<Vec<MediumEnvelope>, gmeow_errors::Diag> {
     use purrdf::RdfTerm as T;
 
-    let quads = purrdf::flat_rdf_quads_from_dataset(graph);
-    let subjects: Vec<&str> = quads
-        .iter()
-        .filter(|q| q.predicate == RDF_TYPE && q.object == T::iri(gm("MediumEnvelope")))
-        .filter_map(|q| match &q.subject {
-            T::Iri(iri) => Some(iri.as_str()),
-            _ => None,
+    let subjects = envelope_subjects(dataset);
+    let quads = registry_records(dataset)
+        .filter(|(_, row)| subjects.contains(&row.s))
+        .map(|(_, row)| {
+            let TermRef::Iri(predicate) = dataset.resolve(row.p) else {
+                return Err(super::invalid_declaration(
+                    "medium envelope predicate must be an IRI",
+                ));
+            };
+            Ok(RdfQuad::new(
+                dataset.to_owned_term(row.s),
+                predicate,
+                dataset.to_owned_term(row.o),
+            ))
         })
-        .collect();
+        .collect::<Result<Vec<_>, gmeow_errors::Diag>>()?;
 
     let mut out = Vec::with_capacity(subjects.len());
-    for subject in subjects {
+    for subject in subjects.iter().filter_map(|id| match dataset.resolve(*id) {
+        TermRef::Iri(iri) => Some(iri),
+        _ => None,
+    }) {
         let iri_of = |predicate: &str| -> Option<String> {
             quads
                 .iter()

@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Native complete-artifact identity for the shipped browser reason operation.
-//! The matching WASM case consumes the same producer-owned frozen JSON witness.
+//! The matching WASM case consumes the same frozen response envelope and GTS payload.
 
 use std::path::PathBuf;
 
 #[path = "support/closure_witness.rs"]
 mod closure_witness;
-use closure_witness::{INPUT, reason_artifact};
+use closure_witness::{INPUT, reason_artifact, split_artifact};
 
 fn attestation_path() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -53,8 +53,16 @@ fn native_reason_closure_matches_the_witness_attestation() {
             path.display()
         )
     });
+    let (envelope, gts) =
+        split_artifact(&out, &response["artifact"]).expect("the response carries canonical GTS");
     assert_eq!(
-        out, committed,
-        "native reasoned closure drifted from the committed witness attestation"
+        envelope, committed,
+        "reason response drifted from the witness envelope"
+    );
+    let committed_gts =
+        std::fs::read(path.with_extension("gts")).expect("read the producer-owned GTS witness");
+    assert_eq!(
+        gts, committed_gts,
+        "reason artifact drifted from the GTS witness"
     );
 }

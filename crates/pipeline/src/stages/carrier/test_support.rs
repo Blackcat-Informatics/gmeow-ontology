@@ -47,7 +47,14 @@ pub(super) fn stratum_nquads(
     carrier: &std::sync::Arc<purrdf::RdfDataset>,
     extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
 ) -> Result<String, gmeow_errors::Diag> {
-    with_stratum_canonical(carrier, extra_graphs, str::to_owned)
+    let stratum = compose_stratum(carrier, extra_graphs)?;
+    let canonical = purrdf::rdfc12::try_canonicalize_flat_view(
+        &stratum,
+        purrdf::rdfc12::CanonHash::Sha256,
+        &mut purrdf::CanonicalizationControl::new(purrdf::rdfc12::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|e| stage_err(&format!("canonicalize the pass-one stratum: {e}")))?;
+    Ok(canonical.nquads().to_owned())
 }
 
 /// Render the mdbook `src/` source tree and pack it into the single `docs-book` archive blob
@@ -67,7 +74,7 @@ pub(super) fn build_docs_book_archive(
     let catalog = purrdf::slice::SliceCatalog::discover(
         &root.join("slices"),
         gmeow_ns::gmeow_slice_vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
     let translations = gmeow_docs::Translations::from_catalog(&catalog)?;

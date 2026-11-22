@@ -93,6 +93,18 @@ fn persisted_gmn_identity_vectors() {
             "blake3:f466568327a4ef181ee5ce0ccd8f246777824c8381e4ae01dfae7db7aed33b08",
         ]
     );
+
+    let blank_model = parse_dataset(
+        b"_:source <urn:predicate> <urn:value> .",
+        "text/turtle",
+        None,
+    )
+    .expect("the GMN blank-node vector parses");
+    assert_eq!(
+        content_digest(&Gmn0Model::from_dataset(&blank_model)).expect("canonical content digest"),
+        tagged_text_digest("_:c14n0 <urn:predicate> <urn:value> .\n"),
+        "the GMN envelope binds the published RDFC blank label"
+    );
 }
 
 #[test]

@@ -161,7 +161,7 @@ fn canonical_turtle(bytes: &[u8], label: &str) -> Result<String, gmeow_errors::D
     })?;
     let canonical = purrdf::try_canonicalize(
         &flat,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|error| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {

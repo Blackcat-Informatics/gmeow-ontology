@@ -113,6 +113,7 @@ export interface InitOutput {
     readonly deferred_segment_tools: (a: number, b: number, c: number) => void;
     readonly deferred_tools: (a: number) => void;
     readonly init: (a: number, b: number, c: number) => void;
+    readonly install_sparql_host: () => void;
     readonly mcp: (a: number, b: number, c: number) => void;
     readonly ready: () => number;
     readonly version: (a: number) => void;

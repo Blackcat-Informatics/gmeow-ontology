@@ -515,56 +515,84 @@ fn with_inputs(mut diagnostic: Diag, inputs: &[InputIdentity]) -> Diag {
     diagnostic
 }
 
-/// The finite blank-node canonicalization search limit, when it caused `error`.
-/// The limit belongs to PurRDF's canonicalization policy; it is reported, never
-/// raised, and never answered with a weaker labeling.
-fn canonicalization_limit<'a>(
-    error: &'a (dyn std::error::Error + 'static),
-) -> Option<&'a purrdf::BudgetExceeded> {
+enum CanonicalizationLimit {
+    Rdfc(purrdf::BudgetExceeded),
+    Labelling { component_nodes: u64, units: u64 },
+}
+
+/// Find the canonicalization search refusal in the original typed cause chain.
+fn canonicalization_limit(
+    error: &(dyn std::error::Error + 'static),
+) -> Option<CanonicalizationLimit> {
+    use purrdf_core::canonical_labelling::Refusal;
+
     let mut current = Some(error);
     while let Some(error) = current {
         if let Some(budget) = error.downcast_ref::<purrdf::BudgetExceeded>() {
-            return Some(budget);
+            return Some(CanonicalizationLimit::Rdfc(*budget));
         }
-        if let Some(purrdf::CanonError::BudgetExceeded(budget)) =
-            error.downcast_ref::<purrdf::CanonError>()
-        {
-            return Some(budget);
+        match error.downcast_ref::<purrdf::CanonError>() {
+            Some(purrdf::CanonError::BudgetExceeded(budget)) => {
+                return Some(CanonicalizationLimit::Rdfc(**budget));
+            }
+            Some(purrdf::CanonError::Refused(refusal)) => {
+                if let Refusal::Limit { nodes, units, .. } = refusal.as_ref() {
+                    return Some(CanonicalizationLimit::Labelling {
+                        component_nodes: *nodes,
+                        units: *units,
+                    });
+                }
+            }
+            _ => {}
         }
         current = error.source();
     }
     None
 }
 
-fn diag_canonicalization_limit(diagnostic: &Diag) -> Option<&purrdf::BudgetExceeded> {
+fn diag_canonicalization_limit(diagnostic: &Diag) -> Option<CanonicalizationLimit> {
     let source = diagnostic.inner().source.as_deref()?;
     canonicalization_limit(source)
 }
 
 /// The named execution failure for a canonicalization search that reached its limit.
 fn canonicalization_limit_failure(
-    budget: &purrdf::BudgetExceeded,
+    budget: &CanonicalizationLimit,
     stage: &str,
     cause: Diag,
     inputs: &[InputIdentity],
 ) -> Diag {
-    let evidence = serde_json::json!({
-        "stage": stage,
-        "limit": budget.limit,
-        "blank_nodes": budget.blank_count,
-        "recursive_frames": budget.work.count(purrdf::SearchEvent::RdfcFrame),
-        "permutation_attempts": budget.work.count(purrdf::SearchEvent::RdfcPermutation),
-    });
-    with_inputs(
-        caused_diagnostic(
-            "SOURCE_CANONICALIZATION_LIMIT",
-            cause,
+    let (detail, evidence) = match budget {
+        CanonicalizationLimit::Rdfc(budget) => (
             format!(
                 "{stage}: blank-node canonicalization reached its finite search limit of {} work units over {} blank nodes",
                 budget.limit, budget.blank_count
             ),
-            evidence,
+            serde_json::json!({
+                "stage": stage,
+                "limit": budget.limit,
+                "blank_nodes": budget.blank_count,
+                "recursive_frames": budget.work.count(purrdf::SearchEvent::RdfcFrame),
+                "permutation_attempts": budget.work.count(purrdf::SearchEvent::RdfcPermutation),
+            }),
         ),
+        CanonicalizationLimit::Labelling {
+            component_nodes,
+            units,
+        } => (
+            format!(
+                "{stage}: nested refinement exhausted its search budget after charging {units} work units in a component with {component_nodes} blank nodes"
+            ),
+            serde_json::json!({
+                "stage": stage,
+                "canonical_profile": purrdf::CANON_LABELLING_NAME,
+                "component_blank_nodes": component_nodes,
+                "work_units": units,
+            }),
+        ),
+    };
+    with_inputs(
+        caused_diagnostic("SOURCE_CANONICALIZATION_LIMIT", cause, detail, evidence),
         inputs,
     )
 }
@@ -1167,7 +1195,7 @@ fn native_leg(
     let (result, verdict) = match run {
         Ok(outcome) => outcome,
         Err(error) => {
-            if let Some(budget) = diag_canonicalization_limit(&error).copied() {
+            if let Some(budget) = diag_canonicalization_limit(&error) {
                 return Err(EngineFailure {
                     native: None,
                     diagnostic: canonicalization_limit_failure(
@@ -1335,9 +1363,7 @@ fn open_owl_view(
     step_cap: Option<u64>,
 ) -> Result<(Arc<RdfDataset>, DlReasoner), OwlOpenFailure> {
     let classify =
-        |code: &'static str, stage: &str, error: Diag| match diag_canonicalization_limit(&error)
-            .copied()
-        {
+        |code: &'static str, stage: &str, error: Diag| match diag_canonicalization_limit(&error) {
             Some(budget) => {
                 OwlOpenFailure::Limit(canonicalization_limit_failure(&budget, stage, error, &[]))
             }
@@ -1743,7 +1769,7 @@ fn check_proof(
         &Question::Consistency,
         None,
         &context,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     );
     match replay {
         Ok(replay) => {
@@ -1752,11 +1778,11 @@ fn check_proof(
             publish_check_report(report, request, files)
         }
         Err(error) => {
-            if let Some(budget) = canonicalization_limit(&error).copied() {
+            if let Some(budget) = canonicalization_limit(&error) {
                 let diagnostic = canonicalization_limit_failure(
                     &budget,
                     "proof source binding",
-                    failure("PROOF_SOURCE_BINDING", error.to_string()),
+                    caused_failure("PROOF_SOURCE_BINDING", error, "bind the proof source"),
                     &loaded.identities,
                 );
                 return publish_check(
@@ -1975,7 +2001,7 @@ fn limit_or_malformed(
     identities: &[InputIdentity],
     malformed: impl FnOnce(Diag) -> Diag,
 ) -> LoadFailure {
-    match diag_canonicalization_limit(&error).copied() {
+    match diag_canonicalization_limit(&error) {
         Some(budget) => LoadFailure::Execution(canonicalization_limit_failure(
             &budget, stage, error, identities,
         )),
@@ -2113,7 +2139,7 @@ fn load_theory(paths: &[OpenedInput]) -> Result<LoadedTheory, LoadFailure> {
             .map_err(|error| {
                 // Every recorded term was parsed from the selected documents, so a
                 // missing binding is a broken invariant, never malformed input.
-                if let Some(budget) = diag_canonicalization_limit(&error).copied() {
+                if let Some(budget) = diag_canonicalization_limit(&error) {
                     return LoadFailure::Execution(canonicalization_limit_failure(
                         &budget,
                         "source document binding",

@@ -46,6 +46,9 @@ wasm-bindgen.workspace = true
 # `conformant` flag + `failureClass` IRI (the load-bearing unknown-glyph rejection); they
 # reuse the native JSON dependency above (a normal dep is already in scope for tests).
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+gmeow-browser-host.workspace = true
+
 [dev-dependencies]
 # Corpus-backed host contracts only read compact, producer-selected source verdicts.
 gmeow-action-cache = { path = "../action-cache" }

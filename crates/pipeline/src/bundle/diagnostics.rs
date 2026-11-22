@@ -122,14 +122,14 @@ pub(crate) fn pin_diagnostics(
     }
     let pin = bundle.graph_digest(
         GRAPH_DIAGNOSTICS,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )?;
     bundle
         .pin_handle(
             GRAPH_DIAGNOSTICS,
             PipelineHandle::Diagnostics(publication),
             pin,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .map_err(|cause| error(format!("pin native diagnostic publication: {cause}")))
 }
@@ -159,7 +159,7 @@ pub(crate) fn diagnostics_from_product<'a>(
         || entry.content_digest
             != bundle.graph_digest(
                 GRAPH_DIAGNOSTICS,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )?
     {
         return Err(error(

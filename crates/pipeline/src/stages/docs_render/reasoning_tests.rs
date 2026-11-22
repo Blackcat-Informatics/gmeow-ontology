@@ -78,7 +78,7 @@ fn product_over(result: ReasoningResult, summary: &RdfDataset) -> StageProduct {
     let pinned = bundle
         .graph_digest(
             GRAPH_REASONING,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     bundle
@@ -86,7 +86,7 @@ fn product_over(result: ReasoningResult, summary: &RdfDataset) -> StageProduct {
             GRAPH_REASONING,
             PipelineHandle::Reasoning(Arc::new(result)),
             pinned,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .expect("native graph pin");
     StageProduct::from_bundle("stage-reason", Arc::new(bundle)).expect("the stage carrier digests")
@@ -221,7 +221,7 @@ fn missing_reason_product_handle_and_wrong_payloads_refuse() {
     let pin = bundle
         .graph_digest(
             GRAPH_REASONING,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     bundle
@@ -234,7 +234,7 @@ fn missing_reason_product_handle_and_wrong_payloads_refuse() {
                 None,
             ))),
             pin,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     assert!(
@@ -386,7 +386,7 @@ fn changed_native_payload_identity_refuses() {
     let pin = bundle
         .graph_digest(
             GRAPH_REASONING,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     bundle
@@ -394,7 +394,7 @@ fn changed_native_payload_identity_refuses() {
             GRAPH_REASONING,
             PipelineHandle::Reasoning(Arc::new(changed)),
             pin,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     assert!(
@@ -417,7 +417,7 @@ fn absent_graph_released_carrier_and_wrong_producer_refuse() {
     let pin = bundle
         .graph_digest(
             GRAPH_REASONING,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     bundle
@@ -425,7 +425,7 @@ fn absent_graph_released_carrier_and_wrong_producer_refuse() {
             GRAPH_REASONING,
             PipelineHandle::Reasoning(Arc::new(result(Vec::new()))),
             pin,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     let absent = StageProduct::from_bundle("stage-reason", Arc::new(bundle))

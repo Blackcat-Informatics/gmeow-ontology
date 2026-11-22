@@ -636,11 +636,10 @@ impl MediumRegistry {
             })
             .collect();
 
-        Ok(WireMediumPlan {
-            dicts,
-            assignment,
-            zstd_level: level.map(|(level, _)| level),
-        })
+        let mut plan = WireMediumPlan::undicted(level.map(|(level, _)| level));
+        plan.dicts = dicts;
+        plan.assignment = assignment;
+        Ok(plan)
     }
 
     /// Read the ONE declared `gmeow:CorpusTrainingSplit`.

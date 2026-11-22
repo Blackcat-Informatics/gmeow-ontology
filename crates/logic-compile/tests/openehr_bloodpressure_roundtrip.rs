@@ -63,7 +63,7 @@ fn canonical_nquads(turtle: &[u8]) -> String {
         .expect("native parse of RDF-1.2 Turtle (full complement, triple term included)");
     purrdf::try_canonicalize(
         &ds,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .expect("canonicalize the parsed graph")
     .nquads()
@@ -256,7 +256,7 @@ fn up_projection_reconstructs_source_from_rm_slice_and_complement() {
         .expect("native parse of the complement");
     let complement_canon = purrdf::try_canonicalize(
         &complement_ds,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .expect("canonicalize the complement")
     .nquads()
@@ -291,7 +291,7 @@ fn up_projection_reconstructs_source_from_rm_slice_and_complement() {
         .expect("the synthetic reconstructed graph must union successfully");
     let reconstructed_canon = purrdf::try_canonicalize(
         &reconstructed,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .expect("canonicalize the reconstruction")
     .nquads()
@@ -304,7 +304,7 @@ fn up_projection_reconstructs_source_from_rm_slice_and_complement() {
         .expect("native parse of blood_pressure.source.ttl");
     let source_canon = purrdf::try_canonicalize(
         &source_ds,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .expect("canonicalize the source")
     .nquads()

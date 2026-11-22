@@ -187,7 +187,7 @@ fn compile_mappings_with_sources(
             purrdf::slice::SliceCatalog::discover(
                 &slices_dir,
                 gmeow_ns::gmeow_slice_vocab(),
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -745,7 +745,7 @@ pub fn discharged_section_cells_from_root(
             purrdf::slice::SliceCatalog::discover(
                 &slices_dir,
                 gmeow_ns::gmeow_slice_vocab(),
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -1556,14 +1556,14 @@ impl Stage for MappingsStage {
         let graph = crate::stages::carrier::GRAPH_CORRESPONDENCE_LAWS;
         let pin = bundle.graph_digest(
             graph,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )?;
         bundle
             .pin_handle(
                 graph,
                 PipelineHandle::GroundingCatalog(std::sync::Arc::new(compiled.grounding_catalog)),
                 pin,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .map_err(|error| {
                 crate::error::parse_diag(format!("pin admitted grounding catalog: {error}"))

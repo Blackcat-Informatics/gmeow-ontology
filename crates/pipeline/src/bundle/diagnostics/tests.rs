@@ -438,7 +438,7 @@ fn native_diagnostics_refuse_missing_wrong_and_substituted_publications() {
     let pin = bundle
         .graph_digest(
             GRAPH_DIAGNOSTICS,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     bundle
@@ -451,7 +451,7 @@ fn native_diagnostics_refuse_missing_wrong_and_substituted_publications() {
                 None,
             ))),
             pin,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     assert!(

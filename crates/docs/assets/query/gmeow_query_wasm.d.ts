@@ -99,6 +99,7 @@ export interface InitOutput {
     readonly dataset_query: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
     readonly dataset_serialize: (a: number, b: number, c: number, d: number) => void;
     readonly dataset_size: (a: number) => number;
+    readonly install_sparql_host: () => void;
     readonly version: (a: number) => void;
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_add_to_stack_pointer: (a: number) => number;

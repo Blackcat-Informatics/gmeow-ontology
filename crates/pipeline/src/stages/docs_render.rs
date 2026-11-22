@@ -136,7 +136,7 @@ pub(crate) fn reasoning_result_from_product<'a>(
         || entry.content_digest
             != bundle.graph_digest(
                 GRAPH_REASONING,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )?
     {
         return Err(fail(

@@ -99,18 +99,13 @@ fn lpg_config() -> Result<LpgConfig, gmeow_errors::Diag> {
 /// ledgers largely duplicate one another; grouping by `(code, note)` across all
 /// four collapses that duplication into one entry per distinct loss reason.
 fn report_lpg_losses(ledgers: &[&purrdf::LossLedger]) {
-    let mut grouped: BTreeMap<(&str, &str), Vec<&str>> = BTreeMap::new();
+    let mut grouped: BTreeMap<(&str, &str), Vec<&purrdf::loss::LossSubject>> = BTreeMap::new();
     for ledger in ledgers {
         for loss in ledger.entries() {
-            let subject = loss
-                .location
-                .as_deref()
-                .and_then(|location| location.subject.as_deref())
-                .unwrap_or("<unlocated>");
             grouped
                 .entry((loss.code.as_ref(), loss.note.as_ref()))
                 .or_default()
-                .push(subject);
+                .push(&loss.subject);
         }
     }
     for ((construct, reason), mut subjects) in grouped {
@@ -119,7 +114,7 @@ fn report_lpg_losses(ledgers: &[&purrdf::LossLedger]) {
         let examples = subjects
             .iter()
             .take(5)
-            .copied()
+            .map(|subject| subject.text().unwrap_or_else(|| "<unlocated>".to_owned()))
             .collect::<Vec<_>>()
             .join(", ");
         let suffix = if subjects.len() > 5 {

@@ -120,13 +120,13 @@ fn opaque_fanout_manifest_is_deterministic_regardless_of_key_order() {
     assert_eq!(
         purrdf::canonical_flat_nquads(
             a.as_ref(),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .unwrap()
         .nquads(),
         purrdf::canonical_flat_nquads(
             b.as_ref(),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .unwrap()
         .nquads(),

@@ -930,7 +930,7 @@ maint-refresh-reason-asset: ## Refresh both native witnesses, prove Node parity,
 	$(MAKE) reason-wasm-pkg
 	cd crates/reason-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-reason-wasm Node native↔wasm parity witness lane passed"
-	cp crates/reason-wasm/tests/WITNESS.reason.json crates/docs/assets/reason/WITNESS.reason.json
+	cp crates/reason-wasm/tests/WITNESS.reason.json crates/reason-wasm/tests/WITNESS.reason.gts crates/docs/assets/reason/
 	$(call REVENDOR_WASM_ASSET,reason,REASON)
 
 reason-wasm-pkg-test: reason-wasm-pkg ## Build the reasoner npm package and run its Node native↔wasm parity witness lane.
@@ -983,7 +983,7 @@ maint-prepare-wasm-assets: ## Prepare all six browser assets and stamps; verific
 	cp crates/mcp-wasm/tests/WITNESS.mcp.json crates/docs/assets/mcp/WITNESS.mcp.json
 	cp crates/mcp-core-wasm/js/index.mjs crates/docs/assets/mcp-core/index.mjs
 	cp crates/mcp-core-wasm/tests/WITNESS.core-deferral.json crates/docs/assets/mcp-core/WITNESS.core-deferral.json
-	cp crates/reason-wasm/tests/WITNESS.reason.json crates/docs/assets/reason/WITNESS.reason.json
+	cp crates/reason-wasm/tests/WITNESS.reason.json crates/reason-wasm/tests/WITNESS.reason.gts crates/docs/assets/reason/
 	@# Refresh all metadata in one process, after every embedded asset has changed.
 	cargo run -p gmeow-docs --example refresh-vendored-asset -- all
 	@echo "Prepared assets only; the full gate and six parity lanes are still required."

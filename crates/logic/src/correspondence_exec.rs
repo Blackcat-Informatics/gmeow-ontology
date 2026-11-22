@@ -50,14 +50,13 @@ use gmeow_logic_compile::projections::correspondence_gates::{
 };
 use gmeow_logic_compile::projections::paths::lower_leg_path;
 use purrdf::ir::import::DatasetImporter;
+use purrdf::rdfc12::{RDFC_V2_CORPUS_POLICY, canonical_relabel};
 use purrdf::sparql::{
     Child, GraphPattern, NamedNode, NamedNodePattern, NativeSparqlEngine, PreparedQuery,
     QuadPattern, Query, QueryOptions, SparqlParser, TermPattern,
     TriplePattern as SparqlTriplePattern, Variable,
 };
-use purrdf::{
-    RdfDataset, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, SparqlResult, TermValue, canonical_relabel,
-};
+use purrdf::{RdfDataset, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, SparqlResult, TermValue};
 use purrdf_lex::json::record::ToJson as _;
 
 const VIEW_PREDICATE: &str = "https://blackcatinformatics.ca/logic/recovery#view";
@@ -312,11 +311,10 @@ impl CarrierAtoms {
     }
 
     fn canonical(dataset: &RdfDataset, marker: &str) -> gmeow_errors::Result<Self> {
+        // The normalized terms appear in published countermodels.
+        let mut control = purrdf::CanonicalizationControl::new(RDFC_V2_CORPUS_POLICY, None);
         let canonical = if dataset.named_graphs().next().is_none() {
-            canonical_relabel(
-                dataset,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-            )
+            canonical_relabel(dataset, &mut control)
         } else {
             // Empty graph declarations are not N-Quads statements. Make their
             // incidence visible to the native canonicalizer, including when a
@@ -335,10 +333,7 @@ impl CarrierAtoms {
                 builder.push_quad(graph, marker_id, marker_id, Some(marker_id))?;
             }
             let augmented = builder.freeze()?;
-            canonical_relabel(
-                &augmented,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-            )
+            canonical_relabel(&augmented, &mut control)
         }
         .map_err(|error| {
             gmeow_errors::Diag::from(error).with_context("canonicalize correspondence carrier")

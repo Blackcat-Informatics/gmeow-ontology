@@ -157,7 +157,7 @@ fn product(handle: PipelineHandle) -> StageProduct {
     let pin = bundle
         .graph_digest(
             GRAPH,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     bundle
@@ -165,7 +165,7 @@ fn product(handle: PipelineHandle) -> StageProduct {
             GRAPH,
             handle,
             pin,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     StageProduct::from_bundle("stage-loss-codec", Arc::new(bundle))
@@ -548,11 +548,11 @@ fn persistent_actions_preserve_loss_vectors_in_both_binary_handle_arms() {
         assert_eq!(
             hit.product.bundle().graph_digest(
                 GRAPH,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             ),
             product.bundle().graph_digest(
                 GRAPH,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             )
         );
     }

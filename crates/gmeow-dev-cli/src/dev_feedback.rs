@@ -488,7 +488,7 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
             let catalog = purrdf::slice::SliceCatalog::discover(
                 &slices,
                 gmeow_ns::gmeow_slice_vocab(),
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .map_err(error::feedback)?;
             let analysis = purrdf::slice::OwnershipAnalyzer::new(&catalog)
@@ -607,7 +607,7 @@ pub fn slice_fix_deps(apply: bool, slices_dir: Option<&Path>) -> i32 {
     let catalog = match purrdf::slice::SliceCatalog::discover(
         &slices,
         gmeow_ns::gmeow_slice_vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     ) {
         Ok(c) => c,
         Err(e) => return fail(format!("slice catalog discovery failed: {e}")),

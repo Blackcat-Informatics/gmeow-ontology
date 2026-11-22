@@ -131,17 +131,12 @@ fn graphql_config() -> Result<GraphqlConfig, gmeow_errors::Diag> {
 /// identifies which of the three projections (`linkml` / `typescript` /
 /// `graphql`) the ledger belongs to.
 fn report_losses(surface: &str, losses: &purrdf::LossLedger) {
-    let mut grouped: BTreeMap<(&str, &str), Vec<&str>> = BTreeMap::new();
+    let mut grouped: BTreeMap<(&str, &str), Vec<&purrdf::loss::LossSubject>> = BTreeMap::new();
     for loss in losses.entries() {
-        let subject = loss
-            .location
-            .as_deref()
-            .and_then(|location| location.subject.as_deref())
-            .unwrap_or("<unlocated>");
         grouped
             .entry((loss.code.as_ref(), loss.note.as_ref()))
             .or_default()
-            .push(subject);
+            .push(&loss.subject);
     }
     for ((construct, reason), mut shapes) in grouped {
         shapes.sort_unstable();
@@ -149,7 +144,7 @@ fn report_losses(surface: &str, losses: &purrdf::LossLedger) {
         let examples = shapes
             .iter()
             .take(5)
-            .copied()
+            .map(|subject| subject.text().unwrap_or_else(|| "<unlocated>".to_owned()))
             .collect::<Vec<_>>()
             .join(", ");
         let suffix = if shapes.len() > 5 {

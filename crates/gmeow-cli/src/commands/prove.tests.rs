@@ -17,6 +17,55 @@ fn load(paths: &[std::path::PathBuf]) -> Result<super::LoadedTheory, super::Load
     super::load_theory(&inputs)
 }
 
+/// A valid source that exhausts nested refinement produces a typed execution failure.
+#[test]
+fn nested_refinement_limit_preserves_execution_evidence() {
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    let relation = builder.intern_iri("urn:adjacent").expect("valid predicate");
+    let vertices: Vec<_> = (0..13)
+        .map(|index| {
+            builder
+                .intern_blank(&format!("v{index}"), purrdf::BlankScope::DEFAULT)
+                .expect("valid vertex")
+        })
+        .collect();
+    for (index, subject) in vertices.iter().copied().enumerate() {
+        for distance in [1, 3, 4, 9, 10, 12] {
+            let object = vertices[(index + distance) % vertices.len()];
+            builder
+                .push_quad(subject, relation, object, None)
+                .expect("valid quadratic-residue graph edge");
+        }
+    }
+    let dataset = builder.freeze().expect("valid graph");
+    let mut control = purrdf::CanonicalizationControl::new(purrdf::SearchPolicy::Finite(0), None);
+    let cause =
+        purrdf::try_canonicalize(&dataset, &mut control).expect_err("this graph requires search");
+    let super::LoadFailure::Execution(diagnostic) =
+        super::limit_or_malformed(cause.into(), "source canonicalization", &[], |diag| diag)
+    else {
+        panic!("the search limit must produce an execution failure");
+    };
+    let report = super::ProveReport::blank(super::DecisionClass::ExecutionFailure, diagnostic);
+    let failure = &report.common.diagnostics[0];
+    assert_eq!(failure.code, "SOURCE_CANONICALIZATION_LIMIT");
+    let fields = &failure
+        .diagnostic
+        .as_ref()
+        .expect("structured evidence")
+        .fields;
+    let evidence = &fields["evidence"];
+    assert_eq!(evidence["canonical_profile"], purrdf::CANON_LABELLING_NAME);
+    assert_eq!(evidence["component_blank_nodes"], 13);
+    assert!(
+        evidence["work_units"]
+            .as_u64()
+            .is_some_and(|units| units > 0)
+    );
+    let mut control = purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None);
+    assert!(purrdf::try_canonicalize(&dataset, &mut control).is_ok());
+}
+
 /// A later open failure retains the admitted prefix's actual input receipts;
 /// a later parse refusal keeps the prior and failing document identities.
 #[test]

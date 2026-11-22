@@ -35,6 +35,9 @@ use purrdf::{RdfDataset, SerializeGraph, SparqlEngine, SparqlRequest, SparqlResu
 use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 
+#[cfg(target_arch = "wasm32")]
+gmeow_browser_host::install_sparql_host_on_start!();
+
 /// The engine version (this crate's SemVer), exposed to JS as `version()` — a
 /// liveness probe proving the wasm module instantiated and the engine linked.
 #[wasm_bindgen]

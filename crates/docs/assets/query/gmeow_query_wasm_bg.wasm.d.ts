@@ -8,6 +8,7 @@ export const dataset_parse: (a: number, b: number, c: number, d: number, e: numb
 export const dataset_query: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
 export const dataset_serialize: (a: number, b: number, c: number, d: number) => void;
 export const dataset_size: (a: number) => number;
+export const install_sparql_host: () => void;
 export const version: (a: number) => void;
 export const __wbindgen_externrefs: WebAssembly.Table;
 export const __wbindgen_add_to_stack_pointer: (a: number) => number;

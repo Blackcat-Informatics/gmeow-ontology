@@ -99,7 +99,7 @@ fn legacy_stratum_digest(
     let union = builder.freeze().expect("legacy union freezes");
     let canonical = purrdf::canonical_flat_nquads(
         &union,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .expect("legacy union canonicalizes");
     let blank_count = (0..union.term_count())
@@ -257,12 +257,12 @@ fn id_native_owl_projection_is_byte_identical_and_strictly_lowers_allocations() 
 
     let candidate_nquads = purrdf::canonical_flat_nquads(
         candidate.as_ref(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .expect("candidate canonicalizes");
     let legacy_nquads = purrdf::canonical_flat_nquads(
         legacy.as_ref(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .expect("legacy canonicalizes");
     assert_eq!(
@@ -341,17 +341,15 @@ gmeow:mediumBaseline a gmeow:ZstdDictMedium ;
 }
 
 fn baseline_plan() -> MediumPlan {
-    MediumPlan {
-        dicts: Vec::new(),
-        assignment: BTreeMap::from([
-            (
-                FrameSlot::Blob("cells-archive".to_string()),
-                WireDictSelection::Baseline,
-            ),
-            (FrameSlot::Snapshot, WireDictSelection::Baseline),
-        ]),
-        zstd_level: Some(12),
-    }
+    let mut plan = MediumPlan::undicted(Some(12));
+    plan.assignment = BTreeMap::from([
+        (
+            FrameSlot::Blob("cells-archive".to_string()),
+            WireDictSelection::Baseline,
+        ),
+        (FrameSlot::Snapshot, WireDictSelection::Baseline),
+    ]);
+    plan
 }
 
 fn legacy_bundle_envelopes(

@@ -596,7 +596,7 @@ pub fn snapshot_frames<'a>(
     let lang_form_catalog = purrdf::slice::SliceCatalog::discover(
         &root.join("slices"),
         gmeow_ns::gmeow_slice_vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|e| stage_err(&format!("lang-form slice catalog: {e}")))?;
     blobs.extend(
@@ -1573,40 +1573,18 @@ fn fold_coherence_certificate(
         || parts.view(),
     )?;
 
-    // Bundle identity = digest of the composed carrier's canonical N-Quads, pinned with the
-    // SAME digest primitive as the axiom-set hashes (so the certificate's bundle_hash and
-    // axiom_hashes are computed under one deterministic primitive).
-    let composed_nq = crate::node::measure_stage_phase(
+    // Hash the flat RDFC document for the certificate without retaining the document.
+    let (bundle_hash, canonical_bytes) = crate::node::measure_stage_phase(
         "stage-snapshot",
         "canonicalize-coherence-carrier",
-        || {
-            purrdf::try_canonicalize_flat_view(
-                &composed,
-                purrdf::CanonHash::Sha256,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-            )
-        },
-    )
-    .map_err(|e| {
-        // Resident views cannot become unavailable. Preserve the original refusal
-        // exactly as canonical_flat_nquads did for the formerly owned carrier.
-        let e = match e {
-            purrdf::ViewCanonError::Refused(refused) => refused,
-            purrdf::ViewCanonError::NotReady { error, .. } => match error {},
-        };
-        stage_err(&format!(
-            "serialize composed carrier for the coherence certificate: {e}"
-        ))
-    })?;
-    let bundle_hash = purrdf::gts::writer::digest_string(composed_nq.nquads().as_bytes());
+        || flat_rdfc_digest(&composed, "the coherence carrier"),
+    )?;
     tracing::info!(
         target: "pipeline_phase", stage = "stage-snapshot",
         retained_source_rows = composed.stats().retained_rows,
-        canonical_bytes = composed_nq.nquads().len(),
+        canonical_bytes,
         "coherence input size"
     );
-    // Only the digest is needed by the certificate and the final carrier.
-    drop(composed_nq);
 
     // `build_coherence_outcome` renders the carrier's quads once per graph for the axiom
     // hashes; it holds only one graph's text at a time.
@@ -1984,13 +1962,8 @@ fn serialize_snapshot(
         None,
     ));
 
-    // Bound the terminal's live set. Both identities are over whole-carrier
-    // representations, but the envelope needs only their digests. Materialize each
-    // preimage in its own scope so the canonical buffers are released before envelope
-    // sealing and the terminal writer. Both identities are functions of pass 1, before
-    // the medium selection contributes envelopes; a same-carrier counterfactual can
-    // therefore reuse the terminal's exact keyed receipt instead of allocating either
-    // whole-carrier canonical preimage twice.
+    // Both identities describe pass one, before medium selection contributes envelopes.
+    // The keyed receipt lets the same-carrier counterfactual reuse both digests.
     let pass_one_input_digest = pass_one_receipt_input_digest(upstream, carrier, &strata)?;
     let receipt_started = std::time::Instant::now();
     let (cached_content_digest, snapshot_strata_digest) =
@@ -2013,7 +1986,7 @@ fn serialize_snapshot(
             None => {
                 let phase_started = std::time::Instant::now();
                 // The end of this phase is recorded by its timing below; the start
-                // is recorded here so the pair brackets the canonical document.
+                // is recorded here so the pair brackets canonical digest computation.
                 crate::memory_record::phase(
                     SNAPSHOT_SERIALIZER,
                     "canonicalize-stratum",
@@ -2021,6 +1994,12 @@ fn serialize_snapshot(
                 );
                 let (stratum_digest, stratum_len) =
                     snapshot_stratum_digest(carrier_handle, &strata)?;
+                tracing::info!(
+                    target: "pipeline_phase",
+                    stage = SNAPSHOT_SERIALIZER,
+                    canonical_bytes = stratum_len,
+                    "stratum digest completed"
+                );
                 timings.push(sink_phase_timing(
                     "canonicalize-stratum",
                     phase_started.elapsed(),
@@ -2028,15 +2007,13 @@ fn serialize_snapshot(
                     frame_count,
                     frame_bytes,
                     None,
-                    Some(("stratum-nquads", stratum_len)),
+                    None,
                 ));
                 (None, stratum_digest)
             }
         };
 
-    // Build the snapshot only after the miss-path stratum union and canonical document
-    // have both been released. This ordering is the peak-residency contract: the builder's
-    // carrier-sized interning tables never overlap the stratum's carrier-sized scratch.
+    // Allocate the snapshot builder after the stratum digest has released its workspace.
     let phase_started = std::time::Instant::now();
     let mut builder = SnapshotBuilder::new();
     let _ingestion = builder
@@ -2149,16 +2126,19 @@ fn pass_one_receipt_input_digest(
             "the GTS serializer carrier is not the stage-snapshot product's exact dataset",
         ));
     }
+    require_native_stratum_roles(carrier)?;
 
     let mut hasher = purrdf_hash::blake3::Hasher::new();
     hash_receipt_field(&mut hasher, PASS_ONE_RECEIPT_ALGORITHM.as_bytes());
     hash_receipt_field(&mut hasher, crate::cache::BUILD_FINGERPRINT.as_bytes());
     hash_receipt_field(&mut hasher, snapshot.digest.as_bytes());
     for (index, graph) in extra_graphs.iter().enumerate() {
+        require_native_stratum_roles(graph.as_ref())?;
         hash_receipt_field(&mut hasher, &(index as u64).to_le_bytes());
-        let canonical = purrdf::canonical_flat_nquads(
+        let canonical = purrdf::canonical_flat_nquads_with(
             graph.as_ref(),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            purrdf::rdfc12::CanonHash::Sha256,
+            &mut purrdf::CanonicalizationControl::new(purrdf::rdfc12::RDFC_V2_CORPUS_POLICY, None),
         )
         .map_err(|e| {
             stage_err(&format!(
@@ -2232,130 +2212,121 @@ fn reusable_pass_one_receipt(
 
 /// The digest and byte length of the canonical pass-one stratum.
 ///
-/// The canonical byte buffer is released before returning, so callers retain only the
-/// compact identities needed by the envelope and report the processed size.
+/// The digest streams the canonical document without retaining its text.
 pub fn snapshot_stratum_digest(
     carrier: &std::sync::Arc<purrdf::RdfDataset>,
     extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
 ) -> Result<(String, usize), gmeow_errors::Diag> {
-    with_stratum_canonical(carrier, extra_graphs, |nquads| {
-        (
-            crate::medium::blake3_digest(nquads.as_bytes()),
-            nquads.len(),
-        )
-    })
+    let stratum = compose_stratum(carrier, extra_graphs)?;
+    let (digest, bytes) = flat_rdfc_digest(&stratum, "the pass-one stratum")?;
+    let bytes = usize::try_from(bytes)
+        .map_err(|_| stage_err("canonical stratum byte count exceeds the host size limit"))?;
+    Ok((digest, bytes))
 }
 
-/// Canonicalize the pass-one stratum — the carrier and every extra stratum graph,
-/// each standardized apart — in the flat presentation, and hand the canonical N-Quads
-/// document to `read`.
-///
-/// The stratum is a composite view over the resident sources, so no union dataset is
-/// built: purrdf's flat canonicalizer reads the composite directly and emits every
-/// reifier and annotation row as an ordinary quad, exactly the flattening the stratum
-/// identity is defined over.
-fn with_stratum_canonical<T>(
+/// Compose the resident stratum sources with their blank-node scopes standardized apart.
+fn compose_stratum(
     carrier: &std::sync::Arc<purrdf::RdfDataset>,
     extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
-    read: impl FnOnce(&str) -> T,
-) -> Result<T, gmeow_errors::Diag> {
+) -> Result<purrdf::CompositeDatasetView, gmeow_errors::Diag> {
     let mut sources = Vec::with_capacity(1 + extra_graphs.len());
     sources.push(std::sync::Arc::clone(carrier));
     sources.extend(extra_graphs.iter().cloned());
-    let stratum = purrdf::CompositeDatasetView::new(sources, CARRIER_VIEW_LIMITS)
-        .map_err(|e| stage_err(&format!("compose the pass-one stratum: {e}")))?;
-    let canonical = purrdf::try_canonicalize_flat_view(
-        &stratum,
-        purrdf::CanonHash::Sha256,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    purrdf::CompositeDatasetView::new(sources, CARRIER_VIEW_LIMITS)
+        .map_err(|e| stage_err(&format!("compose the pass-one stratum: {e}")))
+}
+
+fn flat_rdfc_digest<D: purrdf::FallibleDatasetView<Error = std::convert::Infallible>>(
+    view: &D,
+    name: &str,
+) -> Result<(String, u64), gmeow_errors::Diag> {
+    let measured = purrdf::rdfc12::try_flat_blake3_measured_view(
+        view,
+        purrdf::rdfc12::CanonHash::Sha256,
+        &mut purrdf::CanonicalizationControl::new(purrdf::rdfc12::RDFC_V2_CORPUS_POLICY, None),
     )
-    .map_err(|e| stage_err(&format!("canonicalize the pass-one stratum: {e}")))?;
-    Ok(read(canonical.nquads()))
+    .map_err(|e| {
+        let error = match e {
+            purrdf::ViewCanonError::Refused(error) => error,
+            purrdf::ViewCanonError::NotReady { error, .. } => match error {},
+        };
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed::caused_by(
+            "stage-gts-sink".to_string(),
+            format!("canonicalize {name}: {error}"),
+            error,
+        ))
+    })?;
+    let digest = format!("blake3:{}", purrdf_hash::hex::encode(&measured.digest));
+    Ok((digest, measured.bytes))
 }
 
 #[path = "carrier.stratum_canonical_tests.rs"]
 #[cfg(test)]
 mod stratum_canonical_tests;
 
-/// The `gmeow:stratumPayloadExcludingMediumEnvelope` region of an ALREADY-EMITTED
-/// snapshot payload: its quad set minus the medium-envelope subgraph, canonicalized
-/// exactly as `stratum_nquads` does.
-///
-/// This is the reader-side inverse. It is what makes the stratum CHECKABLE rather
-/// than merely asserted: a consumer folds the bundle, strips the envelope quads by
-/// the declaration alone, and recomputes the digest the envelope carries.
-///
-/// # Errors
-/// The stripped dataset fails validation or canonicalization.
-pub fn snapshot_stratum_nquads(payload: &purrdf::RdfDataset) -> Result<String, gmeow_errors::Diag> {
-    let stripped = purrdf::flat_dataset_from_quads(&snapshot_stratum_quads(payload))
-        .map_err(|e| stage_err(&format!("strip the medium-envelope subgraph: {e}")))?;
-    Ok(purrdf::try_canonicalize(
-        &stripped,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
-    )
-    .map_err(|e| stage_err(&format!("canonicalize the stratum payload: {e}")))?
-    .nquads()
-    .to_owned())
-}
+/// Refuse ordinary rows that the RDFC overlay decoder would reinterpret.
+fn require_native_stratum_roles(dataset: &purrdf::RdfDataset) -> Result<(), gmeow_errors::Diag> {
+    use purrdf::{DatasetView, GraphMatch};
 
-/// The stratum's quad set: every quad of an emitted snapshot payload EXCEPT the
-/// medium-envelope subgraph.
-///
-/// Membership is keyed on the DECLARATION — a statement in `graph/medium-registry`
-/// whose subject is typed `gmeow:MediumEnvelope` — never on a predicate allow-list.
-/// A list would have to be edited in lockstep with the envelope's field set, and a
-/// field added without editing it would silently fall INSIDE the stratum and break
-/// convergence.
-#[must_use]
-pub fn snapshot_stratum_quads(payload: &purrdf::RdfDataset) -> Vec<purrdf::RdfQuad> {
-    let flat = purrdf::flat_rdf_quads_from_dataset(payload);
-    let envelopes = medium_envelope_subjects(&flat);
-    flat.into_iter()
-        .filter(|quad| !is_medium_envelope_quad(&envelopes, quad))
-        .collect()
-}
-
-/// The medium-envelope subgraph's quad set — the exact complement of
-/// [`snapshot_stratum_quads`] within `payload`.
-#[must_use]
-pub fn medium_envelope_quads(payload: &purrdf::RdfDataset) -> Vec<purrdf::RdfQuad> {
-    let flat = purrdf::flat_rdf_quads_from_dataset(payload);
-    let envelopes = medium_envelope_subjects(&flat);
-    flat.into_iter()
-        .filter(|quad| is_medium_envelope_quad(&envelopes, quad))
-        .collect()
-}
-
-fn is_medium_envelope_quad(
-    envelope_subjects: &std::collections::BTreeSet<String>,
-    quad: &purrdf::RdfQuad,
-) -> bool {
-    if quad.graph_name != Some(purrdf::RdfTerm::iri(crate::medium::MEDIUM_REGISTRY_GRAPH)) {
-        return false;
+    let overlay_reifies = dataset.term_id_by_iri("urn:purrdf:rdfc:reifies");
+    let overlay_annotations = dataset.term_id_by_iri("urn:purrdf:rdfc:annotation");
+    if overlay_reifies.is_some_and(|predicate| {
+        dataset
+            .quads_for_pattern(None, Some(predicate), None, GraphMatch::Any)
+            .next()
+            .is_some()
+    }) || overlay_annotations.is_some_and(|graph| {
+        dataset
+            .quads_for_pattern(None, None, None, GraphMatch::Named(graph))
+            .next()
+            .is_some()
+    }) {
+        return Err(stage_err(
+            "snapshot payload contains an ordinary row in the reserved RDFC overlay spelling",
+        ));
     }
-    match &quad.subject {
-        purrdf::RdfTerm::Iri(subject) => envelope_subjects.contains(subject.as_str()),
-        _ => false,
-    }
+    Ok(())
 }
 
-/// Every subject asserted `a gmeow:MediumEnvelope` inside `graph/medium-registry`.
-fn medium_envelope_subjects(flat: &[purrdf::RdfQuad]) -> std::collections::BTreeSet<String> {
-    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-    let envelope_class = format!("{}MediumEnvelope", crate::medium::GMEOW);
-    let registry_graph = Some(purrdf::RdfTerm::iri(crate::medium::MEDIUM_REGISTRY_GRAPH));
-    flat.iter()
-        .filter(|quad| {
-            quad.graph_name == registry_graph
-                && quad.predicate == RDF_TYPE
-                && quad.object == purrdf::RdfTerm::iri(&envelope_class)
-        })
-        .filter_map(|quad| match &quad.subject {
-            purrdf::RdfTerm::Iri(iri) => Some(iri.clone()),
-            _ => None,
-        })
-        .collect()
+/// Recompute the snapshot stratum digest through a delta over the folded payload.
+///
+/// Remove only records whose subject is declared as a medium envelope in the
+/// registry graph. The flat renderer reads all surviving RDF 1.2 roles from the view.
+pub(crate) fn verify_snapshot_stratum_digest(
+    payload: &std::sync::Arc<purrdf::RdfDataset>,
+) -> Result<String, gmeow_errors::Diag> {
+    use crate::medium::rdf::{envelope_subjects, registry_records};
+    use purrdf::MutableDataset;
+    use purrdf::ir::{QuadValues, RecordValues};
+
+    let dataset = payload.as_ref();
+    require_native_stratum_roles(dataset)?;
+    let mut stratum = MutableDataset::new(std::sync::Arc::clone(payload));
+    let envelopes = envelope_subjects(dataset);
+    for (kind, row) in registry_records(dataset).filter(|(_, row)| envelopes.contains(&row.s)) {
+        let record = RecordValues {
+            kind,
+            quad: QuadValues {
+                s: dataset.term_value(row.s),
+                p: dataset.term_value(row.p),
+                o: dataset.term_value(row.o),
+                g: row.g.map(|graph| dataset.term_value(graph)),
+            },
+        };
+        if !stratum.remove_record(&record) {
+            return Err(stage_err(
+                "a selected medium-envelope record could not be removed",
+            ));
+        }
+    }
+    let view = stratum
+        .snapshot_view_with_limits(CARRIER_VIEW_LIMITS)
+        .map_err(|e| {
+            stage_err(&format!(
+                "snapshot the stratum without the medium envelopes: {e}"
+            ))
+        })?;
+    flat_rdfc_digest(&view, "the published snapshot stratum").map(|(digest, _)| digest)
 }
 
 /// Parse `bytes` natively and re-root every quad into `graph_iri` (see
@@ -3731,7 +3702,7 @@ fn build_snapshot_bundle(
         crate::node::measure_stage_phase("stage-snapshot", "digest-logic-handle", || {
             bundle.graph_digest(
                 crate::stages::compile_logic::GRAPH_LOGIC,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
         })?;
     bundle
@@ -3739,14 +3710,14 @@ fn build_snapshot_bundle(
             crate::stages::compile_logic::GRAPH_LOGIC,
             crate::bundle::PipelineHandle::Logic(program),
             pinned_logic,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .map_err(|e| stage_err(&format!("re-pin Logic handle on snapshot product: {e}")))?;
     let pinned_reasoning =
         crate::node::measure_stage_phase("stage-snapshot", "digest-reasoning-handle", || {
             bundle.graph_digest(
                 gmeow_logic::result_rdf::GRAPH_REASONING,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
         })?;
     bundle
@@ -3754,14 +3725,14 @@ fn build_snapshot_bundle(
             gmeow_logic::result_rdf::GRAPH_REASONING,
             crate::bundle::PipelineHandle::Reasoning(result),
             pinned_reasoning,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .map_err(|e| stage_err(&format!("re-pin Reasoning handle on snapshot product: {e}")))?;
     let pinned_rc =
         crate::node::measure_stage_phase("stage-snapshot", "digest-relational-handle", || {
             bundle.graph_digest(
                 crate::stages::compile_logic::GRAPH_RELATIONAL_CORE,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
         })?;
     bundle
@@ -3769,7 +3740,7 @@ fn build_snapshot_bundle(
             crate::stages::compile_logic::GRAPH_RELATIONAL_CORE,
             crate::bundle::PipelineHandle::RelationalCore(rc_program),
             pinned_rc,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .map_err(|e| {
             stage_err(&format!(
@@ -3780,7 +3751,7 @@ fn build_snapshot_bundle(
         crate::node::measure_stage_phase("stage-snapshot", "digest-correspondence-handle", || {
             bundle.graph_digest(
                 crate::stages::compile_logic::GRAPH_CORRESPONDENCE,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
         })?;
     bundle
@@ -3788,7 +3759,7 @@ fn build_snapshot_bundle(
             crate::stages::compile_logic::GRAPH_CORRESPONDENCE,
             crate::bundle::PipelineHandle::Correspondence(corr_program),
             pinned_corr,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .map_err(|e| {
             stage_err(&format!(
@@ -3922,7 +3893,7 @@ fn merge_translations(root: &Path, quads: &mut Vec<RdfQuad>) -> Result<(), gmeow
     let catalog = purrdf::slice::SliceCatalog::discover(
         &root.join("slices"),
         gmeow_ns::gmeow_slice_vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
     let translation_sources = gmeow_docs::ontology_catalogs::for_repository(root, &catalog)?;
@@ -3998,7 +3969,7 @@ fn discover_slice_catalog(root: &Path) -> Result<purrdf::slice::SliceCatalog, gm
     purrdf::slice::SliceCatalog::discover(
         &slices_dir,
         gmeow_ns::gmeow_slice_vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|e| stage_err(&format!("slice catalog discover: {e}")))
 }
@@ -4453,7 +4424,7 @@ fn canonicalize_nq(nq_bytes: &[u8], _scope: &str) -> Result<String, gmeow_errors
         .map_err(|e| stage_err(&format!("canonicalize parse: {e}")))?;
     purrdf::canonical_flat_nquads(
         &dataset,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map(|canonical| canonical.nquads().to_owned())
     .map_err(|e| stage_err(&format!("canonicalize: {e}")))

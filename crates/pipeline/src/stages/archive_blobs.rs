@@ -738,7 +738,7 @@ fn archive_bytes<'a>(
     bundle
         .blobs()
         .get(&digest)
-        .map(Vec::as_slice)
+        .map(AsRef::as_ref)
         .ok_or_else(|| {
             stage_err(&format!(
                 "the {STAGE_ID} product's `{rep}` blob digest resolves to no content-store entry"

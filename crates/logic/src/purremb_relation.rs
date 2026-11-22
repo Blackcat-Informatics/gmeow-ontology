@@ -327,7 +327,7 @@ impl<'a> PurrembBinding<'a> {
         verify_embedding_source(
             &view,
             EmbeddingSource::Purrpck(source_bytes),
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .map_err(PurrembBindingError::Verification)?;
 

@@ -336,7 +336,7 @@ fn canonical(quads: &[RdfQuad]) -> String {
     // canonicalizing it directly avoids a redundant flatten + refreeze pass.
     purrdf::try_canonicalize(
         &frozen,
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .expect("the quad set canonicalizes")
     .nquads()

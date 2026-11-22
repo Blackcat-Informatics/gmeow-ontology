@@ -297,7 +297,7 @@ fn paired_closure(
         purrdf::datasets_isomorphic(
             &dataset,
             &wire,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
         )
         .expect("isomorphism is decided by canonical bytes"),
         "native closure must preserve the entire GMEOW artifact, including proof reifiers"

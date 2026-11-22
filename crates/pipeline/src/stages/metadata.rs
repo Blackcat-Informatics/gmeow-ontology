@@ -696,7 +696,7 @@ pub(crate) fn render_metadata_from_dataset(
             native_path.to_owned(),
             purrdf::PackBuilder::build_bytes(
                 &dataset,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .map_err(|error| {
                 gmeow_errors::Diag::of_kind(crate::error::Parse {

@@ -43,7 +43,7 @@ fn mappings_require_and_borrow_complete_native_report_inputs() {
         let digest = bundle
             .graph_digest(
                 GRAPH_LOGIC,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .unwrap();
         bundle
@@ -51,7 +51,7 @@ fn mappings_require_and_borrow_complete_native_report_inputs() {
                 GRAPH_LOGIC,
                 handle,
                 digest,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
             )
             .unwrap();
         BTreeMap::from([(

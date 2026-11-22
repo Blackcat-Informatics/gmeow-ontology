@@ -2105,16 +2105,6 @@ pub fn profile(reporter: &dyn Reporter, ontology: &Path) -> i32 {
     0
 }
 
-/// Render a reasoner-side [`TermValue`] to its IRI text for the greppable
-/// classify / realize / module surfaces. The DL classification, realization and
-/// module signatures range over NAMED classes and individuals, so every term IS an
-/// IRI; a non-IRI term — which the reasoner never places here — falls back to its
-/// debug form rather than being silently dropped.
-fn render_term(term: &TermValue) -> String {
-    term.as_iri()
-        .map_or_else(|| format!("{term:?}"), str::to_owned)
-}
-
 /// Render certified direct rows, or withhold them. purrdf proves directness only
 /// for a fully decided ontology: an undecided run could be missing an intermediate
 /// class or a more specific type. A withheld answer is `None`, never an empty list

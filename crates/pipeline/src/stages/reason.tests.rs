@@ -450,7 +450,7 @@ ex:world {
         purrdf::datasets_isomorphic(
             &graph,
             &expected,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap(),
         "direct carrier emission must retain the complete standalone statement layers"
@@ -466,7 +466,7 @@ ex:world {
         purrdf::datasets_isomorphic(
             &graph,
             &expected,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap(),
         "direct carrier emission must retain the complete standalone statement layers"
@@ -512,7 +512,7 @@ fn reason_stage_pins_a_reasoning_handle_to_graph_reasoning() {
     let pinned = bundle
         .graph_digest(
             GRAPH_REASONING,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .unwrap();
     bundle
@@ -520,7 +520,7 @@ fn reason_stage_pins_a_reasoning_handle_to_graph_reasoning() {
             GRAPH_REASONING,
             PipelineHandle::Reasoning(Arc::new(reasoned.result.clone())),
             pinned,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .expect("pin Reasoning handle to its backing graph");
     let entry = bundle.handle(GRAPH_REASONING).expect("handle attached");
@@ -537,13 +537,13 @@ fn reason_stage_pins_a_reasoning_handle_to_graph_reasoning() {
         bundle
             .graph_digest(
                 GRAPH_REASONING,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             )
             .unwrap(),
         bundle
             .graph_digest(
                 "https://blackcatinformatics.ca/gmeow/graph/absent",
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             )
             .unwrap(),
         "graph/reasoning carries the projection"
@@ -552,13 +552,13 @@ fn reason_stage_pins_a_reasoning_handle_to_graph_reasoning() {
         bundle
             .graph_digest(
                 crate::stages::carrier::GRAPH_DIAGNOSTICS,
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             )
             .unwrap(),
         bundle
             .graph_digest(
                 "https://blackcatinformatics.ca/gmeow/graph/absent",
-                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None)
             )
             .unwrap(),
         "graph/diagnostics always carries the run's native contract evidence"
@@ -790,7 +790,7 @@ fn pin_handle_hard_fails_on_a_digest_mismatch() {
             GRAPH_REASONING,
             PipelineHandle::Reasoning(Arc::new(reasoned.result)),
             wrong,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .expect_err("a mismatched pin must hard-fail");
     let _ = err;

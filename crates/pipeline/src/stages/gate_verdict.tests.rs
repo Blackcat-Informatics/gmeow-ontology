@@ -305,7 +305,7 @@ fn gate_verdicts_over_a_composed_view_equal_those_over_its_materialization() {
     let rendered = |verdicts: Arc<RdfDataset>| {
         purrdf::canonical_flat_nquads(
             &verdicts,
-            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
         )
         .expect("the verdict dataset canonicalizes")
         .nquads()

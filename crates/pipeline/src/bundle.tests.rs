@@ -37,6 +37,37 @@ fn shared_bytes_dedup_but_both_paths_reconstruct() {
     assert_eq!(bundle_artifacts(&bundle), artifacts);
 }
 
+/// A representation can share a digest with an artifact without reclaiming the artifact.
+#[test]
+fn artifact_survives_representation_attachment_and_reclamation() {
+    let payload = b"shared";
+    let original = bundle_from_artifacts(arts(&[("artifact", payload)]), DatasetProvenance::new());
+    let attached = attach_rep_blob(
+        original,
+        "diagnostic",
+        "application/octet-stream",
+        payload.to_vec(),
+    )
+    .expect("attach a representation with the same digest");
+    assert_eq!(attached.blobs().len(), 1);
+    assert_eq!(
+        bundle_rep_blob(&attached, "diagnostic"),
+        Some(payload.as_slice())
+    );
+
+    let stripped = strip_rep_blob(&attached, "diagnostic").expect("strip the representation");
+    let released = release_carrier(&attached, &std::collections::BTreeSet::new())
+        .expect("release the carrier and keep committed artifacts");
+    for bundle in [&stripped, &released] {
+        assert_eq!(bundle_rep_blob(bundle, "diagnostic"), None);
+        assert_eq!(
+            bundle_artifact(bundle, "artifact"),
+            Some(payload.as_slice())
+        );
+        assert_eq!(bundle.blobs().len(), 1);
+    }
+}
+
 #[test]
 fn bundle_digest_changes_with_artifacts_and_is_stable() {
     let a = bundle_from_artifacts(arts(&[("p", b"one")]), DatasetProvenance::new());
@@ -45,7 +76,7 @@ fn bundle_digest_changes_with_artifacts_and_is_stable() {
     let digest = |bundle: &purrdf::PipelineBundle<PipelineHandle>| {
         bundle
             .digest(&mut purrdf::CanonicalizationControl::new(
-                purrdf::RDFC_V2_CORPUS_POLICY,
+                purrdf::CANON_CORPUS_POLICY,
                 None,
             ))
             .expect("the carrier digests")

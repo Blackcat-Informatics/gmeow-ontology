@@ -1900,7 +1900,7 @@ impl ActionIdentity for StageProduct {
                 .raw_bundle()
                 .graph_digest(
                     entity,
-                    &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                    &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
                 )?
                 .to_hex(),
             self.handle_commitments()

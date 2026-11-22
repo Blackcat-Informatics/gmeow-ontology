@@ -245,7 +245,7 @@ fn assemble_packet_from_source(
     let catalog = purrdf::slice::SliceCatalog::discover(
         slice_dir,
         gmeow_ns::gmeow_slice_vocab(),
-        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
     )
     .map_err(|e| {
         gmeow_errors::Diag::of_kind(error::Io {
