@@ -26,9 +26,9 @@ impl ReasoningSnapshotScope {
     }
 }
 
-/// Normalize only typed inferred-object summary slots through the selected native
-/// snapshot's wire labels and the native importer's first-segment scope. Original
-/// native execution evidence is retained unchanged; this is a transport summary.
+/// Normalize typed inferred objects through the snapshot wire labels and the
+/// native importer's first-segment scope, then restore value order using the
+/// transported terms. Preserve the original native execution evidence.
 ///
 /// # Errors
 /// Refuses invalid quoted predicates, malformed composite literals or native storage failure.
@@ -39,7 +39,7 @@ pub fn reasoning_snapshot_summary(
     let Some(rows) = result.summary_rows_mut() else {
         return Ok(result);
     };
-    for row in rows {
+    for row in rows.iter_mut() {
         // Native snapshot ingestion and import retain an IRI object verbatim;
         // it cannot contain a direct or composite-literal blank identity.
         if matches!(&row.object, TermValue::Iri(_)) {
@@ -90,5 +90,6 @@ pub fn reasoning_snapshot_summary(
         let dataset = builder.freeze()?;
         row.object = dataset.as_ref().term_value(object);
     }
+    rows.sort_unstable();
     Ok(result)
 }

@@ -1371,16 +1371,21 @@ pub fn run_sweep(root: &Path, jobs: usize) -> Result<MediumBaseline, gmeow_error
     ]
     .into_iter()
     .collect();
-    let products = crate::scheduler::run_without(&graph, &bound, &mut ctx, &skip)?.products;
+    let mut products = crate::scheduler::run_without(&graph, &bound, &mut ctx, &skip)?.products;
 
     let carrier = crate::stages::carrier::snapshot_dataset(&products)?;
-    let frames = crate::stages::carrier::snapshot_frames(root, &products, carrier.as_ref())?;
-    let payload_frames = frames.payload_frames();
+    let replay = replay_corpus(carrier.as_ref())?;
     let crate::stages::medium_dictionaries::ResolvedCorpora {
         registry,
         corpora,
         term_table,
     } = crate::stages::medium_dictionaries::resolved_corpora(root, &products)?;
+
+    // Frame collection borrows the other products and reads the snapshot via `carrier`.
+    drop(products.remove("stage-snapshot"));
+    let frames = crate::stages::carrier::snapshot_frames(root, &products, carrier.as_ref())?;
+    drop(carrier);
+    let payload_frames = frames.payload_frames();
     let (codec, level) = super::measure::mandated_chain(&registry, &payload_frames)?;
     let by_dictionary = super::measure::frames_by_dictionary(&registry, &payload_frames)?;
 
@@ -1396,7 +1401,6 @@ pub fn run_sweep(root: &Path, jobs: usize) -> Result<MediumBaseline, gmeow_error
         .collect();
     let codec_sweep = sweep_codecs(&codec_corpus, &excluded, &codec, level)?;
 
-    let replay = replay_corpus(carrier.as_ref())?;
     let replay_dir = tempfile::tempdir().map_err(|err| {
         invalid_declaration(format!(
             "cannot open a population-B replay directory: {err}"

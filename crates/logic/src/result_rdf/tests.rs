@@ -1362,6 +1362,7 @@ fn native_reasoning_summary_matches_the_wire_projection() {
 
 /// Typed inferred objects retain their values under RDF projection and both production
 /// snapshot namespaces, including nested and composite-literal blank identities.
+/// Carrier readback is independent of the allocation order of derivation components.
 #[test]
 fn typed_inferred_objects_survive_closure_and_receipt_projections() {
     use purrdf::{BlankScope, RdfTextDirection, TermBox, TermValue};
@@ -1459,6 +1460,15 @@ fn typed_inferred_objects_survive_closure_and_receipt_projections() {
     );
     let mut appended = purrdf::RdfDatasetBuilder::new();
     let mut routed = purrdf::RdfDatasetBuilder::new();
+    let scope = BlankScope(2);
+    let derived_link = native
+        .term_id_by_iri(&logic("resultDerivedAxiom"))
+        .expect("derived axiom predicate");
+    let components: Vec<_> = native
+        .quads()
+        .filter(|quad| quad.p == derived_link)
+        .map(|quad| native.as_ref().resolve(quad.o))
+        .collect();
     for builder in [&mut appended, &mut routed] {
         let source = builder.intern_blank("source", BlankScope(1)).unwrap();
         let component = builder.intern_blank("axiom0", BlankScope(1)).unwrap();
@@ -1466,8 +1476,17 @@ fn typed_inferred_objects_survive_closure_and_receipt_projections() {
         builder
             .push_quad(source, predicate, component, None)
             .unwrap();
+        // Carrier composition can assign term IDs in an order different from
+        // the snapshot's canonical dictionary.
+        for term in components.iter().rev() {
+            let TermRef::Blank { label, .. } = term else {
+                panic!("derived axiom component is a blank resource");
+            };
+            builder
+                .intern_blank(label, scope)
+                .expect("preassigned carrier component");
+        }
     }
-    let scope = BlankScope(2);
     ResultProjection::reasoning(&result)
         .unwrap()
         .append_into(&mut appended, Some(GRAPH_REASONING), scope)
