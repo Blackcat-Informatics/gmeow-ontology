@@ -34,3 +34,18 @@ impl HostSource for BrowserHost {
 pub fn install() -> Result<(), JsError> {
     host_source::install(&BrowserHost).map_err(|error| JsError::new(&error.to_string()))
 }
+
+/// Register the SPARQL host at startup in a WebAssembly module that evaluates queries.
+#[macro_export]
+macro_rules! install_sparql_host_on_start {
+    () => {
+        /// Install the evaluator's clock and entropy when the module starts.
+        ///
+        /// # Errors
+        /// Returns an error if the instance has already installed a source.
+        #[::wasm_bindgen::prelude::wasm_bindgen(start)]
+        pub fn install_sparql_host() -> Result<(), ::wasm_bindgen::JsError> {
+            $crate::install()
+        }
+    };
+}

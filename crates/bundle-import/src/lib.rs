@@ -30,6 +30,7 @@ use gmeow_action_cache::{
     StoreLimits,
 };
 use purrdf::{ContentDigest, PackBuilder, RdfDataset, restore_pack};
+use purrdf_hash::Domain;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -56,6 +57,7 @@ pub fn register_all() -> Vec<Code> {
 
 const SCHEMA_VERSION: u32 = 1;
 const CODEC: &str = "gts-events-to-purrpack1-graph-preserving-v2";
+const NAMESPACE_DOMAIN: Domain = Domain::new(b"gmeow:bundle-import-namespace:v1");
 // Admit the full graph-preserving fixture while keeping two imports within the store quota.
 const MAX_PACK_BYTES: u64 = 640 * 1024 * 1024;
 const MAX_RECEIPT_BYTES: u64 = 1024 * 1024;
@@ -73,6 +75,15 @@ const BUNDLE_FIXTURE_SELECTOR_SCHEMA_VERSION: u32 = 1;
 /// Exact producer identity over this implementation, dependency lock/configuration,
 /// rustc, target, profile, features, and code-generation flags.
 pub const BUILD_FINGERPRINT: &str = env!("GMEOW_BUNDLE_IMPORT_BUILD_FINGERPRINT");
+
+/// Older codecs remain independently evictable under the store-wide quota.
+fn import_namespace(build_fingerprint: &str) -> String {
+    digest(&[
+        NAMESPACE_DOMAIN.as_bytes(),
+        build_fingerprint.as_bytes(),
+        CODEC.as_bytes(),
+    ])
+}
 
 mod receipt_json;
 
@@ -620,7 +631,7 @@ fn import_graph_preserving_with(
     // Enforce the bound after hits as well as publications. An outer CI transfer may
     // restore obsolete namespaces alongside a valid current entry; a warm hit cannot
     // make those bytes exempt from the store contract.
-    prune_store(cache_root, BUILD_FINGERPRINT)?;
+    prune_store(cache_root, &import_namespace(BUILD_FINGERPRINT))?;
     Ok(outcome)
 }
 
@@ -721,7 +732,7 @@ fn inspect_graph_preserving_cached(
         CODEC.as_bytes(),
         source_digest.as_bytes(),
     ]);
-    let build_root = cache_root.join(BUILD_FINGERPRINT);
+    let build_root = cache_root.join(import_namespace(BUILD_FINGERPRINT));
     if !build_root.exists() {
         return Ok(None);
     }
@@ -830,7 +841,7 @@ fn load_graph_preserving_for_build(
         CODEC.as_bytes(),
         source_digest.as_bytes(),
     ]);
-    let build_root = cache_root.join(build_fingerprint);
+    let build_root = cache_root.join(import_namespace(build_fingerprint));
     let namespace = build_root.join(format!("v{SCHEMA_VERSION}"));
     ensure_real_directory(&build_root, "build namespace")?;
     validate_build_root(&build_root)?;
@@ -934,10 +945,8 @@ fn import_graph_preserving_under_root(
         CODEC.as_bytes(),
         source_digest.as_bytes(),
     ]);
-    let namespace = cache_root
-        .join(BUILD_FINGERPRINT)
-        .join(format!("v{SCHEMA_VERSION}"));
-    let build_root = cache_root.join(BUILD_FINGERPRINT);
+    let build_root = cache_root.join(import_namespace(BUILD_FINGERPRINT));
+    let namespace = build_root.join(format!("v{SCHEMA_VERSION}"));
     fs::create_dir_all(&build_root).map_err(io_diag)?;
     ensure_real_directory(&build_root, "build namespace")?;
     validate_build_root(&build_root)?;

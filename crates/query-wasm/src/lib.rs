@@ -35,15 +35,8 @@ use purrdf::{RdfDataset, SerializeGraph, SparqlEngine, SparqlRequest, SparqlResu
 use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 
-/// Install the evaluator's clock and entropy when the module starts.
-///
-/// # Errors
-/// Returns an error if the instance has already installed a source.
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen(start)]
-pub fn install_sparql_host() -> Result<(), JsError> {
-    gmeow_browser_host::install()
-}
+gmeow_browser_host::install_sparql_host_on_start!();
 
 /// The engine version (this crate's SemVer), exposed to JS as `version()` — a
 /// liveness probe proving the wasm module instantiated and the engine linked.

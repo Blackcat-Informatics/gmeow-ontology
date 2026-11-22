@@ -233,10 +233,41 @@ fn every_bundle_import_code_interns_with_no_collision() {
     assert_eq!(distinct_handles.len(), handles.len());
 }
 
+/// A retained prior-codec receipt cannot obstruct current publication or warm admission.
 #[test]
-fn cold_then_warm_import_is_structurally_identical() {
+fn cold_then_warm_import_with_a_retained_prior_codec() {
     let root = tempfile::tempdir().unwrap();
     let bytes = tiny_gts();
+    let seed = tempfile::tempdir().unwrap();
+    let prior = synthetic_import(seed.path(), &bytes).unwrap();
+    let mut receipt = prior.receipt;
+    receipt.schema_version = 1;
+    receipt.codec = "gts-events-to-purrpack1-graph-preserving-v1".into();
+    receipt.action_key = digest(&[
+        b"gmeow:bundle-import-action:v1",
+        BUILD_FINGERPRINT.as_bytes(),
+        receipt.codec.as_bytes(),
+        receipt.source_digest.as_bytes(),
+    ]);
+    let older = root.path().join(BUILD_FINGERPRINT).join("v1");
+    for lane in ["receipts", "blobs", "locks"] {
+        fs::create_dir_all(older.join(lane)).unwrap();
+    }
+    let pack_path = format!("blobs/{}", receipt.pack_digest);
+    fs::copy(
+        seed.path()
+            .join(import_namespace(BUILD_FINGERPRINT))
+            .join(format!("v{SCHEMA_VERSION}"))
+            .join(&pack_path),
+        older.join(pack_path),
+    )
+    .unwrap();
+    let prior_path = older.join(format!("receipts/{}.json", receipt.action_key));
+    let envelope = ReceiptEnvelope {
+        receipt_digest: receipt.receipt_digest(),
+        receipt,
+    };
+    fs::write(&prior_path, purrdf_lex::json::record::to_vec(&envelope)).unwrap();
     let cold = synthetic_import(root.path(), &bytes).unwrap();
     let warm = synthetic_import(root.path(), &bytes).unwrap();
     assert!(cold.built);
@@ -244,6 +275,7 @@ fn cold_then_warm_import_is_structurally_identical() {
     assert_eq!(cold.receipt, warm.receipt);
     assert_eq!(cold.dataset.quad_count(), warm.dataset.quad_count());
     assert_eq!(cold.transferred_bytes, warm.transferred_bytes);
+    assert!(prior_path.is_file());
 }
 
 #[test]
@@ -253,7 +285,7 @@ fn referenced_tampered_pack_hard_fails() {
     let cold = synthetic_import(root.path(), &bytes).unwrap();
     let namespace = root
         .path()
-        .join(BUILD_FINGERPRINT)
+        .join(import_namespace(BUILD_FINGERPRINT))
         .join(format!("v{SCHEMA_VERSION}"));
     fs::write(
         namespace.join(format!("blobs/{}", cold.receipt.pack_digest)),
@@ -272,7 +304,7 @@ fn referenced_missing_pack_hard_fails() {
     let cold = synthetic_import(root.path(), &bytes).unwrap();
     let namespace = root
         .path()
-        .join(BUILD_FINGERPRINT)
+        .join(import_namespace(BUILD_FINGERPRINT))
         .join(format!("v{SCHEMA_VERSION}"));
     fs::remove_file(namespace.join(format!("blobs/{}", cold.receipt.pack_digest))).unwrap();
     let error = synthetic_import(root.path(), &bytes)
@@ -290,7 +322,7 @@ fn malformed_receipt_hard_fails() {
     let cold = synthetic_import(root.path(), &bytes).unwrap();
     let namespace = root
         .path()
-        .join(BUILD_FINGERPRINT)
+        .join(import_namespace(BUILD_FINGERPRINT))
         .join(format!("v{SCHEMA_VERSION}"));
     fs::write(
         namespace.join(format!("receipts/{}.json", cold.receipt.action_key)),
@@ -309,7 +341,7 @@ fn structurally_invalid_digest_valid_pack_hard_fails() {
     let cold = synthetic_import(root.path(), &bytes).unwrap();
     let namespace = root
         .path()
-        .join(BUILD_FINGERPRINT)
+        .join(import_namespace(BUILD_FINGERPRINT))
         .join(format!("v{SCHEMA_VERSION}"));
     let invalid_pack = b"PURRPCK1-invalid-structure";
     let invalid_digest = ContentDigest::of(invalid_pack).to_hex();
@@ -372,7 +404,7 @@ fn gc_retains_only_reachable_recent_imports() {
     }
     let namespace = root
         .path()
-        .join(BUILD_FINGERPRINT)
+        .join(import_namespace(BUILD_FINGERPRINT))
         .join(format!("v{SCHEMA_VERSION}"));
     let receipts = fs::read_dir(namespace.join("receipts"))
         .unwrap()
@@ -407,7 +439,7 @@ fn gc_removes_crash_leftovers_after_the_next_publication() {
     synthetic_import(root.path(), &tiny_gts()).unwrap();
     let namespace = root
         .path()
-        .join(BUILD_FINGERPRINT)
+        .join(import_namespace(BUILD_FINGERPRINT))
         .join(format!("v{SCHEMA_VERSION}"));
     let abandoned_blob = namespace.join("blobs/abandoned.1.1.tmp");
     let abandoned_receipt = namespace.join("receipts/abandoned.json.1.1.tmp");
@@ -483,7 +515,7 @@ fn cache_root_and_internal_lanes_refuse_symlink_substitution() {
     synthetic_import(root.path(), &tiny_gts()).unwrap();
     let namespace = root
         .path()
-        .join(BUILD_FINGERPRINT)
+        .join(import_namespace(BUILD_FINGERPRINT))
         .join(format!("v{SCHEMA_VERSION}"));
     fs::remove_dir_all(namespace.join("receipts")).unwrap();
     let outside = parent.path().join("outside-receipts");
@@ -506,7 +538,7 @@ fn warm_hit_still_enforces_the_store_wide_namespace_quota() {
     assert!(cold.built);
     for index in 0..6 {
         let obsolete = root.path().join(format!("{index:064x}"));
-        if obsolete != root.path().join(BUILD_FINGERPRINT) {
+        if obsolete != root.path().join(import_namespace(BUILD_FINGERPRINT)) {
             fs::create_dir(&obsolete).unwrap();
             fs::write(obsolete.join("payload"), b"obsolete").unwrap();
         }
@@ -520,7 +552,11 @@ fn warm_hit_still_enforces_the_store_wide_namespace_quota() {
         .filter(|entry| entry.file_type().unwrap().is_dir())
         .count();
     assert!(retained_namespaces <= RETAINED_NAMESPACES);
-    assert!(root.path().join(BUILD_FINGERPRINT).is_dir());
+    assert!(
+        root.path()
+            .join(import_namespace(BUILD_FINGERPRINT))
+            .is_dir()
+    );
 }
 
 #[cfg(unix)]
@@ -533,7 +569,7 @@ fn warm_hit_refuses_a_symlink_hidden_in_the_cache_store() {
     synthetic_import(root.path(), &bytes).unwrap();
     let namespace = root
         .path()
-        .join(BUILD_FINGERPRINT)
+        .join(import_namespace(BUILD_FINGERPRINT))
         .join(format!("v{SCHEMA_VERSION}"));
     symlink(
         namespace.join("receipts"),
@@ -552,7 +588,7 @@ fn oversized_referenced_pack_is_rejected_before_hydration() {
     let cold = synthetic_import(root.path(), &bytes).unwrap();
     let namespace = root
         .path()
-        .join(BUILD_FINGERPRINT)
+        .join(import_namespace(BUILD_FINGERPRINT))
         .join(format!("v{SCHEMA_VERSION}"));
     OpenOptions::new()
         .write(true)

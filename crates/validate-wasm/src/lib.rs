@@ -50,15 +50,8 @@ use gmeow_lang_bridge::{
 };
 use wasm_bindgen::prelude::*;
 
-/// Install the evaluator's clock and entropy when the module starts.
-///
-/// # Errors
-/// Returns an error if the instance has already installed a source.
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen(start)]
-pub fn install_sparql_host() -> Result<(), JsError> {
-    gmeow_browser_host::install()
-}
+gmeow_browser_host::install_sparql_host_on_start!();
 
 // ── GMN-1 validator: the embedded codebook ──────────────────────────────────────────
 

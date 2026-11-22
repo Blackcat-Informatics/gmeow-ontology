@@ -2250,7 +2250,11 @@ fn flat_rdfc_digest<D: purrdf::FallibleDatasetView<Error = std::convert::Infalli
             purrdf::ViewCanonError::Refused(error) => error,
             purrdf::ViewCanonError::NotReady { error, .. } => match error {},
         };
-        stage_err(&format!("canonicalize {name}: {error}"))
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed::caused_by(
+            "stage-gts-sink".to_string(),
+            format!("canonicalize {name}: {error}"),
+            error,
+        ))
     })?;
     let digest = format!("blake3:{}", purrdf_hash::hex::encode(&measured.digest));
     Ok((digest, measured.bytes))
