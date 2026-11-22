@@ -1605,7 +1605,7 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
                 )))
             })?;
             let bytes: Vec<u8> = bytes.into();
-            store.insert_checked(digest, bytes.into()).map_err(|e| {
+            store.insert_checked(digest, bytes).map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
                     cause: None,
                     expected: hex.clone(),
