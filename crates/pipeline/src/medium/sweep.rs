@@ -1371,6 +1371,17 @@ pub fn run_sweep(root: &Path, jobs: usize) -> Result<MediumBaseline, gmeow_error
     ]
     .into_iter()
     .collect();
+    ctx.carrier_retention = crate::scheduler::CarrierRetention::DropAfterLastConsumer;
+    // The sweep measures the dictionaries and frames from the same inputs as
+    // the skipped stages. Preserve their declared lanes until measurement.
+    for stage in bound.iter().filter(|stage| skip.contains(stage.id())) {
+        ctx.retain_post_run_inputs(
+            stage
+                .reads()
+                .into_iter()
+                .filter(|(producer, _)| !skip.contains(producer)),
+        );
+    }
     let mut products = crate::scheduler::run_without(&graph, &bound, &mut ctx, &skip)?.products;
 
     let carrier = crate::stages::carrier::snapshot_dataset(&products)?;
