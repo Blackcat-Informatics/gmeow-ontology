@@ -1356,3 +1356,23 @@ msgstr "schéma de charge utile — reçu d’exécution native"
 msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaNativeExecutionReceipt|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The complete binary native execution receipt addressed by a reasoning result. Every physical dedicated blob retains its canonical digest, native-execution-receipt representation and application/cbor media type. The distribution frame uses the prooftrace dictionary; its training corpus remains the separately declared textual report family."
 msgstr "Le reçu binaire complet d’exécution native adressé par un résultat de raisonnement. Chaque blob physique dédié conserve son empreinte canonique, sa représentation native-execution-receipt et son type de média application/cbor. La trame de distribution utilise le dictionnaire prooftrace ; son corpus d’entraînement reste la famille de rapports textuels déclarée séparément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaReasoningArchive|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The native explanations, DL/EL cross-check, and performance ledger from the reasoner's stage product."
+msgstr "Les explications natives, le contrôle croisé DL/EL et le registre de performance issus du produit de l’étape de raisonnement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaPreparedReasoningArchive|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "payload schema — prepared reasoning archive"
+msgstr "schéma de charge utile — archive de raisonnement préparé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaPreparedReasoningArchive|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Prepared operator rules, MCP action policy, and verification gates for the bundle's reasoning result."
+msgstr "Les règles d’opérateurs, la politique d’action MCP et les contrôles de vérification préparés pour le résultat du raisonnement du paquet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaCanonProofAdmission|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "payload schema — canon proof admission"
+msgstr "schéma de charge utile — admission des preuves du canon"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaCanonProofAdmission|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The JSON record of admission and refusal for the complete canon proof source."
+msgstr "Le relevé JSON des admissions et des refus pour l’ensemble de la source de preuves du canon."

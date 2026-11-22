@@ -1046,7 +1046,9 @@ fn import_validation_bundle(
     use purrdf::GtsBlobSelector::Representation;
     let mut selected = vec![Representation(REP_SHAPES)];
     if deep {
-        selected.push(Representation(gmeow_gts_profile::archive::REASONING_REP));
+        selected.push(Representation(
+            gmeow_gts_profile::archive::PREPARED_REASONING_REP,
+        ));
     }
     let limit = gmeow_gts_profile::archive::MAX_SELECTED_ARCHIVE_BYTES;
     purrdf::import_gts_events_with_blobs(bytes, &selected, purrdf::GtsBlobLimits::new(limit, limit))

@@ -822,3 +822,23 @@ msgstr "载荷模式 — 原生执行凭据"
 msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaNativeExecutionReceipt|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The complete binary native execution receipt addressed by a reasoning result. Every physical dedicated blob retains its canonical digest, native-execution-receipt representation and application/cbor media type. The distribution frame uses the prooftrace dictionary; its training corpus remains the separately declared textual report family."
 msgstr "由推理结果寻址的完整二进制原生执行凭据。每个专用物理二进制对象保留规范摘要、native-execution-receipt 表示及 application/cbor 媒体类型。分发帧使用 prooftrace 字典；其训练语料仍为另行声明的文本报告族。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaReasoningArchive|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The native explanations, DL/EL cross-check, and performance ledger from the reasoner's stage product."
+msgstr "推理阶段产物中的原生解释、DL/EL 交叉核验和性能台账。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaPreparedReasoningArchive|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "payload schema — prepared reasoning archive"
+msgstr "载荷模式——预备推理归档"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaPreparedReasoningArchive|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Prepared operator rules, MCP action policy, and verification gates for the bundle's reasoning result."
+msgstr "为数据包中的推理结果预备的运算符规则、MCP 操作策略和验证关卡。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaCanonProofAdmission|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "payload schema — canon proof admission"
+msgstr "载荷模式——规范证明准入"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaCanonProofAdmission|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The JSON record of admission and refusal for the complete canon proof source."
+msgstr "完整规范证明源的准入与拒绝记录，采用 JSON 格式。"

@@ -2566,8 +2566,30 @@ gmeow:payloadSchemaReasoningArchive
     a gmeow:PayloadSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "payload schema — reasoning archive"@x-gmeow-english ;
-    skos:definition "The native reasoner's report artifacts — explanations plus the DL/EL ledger. SINK-FOLDED, which is why gmeow:corpusGmeowProoftraceV1 selects gmeow:stage-reason's product rather than this rep."@x-gmeow-english ;
+    skos:definition "The native explanations, DL/EL cross-check, and performance ledger from the reasoner's stage product."@x-gmeow-english ;
     gmeow:payloadSchemaId "reasoning-archive" ;
+    gmeow:payloadSchemaMedium gmeow:mediumProfileDistL12 ;
+    gmeow:payloadSchemaDictionary gmeow:dictGmeowProoftraceV1 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaPreparedReasoningArchive
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — prepared reasoning archive"@x-gmeow-english ;
+    skos:definition "Prepared operator rules, MCP action policy, and verification gates for the bundle's reasoning result."@x-gmeow-english ;
+    gmeow:payloadSchemaId "prepared-reasoning-archive" ;
+    gmeow:payloadSchemaMedium gmeow:mediumProfileDistL12 ;
+    gmeow:payloadSchemaDictionary gmeow:dictGmeowProoftraceV1 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
+gmeow:payloadSchemaCanonProofAdmission
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — canon proof admission"@x-gmeow-english ;
+    skos:definition "The JSON record of admission and refusal for the complete canon proof source."@x-gmeow-english ;
+    gmeow:payloadSchemaId "canon-proof-admission" ;
     gmeow:payloadSchemaMedium gmeow:mediumProfileDistL12 ;
     gmeow:payloadSchemaDictionary gmeow:dictGmeowProoftraceV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
