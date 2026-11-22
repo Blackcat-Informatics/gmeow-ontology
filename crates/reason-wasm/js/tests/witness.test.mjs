@@ -28,11 +28,19 @@ test("version() equals the published package version", () => {
   assert.equal(version(), packageJson.version);
 });
 
-test("wasm complete reasoning artifact is byte-identical to the native witness attestation", async () => {
+test("wasm response envelope and GTS bytes match the native witness", async () => {
   const attestation = await readFile(
     fileURLToPath(new URL("../../tests/WITNESS.reason.json", import.meta.url)),
     "utf8",
   );
-  const wasmArtifact = reason(INPUT, "turtle");
-  assert.equal(wasmArtifact, attestation, "wasm complete reasoning artifact drifted from native attestation");
+  const committedGts = await readFile(new URL("../../tests/WITNESS.reason.gts", import.meta.url));
+  const response = reason(INPUT, "turtle");
+  const artifact = JSON.parse(response).artifact;
+  assert.equal(artifact.format, "gts");
+  assert.equal(artifact.encoding, "base64");
+  assert.equal(artifact.bytes, committedGts.length);
+  assert.equal(artifact.output, committedGts.toString("base64"));
+  const field = '"output":' + JSON.stringify(artifact.output);
+  assert.equal(response.split(field).length, 2);
+  assert.equal(response.replace(field, '"output":""'), attestation);
 });

@@ -722,6 +722,7 @@ pub static REASON_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         ),
     ],
     vendored_files: &[
+        "WITNESS.reason.gts",
         "gmeow_reason_wasm.d.ts",
         "gmeow_reason_wasm.js",
         "gmeow_reason_wasm_bg.wasm",

@@ -241,14 +241,6 @@ function __wbg_get_imports() {
             const ret = Error(getStringFromWasm0(arg0, arg1));
             return ret;
         },
-        __wbg_now_80faebe4b1fd98e9: function() {
-            const ret = Date.now();
-            return ret;
-        },
-        __wbg_random_f755c57ee5c03213: function() {
-            const ret = Math.random();
-            return ret;
-        },
         __wbindgen_init_externref_table: function() {
             const table = wasm.__wbindgen_externrefs;
             table.set(0, undefined);

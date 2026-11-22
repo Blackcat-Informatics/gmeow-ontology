@@ -170,16 +170,8 @@ function __wbg_get_imports() {
         __wbg_error_7cf9ac0271abbdfd: function(arg0, arg1) {
             console.error(getStringFromWasm0(arg0, arg1));
         },
-        __wbg_now_80faebe4b1fd98e9: function() {
-            const ret = Date.now();
-            return ret;
-        },
         __wbg_now_b560666ff11180a4: function() {
             const ret = performance.now();
-            return ret;
-        },
-        __wbg_random_f755c57ee5c03213: function() {
-            const ret = Math.random();
             return ret;
         },
         __wbindgen_init_externref_table: function() {
