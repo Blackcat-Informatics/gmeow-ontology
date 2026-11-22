@@ -564,3 +564,17 @@ fn oversized_referenced_pack_is_rejected_before_hydration() {
         .expect_err("an oversized sparse cache pack must never be hydrated");
     assert!(error.to_string().contains("byte bound"), "{error:?}");
 }
+
+/// Reusing a publication compares the trailing chunk and leaves the stored bytes intact.
+#[test]
+fn existing_publication_refuses_different_trailing_bytes() {
+    let root = tempfile::tempdir().expect("isolated import store");
+    let path = root.path().join("pack");
+    let original = vec![0_u8; 64 * 1024 + 1];
+    publish_identical(&path, &original).expect("publish a new pack");
+    publish_identical(&path, &original).expect("reuse the exact pack");
+    let mut different = original.clone();
+    *different.last_mut().expect("fixture has a trailing chunk") = 1;
+    publish_identical(&path, &different).expect_err("different bytes must refuse the same key");
+    assert_eq!(fs::read(path).expect("read the retained pack"), original);
+}

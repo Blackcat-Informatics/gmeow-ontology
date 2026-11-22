@@ -56,7 +56,8 @@ pub fn register_all() -> Vec<Code> {
 
 const SCHEMA_VERSION: u32 = 1;
 const CODEC: &str = "gts-events-to-purrpack1-graph-preserving-v1";
-const MAX_PACK_BYTES: u64 = 512 * 1024 * 1024;
+// Admit the full graph-preserving fixture while keeping two imports within the store quota.
+const MAX_PACK_BYTES: u64 = 640 * 1024 * 1024;
 const MAX_RECEIPT_BYTES: u64 = 1024 * 1024;
 const RETAINED_IMPORTS: usize = 2;
 const RETAINED_NAMESPACES: usize = 4;
@@ -561,7 +562,7 @@ pub fn load_authenticated_repository_bundle(
 ///
 /// A clean miss imports and publishes. An unreadable GTS input, corrupt receipt,
 /// missing/tampered pack, structurally invalid restore, nondeterministic same-key
-/// publication, or entry above the explicit 512-MiB bound is a hard error.
+/// publication, or an oversized pack is a hard error.
 pub fn import_graph_preserving_cached(
     cache_root: &Path,
     gts_bytes: &[u8],
@@ -1229,16 +1230,8 @@ fn load_verified_pack(
 }
 
 fn publish_identical(path: &Path, bytes: &[u8]) -> gmeow_errors::Result<()> {
-    let expected_bytes = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
     if path.exists() {
-        let existing = read_bounded(path, expected_bytes, "existing publication")?;
-        if existing == bytes {
-            return Ok(());
-        }
-        return Err(diag(format!(
-            "bundle import: same-key publication differs at {}",
-            path.display()
-        )));
+        return verify_publication_bytes(path, bytes, "existing publication");
     }
     let nonce = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -1270,21 +1263,40 @@ fn publish_identical(path: &Path, bytes: &[u8]) -> gmeow_errors::Result<()> {
         }
         Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
             fs::remove_file(&temporary).map_err(io_diag)?;
-            let existing = read_bounded(path, expected_bytes, "concurrent existing publication")?;
-            if existing == bytes {
-                Ok(())
-            } else {
-                Err(diag(format!(
-                    "bundle import: concurrent same-key publication differs at {}",
-                    path.display()
-                )))
-            }
+            verify_publication_bytes(path, bytes, "concurrent existing publication")
         }
         Err(error) => {
             let _ = fs::remove_file(&temporary);
             Err(io_diag(error))
         }
     }
+}
+
+/// Authenticate an existing immutable publication without holding a second copy.
+fn verify_publication_bytes(path: &Path, bytes: &[u8], lane: &str) -> gmeow_errors::Result<()> {
+    let expected_bytes = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
+    let (mut file, length) = open_bounded(path, expected_bytes, lane)?;
+    let mismatch = || {
+        diag(format!(
+            "bundle import: {lane} differs at {}",
+            path.display()
+        ))
+    };
+    if length != bytes.len() {
+        return Err(mismatch());
+    }
+    let mut buffer = [0_u8; 64 * 1024];
+    for expected in bytes.chunks(buffer.len()) {
+        let observed = &mut buffer[..expected.len()];
+        file.read_exact(observed).map_err(io_diag)?;
+        if observed != expected {
+            return Err(mismatch());
+        }
+    }
+    if file.read(&mut buffer[..1]).map_err(io_diag)? != 0 {
+        return Err(mismatch());
+    }
+    Ok(())
 }
 
 fn open_existing_lock(path: &Path) -> gmeow_errors::Result<File> {
