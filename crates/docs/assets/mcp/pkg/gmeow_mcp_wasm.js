@@ -1,6 +1,41 @@
 /* @ts-self-types="./gmeow_mcp_wasm.d.ts" */
 
 /**
+ * Authenticate a complete result before exposing facets to a browser client.
+ *
+ * # Errors
+ * Throws when any required native receipt, closure or transport is invalid.
+ * @param {Uint8Array | number[]} bytes
+ * @returns {string}
+ */
+export function admit_artifact(bytes) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16) >>> 0;
+        const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.admit_artifact(retptr, ptr0, len0);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+        var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+        var ptr2 = r0;
+        var len2 = r1;
+        if (r3) {
+            ptr2 = 0; len2 = 0;
+            throw takeFromExternrefTable0(r2);
+        }
+        deferred3_0 = ptr2;
+        deferred3_1 = len2;
+        return getStringFromWasm0(ptr2, len2);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_export2(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
  * Load a `gmeow.gts` snapshot and build the consumer MCP engine over it.
  *
  * `snapshot` is the raw bundle bytes — the identical artifact the native `gmeow mcp`
@@ -132,15 +167,15 @@ function __wbg_get_imports() {
             const ret = Error(getStringFromWasm0(arg0, arg1));
             return ret;
         },
-        __wbg_error_1288d5ed47b77e01: function(arg0, arg1) {
+        __wbg_error_7cf9ac0271abbdfd: function(arg0, arg1) {
             console.error(getStringFromWasm0(arg0, arg1));
-        },
-        __wbg_now_449da2ee7e3b5247: function() {
-            const ret = performance.now();
-            return ret;
         },
         __wbg_now_80faebe4b1fd98e9: function() {
             const ret = Date.now();
+            return ret;
+        },
+        __wbg_now_b560666ff11180a4: function() {
+            const ret = performance.now();
             return ret;
         },
         __wbg_random_f755c57ee5c03213: function() {

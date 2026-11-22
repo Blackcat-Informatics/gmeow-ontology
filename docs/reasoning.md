@@ -56,6 +56,12 @@ without running a second engine, via the committed, frozen `dl_oracle_gold` corp
 conformance test asserting native ⊇ frozen oracle) and the native gap-zero DL⊇EL crosscheck
 ledger (`dl-el-crosscheck-report.ttl`).
 
+The bundle carries explanations, the cross-check ledger, and the performance
+ledger in `reasoning-archive`. Runtime readers select
+`prepared-reasoning-archive` for operator rules, MCP action policy, and
+verification gates. `canon-proof-admission` carries the complete JSON
+admission observation and supports a caller-supplied decoded byte limit.
+
 ### Lane 1 — Native reasoner
 
 `make reason` runs the native Docker-free EL/DL authority. `make reason-verify` computes one

@@ -2339,7 +2339,8 @@ fn parse_witnesses(
     Ok(out)
 }
 
-/// Parse derived-axiom rows and verify each complete derivation receipt.
+/// Verify each complete derivation receipt and return its row in value order.
+/// The RDF links do not carry an order and term IDs are local to each dataset.
 fn parse_derived_axioms(
     triples: &ResultGraph<'_>,
     subject: TermId,
@@ -2503,6 +2504,7 @@ fn parse_derived_axioms(
         }
         out.push(axiom);
     }
+    out.sort_unstable();
     Ok(out)
 }
 

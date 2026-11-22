@@ -61,10 +61,8 @@ fn repo_root() -> std::path::PathBuf {
 }
 
 #[test]
-/// Fold required reasoning observations from inert stage products and reject omissions.
-fn build_reasoning_blob_folds_the_report_artifacts() {
-    // Construct a fake stage-reason product with the two report artifacts (avoids
-    // running the reasoner); proves the wiring (rep, keys, fail-closed).
+/// Reports, prepared runtime inputs and canon proof admission retain exact stage bytes.
+fn reasoning_representations_keep_runtime_inputs_separate_from_reports() {
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     artifacts.insert(
         crate::stages::reason::EXPLANATIONS_PATH.to_string(),
@@ -122,41 +120,66 @@ fn build_reasoning_blob_folds_the_report_artifacts() {
         )
         .expect("the stage carrier digests"),
     );
-    let blob = build_reasoning_blob(&upstream).expect("reasoning blob");
-    assert_eq!(blob.rep, REP_REASONING);
-    assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
-    let members = parse(&blob.data);
-    let names: std::collections::BTreeSet<&str> = members.iter().map(|(n, _)| n.as_str()).collect();
+    let [reports, prepared, canon] =
+        build_reasoning_blobs(&upstream).expect("required reasoning representations");
+    assert_eq!(reports.rep, REP_REASONING);
     assert_eq!(
-        names,
+        parse(&reports.data),
         [
-            "reason/dl-el-crosscheck-report.ttl",
-            "reason/perf-ledger.ttl",
-            gmeow_logic_compile::tptp::CANON_ADMISSION_MEMBER,
-            gmeow_bundle_view::bundle_blobs::REASONED_GATES_MEMBER,
-            gmeow_logic_compile::action_policy::BUNDLE_MEMBER,
-            gmeow_logic::operator_rules::PREPARED_OPERATOR_MEMBER,
-            "reason/reasoning-explanations.rdf12.ttl"
-        ]
-        .into_iter()
-        .collect::<std::collections::BTreeSet<&str>>(),
-        "REP_REASONING carries the report artifacts under bundle-relative keys"
+            (
+                "reason/reasoning-explanations.rdf12.ttl".into(),
+                b"# explanations".to_vec()
+            ),
+            (
+                "reason/dl-el-crosscheck-report.ttl".into(),
+                b"# ledger".to_vec()
+            ),
+            ("reason/perf-ledger.ttl".into(), b"# perf ledger".to_vec()),
+        ],
     );
-    // Missing artifact HARD-fails (no-optionality, fail-closed).
+    assert_eq!(
+        prepared.rep,
+        gmeow_gts_profile::archive::PREPARED_REASONING_REP
+    );
+    assert_eq!(
+        parse(&prepared.data),
+        [
+            (
+                gmeow_logic::operator_rules::PREPARED_OPERATOR_MEMBER.into(),
+                b"synthetic operator rules".to_vec()
+            ),
+            (
+                gmeow_logic_compile::action_policy::BUNDLE_MEMBER.into(),
+                b"synthetic policy".to_vec()
+            ),
+            (
+                gmeow_bundle_view::bundle_blobs::REASONED_GATES_MEMBER.into(),
+                b"synthetic prepared laws".to_vec()
+            ),
+        ],
+    );
+    assert_eq!(canon.rep, gmeow_gts_profile::archive::CANON_ADMISSION_REP);
+    assert_eq!(canon.media_type, "application/json");
+    assert_eq!(
+        canon.data.as_ref(),
+        b"synthetic canon admission observation"
+    );
+
     let compile_logic = upstream.remove("stage-compile-logic").unwrap();
     assert!(
-        build_reasoning_blob(&upstream).is_err(),
+        build_reasoning_blobs(&upstream).is_err(),
         "canon admission is required"
     );
     upstream.insert("stage-compile-logic".into(), compile_logic);
-    upstream.remove("stage-verify-attestation");
+    let attestation = upstream.remove("stage-verify-attestation").unwrap();
     assert!(
-        build_reasoning_blob(&upstream).is_err(),
+        build_reasoning_blobs(&upstream).is_err(),
         "prepared native laws are required"
     );
-    let empty: BTreeMap<String, StageProduct> = BTreeMap::new();
+    upstream.insert("stage-verify-attestation".into(), attestation);
+    upstream.remove("stage-reason");
     assert!(
-        build_reasoning_blob(&empty).is_err(),
+        build_reasoning_blobs(&upstream).is_err(),
         "a missing stage-reason product must fail closed"
     );
 }

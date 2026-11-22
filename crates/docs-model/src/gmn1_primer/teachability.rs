@@ -14,8 +14,6 @@ use purrdf_lex::json::{
 
 use super::{Gmn1Primer, PrimerError, Reader, build_primer_with_dictionary};
 
-/// Original held-out task source, preserved as its own document in the examples archive.
-pub const SOURCE: &str = "slices/grounding/lang/examples/gmn-heldout-emission-tasks.ttl";
 /// Compact bundle-bound action consumed by teachability tests.
 pub const ARTIFACT: &str = "gmn-primer-teachability.json";
 
@@ -93,25 +91,27 @@ impl FromJson for HeldoutTask {
 /// Refuses missing task identities/documents or malformed dictionary and primer inputs.
 pub fn observe(
     bundle: &RdfDataset,
-    heldout: &RdfDataset,
+    examples_graph: &str,
     dictionary: &GmnDictionary,
 ) -> Result<Observations, PrimerError> {
     let primer = build_primer_with_dictionary(bundle, dictionary)?;
     let forms = resolve_operator_forms(dictionary.glyph_registry(), &Reader::new(bundle).labels())
         .map_err(|error| PrimerError(error.to_string()))?;
     let alphabet: BTreeSet<_> = forms.into_iter().map(|form| form.gmn_glyph).collect();
-    let id = |iri: &str| heldout.term_id_by_value(&TermValue::iri(iri));
-    let (Some(rdf_type), Some(task_class)) = (
+    let id = |iri: &str| bundle.term_id_by_value(&TermValue::iri(iri));
+    let (Some(graph), Some(rdf_type), Some(task_class)) = (
+        id(examples_graph),
         id("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
         id("https://blackcatinformatics.ca/gmeow/examples/gmn-heldout/GmnHeldoutEmissionTask"),
     ) else {
-        return Err(PrimerError(
-            "held-out corpus declares no emission tasks".into(),
-        ));
+        return Err(PrimerError(format!(
+            "the bundle's examples graph <{examples_graph}> has no held-out emission tasks"
+        )));
     };
-    let subjects: BTreeSet<_> = heldout
-        .quads_for_pattern(None, Some(rdf_type), Some(task_class), GraphMatch::Any)
-        .filter_map(|quad| match heldout.resolve(quad.s) {
+    let examples = GraphMatch::Named(graph);
+    let subjects: BTreeSet<_> = bundle
+        .quads_for_pattern(None, Some(rdf_type), Some(task_class), examples)
+        .filter_map(|quad| match bundle.resolve(quad.s) {
             TermRef::Iri(iri) => Some(iri.to_owned()),
             _ => None,
         })
@@ -123,9 +123,9 @@ pub fn observe(
         let (Some(subject), Some(predicate)) = (id(subject), id(predicate)) else {
             return None;
         };
-        heldout
-            .quads_for_pattern(Some(subject), Some(predicate), None, GraphMatch::Any)
-            .find_map(|quad| match heldout.resolve(quad.o) {
+        bundle
+            .quads_for_pattern(Some(subject), Some(predicate), None, examples)
+            .find_map(|quad| match bundle.resolve(quad.o) {
                 TermRef::Literal { lexical, .. } => Some(lexical.to_owned()),
                 _ => None,
             })

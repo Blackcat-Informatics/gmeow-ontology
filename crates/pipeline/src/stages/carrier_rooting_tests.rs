@@ -716,18 +716,26 @@ fn the_carrier_refuses_an_empty_base_or_statement_layer() {
 }
 
 /// The sink reads its artifact-only dependencies through artifact-lane views. Every
-/// internal artifact the reasoning archive folds must be among the internal reads the
+/// internal artifact its reasoning frames carry must be among the internal reads the
 /// pipeline slice declares on the sink's edges (read here off the stage the scheduler
 /// runs), or the view does not serve it and the terminal fails after the whole build.
-/// Viewed with the slice's declarations, the producers still supply the archive; viewed
+/// Viewed with the slice's declarations, the producers still supply the frames; viewed
 /// without them, they do not. Removing a `gmeow:flowReadsArtifact` of the sink that the reasoning
-/// archive folds fails here.
+/// frames carry fails here.
 #[test]
 fn the_sink_declares_every_internal_artifact_its_reasoning_archive_reads() {
     let sink = crate::run::bound_production_stage("stage-gts-sink");
     let declared = sink.internal_artifact_reads();
     let mut artifacts: BTreeMap<&str, BTreeMap<String, Vec<u8>>> = BTreeMap::new();
-    for (_, producer, artifact) in super::REASONING_INTERNAL_MEMBERS {
+    let canon = (
+        "stage-compile-logic",
+        gmeow_logic_compile::tptp::CANON_ADMISSION_CHANNEL,
+    );
+    for (producer, artifact) in super::PREPARED_REASONING_MEMBERS
+        .map(|(_, producer, artifact)| (producer, artifact))
+        .into_iter()
+        .chain([canon])
+    {
         artifacts
             .entry(producer)
             .or_default()
@@ -770,9 +778,9 @@ fn the_sink_declares_every_internal_artifact_its_reasoning_archive_reads() {
             .collect()
     };
 
-    super::build_reasoning_blob(&upstream(true))
+    super::build_reasoning_blobs(&upstream(true))
         .expect("the declared internal reads survive release");
-    let Err(error) = super::build_reasoning_blob(&upstream(false)) else {
+    let Err(error) = super::build_reasoning_blobs(&upstream(false)) else {
         panic!("without the declaration the release drops the internal artifacts");
     };
     assert!(

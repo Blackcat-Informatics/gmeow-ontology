@@ -1551,7 +1551,7 @@ pub(crate) fn prepared_imported_gates(
     imported: &purrdf::GtsImportWithBlobs,
 ) -> gmeow_errors::Result<gmeow_logic::verify::PreparedReasonedGates> {
     use gmeow_gts_profile::archive;
-    let blob = archive::required_imported_blob(imported, archive::REASONING_REP)?;
+    let blob = archive::required_imported_blob(imported, archive::PREPARED_REASONING_REP)?;
     let bytes = archive::archive_member(
         &blob.bytes,
         archive::REASONED_GATES_MEMBER,
@@ -1569,7 +1569,7 @@ fn import_bundle_for_validation(
 ) -> gmeow_errors::Result<purrdf::GtsImportWithBlobs> {
     let selectors = if deep {
         vec![purrdf::GtsBlobSelector::Representation(
-            gmeow_gts_profile::archive::REASONING_REP,
+            gmeow_gts_profile::archive::PREPARED_REASONING_REP,
         )]
     } else {
         Vec::new()

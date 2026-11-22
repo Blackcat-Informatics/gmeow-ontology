@@ -3163,9 +3163,9 @@ fn operator_rules(
         .get_or_init(|| {
             let bundle = gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(BUNDLE_GTS)?;
             let bytes = bundle.required_archive_member(
-                gmeow_pipeline::bundle_blobs::REP_REASONING,
+                gmeow_gts_profile::archive::PREPARED_REASONING_REP,
                 gmeow_logic::operator_rules::PREPARED_OPERATOR_MEMBER,
-                16 * 1024 * 1024,
+                gmeow_gts_profile::archive::MAX_NATIVE_MEMBER_BYTES,
             )?;
             PreparedOperatorRules::from_bytes(&bytes)
         })

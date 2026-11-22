@@ -93,11 +93,15 @@ pub const GTS_PROFILE_DIAG_CODES: &[&str] = &[
 
 define_diag_kind! {
     /// A required native artifact has no unique authenticated archive member.
-    pub struct Archive { message: String }
+    pub struct Archive {
+        message: String,
+        cause: Option<std::sync::Arc<purrdf::gts::codec::CodecError>>,
+    }
     code = "gts-profile.archive";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "GTS archive profile: {}", message;
     failure_class = "https://blackcatinformatics.ca/gmeow/BundleArtifactUnreadable";
+    source = failure => failure.cause.as_deref().map(|cause| cause as &(dyn std::error::Error + 'static));
 }
 
 define_diag_kind! {

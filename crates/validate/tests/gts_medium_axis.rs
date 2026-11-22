@@ -24,9 +24,11 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
-
-use gmeow_validate::medium_observation::{Node, Observations, Value};
 use std::sync::OnceLock;
+
+use gmeow_gts_profile::archive::{CANON_ADMISSION_REP, PREPARED_REASONING_REP, REASONING_REP};
+use gmeow_logic::result_rdf::NATIVE_RECEIPT_REPRESENTATION;
+use gmeow_validate::medium_observation::{Node, Observations, Value};
 
 #[path = "source_observations/reader.rs"]
 mod observation_reader;
@@ -343,8 +345,7 @@ fn every_medium_axis_class_carries_a_ufo_meta_type_and_a_docs_concern() {
 // (e) Every carrier REP_* constant has a registered gmeow:PayloadSchema.
 // --------------------------------------------------------------------------- //
 
-/// Every `REP_*: &str = "…"` representation constant defined anywhere under the
-/// carrier crate (`crates/pipeline/src`), keyed by constant name.
+/// Every emitted blob representation, keyed by its source constant name.
 ///
 /// The carrier is the single producer of the bundle's blob channel, so its `REP_*`
 /// constants ARE the closed set of representations a `gmeow.gts` can carry. Reading
@@ -394,6 +395,22 @@ fn carrier_rep_constants() -> BTreeMap<String, String> {
         !out.is_empty(),
         "found no REP_* constants under {roots:?} — the scan is broken, not the registry"
     );
+    // These shared owners are already dependencies of the validation crate.
+    out.extend([
+        (
+            "CANON_ADMISSION_REP".to_owned(),
+            CANON_ADMISSION_REP.to_owned(),
+        ),
+        (
+            "PREPARED_REASONING_REP".to_owned(),
+            PREPARED_REASONING_REP.to_owned(),
+        ),
+        ("REASONING_REP".to_owned(), REASONING_REP.to_owned()),
+        (
+            "NATIVE_RECEIPT_REPRESENTATION".to_owned(),
+            NATIVE_RECEIPT_REPRESENTATION.to_owned(),
+        ),
+    ]);
     out
 }
 
