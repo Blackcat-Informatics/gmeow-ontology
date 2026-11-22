@@ -478,7 +478,7 @@ fn rich_bundle() -> PipelineBundle<PipelineHandle> {
 
     // A byte-artifact-lane Blob resource + matching content-store blob.
     let mut blobs = ContentStore::new();
-    let blob_digest = blobs.insert(bytes::Bytes::from_static(b"artifact-bytes"));
+    let blob_digest = blobs.insert(b"artifact-bytes".to_vec());
     let mut lookaside = RdfLookaside::default();
     lookaside.resources.push(
         RdfLookasideResource::new(RdfLookasideKind::Blob)
@@ -1498,7 +1498,7 @@ fn content_store_commitment_rejects_orphans_missing_bytes_and_length_drift() {
     }
 
     let mut orphan_store = ContentStore::new();
-    orphan_store.insert(bytes::Bytes::from_static(b"orphan"));
+    orphan_store.insert(b"orphan".to_vec());
     assert!(
         content_store_commitment(&product(RdfLookaside::default(), orphan_store, "orphan",))
             .is_err()
@@ -1517,7 +1517,7 @@ fn content_store_commitment_rejects_orphans_missing_bytes_and_length_drift() {
     );
 
     let mut length_store = ContentStore::new();
-    let length_digest = length_store.insert(bytes::Bytes::from_static(b"bytes"));
+    let length_digest = length_store.insert(b"bytes".to_vec());
     let mut length_lookaside = RdfLookaside::default();
     length_lookaside.blobs.push(RdfBlobRecord {
         digest: length_digest.to_hex(),

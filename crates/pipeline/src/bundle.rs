@@ -244,7 +244,7 @@ pub fn bundle_from_artifacts_over(
     let mut lookaside = RdfLookaside::default();
     // BTreeMap iterates in sorted key order — the lane is deterministic.
     for (path, bytes) in artifacts {
-        let digest = blobs.insert(bytes.into());
+        let digest = blobs.insert(bytes);
         lookaside.resources.push(
             RdfLookasideResource::new(ARTIFACT_KIND)
                 .with_name(path)
@@ -277,7 +277,7 @@ pub fn bundle_from_artifacts_over_with_rep_blob(
     let mut blobs = ContentStore::new();
     let mut lookaside = RdfLookaside::default();
     for (path, bytes) in artifacts {
-        let digest = blobs.insert(bytes.into());
+        let digest = blobs.insert(bytes);
         lookaside.resources.push(
             RdfLookasideResource::new(ARTIFACT_KIND)
                 .with_name(path)
@@ -285,7 +285,7 @@ pub fn bundle_from_artifacts_over_with_rep_blob(
         );
     }
     let decoded_len = blob_bytes.len() as u64;
-    let digest = blobs.insert(blob_bytes.into());
+    let digest = blobs.insert(blob_bytes);
     lookaside.blobs.push(RdfBlobRecord {
         digest: digest.to_hex(),
         media_type: Some(media_type.to_owned()),
@@ -309,11 +309,11 @@ pub fn attach_rep_blob(
     media_type: &str,
     blob_bytes: Vec<u8>,
 ) -> Result<PipelineBundle<PipelineHandle>, gmeow_errors::Diag> {
-    // The index clone keeps the authenticated, immutable payloads shared.
+    // Clone the store without rehashing its verified payloads.
     let mut blobs = bundle.blobs().clone();
     let mut lookaside = bundle.lookaside().clone();
     let decoded_len = blob_bytes.len() as u64;
-    let digest = blobs.insert(blob_bytes.into());
+    let digest = blobs.insert(blob_bytes);
     lookaside.blobs.push(RdfBlobRecord {
         digest: digest.to_hex(),
         media_type: Some(media_type.to_owned()),

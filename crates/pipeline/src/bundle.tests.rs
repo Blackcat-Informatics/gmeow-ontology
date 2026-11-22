@@ -37,29 +37,34 @@ fn shared_bytes_dedup_but_both_paths_reconstruct() {
     assert_eq!(bundle_artifacts(&bundle), artifacts);
 }
 
-/// Representation attachment and reclamation keep the surviving artifact's backing.
+/// A representation can share a digest with an artifact without reclaiming the artifact.
 #[test]
-fn artifact_backing_survives_representation_attachment_and_reclamation() {
-    let original =
-        bundle_from_artifacts(arts(&[("artifact", b"shared")]), DatasetProvenance::new());
-    let backing = bundle_artifact(&original, "artifact").expect("original artifact");
+fn artifact_survives_representation_attachment_and_reclamation() {
+    let payload = b"shared";
+    let original = bundle_from_artifacts(arts(&[("artifact", payload)]), DatasetProvenance::new());
     let attached = attach_rep_blob(
-        original.clone(),
+        original,
         "diagnostic",
         "application/octet-stream",
-        b"shared".to_vec(),
+        payload.to_vec(),
     )
-    .expect("attach a representation sharing the artifact's bytes");
-    let representation = bundle_rep_blob(&attached, "diagnostic").expect("resident representation");
-    assert!(std::ptr::eq(representation, backing));
+    .expect("attach a representation with the same digest");
+    assert_eq!(attached.blobs().len(), 1);
+    assert_eq!(
+        bundle_rep_blob(&attached, "diagnostic"),
+        Some(payload.as_slice())
+    );
 
     let stripped = strip_rep_blob(&attached, "diagnostic").expect("strip the representation");
-    assert_eq!(bundle_rep_blob(&stripped, "diagnostic"), None);
     let released = release_carrier(&attached, &std::collections::BTreeSet::new())
         .expect("release the carrier and keep committed artifacts");
     for bundle in [&stripped, &released] {
-        let artifact = bundle_artifact(bundle, "artifact").expect("surviving artifact");
-        assert!(std::ptr::eq(artifact, backing));
+        assert_eq!(bundle_rep_blob(bundle, "diagnostic"), None);
+        assert_eq!(
+            bundle_artifact(bundle, "artifact"),
+            Some(payload.as_slice())
+        );
+        assert_eq!(bundle.blobs().len(), 1);
     }
 }
 

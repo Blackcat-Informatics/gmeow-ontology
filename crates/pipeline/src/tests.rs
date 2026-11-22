@@ -2178,7 +2178,7 @@ fn lane_product(
     let mut lookaside = RdfLookaside::default();
     let mut store = ContentStore::new();
     if with_content {
-        let digest = store.insert(bytes::Bytes::from_static(b"lane-content"));
+        let digest = store.insert(b"lane-content".to_vec());
         lookaside.resources.push(
             RdfLookasideResource::new(RdfLookasideKind::Blob)
                 .with_name("generated/lane.bin")
