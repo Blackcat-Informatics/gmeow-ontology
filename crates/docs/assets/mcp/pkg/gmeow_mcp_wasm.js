@@ -167,11 +167,25 @@ function __wbg_get_imports() {
             const ret = Error(getStringFromWasm0(arg0, arg1));
             return ret;
         },
+        __wbg___wbindgen_rethrow_d953c34c2e20677f: function(arg0) {
+            throw arg0;
+        },
+        __wbg___wbindgen_throw_4c88d8bf264fd984: function(arg0, arg1) {
+            throw new Error(getStringFromWasm0(arg0, arg1));
+        },
         __wbg_error_7cf9ac0271abbdfd: function(arg0, arg1) {
             console.error(getStringFromWasm0(arg0, arg1));
         },
+        __wbg_now_463ac581d2fc7ea3: function() {
+            const ret = Date.now();
+            return ret;
+        },
         __wbg_now_b560666ff11180a4: function() {
             const ret = performance.now();
+            return ret;
+        },
+        __wbg_random_df36b90cd78a7d54: function() {
+            const ret = Math.random();
             return ret;
         },
         __wbindgen_init_externref_table: function() {

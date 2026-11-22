@@ -98,6 +98,7 @@ export interface InitOutput {
     readonly bundle_dataset: (a: number, b: number, c: number) => void;
     readonly gmn_codebook_digest: (a: number) => void;
     readonly gmn_validate: (a: number, b: number, c: number) => void;
+    readonly install_sparql_host: () => void;
     readonly validate: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => void;
     readonly version: (a: number) => void;
     readonly __wbindgen_externrefs: WebAssembly.Table;

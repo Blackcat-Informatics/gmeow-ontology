@@ -79,6 +79,7 @@ export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly admit_artifact: (a: number, b: number, c: number) => void;
     readonly init: (a: number, b: number, c: number) => void;
+    readonly install_sparql_host: () => void;
     readonly mcp: (a: number, b: number, c: number) => void;
     readonly ready: () => number;
     readonly version: (a: number) => void;
