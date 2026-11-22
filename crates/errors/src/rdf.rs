@@ -185,7 +185,10 @@ impl Diag {
         // Losses become ProjectionLoss child witnesses, attached first so the
         // parent's antecedent handles are already resident.
         let mut antecedents = Vec::with_capacity(losses.entries().len());
-        let mut seen = HashSet::with_capacity(losses.entries().len());
+        let mut seen = HashSet::with_capacity_and_hasher(
+            losses.entries().len(),
+            purrdf_hash::fixed::FixedState::new(),
+        );
         for loss in losses.entries() {
             let child = Diag::from_rdf_loss(loss.clone());
             let witness = ledger.attach(child, stage.clone());
