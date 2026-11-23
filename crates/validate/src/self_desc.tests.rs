@@ -42,23 +42,43 @@ fn parses_core_metadata() {
 
 #[test]
 fn folded_graph_attributes_publication_metadata_to_the_ontology_work() {
-    let unrelated = r#"<urn:software:package> <https://blackcatinformatics.ca/gmeow/versionFingerprint> "1.7" ;
-        <https://blackcatinformatics.ca/gmeow/webUrl> <https://example.org/other-project> .
+    let folded = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+        <urn:software:package> gmeow:versionFingerprint "1.7" ;
+            gmeow:webUrl <https://example.org/other-project> ;
+            gmeow:embodies [ gmeow:realizes <https://blackcatinformatics.ca/gmeow> ] .
+        gmeow:0.4.0 gmeow:embodies <urn:expr:unrelated>, <urn:expr:second> .
+        <https://blackcatinformatics.ca/gmeow/self#expression> gmeow:realizes <urn:work:other> .
+        <urn:expr:second> gmeow:realizes <urn:work:other>, <https://blackcatinformatics.ca/gmeow> .
         <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW" ."#;
     let source =
         std::fs::read_to_string(default_self_desc_path(&repo_root())).expect("self-description");
-    let turtle = format!("{unrelated}\n{source}");
+    for turtle in [format!("{folded}\n{source}"), format!("{source}\n{folded}")] {
+        let dataset = purrdf::parse_dataset(turtle.as_bytes(), "text/turtle", None).expect("parse");
+        let sd = load_self_description_from_dataset(&dataset).expect("ontology manifestation");
+        assert_eq!(sd.version_iri, "https://blackcatinformatics.ca/gmeow/0.4.0");
+        assert_eq!(
+            sd.title,
+            "GMEOW — Global Metadata and Entity Ontology for the Web"
+        );
+        assert_eq!(
+            sd.repo_url,
+            "https://github.com/Blackcat-Informatics/gmeow-ontology"
+        );
+    }
+}
+
+#[test]
+fn rejects_distinct_versioned_manifestations_of_the_same_work() {
+    let source =
+        std::fs::read_to_string(default_self_desc_path(&repo_root())).expect("self-description");
+    let extra = r#"<urn:manifestation:second> gmeow:embodies :expression ;
+        gmeow:versionFingerprint "0.3.0" ."#;
+    let turtle = format!("{source}\n{extra}");
     let dataset = purrdf::parse_dataset(turtle.as_bytes(), "text/turtle", None).expect("parse");
-    let sd = load_self_description_from_dataset(&dataset).expect("ontology manifestation");
-    assert_eq!(sd.version_iri, "https://blackcatinformatics.ca/gmeow/0.4.0");
-    assert_eq!(
-        sd.title,
-        "GMEOW — Global Metadata and Entity Ontology for the Web"
-    );
-    assert_eq!(
-        sd.repo_url,
-        "https://github.com/Blackcat-Informatics/gmeow-ontology"
-    );
+    let err = load_self_description_from_dataset(&dataset)
+        .err()
+        .expect("ambiguous manifestation");
+    assert!(err.message().contains("found 2"), "unexpected error: {err}");
 }
 
 #[test]

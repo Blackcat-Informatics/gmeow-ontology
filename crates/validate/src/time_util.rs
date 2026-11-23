@@ -10,6 +10,43 @@
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
+/// Whether `date` is a strict `YYYY-MM-DD` calendar date (like `%Y-%m-%d`).
+pub(crate) fn is_iso_date(date: &str) -> bool {
+    let parts: Vec<&str> = date.split('-').collect();
+    if parts.len() != 3 {
+        return false;
+    }
+    if parts[0].len() != 4 || parts[1].len() != 2 || parts[2].len() != 2 {
+        return false;
+    }
+    if !parts.iter().all(|p| p.bytes().all(|b| b.is_ascii_digit())) {
+        return false;
+    }
+    let (y, m, d): (i64, u32, u32) = match (parts[0].parse(), parts[1].parse(), parts[2].parse()) {
+        (Ok(y), Ok(m), Ok(d)) => (y, m, d),
+        _ => return false,
+    };
+    if !(1..=12).contains(&m) || d < 1 {
+        return false;
+    }
+    let leap = (y % 4 == 0 && y % 100 != 0) || y % 400 == 0;
+    let dim = [
+        31,
+        if leap { 29 } else { 28 },
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31,
+    ][(m - 1) as usize];
+    d <= dim
+}
+
 /// `(year, month, day)` for the given count of days since 1970-01-01 (UTC),
 /// via Hinnant's `civil_from_days`.
 fn civil_from_days(z: i64) -> (i64, u32, u32) {

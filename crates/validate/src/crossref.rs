@@ -367,21 +367,13 @@ fn build_contributors(contributors: &[ContributorInput]) -> Node {
     node
 }
 
-/// Validate that `date` is an `xsd:date`-shaped `YYYY-MM-DD` string (the only shape
-/// `build_date` can split into year/month/day). Returns a precise error otherwise so
-/// the deposit-XML builder hard-fails instead of panicking on an out-of-range index.
+/// Validate a calendar date supplied directly to the JSON deposit writer.
 fn validate_iso_date(date: &str) -> gmeow_errors::Result<()> {
-    let parts: Vec<&str> = date.splitn(3, '-').collect();
-    let well_formed = parts.len() == 3
-        && parts[0].len() == 4
-        && parts[1].len() == 2
-        && parts[2].len() == 2
-        && parts.iter().all(|p| p.bytes().all(|b| b.is_ascii_digit()));
-    if well_formed {
+    if crate::time_util::is_iso_date(date) {
         Ok(())
     } else {
         Err(gmeow_errors::Diag::of_kind(crate::error::Crossref {
-            detail: format!("Crossref date {date:?} must use YYYY-MM-DD"),
+            detail: format!("Crossref date {date:?} must be a valid YYYY-MM-DD calendar date"),
         }))
     }
 }

@@ -18,6 +18,8 @@
 
 use std::path::{Path, PathBuf};
 
+use crate::time_util::is_iso_date;
+
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 use regex::Regex;
 use std::sync::OnceLock;
@@ -149,14 +151,35 @@ fn iri_id(ds: &RdfDataset, iri: &str) -> Option<TermId> {
     ds.term_id_by_value(&TermValue::iri(iri))
 }
 
-/// The subjects that carry `predicate`, in dataset order.
-fn subjects_with(ds: &RdfDataset, predicate: &str) -> Vec<TermId> {
-    let Some(pred_id) = iri_id(ds, predicate) else {
+/// Versioned manifestations reached through expression IRIs realizing this work.
+fn work_manifestations(ds: &RdfDataset, work: TermId) -> Vec<TermId> {
+    let (Some(realizes), Some(embodies), Some(fingerprint)) = (
+        iri_id(ds, &gmeow("realizes")),
+        iri_id(ds, &gmeow("embodies")),
+        iri_id(ds, &gmeow("versionFingerprint")),
+    ) else {
         return Vec::new();
     };
-    ds.quads_for_pattern(None, Some(pred_id), None, GraphMatch::Any)
-        .map(|q| q.s)
-        .collect()
+    let mut manifestations = Vec::new();
+    for realization in ds.quads_for_pattern(None, Some(realizes), Some(work), GraphMatch::Any) {
+        if !matches!(ds.resolve(realization.s), TermRef::Iri(_)) {
+            continue;
+        }
+        for embodiment in
+            ds.quads_for_pattern(None, Some(embodies), Some(realization.s), GraphMatch::Any)
+        {
+            if ds
+                .quads_for_pattern(Some(embodiment.s), Some(fingerprint), None, GraphMatch::Any)
+                .next()
+                .is_some()
+            {
+                manifestations.push(embodiment.s);
+            }
+        }
+    }
+    manifestations.sort_unstable();
+    manifestations.dedup();
+    manifestations
 }
 
 /// The first literal object of `subject predicate`, if any.
@@ -309,43 +332,6 @@ fn load_contributors(ds: &RdfDataset, work: TermId) -> Vec<Contributor> {
     ordered
 }
 
-/// Whether `date` is a strict `YYYY-MM-DD` calendar date (like `%Y-%m-%d`).
-fn is_iso_date(date: &str) -> bool {
-    let parts: Vec<&str> = date.split('-').collect();
-    if parts.len() != 3 {
-        return false;
-    }
-    if parts[0].len() != 4 || parts[1].len() != 2 || parts[2].len() != 2 {
-        return false;
-    }
-    if !parts.iter().all(|p| p.bytes().all(|b| b.is_ascii_digit())) {
-        return false;
-    }
-    let (y, m, d): (i64, u32, u32) = match (parts[0].parse(), parts[1].parse(), parts[2].parse()) {
-        (Ok(y), Ok(m), Ok(d)) => (y, m, d),
-        _ => return false,
-    };
-    if !(1..=12).contains(&m) || d < 1 {
-        return false;
-    }
-    let leap = (y % 4 == 0 && y % 100 != 0) || y % 400 == 0;
-    let dim = [
-        31,
-        if leap { 29 } else { 28 },
-        31,
-        30,
-        31,
-        30,
-        31,
-        31,
-        30,
-        31,
-        30,
-        31,
-    ][(m - 1) as usize];
-    d <= dim
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Public loading API (mirrors self_desc.load_self_description*)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -390,18 +376,7 @@ pub fn load_self_description_from_dataset(
     })?;
 
     // A full bundle also contains fingerprints belonging to other works.
-    let embodies = gmeow("embodies");
-    let realizes = gmeow("realizes");
-    let mut manifestations = subjects_with(ds, &gmeow("versionFingerprint"))
-        .into_iter()
-        .filter(|s| {
-            opt_iri_term(ds, *s, &embodies)
-                .and_then(|expression| opt_iri_term(ds, expression, &realizes))
-                == Some(work)
-        })
-        .collect::<Vec<_>>();
-    manifestations.sort_unstable();
-    manifestations.dedup();
+    let manifestations = work_manifestations(ds, work);
     let [manifestation] = manifestations.as_slice() else {
         return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
             detail: format!(
