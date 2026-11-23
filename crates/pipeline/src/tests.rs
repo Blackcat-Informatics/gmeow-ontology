@@ -327,55 +327,6 @@ fn bind_rejects_swapped_implementations() {
     );
 }
 
-/// A stage whose edge from the source-load product permits reading the span table is a
-/// counted span reader, whether it names the table or declares the whole carrier: the
-/// scheduler strips the table only after every counted reader has run, so an uncounted
-/// whole-carrier reader would find it gone. An identity-only edge is not a reader.
-#[test]
-fn a_whole_carrier_declaration_counts_as_a_span_table_reader() {
-    use crate::reads::Read;
-
-    let counted = |reads: Read| -> bool {
-        let mut s = PipelineSpec {
-            id: "p".to_string(),
-            stages: vec![
-                spec("stage-source-load", &[]),
-                spec("consumer", &["stage-source-load"]),
-                spec("sink", &["consumer"]),
-            ],
-        };
-        s.stages[1].reads.insert(
-            "stage-source-load".to_string(),
-            std::iter::once(reads).collect(),
-        );
-        let g = s.validate().unwrap();
-        let reg = registry_for(
-            &s,
-            vec![
-                fake("stage-source-load", &[]),
-                fake("consumer", &["stage-source-load"]),
-                fake("sink", &["consumer"]),
-            ],
-        );
-        let bound = bind(&s, &g, &reg).unwrap();
-        bound
-            .iter()
-            .find(|stage| stage.id() == "consumer")
-            .unwrap()
-            .consumes_span_table()
-    };
-    let table = Read::BlobRep(crate::stages::carrier::REP_SPAN_TABLE.to_owned());
-    assert!(counted(table), "naming the table counts");
-    assert!(
-        counted(Read::Carrier),
-        "the whole carrier permits the read, so it counts"
-    );
-    assert!(
-        !counted(Read::Identity),
-        "an identity-only edge reads nothing"
-    );
-}
-
 #[test]
 fn bind_rejects_resource_disagreement() {
     // A Reason spec declares the engine resource, but its Rust impl forgets it —
@@ -2886,6 +2837,9 @@ mod scheduling_order;
 
 #[path = "scheduler.handle_retention_tests.rs"]
 mod handle_retention;
+
+#[path = "scheduler.blob_retention_tests.rs"]
+mod blob_retention;
 
 #[test]
 fn last_consumer_level_is_total_over_consumed_stages_and_absent_for_outputs() {

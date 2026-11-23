@@ -209,6 +209,7 @@ impl ProductFootprint {
             internal_lane_bytes: self
                 .internal_lane_bytes
                 .saturating_sub(after.internal_lane_bytes),
+            ..ReleasedFootprint::default()
         }
     }
 }
@@ -228,6 +229,11 @@ pub struct ReleasedFootprint {
     pub committed_lane_bytes: u64,
     /// Internal artifact bytes no longer held.
     pub internal_lane_bytes: u64,
+    /// Named representation records removed from the carrier.
+    pub representation_records: usize,
+    /// Bytes no longer held in this store for removed representations.
+    /// A different store may still own the same allocation.
+    pub representation_payload_bytes: usize,
 }
 
 /// The boundary a [`MemoryRecord`] was made at.
@@ -239,6 +245,8 @@ pub enum MemoryEvent {
     Complete,
     /// The scheduler swapped the stage's carrier for its residue.
     Release,
+    /// The scheduler detached named representations from a live carrier.
+    ReleaseRepBlobs,
     /// A named phase inside a stage body began.
     PhaseStart,
     /// A named phase inside a stage body ended.
@@ -257,6 +265,7 @@ impl MemoryEvent {
             Self::Dispatch => "dispatch",
             Self::Complete => "complete",
             Self::Release => "release",
+            Self::ReleaseRepBlobs => "release-blob-reps",
             Self::PhaseStart => "phase-start",
             Self::PhaseEnd => "phase-end",
             Self::Reclaim => "reclaim",
@@ -285,7 +294,7 @@ pub struct MemoryRecord {
     /// The stage's product: as published for [`MemoryEvent::Complete`], and as left
     /// after the release for [`MemoryEvent::Release`]. Absent for the other events.
     pub product: Option<ProductFootprint>,
-    /// What the release removed, for [`MemoryEvent::Release`].
+    /// What a carrier or representation release removed.
     pub released: Option<ReleasedFootprint>,
     /// The return of freed pages, for [`MemoryEvent::Reclaim`].
     pub reclaim: Option<ReclaimedMemory>,
@@ -380,6 +389,9 @@ fn make(
         released_terms = released.map(|freed| freed.terms),
         released_committed_lane_bytes = released.map(|freed| freed.committed_lane_bytes),
         released_internal_lane_bytes = released.map(|freed| freed.internal_lane_bytes),
+        removed_representation_records = released.map(|freed| freed.representation_records),
+        detached_representation_payload_bytes =
+            released.map(|freed| freed.representation_payload_bytes),
         "stage memory"
     );
     made

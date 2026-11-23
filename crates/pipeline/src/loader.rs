@@ -25,10 +25,6 @@ use crate::node::{CachePolicy, GMEOW, OutputFamily, SINK_CAPABILITY, Stage, Stag
 use crate::reads::{Read, ReadSet};
 use crate::registry::StageRegistry;
 
-/// The stage whose product carries the source-span table. One constant for the loader,
-/// which counts the stages that may read the table, and the scheduler, which strips it.
-pub(crate) const SPAN_TABLE_PRODUCER: &str = "stage-source-load";
-
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 /// A stage's typed dataflow: for each upstream producer it narrows to specific
@@ -822,17 +818,6 @@ impl Stage for BoundStage {
     }
     fn consumed_entities(&self) -> &[(String, Vec<String>)] {
         &self.spec.dataflow_entities
-    }
-    fn consumes_span_table(&self) -> bool {
-        // The span table rides the source-load product. A declaration that PERMITS the
-        // read counts, so a stage that declares the whole carrier and calls
-        // `span_index()` is a counted reader: the scheduler strips the table only after
-        // every counted reader has run.
-        let span_table = Read::BlobRep(crate::stages::carrier::REP_SPAN_TABLE.to_owned());
-        self.spec
-            .reads
-            .get(SPAN_TABLE_PRODUCER)
-            .is_some_and(|reads| crate::reads::permits(reads, &span_table))
     }
     fn attaches_graphs(&self) -> &[String] {
         &self.spec.attaches_graphs

@@ -16,8 +16,10 @@
 //! The declaration also decides retention. A product keeps its carrier until the last
 //! consumer whose edge declares a carrier read has run. An internal `pipeline/` artifact
 //! that any consumer in the run declares is kept through every release of its producer
-//! until the run ends, whether or not that consumer has run yet; so is the source-span
-//! table until its last declared reader has run.
+//! until the run ends, whether or not that consumer has run yet. In an enforcing
+//! run that releases carriers, named representation bytes remain live through
+//! their last declared reader or a whole-carrier reader, and while another
+//! visible lookaside record references the same digest.
 
 use std::collections::BTreeSet;
 use std::sync::{Arc, Mutex, PoisonError};
