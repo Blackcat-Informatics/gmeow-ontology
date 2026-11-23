@@ -109,6 +109,8 @@ pub struct AlignmentTargetInput {
 pub struct SelfDescriptionInput {
     pub title: String,
     pub version: String,
+    pub version_description: String,
+    pub publication_date: String,
     pub release_date: String,
     pub concept_doi: String,
     pub version_doi: Option<String>,
@@ -365,24 +367,13 @@ fn build_contributors(contributors: &[ContributorInput]) -> Node {
     node
 }
 
-/// Validate that `date` is an `xsd:date`-shaped `YYYY-MM-DD` string (the only shape
-/// `build_date` can split into year/month/day). Returns a precise error otherwise so
-/// the deposit-XML builder hard-fails instead of panicking on an out-of-range index.
+/// Validate a calendar date supplied directly to the JSON deposit writer.
 fn validate_iso_date(date: &str) -> gmeow_errors::Result<()> {
-    let parts: Vec<&str> = date.splitn(3, '-').collect();
-    let well_formed = parts.len() == 3
-        && parts[0].len() == 4
-        && parts[1].len() == 2
-        && parts[2].len() == 2
-        && parts.iter().all(|p| p.bytes().all(|b| b.is_ascii_digit()));
-    if well_formed {
+    if crate::time_util::is_iso_date(date) {
         Ok(())
     } else {
         Err(gmeow_errors::Diag::of_kind(crate::error::Crossref {
-            detail: format!(
-                "release_date {date:?} is not a well-formed YYYY-MM-DD date; \
-             the Crossref deposit requires an xsd:date-shaped release_date"
-            ),
+            detail: format!("Crossref date {date:?} must be a valid YYYY-MM-DD calendar date"),
         }))
     }
 }
@@ -661,6 +652,7 @@ fn build_dataset(
     doi: &str,
     resource: &str,
     title: &str,
+    publication_date: &str,
     relations: Vec<Relation>,
     tdm: Vec<TdmResource>,
     citations: Vec<Citation>,
@@ -675,7 +667,7 @@ fn build_dataset(
     titles_node.push_mut(cr("title").with_text(title));
     dataset.push_mut(titles_node);
 
-    dataset.push_mut(build_date("publication_date", &sd.release_date));
+    dataset.push_mut(build_date("publication_date", publication_date));
     dataset.push_mut(build_date("update_date", &sd.release_date));
 
     if let Some(pi) = build_publisher_item(
@@ -691,8 +683,8 @@ fn build_dataset(
     dataset.push_mut(cr("format").with_text(&config.deposit_format));
 
     if let Some(policy) = crossmark_policy {
-        dataset.push_mut(build_crossmark(policy, &sd.license_uri, &sd.release_date));
-    } else if let Some(access) = build_access(&sd.license_uri, &sd.release_date) {
+        dataset.push_mut(build_crossmark(policy, &sd.license_uri, publication_date));
+    } else if let Some(access) = build_access(&sd.license_uri, publication_date) {
         dataset.push_mut(access);
     }
 
@@ -700,10 +692,7 @@ fn build_dataset(
         dataset.push_mut(rel_prog);
     }
 
-    dataset.push_mut(build_version_info(
-        &sd.version,
-        &format!("Release {} of the GMEOW ontology.", sd.version),
-    ));
+    dataset.push_mut(build_version_info(&sd.version, &sd.version_description));
 
     if component_seam {
         dataset.push_mut(Node::Comment(
@@ -748,10 +737,7 @@ pub fn build_deposit_xml(
     let sd = &input.self_description;
     let config = &input.config;
 
-    // `release_date` feeds every `build_date` element (publication_date /
-    // update_date). Validate its `YYYY-MM-DD` shape ONCE here — where the function
-    // already returns a `Result` — so a malformed date surfaces as a validation
-    // error rather than panicking deep in node construction (no-optionality/hard-fail).
+    validate_iso_date(&sd.publication_date)?;
     validate_iso_date(&sd.release_date)?;
 
     let crossmark_policy: Option<String> = if config.crossmark_enabled {
@@ -800,6 +786,7 @@ pub fn build_deposit_xml(
         &sd.concept_doi,
         &config.ontology_iri,
         &format!("{} (concept)", sd.title),
+        &sd.publication_date,
         concept_relations,
         concept_tdm,
         all_citations,
@@ -826,6 +813,7 @@ pub fn build_deposit_xml(
                 vdoi,
                 &sd.version_iri,
                 &format!("{} (version {})", sd.title, sd.version),
+                &sd.release_date,
                 version_relations,
                 version_tdm,
                 version_citations,
@@ -848,7 +836,7 @@ pub fn build_deposit_xml(
     if !sd.description.is_empty() {
         db_meta.push_mut(cr("description").with_text(&sd.description));
     }
-    db_meta.push_mut(build_date("publication_date", &sd.release_date));
+    db_meta.push_mut(build_date("publication_date", &sd.publication_date));
     db_meta.push_mut(build_date("update_date", &sd.release_date));
     db_meta.push_mut(build_publisher(&sd.registrant, &config.registrant_place));
 
@@ -867,10 +855,7 @@ pub fn build_deposit_xml(
     if let Some(pi) = build_publisher_item(&[("site", &config.dataset_slug)], &[]) {
         db_meta.push_mut(pi);
     }
-    db_meta.push_mut(build_version_info(
-        &sd.version,
-        &format!("Release {} of the GMEOW ontology.", sd.version),
-    ));
+    db_meta.push_mut(build_version_info(&sd.version, &sd.version_description));
 
     // Assemble body / database
     let mut database = cr("database");

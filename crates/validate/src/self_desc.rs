@@ -18,6 +18,8 @@
 
 use std::path::{Path, PathBuf};
 
+use crate::time_util::is_iso_date;
+
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 use regex::Regex;
 use std::sync::OnceLock;
@@ -117,6 +119,8 @@ impl Contributor {
 pub struct SelfDescription {
     pub title: String,
     pub version: String,
+    pub version_description: String,
+    pub publication_date: String,
     pub release_date: String,
     pub concept_doi: String,
     pub version_doi: Option<String>,
@@ -147,14 +151,35 @@ fn iri_id(ds: &RdfDataset, iri: &str) -> Option<TermId> {
     ds.term_id_by_value(&TermValue::iri(iri))
 }
 
-/// The subjects that carry `predicate`, in dataset order.
-fn subjects_with(ds: &RdfDataset, predicate: &str) -> Vec<TermId> {
-    let Some(pred_id) = iri_id(ds, predicate) else {
+/// Versioned manifestations reached through expression IRIs realizing this work.
+fn work_manifestations(ds: &RdfDataset, work: TermId) -> Vec<TermId> {
+    let (Some(realizes), Some(embodies), Some(fingerprint)) = (
+        iri_id(ds, &gmeow("realizes")),
+        iri_id(ds, &gmeow("embodies")),
+        iri_id(ds, &gmeow("versionFingerprint")),
+    ) else {
         return Vec::new();
     };
-    ds.quads_for_pattern(None, Some(pred_id), None, GraphMatch::Any)
-        .map(|q| q.s)
-        .collect()
+    let mut manifestations = Vec::new();
+    for realization in ds.quads_for_pattern(None, Some(realizes), Some(work), GraphMatch::Any) {
+        if !matches!(ds.resolve(realization.s), TermRef::Iri(_)) {
+            continue;
+        }
+        for embodiment in
+            ds.quads_for_pattern(None, Some(embodies), Some(realization.s), GraphMatch::Any)
+        {
+            if ds
+                .quads_for_pattern(Some(embodiment.s), Some(fingerprint), None, GraphMatch::Any)
+                .next()
+                .is_some()
+            {
+                manifestations.push(embodiment.s);
+            }
+        }
+    }
+    manifestations.sort_unstable();
+    manifestations.dedup();
+    manifestations
 }
 
 /// The first literal object of `subject predicate`, if any.
@@ -307,43 +332,6 @@ fn load_contributors(ds: &RdfDataset, work: TermId) -> Vec<Contributor> {
     ordered
 }
 
-/// Whether `date` is a strict `YYYY-MM-DD` calendar date (like `%Y-%m-%d`).
-fn is_iso_date(date: &str) -> bool {
-    let parts: Vec<&str> = date.split('-').collect();
-    if parts.len() != 3 {
-        return false;
-    }
-    if parts[0].len() != 4 || parts[1].len() != 2 || parts[2].len() != 2 {
-        return false;
-    }
-    if !parts.iter().all(|p| p.bytes().all(|b| b.is_ascii_digit())) {
-        return false;
-    }
-    let (y, m, d): (i64, u32, u32) = match (parts[0].parse(), parts[1].parse(), parts[2].parse()) {
-        (Ok(y), Ok(m), Ok(d)) => (y, m, d),
-        _ => return false,
-    };
-    if !(1..=12).contains(&m) || d < 1 {
-        return false;
-    }
-    let leap = (y % 4 == 0 && y % 100 != 0) || y % 400 == 0;
-    let dim = [
-        31,
-        if leap { 29 } else { 28 },
-        31,
-        30,
-        31,
-        30,
-        31,
-        31,
-        30,
-        31,
-        30,
-        31,
-    ][(m - 1) as usize];
-    d <= dim
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Public loading API (mirrors self_desc.load_self_description*)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -387,17 +375,17 @@ pub fn load_self_description_from_dataset(
         })
     })?;
 
-    // The Manifestation is discovered dynamically as any URI subject carrying
-    // gmeow:versionFingerprint (never the Work URI).
-    let manifestation = subjects_with(ds, &gmeow("versionFingerprint"))
-        .into_iter()
-        .find(|s| matches!(ds.resolve(*s), TermRef::Iri(_)))
-        .ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
-                detail: "No manifestation with gmeow:versionFingerprint found in self-description"
-                    .to_string(),
-            })
-        })?;
+    // A full bundle also contains fingerprints belonging to other works.
+    let manifestations = work_manifestations(ds, work);
+    let [manifestation] = manifestations.as_slice() else {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+            detail: format!(
+                "Expected one versioned manifestation of <{WORK_IRI}>, found {}",
+                manifestations.len()
+            ),
+        }));
+    };
+    let manifestation = *manifestation;
     let TermRef::Iri(manifestation_iri) = ds.resolve(manifestation) else {
         return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
             detail: "manifestation is not an IRI".to_string(),
@@ -405,7 +393,19 @@ pub fn load_self_description_from_dataset(
     };
     let version_iri = manifestation_iri.to_string();
 
-    let title = lit(ds, work, RDFS_LABEL, "work rdfs:label")?;
+    let title = lit(ds, work, &dcterms("title"), "work dcterms:title")?;
+    let publication_date = lit(
+        ds,
+        work,
+        &gmeow("datePublished"),
+        "work gmeow:datePublished",
+    )?;
+    let version_description = lit(
+        ds,
+        manifestation,
+        SKOS_DEFINITION,
+        "manifestation skos:definition",
+    )?;
     let version = lit(
         ds,
         manifestation,
@@ -443,12 +443,15 @@ pub fn load_self_description_from_dataset(
             }));
         }
     }
-    if !is_iso_date(&release_date) {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
-            detail: format!(
-                "Invalid release_date format in self-description (expected YYYY-MM-DD): {release_date:?}"
-            ),
-        }));
+    for (owner, date) in [
+        ("work", &publication_date),
+        ("manifestation", &release_date),
+    ] {
+        if !is_iso_date(date) {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+                detail: format!("Invalid {owner} publication date (expected YYYY-MM-DD): {date:?}"),
+            }));
+        }
     }
 
     let publisher = opt_iri_term(ds, manifestation, &dcterms("publisher")).ok_or_else(|| {
@@ -513,15 +516,11 @@ pub fn load_self_description_from_dataset(
 
     let description = opt_lit(ds, work, SKOS_DEFINITION).unwrap_or_default();
 
-    let repo_url = ds
-        .term_id_by_value(&TermValue::iri(gmeow("webUrl")))
-        .and_then(|p| {
-            ds.quads_for_pattern(None, Some(p), None, GraphMatch::Any)
-                .find_map(|q| match ds.resolve(q.o) {
-                    TermRef::Iri(n) => Some(n.to_string()),
-                    TermRef::Literal { lexical, .. } => Some(lexical.to_string()),
-                    _ => None,
-                })
+    let repo_url = iri_id(ds, "https://blackcatinformatics.ca/gmeow/self#project")
+        .and_then(|project| opt_iri_term(ds, project, &gmeow("hasRepository")))
+        .and_then(|repository| {
+            let web_url = gmeow("webUrl");
+            opt_iri(ds, repository, &web_url).or_else(|| opt_lit(ds, repository, &web_url))
         })
         .unwrap_or_default();
 
@@ -537,6 +536,8 @@ pub fn load_self_description_from_dataset(
     Ok(SelfDescription {
         title,
         version,
+        version_description,
+        publication_date,
         release_date,
         concept_doi,
         version_doi,
@@ -1010,6 +1011,8 @@ fn self_description_input(description: &SelfDescription) -> SelfDescriptionInput
     SelfDescriptionInput {
         title: description.title.clone(),
         version: description.version.clone(),
+        version_description: description.version_description.clone(),
+        publication_date: description.publication_date.clone(),
         release_date: description.release_date.clone(),
         concept_doi: description.concept_doi.clone(),
         version_doi: description.version_doi.clone(),

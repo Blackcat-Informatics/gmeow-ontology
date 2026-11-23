@@ -21,11 +21,12 @@ fn load() -> SelfDescription {
 fn parses_core_metadata() {
     let sd = load();
     assert_eq!(sd.concept_doi, "10.67342/26w4o");
-    assert_eq!(sd.version, "0.1.0");
-    assert_eq!(sd.release_date, "2026-06-03");
+    assert_eq!(sd.version, "0.4.0");
+    assert_eq!(sd.publication_date, "2026-06-03");
+    assert_eq!(sd.release_date, "2026-11-23");
     assert_eq!(sd.version_doi, None);
     assert_eq!(sd.doi(), "10.67342/26w4o");
-    assert_eq!(sd.version_iri, "https://blackcatinformatics.ca/gmeow/0.1.0");
+    assert_eq!(sd.version_iri, "https://blackcatinformatics.ca/gmeow/0.4.0");
     assert_eq!(
         sd.license_uri,
         "https://creativecommons.org/licenses/by/4.0/"
@@ -37,6 +38,47 @@ fn parses_core_metadata() {
     );
     assert!(!sd.title.is_empty());
     assert!(!sd.description.is_empty());
+}
+
+#[test]
+fn folded_graph_attributes_publication_metadata_to_the_ontology_work() {
+    let folded = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+        <urn:software:package> gmeow:versionFingerprint "1.7" ;
+            gmeow:webUrl <https://example.org/other-project> ;
+            gmeow:embodies [ gmeow:realizes <https://blackcatinformatics.ca/gmeow> ] .
+        gmeow:0.4.0 gmeow:embodies <urn:expr:unrelated>, <urn:expr:second> .
+        <https://blackcatinformatics.ca/gmeow/self#expression> gmeow:realizes <urn:work:other> .
+        <urn:expr:second> gmeow:realizes <urn:work:other>, <https://blackcatinformatics.ca/gmeow> .
+        <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW" ."#;
+    let source =
+        std::fs::read_to_string(default_self_desc_path(&repo_root())).expect("self-description");
+    for turtle in [format!("{folded}\n{source}"), format!("{source}\n{folded}")] {
+        let dataset = purrdf::parse_dataset(turtle.as_bytes(), "text/turtle", None).expect("parse");
+        let sd = load_self_description_from_dataset(&dataset).expect("ontology manifestation");
+        assert_eq!(sd.version_iri, "https://blackcatinformatics.ca/gmeow/0.4.0");
+        assert_eq!(
+            sd.title,
+            "GMEOW — Global Metadata and Entity Ontology for the Web"
+        );
+        assert_eq!(
+            sd.repo_url,
+            "https://github.com/Blackcat-Informatics/gmeow-ontology"
+        );
+    }
+}
+
+#[test]
+fn rejects_distinct_versioned_manifestations_of_the_same_work() {
+    let source =
+        std::fs::read_to_string(default_self_desc_path(&repo_root())).expect("self-description");
+    let extra = r#"<urn:manifestation:second> gmeow:embodies :expression ;
+        gmeow:versionFingerprint "0.3.0" ."#;
+    let turtle = format!("{source}\n{extra}");
+    let dataset = purrdf::parse_dataset(turtle.as_bytes(), "text/turtle", None).expect("parse");
+    let err = load_self_description_from_dataset(&dataset)
+        .err()
+        .expect("ambiguous manifestation");
+    assert!(err.message().contains("found 2"), "unexpected error: {err}");
 }
 
 #[test]
@@ -119,7 +161,7 @@ fn live_stamp_embeds_version() {
     let (timestamp, batch_id) = live_stamp(&sd);
     assert_eq!(timestamp.len(), 14);
     assert!(timestamp.bytes().all(|b| b.is_ascii_digit()));
-    assert!(batch_id.starts_with("gmeow-0.1.0-"));
+    assert!(batch_id.starts_with("gmeow-0.4.0-"));
     assert!(batch_id.ends_with(&timestamp));
 }
 

@@ -118,6 +118,28 @@ fn golden_with_version() {
 }
 
 #[test]
+fn deposit_checks_publication_and_release_calendar_dates() {
+    let json = read_golden("with_version", "input.json");
+    for (field, date) in [
+        ("publication_date", "2026-13-01"),
+        ("release_date", "2025-02-29"),
+    ] {
+        let mut input: serde_json::Value = serde_json::from_str(&json).expect("input json parses");
+        input["self_description"][field] = serde_json::json!(date);
+        let result = gmeow_validate::crossref::build_deposit_xml(
+            &input.to_string(),
+            FIXED_TIMESTAMP,
+            FIXED_BATCH_ID,
+        );
+        let err = result.expect_err("impossible calendar date");
+        assert!(
+            err.message().contains(date),
+            "unexpected error for {field}: {err}"
+        );
+    }
+}
+
+#[test]
 fn golden_crossmark_disabled() {
     let xml = assert_golden("crossmark_disabled");
     // Crossmark disabled: the AccessIndicators license program sits directly
@@ -189,6 +211,8 @@ fn clean_lint_input() -> serde_json::Value {
         "self_description": {
             "title": "T",
             "version": "1.0",
+            "publication_date": "2026-01-01",
+            "version_description": "Version 1.0",
             "release_date": "2026-01-01",
             "concept_doi": "10.67342/26w4o",
             "version_doi": null,
