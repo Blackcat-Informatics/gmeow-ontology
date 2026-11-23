@@ -3603,10 +3603,17 @@ impl Stage for SnapshotStage {
         let bundle = crate::node::measure_stage_phase(self.id(), "publish-native-handles", || {
             build_snapshot_bundle(carrier, input.upstream)
         })?;
-        Ok(StageOutput::new(StageProduct::from_bundle(
+        // Return free pages from assembly before hashing and from hashing before publication.
+        crate::memory_record::keep(crate::scheduler::reclaim_allocator_slack(
             self.id(),
-            std::sync::Arc::new(bundle),
-        )?))
+            Some("publish-native-handles"),
+        ));
+        let product = StageProduct::from_bundle(self.id(), std::sync::Arc::new(bundle))?;
+        crate::memory_record::keep(crate::scheduler::reclaim_allocator_slack(
+            self.id(),
+            Some("digest-stage-product"),
+        ));
+        Ok(StageOutput::new(product))
     }
 }
 
