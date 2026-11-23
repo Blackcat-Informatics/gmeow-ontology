@@ -16,20 +16,13 @@ use std::io::Write as _;
 use std::path::Path;
 use std::sync::Arc;
 
-use gmeow_action_cache::{
-    ActionContext, ActionInput, ActionStore, FileKind, ProducerIdentity, STORE_FORMAT_VERSION,
-    StoreLimits,
-};
+use gmeow_action_cache::{ActionInput, ActionStore, FileKind, STORE_FORMAT_VERSION, StoreLimits};
 use purrdf_lex::json::{self, record::ToJson as _};
-use serde::{Deserialize, Serialize};
 use sha2::{Digest as _, Sha256};
 
-use crate::cache::{
-    BUILD_FEATURES, BUILD_FINGERPRINT, BUILD_PROFILE, BUILD_TARGET, FixtureOutcome, PipelineCache,
-    StageReceipt, TOOLCHAIN_FINGERPRINT, stage_key,
-};
+use crate::cache::{BUILD_FINGERPRINT, FixtureOutcome, PipelineCache, StageReceipt, stage_key};
 use crate::loader::bind;
-use crate::node::{CachePolicy, StageProduct, StageStability};
+use crate::node::{CachePolicy, StageStability};
 use crate::registry::default_registry;
 use crate::run::full_spec;
 use crate::scheduler::{
@@ -38,7 +31,6 @@ use crate::scheduler::{
 
 const STAGE_FIXTURE_MANIFEST_SCHEMA_VERSION: u32 =
     gmeow_action_cache::selection::MANIFEST_SCHEMA_VERSION;
-const SETTLED_SOURCE_LOAD_WITNESS_CODEC: &str = "json:settled-source-load-witness:v1";
 
 /// Producer-written selector for the exact pipeline actions admitted to tests.
 pub const STAGE_FIXTURE_MANIFEST_RELATIVE_PATH: &str =
@@ -137,23 +129,6 @@ struct StageFixtureManifest {
     stages: BTreeMap<String, StageReceipt>,
 }
 
-/// Authenticated identity of the scheduler's one deterministic mid-DAG carrier trim.
-///
-/// `stage-source-load` is persisted with its diagnostics span table because the early
-/// validation consumers require it. After their last declared level, the scheduler
-/// removes that transient blob before `stage-snapshot` consumes the product. The cache
-/// receipt therefore authenticates the pre-trim digest, while snapshot's action context
-/// correctly names the post-trim digest. This tiny derived action witnesses that exact
-/// transition without hydrating the multi-gigabyte RDF carrier on every warm admission.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-struct SettledSourceLoadWitness {
-    schema_version: u32,
-    source_action_key: String,
-    source_receipt_digest: String,
-    source_product_digest: String,
-    settled_product_digest: String,
-}
-
 /// A warm producer admission proved from current raw inputs and exact cached receipts.
 #[derive(Debug)]
 pub struct ReusedStageFixtures {
@@ -188,125 +163,7 @@ fn warm_manifest_miss(reason: impl std::fmt::Display) -> Option<ReusedStageFixtu
 }
 
 fn action_cache_error(error: gmeow_action_cache::ActionCacheError) -> gmeow_errors::Diag {
-    fixture_manifest_error(format!("lifecycle witness action cache: {error}"))
-}
-
-fn settled_source_load_context(source: &StageReceipt) -> ActionContext {
-    let mut implementation = ProducerIdentity::new(BUILD_FINGERPRINT);
-    implementation.toolchain = Some(TOOLCHAIN_FINGERPRINT.to_string());
-    implementation.target = Some(BUILD_TARGET.to_string());
-    implementation.profile = Some(BUILD_PROFILE.to_string());
-    implementation.features = BUILD_FEATURES
-        .split(',')
-        .filter(|feature| !feature.is_empty())
-        .map(str::to_owned)
-        .collect();
-    ActionContext::new(
-        "pipeline-lifecycle",
-        "stage-source-load:settled",
-        implementation,
-        SETTLED_SOURCE_LOAD_WITNESS_CODEC,
-        vec![ActionInput::Upstream {
-            producer: source.context.stage_id.clone(),
-            entity: Some(crate::stages::carrier::REP_SPAN_TABLE.to_string()),
-            receipt_digest: Some(source.digest()),
-            product_digest: source.product_digest.clone(),
-        }],
-    )
-    .with_dimension("transition", "strip-after-last-span-consumer")
-}
-
-fn validate_settled_source_load_witness(
-    source: &StageReceipt,
-    common_product_digest: &str,
-    witness: &SettledSourceLoadWitness,
-    bytes: &[u8],
-) -> Result<String, gmeow_errors::Diag> {
-    let expected_bytes = serde_json::to_vec(witness)
-        .map_err(|error| fixture_manifest_error(format!("encode lifecycle witness: {error}")))?;
-    if witness.schema_version != 1
-        || witness.source_action_key != source.action_key
-        || witness.source_receipt_digest != source.digest()
-        || witness.source_product_digest != source.product_digest
-        || witness.settled_product_digest != common_product_digest
-        || expected_bytes != bytes
-    {
-        return Err(fixture_manifest_error(
-            "settled source-load witness does not match its authenticated source receipt",
-        ));
-    }
-    Ok(witness.settled_product_digest.clone())
-}
-
-/// Resolve or produce the tiny authenticated witness for source-load's post-span
-/// identity. A witness miss hydrates ONLY the already-produced source-load cache entry,
-/// applies the scheduler's deterministic trim, and publishes the resulting digest. It
-/// never executes a stage or reads/rebuilds the authored corpus.
-fn settled_source_load_digest(
-    root: &Path,
-    cache: &PipelineCache,
-    source: &StageReceipt,
-) -> Result<String, gmeow_errors::Diag> {
-    let context = settled_source_load_context(source);
-    let store_root = ActionStore::default_root(root);
-    let read_store = ActionStore::open_existing_read_only(
-        &store_root,
-        STORE_FORMAT_VERSION,
-        StoreLimits::default(),
-    )
-    .map_err(action_cache_error)?;
-    if let Some(entry) = read_store
-        .get::<SettledSourceLoadWitness>(&context)
-        .map_err(action_cache_error)?
-    {
-        return validate_settled_source_load_witness(
-            source,
-            &entry.receipt.product_digest,
-            &entry.receipt.payload,
-            &entry.bytes,
-        );
-    }
-    drop(read_store);
-
-    let hit = cache.get(&source.context)?.ok_or_else(|| {
-        fixture_manifest_error("source-load cache entry vanished during admission")
-    })?;
-    if hit.receipt != *source {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
-            cause: None,
-            expected: source.digest(),
-            actual: hit.receipt.digest(),
-        }));
-    }
-    let stripped = crate::bundle::strip_rep_blob(
-        hit.product.raw_bundle(),
-        crate::stages::carrier::REP_SPAN_TABLE,
-    )?;
-    let settled = StageProduct::from_bundle(hit.product.stage_id.clone(), Arc::new(stripped))?;
-    let witness = SettledSourceLoadWitness {
-        schema_version: 1,
-        source_action_key: source.action_key.clone(),
-        source_receipt_digest: source.digest(),
-        source_product_digest: source.product_digest.clone(),
-        settled_product_digest: settled.digest.clone(),
-    };
-    let bytes = serde_json::to_vec(&witness)
-        .map_err(|error| fixture_manifest_error(format!("encode lifecycle witness: {error}")))?;
-    let write_store = ActionStore::open_existing_writable(
-        &store_root,
-        STORE_FORMAT_VERSION,
-        StoreLimits::default(),
-    )
-    .map_err(action_cache_error)?;
-    let receipt = write_store
-        .publish(
-            &context,
-            witness.settled_product_digest.clone(),
-            witness.clone(),
-            &bytes,
-        )
-        .map_err(action_cache_error)?;
-    validate_settled_source_load_witness(source, &receipt.product_digest, &receipt.payload, &bytes)
+    fixture_manifest_error(format!("fixture action cache: {error}"))
 }
 
 fn sha256(bytes: &[u8]) -> String {
@@ -1002,32 +859,12 @@ pub fn reuse_stage_fixture_candidate(
                     })
             })
             .collect::<Result<BTreeMap<_, _>, _>>()?;
-        let mut current_context = action_key_context_from_receipts_cached(
+        let current_context = action_key_context_from_receipts_cached(
             stage.as_ref(),
             root,
             &upstream,
             &mut raw_input_digests,
         )?;
-        if stage_id == "stage-snapshot" {
-            let source = upstream.get("stage-source-load").ok_or_else(|| {
-                fixture_manifest_error(
-                    "stage-snapshot warm admission has no stage-source-load receipt",
-                )
-            })?;
-            let settled_digest = settled_source_load_digest(root, &cache, source)?;
-            let source_row = current_context
-                .upstream
-                .iter_mut()
-                .find(|row| row.producer == "stage-source-load" && row.entity.is_none())
-                .ok_or_else(|| {
-                    fixture_manifest_error(
-                        "stage-snapshot action context has no whole stage-source-load input",
-                    )
-                })?;
-            source_row.digest = settled_digest;
-            current_context.upstream.sort();
-            current_context.upstream.dedup();
-        }
         let recorded = manifest
             .closure_receipts
             .get(&stage_id)
