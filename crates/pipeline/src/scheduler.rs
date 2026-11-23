@@ -710,9 +710,8 @@ pub fn run_without(
         .iter()
         .map(|(producer, kept)| (producer.clone(), Arc::new(kept.clone())))
         .collect();
-    // The artifact-lane views of each producer's product that are in flight. A producer's
-    // carrier is not swapped for its residue while one is, so no second copy of the lane
-    // sits beside the one the view reads.
+    // Artifact-only views retain the original carrier. Wait for those views to
+    // finish so the residue swap drops the scheduler's last reference to it.
     let mut artifact_views_in_flight: BTreeMap<String, usize> = BTreeMap::new();
     let kept_for = |producer: &str| -> BTreeSet<&str> {
         kept_internal
