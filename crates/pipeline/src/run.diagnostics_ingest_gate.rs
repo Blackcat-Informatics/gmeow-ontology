@@ -197,33 +197,31 @@ fn source_span_is_lifted_onto_the_real_shacl_finding_and_diag_node() {
     );
 }
 
-/// Drop-after-last-consumer HARD FAIL: once the span blob is stripped from the
-/// source-load product (as the scheduler does after the last consumer level), any
-/// later `span_index()` read is a typed `SpanTableConsumedAfterDrop` error — and the
-/// stripped product no longer carries the span blob (so it cannot ship).
+/// When the scheduler releases the span blob after its final read, the source-load
+/// carrier omits those bytes and its accessor returns `SpanTableConsumedAfterDrop`.
 #[test]
 fn span_index_hard_fails_after_the_drop_and_is_not_shipped() {
-    let product = source_load_product_with_spans();
+    let mut product = source_load_product_with_spans();
     // Before the drop the accessor resolves the table.
     assert!(
         product.span_index().is_ok(),
         "span table present before drop"
     );
 
-    // Strip exactly as the scheduler does at the drop point.
-    let stripped =
-        crate::bundle::strip_rep_blob(product.raw_bundle(), crate::stages::carrier::REP_SPAN_TABLE)
-            .expect("strip span blob");
-    let dropped = product.with_released_bundle(stripped);
+    let published_digest = product.digest.clone();
+    let released = product
+        .release_unread_rep_blobs(|rep| rep != crate::stages::carrier::REP_SPAN_TABLE)
+        .expect("release the unread span blob");
+    assert!(released.is_some(), "the span blob was released");
     assert_eq!(
-        dropped.digest, product.digest,
+        product.digest, published_digest,
         "published identity survives payload release"
     );
 
     // Not shipped: the stripped product carries no span blob for the sink to fold.
     assert!(
         crate::bundle::bundle_rep_blob(
-            dropped.raw_bundle(),
+            product.raw_bundle(),
             crate::stages::carrier::REP_SPAN_TABLE
         )
         .is_none(),
@@ -231,7 +229,7 @@ fn span_index_hard_fails_after_the_drop_and_is_not_shipped() {
     );
 
     // Reachable HARD FAIL: a later read is the typed SpanTableConsumedAfterDrop.
-    let err = dropped
+    let err = product
         .span_index()
         .expect_err("span_index must hard-fail after drop");
     assert!(

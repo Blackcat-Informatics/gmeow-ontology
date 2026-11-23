@@ -41,7 +41,9 @@ fn artifact_paths_keep_shared_bytes_when_a_representation_is_removed() {
     let original = bundle_artifact(&previous, "x").expect("original artifact bytes");
     assert!(std::ptr::eq(representation, original));
 
-    let stripped = strip_rep_blob(&bundle, "sample:shared").expect("remove the representation");
+    let mut stripped = Arc::new(bundle);
+    retain_rep_blobs(&mut stripped, |rep| rep != "sample:shared")
+        .expect("remove the representation");
     assert!(bundle_rep_blob(&stripped, "sample:shared").is_none());
     assert_eq!(bundle_artifacts(&stripped), artifacts);
     let surviving = bundle_artifact(&stripped, "y").expect("surviving artifact bytes");
@@ -66,10 +68,11 @@ fn artifact_survives_representation_attachment_and_reclamation() {
         Some(payload.as_slice())
     );
 
-    let stripped = strip_rep_blob(&attached, "diagnostic").expect("strip the representation");
     let released = release_carrier(&attached, &std::collections::BTreeSet::new())
         .expect("release the carrier and keep committed artifacts");
-    for bundle in [&stripped, &released] {
+    let mut stripped = Arc::new(attached);
+    retain_rep_blobs(&mut stripped, |rep| rep != "diagnostic").expect("strip the representation");
+    for bundle in [stripped.as_ref(), &released] {
         assert_eq!(bundle_rep_blob(bundle, "diagnostic"), None);
         assert_eq!(
             bundle_artifact(bundle, "artifact"),

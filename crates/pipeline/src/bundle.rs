@@ -343,17 +343,6 @@ pub fn bundle_rep_blob<'b>(
     bundle.blobs().get(&digest).map(AsRef::as_ref)
 }
 
-/// Clone the carrier without a named representation. Surviving digest entries
-/// share their payload bytes.
-pub fn strip_rep_blob(
-    bundle: &PipelineBundle<PipelineHandle>,
-    representation: &str,
-) -> Result<PipelineBundle<PipelineHandle>, gmeow_errors::Diag> {
-    let mut projected = Arc::new(bundle.clone());
-    retain_rep_blobs(&mut projected, |rep| rep != representation)?;
-    Ok(Arc::unwrap_or_clone(projected))
-}
-
 /// Select the representation records this carrier still serves. Preserve bytes
 /// addressed by another record or a resource, and leave unrelated store entries
 /// intact. Return the number of removed records and bytes detached from this store.
