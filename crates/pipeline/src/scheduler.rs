@@ -67,20 +67,18 @@ static RECLAIM_IN_PROGRESS: Mutex<()> = Mutex::new(());
 ///
 /// Dropping a stage's owners makes their allocations unreachable, but glibc may
 /// retain their pages in process arenas. The scheduler calls this once after each
-/// stage's publication, and the reasoning stage calls it at the handoffs inside its
-/// body, naming the phase that just ended. The GNU hint scans all arenas for whole
-/// free pages; fragmented free bytes may remain resident. `malloc_trim` is MT-Safe,
-/// including when sibling stages still allocate, although it holds each arena's lock
-/// in turn while it walks that arena, so it can delay a thread allocating there. It
-/// cannot change a product, cache key, or stage order. Allocators without this
-/// interface retain ordinary drop behavior, and the record then shows two equal
-/// resident sizes.
+/// stage's publication. The reasoning and snapshot stages also call it at handoffs
+/// inside their bodies, naming the phase that just ended. The GNU hint scans all
+/// arenas for whole free pages. Fragmented free bytes may remain resident.
+/// `malloc_trim` is MT-Safe, including when sibling stages still allocate. It holds
+/// each arena's lock while it scans that arena, so it can delay an allocation there. It
+/// cannot change a product, cache key, or stage order. On other targets, ordinary
+/// drop behavior applies and the helper still attempts both resident samples.
 ///
 /// The return is process-wide, so two at once would walk the same arenas for the same
 /// pages. Callers therefore take turns, which keeps one return's two resident readings
-/// clear of another return. The waiters are bounded by the callers that exist: one coordinator for
-/// each pipeline run in the process and each reasoning body in flight, never one per
-/// worker.
+/// clear of another return. Callers are the coordinator for each pipeline run and
+/// the in-flight reasoning and snapshot stage bodies that reach their reclaim boundaries.
 ///
 /// The returned record is an observation: resident size immediately before and after,
 /// and the time the return took. Other threads go on allocating and freeing between

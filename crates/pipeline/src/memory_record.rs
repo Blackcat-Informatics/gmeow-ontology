@@ -15,7 +15,8 @@
 //!
 //! * The scheduler makes one at each stage's dispatch, publication and carrier release,
 //!   and one for the return of freed allocator pages that follows each publication.
-//! * The reasoning stage makes one for each return of freed pages inside its body.
+//! * Reasoning records each return of freed pages inside its body. Snapshot records
+//!   a return after native handle publication and another after product hashing.
 //! * A stage body makes one at the start and one at the end of each phase it runs
 //!   through [`measure_stage_phase`](crate::node::measure_stage_phase), and the snapshot
 //!   serializer makes one at the end of each of its timed phases and one at the start
@@ -32,7 +33,7 @@
 //! freed pages reads the status file a second time, before the return. A run makes at
 //! most four scheduler records per executed stage plus two per measured phase
 //! execution, so the records make at most `5 × stages + 2 × measured phase executions`
-//! reads, plus two for each return inside the reasoning stage. A stage that is never
+//! reads, plus two for each return within a stage body. A stage that is never
 //! released makes three scheduler records. On a host without Linux procfs the read
 //! fails and the two process figures are absent.
 //!
