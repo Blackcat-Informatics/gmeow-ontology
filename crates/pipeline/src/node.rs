@@ -394,16 +394,6 @@ impl StageProduct {
         self.published_store_keys.as_deref()
     }
 
-    /// Release a declared payload after its last consumer while preserving the
-    /// published product and entity identities used by immutable receipts.
-    #[cfg(test)]
-    pub(crate) fn with_released_bundle(&self, bundle: PipelineBundle<PipelineHandle>) -> Self {
-        Self {
-            bundle: Arc::new(bundle),
-            ..self.clone()
-        }
-    }
-
     /// Drop unread handles without copying a carrier held by a running consumer.
     /// The original handle commitments and stage digest remain the published identity.
     pub(crate) fn release_unread_handles(&mut self, is_live: impl Fn(&str) -> bool) {
