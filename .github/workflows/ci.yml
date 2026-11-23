@@ -55,12 +55,9 @@ jobs:
   # generated/dist/gmeow.gts exists.
   producer-build:
     runs-on: ubuntu-latest
-    # Every long job carries an explicit budget. Without one, a job that is OOM-killed
-    # and a job that hangs are INDISTINGUISHABLE from the outside — both surface only as
-    # a runner that stopped responding. A named timeout makes "it ran out of time" a
-    # different signal from "the kernel killed it", which is what a 16 GB runner does to
-    # a build whose peak residency grows with the corpus.
-    timeout-minutes: 45
+    # Bound the cold full-LTO build, including tool installation and cache
+    # restoration. Corpus generation has its own job budget.
+    timeout-minutes: 90
     steps:
       - name: Validate the selected maintenance operation
         if: ${{ github.event_name == 'workflow_dispatch' }}
