@@ -189,6 +189,8 @@ fn clean_lint_input() -> serde_json::Value {
         "self_description": {
             "title": "T",
             "version": "1.0",
+            "publication_date": "2026-01-01",
+            "version_description": "Version 1.0",
             "release_date": "2026-01-01",
             "concept_doi": "10.67342/26w4o",
             "version_doi": null,

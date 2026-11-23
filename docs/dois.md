@@ -71,8 +71,13 @@ output validates against `crossref5.4.0.xsd` + `AccessIndicators.xsd` +
 - **`<contributors>`** — the organization (Blackcat Informatics® Inc.) **and**
   ORCID-identified persons, projected from the `gmeow:Contribution` credit graph
   (author role, organizations first).
-- **`<description>`, `<format>`, dual `<database_date>`** (publication + update),
-  **`<version_info>`**, and **`<publisher_item>`** identifiers.
+- **`<publication_date>` and `<update_date>`**. The database and concept dataset
+  use the Work's original publication date and the current Manifestation's
+  publication date, respectively. An immutable version dataset uses its own
+  Manifestation's date for both. The licence start follows each dataset's
+  publication date.
+- **`<description>`, `<format>`, `<version_info>`** (the Manifestation's
+  fingerprint and description), and **`<publisher_item>`** identifiers.
 - **`<publisher>`** (name + place) and **`<institution>`** (name + acronym + place).
 - **`<institution_id type="wikidata">`** for the Blackcat Informatics® Inc.
   organization QID, projected from the self-description authority link.

@@ -27,7 +27,7 @@
         <database_date>
           <publication_date media_type="online">
             <month>06</month>
-            <day>03</day>
+            <day>01</day>
             <year>2026</year>
           </publication_date>
         </database_date>
@@ -71,7 +71,7 @@
         <database_date>
           <publication_date media_type="online">
             <month>06</month>
-            <day>03</day>
+            <day>01</day>
             <year>2026</year>
           </publication_date>
         </database_date>
@@ -94,9 +94,9 @@
           <crossmark_policy>10.67342/xn9qgdr5mw/v1</crossmark_policy>
           <custom_metadata>
             <ai:program name="AccessIndicators">
-              <ai:free_to_read start_date="2026-06-03" />
-              <ai:license_ref start_date="2026-06-03" applies_to="vor">https://creativecommons.org/licenses/by/4.0/</ai:license_ref>
-              <ai:license_ref start_date="2026-06-03" applies_to="tdm">https://creativecommons.org/licenses/by/4.0/</ai:license_ref>
+              <ai:free_to_read start_date="2026-06-01" />
+              <ai:license_ref start_date="2026-06-01" applies_to="vor">https://creativecommons.org/licenses/by/4.0/</ai:license_ref>
+              <ai:license_ref start_date="2026-06-01" applies_to="tdm">https://creativecommons.org/licenses/by/4.0/</ai:license_ref>
             </ai:program>
           </custom_metadata>
         </crossmark>

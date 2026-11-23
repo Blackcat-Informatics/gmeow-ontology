@@ -117,6 +117,8 @@ impl Contributor {
 pub struct SelfDescription {
     pub title: String,
     pub version: String,
+    pub version_description: String,
+    pub publication_date: String,
     pub release_date: String,
     pub concept_doi: String,
     pub version_doi: Option<String>,
@@ -387,17 +389,28 @@ pub fn load_self_description_from_dataset(
         })
     })?;
 
-    // The Manifestation is discovered dynamically as any URI subject carrying
-    // gmeow:versionFingerprint (never the Work URI).
-    let manifestation = subjects_with(ds, &gmeow("versionFingerprint"))
+    // A full bundle also contains fingerprints belonging to other works.
+    let embodies = gmeow("embodies");
+    let realizes = gmeow("realizes");
+    let mut manifestations = subjects_with(ds, &gmeow("versionFingerprint"))
         .into_iter()
-        .find(|s| matches!(ds.resolve(*s), TermRef::Iri(_)))
-        .ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
-                detail: "No manifestation with gmeow:versionFingerprint found in self-description"
-                    .to_string(),
-            })
-        })?;
+        .filter(|s| {
+            opt_iri_term(ds, *s, &embodies)
+                .and_then(|expression| opt_iri_term(ds, expression, &realizes))
+                == Some(work)
+        })
+        .collect::<Vec<_>>();
+    manifestations.sort_unstable();
+    manifestations.dedup();
+    let [manifestation] = manifestations.as_slice() else {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+            detail: format!(
+                "Expected one versioned manifestation of <{WORK_IRI}>, found {}",
+                manifestations.len()
+            ),
+        }));
+    };
+    let manifestation = *manifestation;
     let TermRef::Iri(manifestation_iri) = ds.resolve(manifestation) else {
         return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
             detail: "manifestation is not an IRI".to_string(),
@@ -405,7 +418,19 @@ pub fn load_self_description_from_dataset(
     };
     let version_iri = manifestation_iri.to_string();
 
-    let title = lit(ds, work, RDFS_LABEL, "work rdfs:label")?;
+    let title = lit(ds, work, &dcterms("title"), "work dcterms:title")?;
+    let publication_date = lit(
+        ds,
+        work,
+        &gmeow("datePublished"),
+        "work gmeow:datePublished",
+    )?;
+    let version_description = lit(
+        ds,
+        manifestation,
+        SKOS_DEFINITION,
+        "manifestation skos:definition",
+    )?;
     let version = lit(
         ds,
         manifestation,
@@ -443,12 +468,15 @@ pub fn load_self_description_from_dataset(
             }));
         }
     }
-    if !is_iso_date(&release_date) {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
-            detail: format!(
-                "Invalid release_date format in self-description (expected YYYY-MM-DD): {release_date:?}"
-            ),
-        }));
+    for (owner, date) in [
+        ("work", &publication_date),
+        ("manifestation", &release_date),
+    ] {
+        if !is_iso_date(date) {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+                detail: format!("Invalid {owner} publication date (expected YYYY-MM-DD): {date:?}"),
+            }));
+        }
     }
 
     let publisher = opt_iri_term(ds, manifestation, &dcterms("publisher")).ok_or_else(|| {
@@ -513,15 +541,11 @@ pub fn load_self_description_from_dataset(
 
     let description = opt_lit(ds, work, SKOS_DEFINITION).unwrap_or_default();
 
-    let repo_url = ds
-        .term_id_by_value(&TermValue::iri(gmeow("webUrl")))
-        .and_then(|p| {
-            ds.quads_for_pattern(None, Some(p), None, GraphMatch::Any)
-                .find_map(|q| match ds.resolve(q.o) {
-                    TermRef::Iri(n) => Some(n.to_string()),
-                    TermRef::Literal { lexical, .. } => Some(lexical.to_string()),
-                    _ => None,
-                })
+    let repo_url = iri_id(ds, "https://blackcatinformatics.ca/gmeow/self#project")
+        .and_then(|project| opt_iri_term(ds, project, &gmeow("hasRepository")))
+        .and_then(|repository| {
+            let web_url = gmeow("webUrl");
+            opt_iri(ds, repository, &web_url).or_else(|| opt_lit(ds, repository, &web_url))
         })
         .unwrap_or_default();
 
@@ -537,6 +561,8 @@ pub fn load_self_description_from_dataset(
     Ok(SelfDescription {
         title,
         version,
+        version_description,
+        publication_date,
         release_date,
         concept_doi,
         version_doi,
@@ -1010,6 +1036,8 @@ fn self_description_input(description: &SelfDescription) -> SelfDescriptionInput
     SelfDescriptionInput {
         title: description.title.clone(),
         version: description.version.clone(),
+        version_description: description.version_description.clone(),
+        publication_date: description.publication_date.clone(),
         release_date: description.release_date.clone(),
         concept_doi: description.concept_doi.clone(),
         version_doi: description.version_doi.clone(),

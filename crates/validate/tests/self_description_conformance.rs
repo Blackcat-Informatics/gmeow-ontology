@@ -111,12 +111,13 @@ fn self_description_loader_pins_fields() {
         "title must start with GMEOW, got {:?}",
         sd.title
     );
-    assert_eq!(sd.version, "0.1.0");
-    assert_eq!(sd.release_date, "2026-06-03");
+    assert_eq!(sd.version, "0.4.0");
+    assert_eq!(sd.publication_date, "2026-06-03");
+    assert_eq!(sd.release_date, "2026-11-23");
     assert_eq!(sd.concept_doi, "10.67342/26w4o");
     assert_eq!(sd.version_doi, None);
     assert_eq!(sd.doi(), "10.67342/26w4o");
-    assert_eq!(sd.version_iri, "https://blackcatinformatics.ca/gmeow/0.1.0");
+    assert_eq!(sd.version_iri, "https://blackcatinformatics.ca/gmeow/0.4.0");
     assert_eq!(sd.depositor_name, "Blackcat Informatics® Inc.");
     assert_eq!(sd.registrant, "Blackcat Informatics® Inc.");
     assert_eq!(sd.depositor_email, "root@blackcatinformatics.ca");

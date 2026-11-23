@@ -10,7 +10,7 @@ authors:
     given-names: "Patrick"
     orcid: "https://orcid.org/0000-0003-4382-7625"
 version: "0.4.0"
-date-released: "2026-06-03"
+date-released: "2026-11-23"
 license: CC-BY-4.0
 url: "https://blackcatinformatics.ca/gmeow"
 # Concept DOI — the always-latest citation anchor (the single registered DOI).
