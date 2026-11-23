@@ -179,8 +179,23 @@ pub fn release_carrier(
     bundle: &PipelineBundle<PipelineHandle>,
     kept_internal: &std::collections::BTreeSet<&str>,
 ) -> Result<PipelineBundle<PipelineHandle>, gmeow_errors::Diag> {
+    let copy_payloads = match std::env::var("GMEOW_RELEASE_PAYLOAD_TRIAL").as_deref() {
+        Ok("copy") => true,
+        Ok("shared") | Err(std::env::VarError::NotPresent) => false,
+        _ => {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode::new(
+                "carrier release trial requires copy or shared".to_owned(),
+            )));
+        }
+    };
+    tracing::info!(
+        target: "pipeline_memory",
+        copy_payloads,
+        "carrier residue backing"
+    );
     let mut lookaside = RdfLookaside::default();
     let mut retained_digests = std::collections::BTreeSet::new();
+    let mut copies = ContentStore::new();
     for resource in bundle.lookaside().resources_of_kind(ARTIFACT_KIND) {
         let (Some(name), Some(hex)) =
             (resource.name.as_deref(), resource.content_digest.as_deref())
@@ -195,19 +210,30 @@ pub fn release_carrier(
                 "release_carrier: malformed resource content digest {hex:?}"
             )))
         })?;
-        if !bundle.blobs().contains(&digest) {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode::new(
-                format!(
-                    "release_carrier: byte-artifact lane entry {name} references content \
+        let bytes = bundle.blobs().get(&digest).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                "release_carrier: byte-artifact lane entry {name} references content \
                      digest {hex} which the bundle's content store does not hold"
-                ),
-            )));
+            )))
+        })?;
+        if copy_payloads {
+            copies.insert_checked(digest, bytes.clone()).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                    "release_carrier: re-insert content-store blob: {e}"
+                )))
+            })?;
+        } else {
+            retained_digests.insert(digest);
         }
-        retained_digests.insert(digest);
         lookaside.resources.push(resource.clone());
     }
-    let mut blobs = bundle.blobs().clone();
-    blobs.retain(|digest| retained_digests.contains(digest));
+    let blobs = if copy_payloads {
+        copies
+    } else {
+        let mut shared = bundle.blobs().clone();
+        shared.retain(|digest| retained_digests.contains(digest));
+        shared
+    };
     Ok(PipelineBundle::new(
         empty_dataset(),
         lookaside,
