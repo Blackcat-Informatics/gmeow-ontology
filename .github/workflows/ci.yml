@@ -434,10 +434,11 @@ jobs:
       # SYNC_VERBOSE=1 streams each DAG stage as it starts and ends. On a runner that
       # dies mid-pipeline the last streamed stage NAMES the resident stage, which is the
       # difference between a diagnosable failure and a bare `Killed`.
+      # Keep measured phase boundaries in the console. The maintenance sweep
+      # emits the full allocator and reasoning diagnostics.
       - name: Cold-materialize the generated product
         env:
-          GMEOW_ALLOCATOR_OBSERVATIONS: glibc
-          GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info,pipeline_memory=info
+          GMEOW_LOG: warn,pipeline_memory=info
           SYNC_VERBOSE: "1"
           SYNC_TIMINGS_JSON: dist/sync/update-timings.json
         run: |
@@ -776,8 +777,7 @@ jobs:
 
       - name: Produce optimized corpus fixtures before any test runner starts
         env:
-          GMEOW_ALLOCATOR_OBSERVATIONS: glibc
-          GMEOW_LOG: warn,pipeline_phase=info,pipeline_reasoning_detail=info,pipeline_memory=info
+          GMEOW_LOG: warn,pipeline_memory=info
         run: >-
           bash .github/scripts/observe-producer.sh fixture-prefix dist/nextest/fixture-resources.log --
           make produce-producer-independent-test-fixtures
