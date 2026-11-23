@@ -1049,13 +1049,19 @@ pub fn run_without(
                     run.receipt = Some(receipt);
                 }
                 if stage_receipts_enabled && run.receipt.is_none() {
-                    run.receipt = Some(PipelineCache::receipt_only(
-                        &run.key_context,
-                        stage.stability().iri(),
-                        stage.cache_policy().iri(),
-                        &run.output_selection,
-                        &run.product,
-                    )?);
+                    let (receipt, phase_records) = crate::memory_record::collecting_phases(|| {
+                        crate::node::measure_stage_phase(&run.id, "build-stage-receipt", || {
+                            PipelineCache::receipt_only(
+                                &run.key_context,
+                                stage.stability().iri(),
+                                stage.cache_policy().iri(),
+                                &run.output_selection,
+                                &run.product,
+                            )
+                        })
+                    });
+                    memory.extend(phase_records);
+                    run.receipt = Some(receipt?);
                 }
                 if let Some(receipt) = run.receipt.clone() {
                     stage_receipts.push(receipt);
@@ -1592,7 +1598,10 @@ fn exec_stage(
     // Verify the stage's ACTUAL attach delta against its declaration on the cache-miss
     // path too — the same compare as the cache-hit branch, so drift HARD-fails regardless
     // of whether the product came fresh or from cache.
-    let output_selection = verify_attach_drift(stage, &upstream, &out.product)?;
+    let output_selection =
+        crate::node::measure_stage_phase(stage.id(), "verify-attachments", || {
+            verify_attach_drift(stage, &upstream, &out.product)
+        })?;
 
     let cache_outcome = if !stage_cache_enabled {
         "bypass:disabled"

@@ -21,7 +21,7 @@ use std::sync::Arc;
 mod diagnostic_json;
 
 use purrdf::provenance::DatasetProvenance;
-use purrdf::{PipelineBundle, RdfDataset};
+use purrdf::{ContentDigest, PipelineBundle, RdfDataset};
 
 use crate::bundle::{
     PipelineHandle, bundle_artifact, bundle_artifact_refs, bundle_from_artifacts,
@@ -286,16 +286,25 @@ impl StageProduct {
         stage_id: impl Into<String>,
         bundle: Arc<PipelineBundle<PipelineHandle>>,
     ) -> Result<Self, gmeow_errors::Diag> {
-        let stage_id = stage_id.into();
+        Self::from_bundle_with_carrier_digest(stage_id.into(), bundle, None)
+    }
+
+    /// Publish a flat carrier with an optional digest already calculated over the
+    /// view it was materialized from. Pins are captured from the published bundle.
+    pub(crate) fn from_bundle_with_carrier_digest(
+        stage_id: String,
+        bundle: Arc<PipelineBundle<PipelineHandle>>,
+        carrier_digest: Option<ContentDigest>,
+    ) -> Result<Self, gmeow_errors::Diag> {
         let handle_commitments =
             measure_stage_phase(&stage_id, "capture-handle-commitments", || {
                 crate::handle_identity::handle_commitments(&bundle)
             });
-        let mut control = purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None);
-        let digest = measure_stage_phase(&stage_id, "digest-stage-product", || {
-            crate::handle_identity::product_digest(&bundle, &handle_commitments, &mut control)
-        })
-        .map_err(|error| carrier_digest_failure(&stage_id, error, &control))?;
+        let carrier_digest = match carrier_digest {
+            Some(digest) => digest,
+            None => Self::digest_carrier(&stage_id, |control| bundle.digest(control))?,
+        };
+        let digest = crate::handle_identity::product_digest(carrier_digest, &handle_commitments);
         Ok(Self {
             stage_id,
             digest,
@@ -305,6 +314,18 @@ impl StageProduct {
             access: None,
             lane: None,
         })
+    }
+
+    /// Measure the native whole-carrier digest and retain its refusal evidence.
+    pub(crate) fn digest_carrier(
+        stage_id: &str,
+        digest: impl FnOnce(
+            &mut purrdf::CanonicalizationControl<'_>,
+        ) -> Result<ContentDigest, purrdf::PipelineBundleError>,
+    ) -> Result<ContentDigest, gmeow_errors::Diag> {
+        let mut control = purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None);
+        measure_stage_phase(stage_id, "digest-stage-product", || digest(&mut control))
+            .map_err(|error| carrier_digest_failure(stage_id, error, &control))
     }
 
     /// This product with its carrier RELEASED: the frozen dataset, typed handles,

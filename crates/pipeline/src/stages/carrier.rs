@@ -867,7 +867,7 @@ pub(crate) fn producer_graph(
 /// upstream products that are already resident and copies no quad, reifier or annotation
 /// row. It does build auxiliary alias and reverse term maps for every source after the
 /// first (on the order of 256 bytes per term of that source), and
-/// [`CarrierParts::materialize`] rebuilds the composite on each call. Those costs follow
+/// [`CarrierParts::view`] rebuilds the composite on each call. Those costs follow
 /// the ontology's size, so a fixed ceiling here would refuse a larger ontology for no
 /// reason rather than bound a resource.
 const CARRIER_VIEW_LIMITS: purrdf::ViewLimits = purrdf::ViewLimits {
@@ -964,8 +964,7 @@ fn graph_has_quads(dataset: &purrdf::RdfDataset, graph_iri: &str) -> bool {
 /// into the destination graph and declares it even when empty, exactly as
 /// [`rooted_in_graph`] does. Every source is standardized apart
 /// (`purrdf::ScopeBinding::Independent`), as `RdfDataset::union` standardizes each
-/// input apart. No row is copied until [`CarrierParts::materialize`], which composes the
-/// sources afresh on every call and builds the one owned dataset its caller needs.
+/// input apart. [`CarrierParts::view`] composes the sources without copying their rows.
 struct CarrierParts<'a> {
     upstream: &'a BTreeMap<String, StageProduct>,
     producers: BTreeMap<String, std::sync::Arc<purrdf::CompositeDatasetView>>,
@@ -1108,18 +1107,10 @@ impl<'a> CarrierParts<'a> {
         Ok(())
     }
 
-    /// Every part composed so far as one read-only view, with no row copied. It reads
-    /// what [`Self::materialize`] would build from the same parts.
+    /// Every part composed so far as one read-only view, with no row copied.
     fn view(&self) -> Result<purrdf::CompositeDatasetView, gmeow_errors::Diag> {
         purrdf::CompositeDatasetView::from_sources(self.sources.clone(), CARRIER_VIEW_LIMITS)
             .map_err(|e| stage_err(&format!("compose the snapshot carrier: {e}")))
-    }
-
-    /// Build the one owned dataset of every part composed so far.
-    fn materialize(&self) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
-        self.view()?
-            .materialize()
-            .map_err(|e| stage_err(&format!("materialize the snapshot carrier: {e}")))
     }
 }
 
@@ -1194,7 +1185,7 @@ fn check_projection_report(
 
 fn assemble_carrier(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+) -> Result<purrdf::CompositeDatasetView, gmeow_errors::Diag> {
     // ── the self-description graphs ride in from stage-source-load's carrier ────
     // The presenter no longer loads or canonicalizes any source: the authored default,
     // imports, metadata, alignments, slice-analysis, and provenance
@@ -1553,7 +1544,7 @@ const COHERENCE_ISSUED_AT: &str = "1970-01-01T00:00:00Z";
 fn fold_coherence_certificate(
     mut parts: CarrierParts<'_>,
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+) -> Result<purrdf::CompositeDatasetView, gmeow_errors::Diag> {
     // Reuse stage-reason's single reasoning pass (the typed Reasoning handle), never a
     // second reason over the carrier — the razor (PIPELINE_SPINE §3.2): reason once.
     let reason = upstream
@@ -1621,13 +1612,9 @@ fn fold_coherence_certificate(
     // pre-certificate view before building the only owned carrier.
     drop(composed);
     parts.push_dataset(cert);
-    let certified = crate::node::measure_stage_phase(
-        "stage-snapshot",
-        "materialize-certified-carrier",
-        || parts.materialize(),
-    )?;
-    log_carrier_size("materialize-certified-carrier", &certified);
-    Ok(certified)
+    crate::node::measure_stage_phase("stage-snapshot", "compose-certified-carrier-view", || {
+        parts.view()
+    })
 }
 
 /// Borrow the remaining committed RDF artifacts through snapshot parsing.
@@ -3597,16 +3584,67 @@ impl Stage for SnapshotStage {
         // reads off this product's bundle. NOTHING is serialized here: GTS is exit-only,
         // presented as bytes by the sole terminal writer (`gts_sink::GtsSinkStage`),
         // never by this stage — the snapshot product carries the carrier, no byte lane.
-        let carrier = crate::node::measure_stage_phase(self.id(), "assemble-carrier", || {
-            assemble_carrier(input.upstream)
-        })?;
+        let selection = std::env::var("GMEOW_SNAPSHOT_MEMORY_TRIAL");
+        let mode = match selection.as_deref() {
+            Ok(mode @ ("flat" | "reclaim" | "view")) => mode,
+            Err(std::env::VarError::NotPresent) => "flat",
+            _ => {
+                return Err(stage_err(
+                    "snapshot memory trial requires flat, reclaim or view",
+                ));
+            }
+        };
+        let reclaim = mode == "reclaim";
+        tracing::info!(target: "pipeline_memory", mode, reclaim, "snapshot allocator reclaim trial");
+        let (flat, carrier_digest) =
+            crate::node::measure_stage_phase(self.id(), "assemble-carrier", || {
+                let carrier = std::sync::Arc::new(assemble_carrier(input.upstream)?);
+                let carrier_digest = if mode == "view" {
+                    let view =
+                        purrdf::PipelineViewBundle::<crate::bundle::PipelineHandle>::from_view(
+                            std::sync::Arc::clone(&carrier),
+                            purrdf::RdfLookaside::default(),
+                            std::sync::Arc::new(purrdf::ContentStore::new()),
+                            DatasetProvenance::new(),
+                            &purrdf::RetentionLedger::new(),
+                            CARRIER_VIEW_LIMITS,
+                        );
+                    Some(StageProduct::digest_carrier(self.id(), |control| {
+                        view.digest(control)
+                    })?)
+                } else {
+                    None
+                };
+                let flat = crate::node::measure_stage_phase(
+                    self.id(),
+                    "materialize-certified-carrier",
+                    || carrier.materialize(),
+                )
+                .map_err(|e| stage_err(&format!("materialize the snapshot carrier: {e}")))?;
+                log_carrier_size("materialize-certified-carrier", &flat);
+                Ok::<_, gmeow_errors::Diag>((flat, carrier_digest))
+            })?;
         let bundle = crate::node::measure_stage_phase(self.id(), "publish-native-handles", || {
-            build_snapshot_bundle(carrier, input.upstream)
+            build_snapshot_bundle(flat, input.upstream)
         })?;
-        Ok(StageOutput::new(StageProduct::from_bundle(
-            self.id(),
+        if reclaim {
+            crate::memory_record::keep(crate::scheduler::reclaim_allocator_slack(
+                self.id(),
+                Some("publish-native-handles"),
+            ));
+        }
+        let product = StageProduct::from_bundle_with_carrier_digest(
+            self.id().to_owned(),
             std::sync::Arc::new(bundle),
-        )?))
+            carrier_digest,
+        )?;
+        if reclaim {
+            crate::memory_record::keep(crate::scheduler::reclaim_allocator_slack(
+                self.id(),
+                Some("digest-stage-product"),
+            ));
+        }
+        Ok(StageOutput::new(product))
     }
 }
 
