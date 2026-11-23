@@ -3,6 +3,7 @@
 
 use super::*;
 use crate::cache::{ReceiptOutputSelection, StageKeyContext};
+use crate::node::StageProduct;
 
 // Synthetic receipt metadata only: these tests run no stage and produce no
 // corpus or authenticated product. Blob authentication stays with the loader.
