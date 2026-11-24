@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use std::collections::BTreeMap;
+use std::num::NonZeroU64;
 use std::sync::{Arc, Mutex, mpsc};
 use std::time::Duration;
 
@@ -180,6 +181,7 @@ impl Stage for SnapshotStage {
 fn run_parallel_snapshot(
     panic_after_publication: bool,
     retain_snapshot: bool,
+    ready_order: ReadyOrder,
 ) -> gmeow_errors::Result<RunResult> {
     let (digest_finished, digest) = mpsc::channel();
     let (sibling_published, publication) = mpsc::channel();
@@ -208,7 +210,7 @@ fn run_parallel_snapshot(
     after_sibling
         .reads
         .insert("c-later-reader".to_owned(), [Read::Dataset].into());
-    let mut sink = spec("sink", &["after-sibling", "stage-snapshot"]);
+    let mut sink = spec("sink", &["after-sibling", "deferred", "stage-snapshot"]);
     sink.reads.insert(
         "stage-snapshot".to_owned(),
         [Read::Handle(USED_HANDLE.to_owned())].into(),
@@ -223,6 +225,7 @@ fn run_parallel_snapshot(
             snapshot,
             sibling,
             after_sibling,
+            spec("deferred", &["stage-sibling"]),
             sink,
         ],
     };
@@ -243,7 +246,7 @@ fn run_parallel_snapshot(
     );
     let bound = crate::loader::bind(&pipeline, &graph, &registry).expect("bound snapshot graph");
     let root = tempfile::tempdir().expect("synthetic pipeline root");
-    let mut ctx = RunContext::open_ephemeral(root.path(), 2)?.with_progress(order);
+    let mut ctx = RunContext::open_ephemeral(root.path(), 3)?.with_progress(order);
     ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
     ctx.retain_carriers(["d-retained"]);
     if retain_snapshot {
@@ -253,17 +256,37 @@ fn run_parallel_snapshot(
         "a-exclusive".to_owned(),
         [Read::Artifact(POST_RUN_ARTIFACT.to_owned())].into(),
     )]);
-    ctx.ready_order = ReadyOrder::StageId;
+    ctx.ready_order = ready_order;
     run(&graph, &bound, &mut ctx)
 }
 
 /// Snapshot releases exclusive inputs and unread output handles before hashing.
-/// Pending readers and explicitly retained products keep their payloads.
-/// Receipt identity commits the released handles as well as the retained ones.
+/// Pending readers and explicitly retained products keep their payloads, and
+/// the receipt commits both handles. The work charge admits only the lighter
+/// sibling successor before publication.
 #[test]
 fn snapshot_handoff_keeps_sibling_publication_live() {
-    let result = run_parallel_snapshot(false, false).expect("parallel snapshot publishes");
-    let retained = run_parallel_snapshot(false, true).expect("retained snapshot publishes");
+    let readiness = || {
+        ReadyOrder::from_estimate_json(
+            br#"{
+            "a-exclusive":{"transient_bytes":0,"published_bytes":0},
+            "b-shared":{"transient_bytes":0,"published_bytes":0},
+            "c-later-reader":{"transient_bytes":0,"published_bytes":0},
+            "d-retained":{"transient_bytes":0,"published_bytes":0},
+            "stage-snapshot":{"transient_bytes":8,"published_bytes":0},
+            "stage-sibling":{"transient_bytes":1,"published_bytes":0},
+            "after-sibling":{"transient_bytes":1,"published_bytes":0},
+            "deferred":{"transient_bytes":3,"published_bytes":0},
+            "sink":{"transient_bytes":0,"published_bytes":0}
+        }"#,
+            NonZeroU64::new(10),
+        )
+        .expect("fixed snapshot admission estimates")
+    };
+    let result =
+        run_parallel_snapshot(false, false, readiness()).expect("parallel snapshot publishes");
+    let retained =
+        run_parallel_snapshot(false, true, readiness()).expect("retained snapshot publishes");
     let boundary = |stage, event| {
         let mut records = result
             .memory
@@ -296,6 +319,7 @@ fn snapshot_handoff_keeps_sibling_publication_live() {
     let snapshot = boundary("stage-snapshot", MemoryEvent::Complete);
     assert!(boundary("a-exclusive", MemoryEvent::Release) < digest_start);
     assert!(boundary("after-sibling", MemoryEvent::Dispatch) < snapshot);
+    assert!(snapshot < boundary("deferred", MemoryEvent::Dispatch));
     assert!(snapshot < boundary("b-shared", MemoryEvent::Release));
     assert!(digest_start < boundary("c-later-reader", MemoryEvent::Release));
     assert!(snapshot < boundary("sink", MemoryEvent::Dispatch));
@@ -324,7 +348,8 @@ fn snapshot_handoff_keeps_sibling_publication_live() {
 /// A panic in the snapshot continuation reports a terminal result to the scheduler.
 #[test]
 fn snapshot_progress_panic_reaches_terminal_failure() {
-    let error = run_parallel_snapshot(true, false).expect_err("snapshot panic is a failure");
+    let error = run_parallel_snapshot(true, false, ReadyOrder::StageId)
+        .expect_err("snapshot panic is a failure");
     assert!(
         error
             .message()

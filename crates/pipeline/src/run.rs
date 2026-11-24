@@ -377,6 +377,25 @@ pub fn spec_for_scope(
     })
 }
 
+/// Validate an explicit active-work ceiling without running a stage. A caller
+/// reusing a current manifest can check the scoped configuration on its no-work path.
+///
+/// # Errors
+/// Refuses malformed or incompatible configuration and any selected stage that
+/// cannot fit under the ceiling.
+pub fn validate_active_work_ceiling(
+    scope: RunOutputScope,
+    profile: BuildProfile,
+) -> gmeow_errors::Result<()> {
+    if !crate::scheduler::ReadyOrder::active_work_is_requested() {
+        return Ok(());
+    }
+    let order = crate::scheduler::ReadyOrder::from_environment()?;
+    let registry = crate::registry::registry_for(profile);
+    let spec = spec_for_scope(full_spec(), scope, &registry)?;
+    order.validate(&spec.stages.into_iter().map(|stage| stage.id).collect())
+}
+
 /// Run the FULL dogfooded build single-pass and either write every produced
 /// artifact (update) or compare it to the committed bytes (check).
 ///

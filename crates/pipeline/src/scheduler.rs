@@ -810,6 +810,14 @@ pub fn run_without(
             }));
         }
     }
+    let mut active_work = ready_order.active_work_admission();
+    if let Some((ceiling, _)) = active_work {
+        tracing::info!(
+            target: crate::memory_record::TARGET,
+            active_work_ceiling_bytes = ceiling,
+            "scheduler active-work ceiling"
+        );
+    }
 
     let scheduling_result = pool.in_place_scope_fifo(|scope| -> Result<(), gmeow_errors::Diag> {
         let (tx, rx) = mpsc::channel::<(
@@ -835,10 +843,13 @@ pub fn run_without(
                         .resources()
                         .iter()
                         .all(|resource| !active_resources.contains(resource))
+                        && active_work.as_ref().is_none_or(|(remaining, estimates)| {
+                            estimates[stage_id.as_str()].active_work_bytes() <= *remaining
+                        })
                 });
                 let next = match ready_order {
                     ReadyOrder::StageId | ReadyOrder::Calibrate => eligible.next(),
-                    ReadyOrder::Memory(estimates) => {
+                    ReadyOrder::Memory(schedule) => {
                         let live = ready_order::LiveReads {
                             products: &products,
                             dataset_bytes: &dataset_bytes,
@@ -859,7 +870,9 @@ pub fn run_without(
                             });
                             live.priority(
                                 by_id[id.as_str()].as_ref(),
-                                estimates.as_ref().and_then(|estimates| estimates.get(*id)),
+                                schedule
+                                    .as_ref()
+                                    .and_then(|schedule| schedule.estimates.get(*id)),
                                 terminal_only,
                                 depth[*id],
                             )
@@ -933,6 +946,9 @@ pub fn run_without(
                 ));
                 let tx = tx.clone();
                 let progress = progress.clone();
+                if let Some((remaining, estimates)) = &mut active_work {
+                    *remaining -= estimates[stage_id.as_str()].active_work_bytes();
+                }
                 active += 1;
                 // The worker reports its edges whether the stage returns, fails or
                 // panics: the reads recorded before a failure still say what the stage
@@ -1122,14 +1138,17 @@ pub fn run_without(
                                 phase_records,
                             ));
                         });
-                        // Keep the original stage slot and reader counts until the
-                        // digest worker sends its final result.
+                        // Keep the stage slot, active-work charge and reader counts
+                        // until the digest worker sends its final result.
                         continue;
                     }
                 }
                 Err(error) => Err(error),
             };
             active -= 1;
+            if let Some((remaining, estimates)) = &mut active_work {
+                *remaining += estimates[stage_id.as_str()].active_work_bytes();
+            }
             for resource in resources {
                 active_resources.remove(&resource);
             }
