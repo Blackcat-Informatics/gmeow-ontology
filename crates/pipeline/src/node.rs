@@ -187,8 +187,10 @@ pub struct StageProduct {
     /// Published typed identities survive payload release and avoid repeated lowering.
     handle_commitments: BTreeMap<String, crate::handle_identity::HandleCommitment>,
     /// The published representation and verified store identities used by attach checks.
-    published_blobs: Option<Arc<PublishedBlobs>>,
+    published_blobs: Option<Arc<ContentRecords>>,
     published_store_keys: Option<Arc<BTreeSet<String>>>,
+    /// Published commitments of fanout artifacts whose payloads have been detached.
+    released_artifact_records: Option<Arc<ContentRecords>>,
     /// The dataflow edge this view of the product was handed out under. `None` for the
     /// product a stage emits and for the scheduler's, the cache's and the reconcile's own
     /// view; `Some` for the view a consuming stage receives, which records each access made
@@ -202,7 +204,7 @@ pub struct StageProduct {
     lane: Option<ArtifactLane>,
 }
 
-type PublishedBlobs = BTreeMap<String, BTreeSet<String>>;
+type ContentRecords = BTreeMap<String, BTreeSet<String>>;
 
 /// The producer's carrier as an artifact-only consumer sees it: shared, never copied, and
 /// served only through the artifact accessors.
@@ -250,6 +252,7 @@ impl StageProduct {
             handle_commitments: BTreeMap::new(),
             published_blobs: None,
             published_store_keys: None,
+            released_artifact_records: None,
             access: None,
             lane: None,
         }
@@ -303,7 +306,7 @@ impl StageProduct {
             crate::handle_identity::product_digest(&bundle, &handle_commitments, &mut control)
         })
         .map_err(|error| carrier_digest_failure(&stage_id, error, &control))?;
-        let mut records = PublishedBlobs::new();
+        let mut records = ContentRecords::new();
         for record in &bundle.lookaside().blobs {
             if let Some(representation) = &record.representation {
                 records
@@ -320,6 +323,7 @@ impl StageProduct {
             handle_commitments,
             published_blobs: (!records.is_empty()).then(|| Arc::new(records)),
             published_store_keys: None,
+            released_artifact_records: None,
             access: None,
             lane: None,
         })
@@ -352,7 +356,23 @@ impl StageProduct {
         self,
         kept_internal: &std::collections::BTreeSet<&str>,
     ) -> Result<Self, gmeow_errors::Diag> {
-        let bundle = crate::bundle::release_carrier(&self.bundle, kept_internal)?;
+        self.into_carrier_released_except(kept_internal, &BTreeSet::new())
+    }
+
+    pub(crate) fn into_carrier_released_except(
+        self,
+        kept_internal: &BTreeSet<&str>,
+        expired: &BTreeSet<&str>,
+    ) -> Result<Self, gmeow_errors::Diag> {
+        let bundle = crate::bundle::release_carrier_except(&self.bundle, kept_internal, expired)?;
+        let released_artifact_records = if expired.is_empty() {
+            self.released_artifact_records
+        } else {
+            Some(Arc::new(crate::bundle::artifact_lane_records(
+                &self.bundle,
+                |path| expired.contains(path),
+            )))
+        };
         Ok(Self {
             stage_id: self.stage_id,
             digest: self.digest,
@@ -361,6 +381,7 @@ impl StageProduct {
             handle_commitments: self.handle_commitments,
             published_blobs: None,
             published_store_keys: None,
+            released_artifact_records,
             access: self.access,
             lane: self.lane,
         })
@@ -492,6 +513,7 @@ impl StageProduct {
             handle_commitments: self.handle_commitments.clone(),
             published_blobs: None,
             published_store_keys: None,
+            released_artifact_records: self.released_artifact_records.clone(),
             access: Some(access),
             lane: Some(ArtifactLane {
                 source: Arc::clone(&self.bundle),
@@ -500,14 +522,20 @@ impl StageProduct {
         }
     }
 
-    /// The `(logical path → content digests)` of the byte-artifact resources this view
-    /// carries, without recording a read: the lane an artifact-only consumer is served, or
-    /// every lookaside resource of an ordinary product. For the attach verifier.
-    pub(crate) fn artifact_records(&self) -> BTreeMap<String, std::collections::BTreeSet<String>> {
+    /// Artifact identities for attachment verification, including published paths whose
+    /// payloads have been released. Reading this ledger does not read artifact bytes.
+    pub(crate) fn artifact_records(&self) -> ContentRecords {
+        let mut records = self
+            .released_artifact_records
+            .as_deref()
+            .cloned()
+            .unwrap_or_default();
         if let Some(lane) = &self.lane {
-            return crate::bundle::artifact_lane_records(&lane.source, |path| lane.serves(path));
+            records.extend(crate::bundle::artifact_lane_records(&lane.source, |path| {
+                lane.serves(path)
+            }));
+            return records;
         }
-        let mut records: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
         for resource in &self.bundle.lookaside().resources {
             if let (Some(name), Some(digest)) = (&resource.name, &resource.content_digest) {
                 records
