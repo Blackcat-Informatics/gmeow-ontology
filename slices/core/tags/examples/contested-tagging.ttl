@@ -20,6 +20,7 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/tags/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 # --- The resource under curation.
@@ -85,6 +86,10 @@ ex:opening a gmeow:Activity ;
     gmeow:hasTag gmeow:tagReview .
 
 ex:DoorOpening a logic:Class ;
+    rdfs:label "Door opening"@x-gmeow-english ;
+    skos:definition "The class of activities in which a door is opened."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:hasTag gmeow:tagReview .
 
 # One actual source tagging act with one supplied tagger.
