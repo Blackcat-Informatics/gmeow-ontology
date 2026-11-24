@@ -2841,6 +2841,9 @@ mod handle_retention;
 #[path = "scheduler.blob_retention_tests.rs"]
 mod blob_retention;
 
+#[path = "scheduler.snapshot_release_tests.rs"]
+mod snapshot_release;
+
 #[test]
 fn last_consumer_level_is_total_over_consumed_stages_and_absent_for_outputs() {
     let spec = retention_chain();

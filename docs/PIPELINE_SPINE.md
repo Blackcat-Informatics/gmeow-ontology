@@ -425,6 +425,15 @@ views and explicit post-run retention preserve access. Published commitments
 still identify the full product and its handles. Memory traces identify each
 dropped handle reference. Shared allocations can remain live through other owners.
 
+With enforced reads and last-reader retention, snapshot assembles the flat
+carrier and captures its attachment inputs before hashing the complete product.
+The scheduler then drops the snapshot's input views and releases carriers whose
+last declared read has finished, while preserving inputs with pending readers
+or explicit post-run retention. Snapshot holds its stage slot and reader
+reservations through publication. Other stages can publish while its worker
+hashes the snapshot. The action key, product digest, and receipt still bind the
+same inputs and outputs.
+
 The ordinary build ranks only dependency-ready stages whose resources are
 available. It compares transient memory estimates, then the change in retained
 bytes after the candidate completes. Last-reader credit counts a shared
