@@ -18,7 +18,9 @@ use std::time::UNIX_EPOCH;
 use gmeow_action_cache::{ActionCacheError, executable::sha256_file};
 use gmeow_cli_core::{ConsoleMode, Reporter};
 use gmeow_pipeline::cache::{BUILD_FINGERPRINT, BuildIdentity};
-use gmeow_pipeline::run::{RunMode, RunOutputScope, RunReport, run_full_scoped_with_progress};
+use gmeow_pipeline::run::{
+    RunMode, RunOutputScope, RunReport, run_full_scoped_with_progress, validate_active_work_ceiling,
+};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -402,7 +404,14 @@ pub fn sync(
     if verbose {
         reporter.stage_end("sync:validate-manifest", manifest_started.elapsed());
     }
+    let output_scope = match output {
+        SyncOutput::All => RunOutputScope::All,
+        SyncOutput::Generated | SyncOutput::Docs => RunOutputScope::Committed,
+    };
     if let Some(manifest) = current_manifest {
+        if let Err(error) = validate_active_work_ceiling(output_scope, profile.build_profile()) {
+            return fail(format!("sync pipeline failed: {error}"));
+        }
         println!(
             "sync: clean manifest hit (mode={}, output={}); pipeline and docs skipped",
             mode.as_str(),
@@ -466,10 +475,6 @@ pub fn sync(
     let run_mode = match mode {
         SyncMode::Update => RunMode::Update,
         SyncMode::Check => RunMode::Check,
-    };
-    let output_scope = match output {
-        SyncOutput::All => RunOutputScope::All,
-        SyncOutput::Generated | SyncOutput::Docs => RunOutputScope::Committed,
     };
     let progress = verbose.then(|| Arc::clone(&reporter));
     let report = match run_full_scoped_with_progress(

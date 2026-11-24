@@ -5,8 +5,14 @@
 
 use std::cmp::Reverse;
 use std::collections::{BTreeMap, BTreeSet};
+use std::io::Read;
+use std::num::NonZeroU64;
 use std::path::Path;
 use std::sync::Arc;
+
+use gmeow_errors::json::read_unsigned;
+use purrdf_lex::json::record::{DecodeError, FromJson, Record};
+use purrdf_lex::json::{Limits, Value, read_slice};
 
 use crate::bundle::PipelineHandle;
 use crate::graph::StageGraph;
@@ -14,51 +20,132 @@ use crate::node::{Stage, StageProduct};
 
 use super::PayloadReaders;
 
+const ACTIVE_WORK_BYTES_ENV: &str = "GMEOW_PIPELINE_ACTIVE_WORK_BYTES";
+const MAX_ESTIMATE_PROFILE_BYTES: u64 = 1024 * 1024;
+
 #[derive(Default)]
 pub(crate) enum ReadyOrder {
     #[default]
     StageId,
     Calibrate,
-    Memory(Option<BTreeMap<String, StageEstimate>>),
+    Memory(Option<MemorySchedule>),
 }
 
-#[derive(serde::Deserialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct StageEstimate {
+pub(crate) struct MemorySchedule {
+    pub(super) estimates: BTreeMap<String, StageEstimate>,
+    ceiling: Option<NonZeroU64>,
+}
+
+pub(super) struct StageEstimate {
     transient_bytes: u64,
     published_bytes: u64,
 }
 
+impl FromJson for StageEstimate {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "stage memory estimate")?;
+        let estimate = Self {
+            transient_bytes: fields
+                .required_with("transient_bytes", |value| read_unsigned(value, "u64"))?,
+            published_bytes: fields
+                .required_with("published_bytes", |value| read_unsigned(value, "u64"))?,
+        };
+        fields.deny_unknown()?;
+        Ok(estimate)
+    }
+}
+
+impl StageEstimate {
+    pub(super) fn active_work_bytes(&self) -> u64 {
+        self.transient_bytes.max(self.published_bytes)
+    }
+}
+
 impl ReadyOrder {
+    pub(crate) fn active_work_is_requested() -> bool {
+        std::env::var_os(ACTIVE_WORK_BYTES_ENV).is_some()
+    }
+
     pub(crate) fn from_environment() -> gmeow_errors::Result<Self> {
         let profile = std::env::var_os("GMEOW_PIPELINE_MEMORY_ESTIMATES");
+        let active_work_ceiling = std::env::var_os(ACTIVE_WORK_BYTES_ENV)
+            .map(|value| {
+                value
+                    .to_str()
+                    .and_then(|text| text.parse::<NonZeroU64>().ok())
+                    .ok_or_else(|| {
+                        invalid_order(
+                            "GMEOW_PIPELINE_ACTIVE_WORK_BYTES must be a positive byte count",
+                        )
+                    })
+            })
+            .transpose()?;
         match std::env::var_os("GMEOW_PIPELINE_READY_ORDER").as_deref() {
             None => {}
             Some(mode) if mode == "memory" => {}
-            Some(mode) if mode == "stage-id" && profile.is_none() => return Ok(Self::StageId),
-            Some(mode) if mode == "calibrate" && profile.is_none() => return Ok(Self::Calibrate),
+            Some(mode)
+                if mode == "stage-id" && profile.is_none() && active_work_ceiling.is_none() =>
+            {
+                return Ok(Self::StageId);
+            }
+            Some(mode)
+                if mode == "calibrate" && profile.is_none() && active_work_ceiling.is_none() =>
+            {
+                return Ok(Self::Calibrate);
+            }
             Some(mode) if mode == "stage-id" || mode == "calibrate" => {
                 return Err(invalid_order(format!(
-                    "{mode:?} order cannot use memory estimates"
+                    "{mode:?} order cannot use memory estimates or an active-work ceiling"
                 )));
             }
             Some(mode) => {
                 return Err(invalid_order(format!("unknown ready order {mode:?}")));
             }
         }
-        let estimates = profile
-            .as_deref()
-            .map(Path::new)
-            .map(|path| {
-                let file = std::fs::File::open(path).map_err(|error| {
-                    invalid_order(format!("open memory estimates {}: {error}", path.display()))
-                })?;
-                serde_json::from_reader(std::io::BufReader::new(file)).map_err(|error| {
-                    invalid_order(format!("read memory estimates {}: {error}", path.display()))
-                })
+        let Some(path) = profile.as_deref().map(Path::new) else {
+            if active_work_ceiling.is_some() {
+                return Err(invalid_order(
+                    "GMEOW_PIPELINE_ACTIVE_WORK_BYTES requires GMEOW_PIPELINE_MEMORY_ESTIMATES",
+                ));
+            }
+            return Ok(Self::Memory(None));
+        };
+        let mut bytes = Vec::new();
+        std::fs::File::open(path)
+            .and_then(|file| {
+                file.take(MAX_ESTIMATE_PROFILE_BYTES + 1)
+                    .read_to_end(&mut bytes)
             })
-            .transpose()?;
-        Ok(Self::Memory(estimates))
+            .map_err(|error| {
+                invalid_order(format!("read memory estimates {}: {error}", path.display()))
+            })?;
+        if bytes.len() as u64 > MAX_ESTIMATE_PROFILE_BYTES {
+            return Err(invalid_order(format!(
+                "memory estimates {} exceed the {MAX_ESTIMATE_PROFILE_BYTES}-byte profile limit",
+                path.display()
+            )));
+        }
+        Self::from_estimate_json(&bytes, active_work_ceiling).map_err(|error| {
+            invalid_order(format!(
+                "decode memory estimates {}: {error}",
+                path.display()
+            ))
+        })
+    }
+
+    pub(crate) fn from_estimate_json(
+        bytes: &[u8],
+        ceiling: Option<NonZeroU64>,
+    ) -> Result<Self, DecodeError> {
+        let value = read_slice(bytes, Limits::DEFAULT)?;
+        if let Some(duplicate) = value
+            .as_object()
+            .and_then(|object| object.first_duplicate())
+        {
+            return Err(DecodeError::duplicate_field(duplicate));
+        }
+        let estimates = BTreeMap::from_json(&value)?;
+        Ok(Self::Memory(Some(MemorySchedule { estimates, ceiling })))
     }
 
     /// Calibration isolates one stage without reducing its Rayon pool.
@@ -69,16 +156,37 @@ impl ReadyOrder {
         }
     }
 
-    pub(super) fn validate(&self, selected: &BTreeSet<String>) -> gmeow_errors::Result<()> {
-        if let Self::Memory(Some(estimates)) = self {
-            let stages: BTreeSet<_> = estimates.keys().cloned().collect();
-            if &stages != selected {
-                return Err(invalid_order(format!(
-                    "memory estimates must cover the selected DAG. Missing: {:?}. Unexpected: {:?}",
-                    selected.difference(&stages).collect::<Vec<_>>(),
-                    stages.difference(selected).collect::<Vec<_>>()
-                )));
-            }
+    pub(super) fn active_work_admission(&self) -> Option<(u64, &BTreeMap<String, StageEstimate>)> {
+        let Self::Memory(Some(schedule)) = self else {
+            return None;
+        };
+        schedule
+            .ceiling
+            .map(|ceiling| (ceiling.get(), &schedule.estimates))
+    }
+
+    pub(crate) fn validate(&self, selected: &BTreeSet<String>) -> gmeow_errors::Result<()> {
+        let Self::Memory(Some(schedule)) = self else {
+            return Ok(());
+        };
+        let stages: BTreeSet<_> = schedule.estimates.keys().cloned().collect();
+        if &stages != selected {
+            return Err(invalid_order(format!(
+                "memory estimates must cover the selected DAG. Missing: {:?}. Unexpected: {:?}",
+                selected.difference(&stages).collect::<Vec<_>>(),
+                stages.difference(selected).collect::<Vec<_>>()
+            )));
+        }
+        if let Some(ceiling) = schedule.ceiling
+            && let Some((stage, estimate)) = schedule
+                .estimates
+                .iter()
+                .find(|(_, estimate)| estimate.active_work_bytes() > ceiling.get())
+        {
+            return Err(invalid_order(format!(
+                "{stage} requires {} estimated active-work bytes, above the ceiling of {ceiling} bytes",
+                estimate.active_work_bytes(),
+            )));
         }
         Ok(())
     }
@@ -187,14 +295,13 @@ impl LiveReads<'_> {
         terminal_only: bool,
         depth: usize,
     ) -> (u64, i128, bool, Reverse<usize>) {
-        let transient = estimate.map_or(0, |estimate| estimate.transient_bytes);
         let published = estimate.map_or(0, |estimate| estimate.published_bytes);
         // Inputs coexist with the stage work and its publication. Credit a
         // release only when comparing the frontier after completion.
         let frontier_growth =
             i128::from(published) - i128::from(self.released_payload_bytes(stage));
         (
-            transient.max(published),
+            estimate.map_or(0, StageEstimate::active_work_bytes),
             frontier_growth,
             terminal_only,
             Reverse(depth),
