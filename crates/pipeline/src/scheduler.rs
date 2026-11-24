@@ -458,8 +458,8 @@ struct StageRun {
 }
 
 enum WorkerProduct {
-    Complete(StageRun),
-    Snapshot(PreparedSnapshot),
+    Complete(Box<StageRun>),
+    Snapshot(Box<PreparedSnapshot>),
 }
 
 struct PreparedSnapshot {
@@ -951,7 +951,7 @@ pub fn run_without(
                         std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                             let result = if early_snapshot && stage.id() == SNAPSHOT_STAGE_ID {
                                 prepare_snapshot(stage.as_ref(), root, &upstream)
-                                    .map(WorkerProduct::Snapshot)
+                                    .map(|snapshot| WorkerProduct::Snapshot(Box::new(snapshot)))
                             } else {
                                 exec_stage(
                                     stage.as_ref(),
@@ -960,7 +960,7 @@ pub fn run_without(
                                     cache,
                                     stage_cache_enabled,
                                 )
-                                .map(WorkerProduct::Complete)
+                                .map(|run| WorkerProduct::Complete(Box::new(run)))
                             };
                             if let (Some(progress), Ok(WorkerProduct::Complete(run))) =
                                 (progress.as_deref(), &result)
@@ -1021,7 +1021,7 @@ pub fn run_without(
             let carrier_inputs = stage.carrier_consumes().to_vec();
             let artifact_inputs = artifact_lane_producers(stage.as_ref(), read_policy);
             let result = match result {
-                Ok(WorkerProduct::Complete(run)) => Ok(run),
+                Ok(WorkerProduct::Complete(run)) => Ok(*run),
                 Ok(WorkerProduct::Snapshot(snapshot)) => {
                     let release = (|| -> Result<(), gmeow_errors::Diag> {
                         // Snapshot's views are gone. Account for its own reservations
@@ -1097,7 +1097,7 @@ pub fn run_without(
                             let _ = tx.send((
                                 stage_id,
                                 resources,
-                                result.map(WorkerProduct::Complete),
+                                result.map(|run| WorkerProduct::Complete(Box::new(run))),
                                 dispatched_edges,
                                 phase_records,
                             ));
