@@ -159,8 +159,7 @@ pub const INTERNAL_ARTIFACT_PREFIX: &str = "pipeline/";
 /// ([`crate::node::Stage::internal_artifact_reads`]); without it they would receive a
 /// product that silently lacks them. The scheduler calls this when a product's exact
 /// remaining carrier-reader count reaches zero and no artifact-only view of it is in
-/// flight. It copies the surviving lane once, which is why a consumer whose edge declares
-/// no carrier read is not handed a result of this function: it is handed a view that
+/// flight. The residue shares the surviving payload allocations. An artifact-only view
 /// serves the same lane by reference (`StageProduct::consumer_artifact_view`). The
 /// resulting product is a TOMBSTONE —
 /// [`StageProduct::carrier_released`](crate::node::StageProduct::carrier_released) is
@@ -181,7 +180,7 @@ pub fn release_carrier(
     kept_internal: &std::collections::BTreeSet<&str>,
 ) -> Result<PipelineBundle<PipelineHandle>, gmeow_errors::Diag> {
     let mut lookaside = RdfLookaside::default();
-    let mut blobs = ContentStore::new();
+    let mut retained_digests = std::collections::BTreeSet::new();
     for resource in bundle.lookaside().resources_of_kind(ARTIFACT_KIND) {
         let (Some(name), Some(hex)) =
             (resource.name.as_deref(), resource.content_digest.as_deref())
@@ -196,19 +195,19 @@ pub fn release_carrier(
                 "release_carrier: malformed resource content digest {hex:?}"
             )))
         })?;
-        let bytes = bundle.blobs().get(&digest).ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
-                "release_carrier: byte-artifact lane entry {name} references content \
+        if !bundle.blobs().contains(&digest) {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode::new(
+                format!(
+                    "release_carrier: byte-artifact lane entry {name} references content \
                      digest {hex} which the bundle's content store does not hold"
-            )))
-        })?;
-        blobs.insert_checked(digest, bytes.clone()).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
-                "release_carrier: re-insert content-store blob: {e}"
-            )))
-        })?;
+                ),
+            )));
+        }
+        retained_digests.insert(digest);
         lookaside.resources.push(resource.clone());
     }
+    let mut blobs = bundle.blobs().clone();
+    blobs.retain(|digest| retained_digests.contains(digest));
     Ok(PipelineBundle::new(
         empty_dataset(),
         lookaside,

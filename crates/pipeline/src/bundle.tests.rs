@@ -68,6 +68,41 @@ fn artifact_survives_representation_attachment_and_reclamation() {
     }
 }
 
+/// Releasing a carrier keeps selected artifact payloads at the same addresses
+/// while releasing unneeded internal entries.
+#[test]
+fn carrier_residue_shares_the_retained_artifact_payloads() {
+    let bundle = bundle_from_artifacts_over_with_rep_blob(
+        empty_dataset(),
+        arts(&[
+            ("generated/result", b"published"),
+            ("pipeline/needed", b"retained"),
+            ("pipeline/expired-alias", b"published"),
+            ("pipeline/expired", b"discarded"),
+        ]),
+        DatasetProvenance::new(),
+        "fixture:artifact-alias",
+        "text/plain",
+        b"published".to_vec(),
+    );
+    assert_eq!(bundle.blobs().len(), 3);
+    assert_eq!(bundle.lookaside().blobs.len(), 1);
+    let retained = std::collections::BTreeSet::from(["pipeline/needed"]);
+    let residue = release_carrier(&bundle, &retained).expect("retain the selected artifact lane");
+    let artifacts = bundle_artifact_refs(&residue).expect("read the artifact residue");
+    let original = bundle_artifact_refs(&bundle).expect("read the original artifact lane");
+    assert_eq!(
+        artifacts.keys().copied().collect::<Vec<_>>(),
+        ["generated/result", "pipeline/needed"],
+    );
+    assert_eq!(residue.blobs().len(), 2);
+    assert!(residue.lookaside().blobs.is_empty());
+    assert!(!residue.blobs().contains(&ContentDigest::of(b"discarded")));
+    for (path, bytes) in artifacts {
+        assert!(std::ptr::eq(bytes, original[path]));
+    }
+}
+
 #[test]
 fn bundle_digest_changes_with_artifacts_and_is_stable() {
     let a = bundle_from_artifacts(arts(&[("p", b"one")]), DatasetProvenance::new());
