@@ -986,7 +986,9 @@ pub fn stage_fixture(
 ///
 /// This API exists only for the explicit fixture-producer executable. The complete
 /// target set is scheduled together, so shared dependencies execute or hydrate once
-/// rather than once per requested fixture. Tests must use [`stage_fixture`], whose
+/// rather than once per requested fixture. The scheduler releases intermediate
+/// carriers after their last declared reader. The run result serves published
+/// receipts and committed byte artifacts. Tests must use [`stage_fixture`], whose
 /// miss path is terminal.
 pub fn prime_stage_fixtures(
     root: &Path,
@@ -1031,6 +1033,7 @@ pub fn prime_stage_fixtures(
 
     let targets: BTreeSet<String> = stage_ids.iter().map(|stage| (*stage).to_string()).collect();
     let mut context = RunContext::open(root, jobs)?;
+    context.carrier_retention = crate::scheduler::CarrierRetention::DropAfterLastConsumer;
     run_targets(&graph, &bound, &mut context, &targets)
 }
 
