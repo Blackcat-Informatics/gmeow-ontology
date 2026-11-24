@@ -275,6 +275,30 @@ fn a_marker_a_witness_may_carry_is_open() {
     );
 }
 
+/// A sparse disjoint pair decides emptiness within the native closure match budget,
+/// even when the unrestricted superclass cross product exceeds that budget.
+#[test]
+fn sparse_disjointness_closes_despite_many_superclasses() {
+    const DISJOINT: &str = "http://www.w3.org/2002/07/owl#disjointWith";
+    const NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
+    const SUBJECT: &str = "urn:subclass";
+    const CONTROL: &str = "urn:one-disjoint-parent";
+
+    let rule = crate::reason::dl::structured_dl_rules()
+        .into_iter()
+        .find(|rule| rule.rule_iri == "dl:unsatisfiable-class")
+        .expect("native DL supplies the unsatisfiable-class rule");
+    let mut rows = restriction("urn:witness-class");
+    rows.extend((0..513).map(|i| fact(SUBJECT, SUBCLASS, &format!("urn:parent:{i}"))));
+    rows.push(fact("urn:parent:0", DISJOINT, "urn:parent:512"));
+    rows.push(fact(CONTROL, SUBCLASS, "urn:parent:0"));
+    let (_, store) = closed(&[rule], rows);
+
+    let nothing = TermValue::iri(NOTHING);
+    assert!(store.contains(SUBCLASS, &TermValue::iri(SUBJECT), &nothing));
+    assert!(!store.contains(SUBCLASS, &TermValue::iri(CONTROL), &nothing));
+}
+
 /// Witness-free closure is complete and commits duplicate-producing rounds in
 /// first-seen order, independently of lexical key order.
 #[test]

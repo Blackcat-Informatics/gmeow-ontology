@@ -1260,7 +1260,7 @@ fn constant_value_iri(value: &purrdf::TermValue) -> Option<&str> {
 /// and only then read the cells — reading cells first would enumerate every cell of
 /// every list.
 fn join_atoms(rule: &StatementRule, discharged: &[bool], list_cells_bound: bool) -> Vec<EvalAtom> {
-    let discharged_atoms: Vec<_> = rule
+    let mut discharged_atoms: Vec<_> = rule
         .body
         .iter()
         .zip(discharged)
@@ -1274,6 +1274,16 @@ fn join_atoms(rule: &StatementRule, discharged: &[bool], list_cells_bound: bool)
             ))
         })
         .collect();
+    // The fixed proof rule keeps its ordered premises. Its admission join can
+    // bind the disjoint pair first to avoid enumerating superclass pairs.
+    if rule.name == "dl:unsatisfiable-class"
+        && let Some(position) = discharged_atoms
+            .iter()
+            .position(|atom| atom.predicate == "http://www.w3.org/2002/07/owl#disjointWith")
+    {
+        discharged_atoms[..=position].rotate_right(1);
+    }
+
     let cells: Vec<_> = rule
         .list_cells
         .iter()
