@@ -3597,23 +3597,32 @@ impl Stage for SnapshotStage {
         // reads off this product's bundle. NOTHING is serialized here: GTS is exit-only,
         // presented as bytes by the sole terminal writer (`gts_sink::GtsSinkStage`),
         // never by this stage — the snapshot product carries the carrier, no byte lane.
+        let bundle = self.prepare_snapshot_before_digest(input)?;
+        // Return free pages from assembly before hashing and from hashing before publication.
+        crate::memory_record::keep(crate::scheduler::reclaim_allocator_slack(
+            self.id(),
+            Some("publish-native-handles"),
+        ));
+        let product = StageProduct::from_bundle(self.id(), bundle)?;
+        crate::memory_record::keep(crate::scheduler::reclaim_allocator_slack(
+            self.id(),
+            Some("digest-stage-product"),
+        ));
+        Ok(StageOutput::new(product))
+    }
+
+    fn prepare_snapshot_before_digest(
+        &self,
+        input: StageInput<'_>,
+    ) -> gmeow_errors::Result<std::sync::Arc<purrdf::PipelineBundle<crate::bundle::PipelineHandle>>>
+    {
         let carrier = crate::node::measure_stage_phase(self.id(), "assemble-carrier", || {
             assemble_carrier(input.upstream)
         })?;
         let bundle = crate::node::measure_stage_phase(self.id(), "publish-native-handles", || {
             build_snapshot_bundle(carrier, input.upstream)
         })?;
-        // Return free pages from assembly before hashing and from hashing before publication.
-        crate::memory_record::keep(crate::scheduler::reclaim_allocator_slack(
-            self.id(),
-            Some("publish-native-handles"),
-        ));
-        let product = StageProduct::from_bundle(self.id(), std::sync::Arc::new(bundle))?;
-        crate::memory_record::keep(crate::scheduler::reclaim_allocator_slack(
-            self.id(),
-            Some("digest-stage-product"),
-        ));
-        Ok(StageOutput::new(product))
+        Ok(std::sync::Arc::new(bundle))
     }
 }
 
