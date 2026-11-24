@@ -24,15 +24,13 @@ ex:cqAuditableTagging a gmeow:CompetencyQuestion ;
     gmeow:cqRationale "A tagging act MUST be fully auditable: the reified gmeow:Tagging binds tagged x tag x tagger, names its gmeow:taggingScheme, and carries gmeow:confidence and a first-class gmeow:taggingInterval. This is the promotion target gmeow:hasTag pairsWith — if the relator cannot answer the audit question, the flat/reified pairing is broken. The contested-tagging overlay supplies a complete act (Maria's wildlife-scheme tagging with confidence and interval) and explicit flat Activity, reified Activity and class-resource uses of the same review Tag. The query retains those actual target identities and the supplied tagger; asserted data checks do not establish native no-coercion or generated validation." ;
     gmeow:cqExpectAsk true .
 
-# --- 2. Current tags, honoring suppression (RowsExact + overlay) --------------
-# The retracted off-topic tagging is RETAINED in the data (displayable false)
-# and MUST NOT surface; the contested jaguar pair MUST both surface, co-equal.
-# RowsExact: the answer is exactly these two tags — the suppressed one appearing
-# would be an erasure-contract leak, a third row a scene drift.
+# --- 2. Display eligibility (RowsExact + overlay) ----------------------------
+# The off-topic act remains in the graph with displayable false.
+# The two coequal Jaguar acts remain eligible with their shared ended interval.
 ex:cqCurrentTags a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/tags/queries/competency/current-tags.rq" ;
     gmeow:cqDataFile "examples/contested-tagging.ttl" ;
-    gmeow:cqRationale "The current-tags view MUST honor suppression-never-erasure (Principle 10): the retracted tagging is retained with gmeow:displayable false yet excluded from display queries, while BOTH contested taggings surface as co-equal claims with no winner (Principle 9). RowsExact pins the leak in either direction: a suppressed tag surfacing, or a contested tag being silently dropped." ;
+    gmeow:cqRationale "The display view withholds the retained off-topic act under its explicit gmeow:displayable false flag (Principle 10). Both Jaguar acts remain eligible as coequal claims (Principle 9) with the same ended applicability interval. RowsExact requires exactly those two tags." ;
     gmeow:cqResultShape ex:cqCurrentTagsShape ;
     gmeow:cqExpectRow ex:cqCTRowAnimal , ex:cqCTRowCar .
 

@@ -58,13 +58,13 @@ gmeow:Tagging
             logic:onProperty gmeow:taggingTagger ;
             logic:someValuesFrom gmeow:Agent ;
         ] ;
-    skos:definition "A reified tagging act: a logic:Relator mediating one tagged resource, one Tag and one Agent tagger, with an optional scheme and time interval. Bears provenance, confidence and displayable false for suppression without deletion. The tagged resource may be an Activity or a class resource; the flat shortcut is hasTag."@x-gmeow-english ;
+    skos:definition "A reified tagging act in which a logic:Relator links one tagged resource, one Tag and one Agent tagger. It can carry a scheme, an applicability interval, provenance and confidence. A supplied display flag applies to this act. The tagged resource may be an Activity or a class resource. The flat shortcut is gmeow:hasTag."@x-gmeow-english ;
     skos:example "A curator labels an Activity: ex:t1 a gmeow:Tagging ; gmeow:taggingTagged ex:opening ; gmeow:taggingTag ex:tagReview ; gmeow:taggingTagger ex:curator ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the ordinary 80% case where a bare label suffices (use the flat gmeow:hasTag, optionally with RDF-star annotations); reify only when provenance, period, or suppression must be first-class."@x-gmeow-english ;
     skos:scopeNote "The resource target is bounded by logic:Thing, not Entity. Required paths and qualified maxima retain one resource, tag and resource-valued tagger per valid Tagging. Only genuinely distinct source tagging acts receive separate identities; do not invent acts to split an unsupported collaborative account."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint the relator and fill its roles — gmeow:taggingTagged, gmeow:taggingTag, gmeow:taggingTagger, optionally gmeow:taggingScheme and gmeow:taggingInterval — then carry provenance, confidence, and displayable on the relator node; gmeow:hasTag pairsWith Tagging as the promotion target."@x-gmeow-english ;
-    gmeow:useWhen "Use when the act of tagging must itself be a node — to record who tagged, when, under which scheme, with what confidence, or to retract a tag without deleting it (gmeow:displayable false)."@x-gmeow-english .
+    gmeow:howToUse "Fill gmeow:taggingTagged, gmeow:taggingTag and gmeow:taggingTagger. Supply gmeow:taggingScheme and gmeow:taggingInterval as available. Carry provenance, confidence and any supplied display flag on the act. Record an explicit withdrawal with the tagger's activity and gmeow:retractsClaim. gmeow:hasTag pairsWith Tagging as its promotion target."@x-gmeow-english ;
+    gmeow:useWhen "Use when a tagging act needs its own node for the tagger, scheme, confidence, applicability interval or display decision."@x-gmeow-english .
 
 gmeow:broaderTag
     a logic:ObjectProperty ,
@@ -175,15 +175,15 @@ gmeow:tagUrgent
 
 gmeow:taggingInterval
     a logic:ObjectProperty ;
-    rdfs:domain gmeow:Tagging ;
+    logic:domain gmeow:Tagging ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "tagging interval"@x-gmeow-english ;
-    rdfs:range gmeow:TimeInterval ;
+    logic:range gmeow:TimeInterval ;
     skos:definition "The time interval over which the tagging act holds. A relator carries its period this way (matching gmeow:usageInterval, gmeow:relationshipInterval) rather than via RDF-star annotations on the relator node."@x-gmeow-english ;
     skos:example "ex:t1 gmeow:taggingInterval ex:q1Interval ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the flat case, where period rides as RDF-star gmeow:validFrom/validUntil annotations on gmeow:hasTag; reserve this for the relator form that carries its interval as a first-class node."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point this role at a gmeow:TimeInterval on the Tagging node, matching the gmeow:usageInterval / gmeow:relationshipInterval idiom; to retract a tag without deleting it, set gmeow:displayable false on the relator instead of editing the interval."@x-gmeow-english ;
+    gmeow:howToUse "Link the Tagging to its gmeow:TimeInterval. Record the supplied end on that interval. Record the tagger's explicit withdrawal as a separate activity using gmeow:retractsClaim."@x-gmeow-english ;
     gmeow:useWhen "Use to time-scope a reified gmeow:Tagging — the period over which the tag was held to apply, when validity has a beginning or end."@x-gmeow-english .
 
 gmeow:taggingScheme
@@ -250,42 +250,6 @@ gmeow:taggingTagger
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
-# =========================================================================== #
-# Suppression constraint — projection of RetractedTagSuppressionShape.  #
-# A retracted/superseded tagging (whose gmeow:taggingInterval has ended, i.e.   #
-# carries gmeow:endedAtTime) that is not suppressed (gmeow:displayable false) is #
-# a Warning — a source may lag the flag.                                        #
-# =========================================================================== #
-
-gmeow:RetractedTaggingSuppressionConstraint
-    a logic:Constraint ;
-    rdfs:label "Retracted tagging suppression constraint"@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
-    gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a retracted or superseded gmeow:Tagging (one whose gmeow:taggingInterval carries a gmeow:endedAtTime) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
-    logic:formalizes gmeow:RetractedTagSuppressionShape ;
-    logic:severity "Warning" ;
-    logic:message "A retracted or superseded tagging (one whose interval has ended) should set gmeow:displayable false — suppressed from display, never deleted." ;
-    logic:integrity logic:supTgForall .
-logic:supTgForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
-    logic:forall logic:supTgImpl .
-logic:supTgImpl a logic:Formula ; logic:antecedent logic:supTgGuard ; logic:consequent logic:supTgPhi .
-logic:supTgGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Tagging ] .
-logic:supTgPhi a logic:Formula ; logic:not logic:supTgEx .
-logic:supTgEx a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "iv" ] , [ logic:termIndex 1 ; logic:termVariable "end" ] ;
-    logic:exists logic:supTgBody .
-logic:supTgBody a logic:Formula ; logic:and logic:supTgInterval , logic:supTgEnded , logic:supTgNotSuppressed .
-logic:supTgInterval a logic:Formula ; logic:relation gmeow:taggingInterval ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "iv" ] .
-logic:supTgEnded a logic:Formula ; logic:relation gmeow:endedAtTime ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "iv" ] , [ logic:termIndex 1 ; logic:termVariable "end" ] .
-logic:supTgNotSuppressed a logic:Formula ; logic:not logic:supTgDisp .
-logic:supTgDisp a logic:Formula ; logic:relation gmeow:displayable ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype <http://www.w3.org/2001/XMLSchema#boolean> ] .
-
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 <https://blackcatinformatics.ca/gmeow/Tagging> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/taggingTag> ; logic:allValuesFrom logic:Thing ] .
@@ -295,7 +259,7 @@ logic:supTgDisp a logic:Formula ; logic:relation gmeow:displayable ;
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Tagging> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/taggingTagged" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Tagging> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/taggingTagger" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
-# --- Wave B1 shape-drain: tagging cardinality + suppression ---
+# --- Tagging role cardinality ---
 # gmeow:TaggingHasPlayersShape — a Tagging tags exactly one resource with exactly one tag and one tagger.
 gmeow:Tagging logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:taggingTagged ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,

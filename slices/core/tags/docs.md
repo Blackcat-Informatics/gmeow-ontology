@@ -13,7 +13,7 @@ disjoint axes (Principle 9). A `Tag` is an information-object value — like a
 `skos:Concept`, its identity is its IRI, its surface form is a label, and it carries no
 inferential weight over `rdf:type`. A `TagScheme` is the namespace bucket that makes
 folksonomy multi-tenant. And `Tagging` is the reified act, a `logic:Relator` bearing
-provenance, confidence, temporal scope, and retract-without-delete suppression
+provenance, confidence, applicability and display information for that act
 (Principle 10).
 
 The slice is flat-first throughout: the `hasTag` shortcut covers the 80 % case, tag
@@ -38,13 +38,14 @@ counterpart of `skos:ConceptScheme` and `schema:DefinedTermSet`.
 
 ### gmeow:Tagging
 
-The reified tagging act: a `logic:Relator` mediating tagged resource, tag, tagger, and
-optionally scheme and interval. Bears `wasAttributedTo`, `confidence`, and
-`displayable false` for retraction without deletion (Principle 10). Structurally the
-NameUsage/IdentityFacet idiom wearing a different hat — it inherits time-scoping,
-confidence-weighting, and retract-without-delete for free. EL-visible mediation is
-axiomatised: every Tagging has some tagged resource, some tag, and some Agent
-tagger. Existing required paths and qualified maxima retain exactly one resource,
+Each `Tagging` is a `logic:Relator` that links a tagged resource, a tag and an
+Agent tagger. A scheme and an applicability interval are optional. Record
+`wasAttributedTo` and `confidence` on the act. Record a holder's withdrawal
+through the [claim lifecycle](../../../docs/claim-lifecycle.md), with the
+performing agent, standpoint and effective time. An explicit `displayable false`
+withholds that act in the display projection and keeps its record available
+for audit. The same tag can still appear through another tagger's act.
+Required paths and qualified maxima retain exactly one resource,
 tag and resource-valued tagger per valid act. The target uses logic:Thing, so
 Activities and class resources are admitted alongside enduring entities.
 
@@ -94,9 +95,11 @@ may coexist, without a preferred tag or tagger (Principle 9).
 
 ### gmeow:taggingInterval
 
-The interval over which the tagging holds — a relator carries its period this way
-(matching `usageInterval`, `relationshipInterval`), not via RDF-star annotations on the
-relator node. Bridges to the temporal slice's `TimeInterval`.
+Link the reified act to its applicability period with the temporal slice's
+`TimeInterval`. Record a supplied end as `endedAtTime`. Record withdrawal
+through the holder's lifecycle activity. The current-tags competency query
+reads explicit display eligibility. Both Jaguar acts in the example remain
+eligible with their shared ended interval.
 
 ## Optional structure
 

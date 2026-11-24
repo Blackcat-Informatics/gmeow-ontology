@@ -11,9 +11,9 @@
 #     animal (confidence 0.9); Devon reads it as the car (confidence 0.4). BOTH
 #     reified acts coexist as co-equal, attributed, confidence-weighted claims —
 #     no primary, no winner, no adjudication by rank.
-#   * SUPPRESSION, NEVER ERASURE (Principle 10): an earlier off-topic tagging is
-#     retracted with gmeow:displayable false — retained for audit, withheld from
-#     display through the projection layer, never deleted.
+#   * SUPPRESSION, NEVER ERASURE (Principle 10): an earlier off-topic tagging
+#     carries gmeow:displayable false. The display projection withholds it and
+#     the graph retains it for audit.
 #   * TIME-SCOPED ACTS: the curation pass is interval-scoped via
 #     gmeow:taggingInterval, the relator carrying its period as a first-class
 #     node (Principle 11's frame discipline applied to time).
@@ -69,8 +69,7 @@ ex:curationPass a gmeow:TimeInterval ;
     gmeow:endedAtTime   "2026-07-01T17:00:00Z"^^xsd:dateTime ;
     gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
 
-# --- The retracted act: RETAINED with full provenance, suppressed from display.
-# --- Deleting it would destroy the audit trail; the projection layer withholds it.
+# --- The explicit display flag withholds this act and preserves its audit trail.
 ex:taggingOffTopic a gmeow:Tagging ;
     gmeow:taggingTagged ex:photo ;
     gmeow:taggingTag    ex:tagOffTopic ;
