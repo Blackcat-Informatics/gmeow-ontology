@@ -75,9 +75,7 @@ fn rejects_distinct_versioned_manifestations_of_the_same_work() {
         gmeow:versionFingerprint "0.3.0" ."#;
     let turtle = format!("{source}\n{extra}");
     let dataset = purrdf::parse_dataset(turtle.as_bytes(), "text/turtle", None).expect("parse");
-    let err = load_self_description_from_dataset(&dataset)
-        .err()
-        .expect("ambiguous manifestation");
+    let err = load_self_description_from_dataset(&dataset).expect_err("ambiguous manifestation");
     assert!(err.message().contains("found 2"), "unexpected error: {err}");
 }
 
