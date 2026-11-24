@@ -179,8 +179,7 @@ fn active_work_ceiling_queues_heavy_work_while_a_lighter_stage_runs() {
         .expect("fixed admission estimates")
     };
     let refusal = run_frontier(&pipeline, directory.path(), order(5), 3)
-        .err()
-        .expect("an oversized stage is refused");
+        .expect_err("an oversized stage is refused");
     assert!(
         refusal.message().contains(
             "a-heavy requires 6 estimated active-work bytes, above the ceiling of 5 bytes"
@@ -218,16 +217,16 @@ fn active_work_ceiling_queues_heavy_work_while_a_lighter_stage_runs() {
 /// A repeated stage must fail before a smaller charge can overwrite its estimate.
 #[test]
 fn active_work_profile_refuses_repeated_stage_names() {
-    let refusal = ReadyOrder::from_estimate_json(
+    let Err(refusal) = ReadyOrder::from_estimate_json(
         br#"{
             "a-heavy":{"transient_bytes":12,"published_bytes":0},
             "sink":{"transient_bytes":0,"published_bytes":0},
             "a-heavy":{"transient_bytes":1,"published_bytes":0}
         }"#,
         NonZeroU64::new(10),
-    )
-    .err()
-    .expect("duplicate stage");
+    ) else {
+        panic!("duplicate stage was admitted");
+    };
     let message = refusal.to_string();
     assert!(message.contains("duplicate") && message.contains("a-heavy"));
 }
