@@ -11,15 +11,16 @@
 #     animal (confidence 0.9); Devon reads it as the car (confidence 0.4). BOTH
 #     reified acts coexist as co-equal, attributed, confidence-weighted claims —
 #     no primary, no winner, no adjudication by rank.
-#   * SUPPRESSION, NEVER ERASURE (Principle 10): an earlier off-topic tagging is
-#     retracted with gmeow:displayable false — retained for audit, withheld from
-#     display through the projection layer, never deleted.
+#   * SUPPRESSION, NEVER ERASURE (Principle 10): an earlier off-topic tagging
+#     carries gmeow:displayable false. The display projection withholds it and
+#     the graph retains it for audit.
 #   * TIME-SCOPED ACTS: the curation pass is interval-scoped via
 #     gmeow:taggingInterval, the relator carrying its period as a first-class
 #     node (Principle 11's frame discipline applied to time).
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/tags/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 # --- The resource under curation.
@@ -69,8 +70,7 @@ ex:curationPass a gmeow:TimeInterval ;
     gmeow:endedAtTime   "2026-07-01T17:00:00Z"^^xsd:dateTime ;
     gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
 
-# --- The retracted act: RETAINED with full provenance, suppressed from display.
-# --- Deleting it would destroy the audit trail; the projection layer withholds it.
+# --- The explicit display flag withholds this act and preserves its audit trail.
 ex:taggingOffTopic a gmeow:Tagging ;
     gmeow:taggingTagged ex:photo ;
     gmeow:taggingTag    ex:tagOffTopic ;
@@ -86,6 +86,10 @@ ex:opening a gmeow:Activity ;
     gmeow:hasTag gmeow:tagReview .
 
 ex:DoorOpening a logic:Class ;
+    rdfs:label "Door opening"@x-gmeow-english ;
+    skos:definition "The class of activities in which a door is opened."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:hasTag gmeow:tagReview .
 
 # One actual source tagging act with one supplied tagger.

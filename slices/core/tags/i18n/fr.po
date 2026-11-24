@@ -148,8 +148,8 @@ msgid "Tagging"
 msgstr "Acte d’étiquetage"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Tagging|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A reified tagging act: a logic:Relator mediating one tagged resource, one Tag and one Agent tagger, with an optional scheme and time interval. Bears provenance, confidence and displayable false for suppression without deletion. The tagged resource may be an Activity or a class resource; the flat shortcut is hasTag."
-msgstr "Un acte d’étiquetage réifié : un logic:Relator reliant une ressource étiquetée, une Tag et un Agent auteur, avec un schéma et un intervalle facultatifs. Porte la provenance, la confiance et displayable false pour masquer sans supprimer. La ressource étiquetée peut être une Activity ou une ressource de classe ; le raccourci plat est hasTag."
+msgid "A reified tagging act in which a logic:Relator links one tagged resource, one Tag and one Agent tagger. It can carry a scheme, an applicability interval, provenance and confidence. A supplied display flag applies to this act. The tagged resource may be an Activity or a class resource. The flat shortcut is gmeow:hasTag."
+msgstr "Un acte d’étiquetage réifié dans lequel un logic:Relator relie une ressource étiquetée, une Tag et un Agent auteur. Il peut porter un schéma, un intervalle d’applicabilité, la provenance et la confiance. Tout indicateur d’affichage fourni s’applique à cet acte. La ressource étiquetée peut être une Activity ou une ressource de classe. Le raccourci est gmeow:hasTag."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Tagging|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The resource target is bounded by logic:Thing, not Entity. Required paths and qualified maxima retain one resource, tag and resource-valued tagger per valid Tagging. Only genuinely distinct source tagging acts receive separate identities; do not invent acts to split an unsupported collaborative account."
@@ -160,16 +160,16 @@ msgid "A curator labels an Activity: ex:t1 a gmeow:Tagging ; gmeow:taggingTagged
 msgstr "Un responsable de curation étiquette une Activity : ex:t1 a gmeow:Tagging ; gmeow:taggingTagged ex:opening ; gmeow:taggingTag ex:tagReview ; gmeow:taggingTagger ex:curator ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Tagging|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the act of tagging must itself be a node — to record who tagged, when, under which scheme, with what confidence, or to retract a tag without deleting it (gmeow:displayable false)."
-msgstr "Utiliser lorsque l’acte d’étiquetage doit lui-même être un nœud : pour consigner qui a étiqueté, quand, sous quel schéma, avec quelle confiance, ou pour retirer une étiquette de l’affichage sans la supprimer (gmeow:displayable false)."
+msgid "Use when a tagging act needs its own node for the tagger, scheme, confidence, applicability interval or display decision."
+msgstr "Utiliser lorsqu’un acte d’étiquetage nécessite son propre nœud pour consigner l’auteur, le schéma, la confiance, l’intervalle d’applicabilité ou la décision d’affichage."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Tagging|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid for the ordinary 80% case where a bare label suffices (use the flat gmeow:hasTag, optionally with RDF-star annotations); reify only when provenance, period, or suppression must be first-class."
 msgstr "Éviter dans le cas courant où un simple libellé suffit (utiliser gmeow:hasTag, avec des annotations RDF-star si nécessaire) ; réifier seulement si la provenance, la période ou le masquage doivent être de première classe."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Tagging|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Mint the relator and fill its roles — gmeow:taggingTagged, gmeow:taggingTag, gmeow:taggingTagger, optionally gmeow:taggingScheme and gmeow:taggingInterval — then carry provenance, confidence, and displayable on the relator node; gmeow:hasTag pairsWith Tagging as the promotion target."
-msgstr "Créer le relateur et renseigner ses rôles — gmeow:taggingTagged, gmeow:taggingTag, gmeow:taggingTagger, éventuellement gmeow:taggingScheme et gmeow:taggingInterval — puis porter provenance, confiance et displayable sur ce nœud ; gmeow:hasTag désigne Tagging comme cible de promotion par pairsWith."
+msgid "Fill gmeow:taggingTagged, gmeow:taggingTag and gmeow:taggingTagger. Supply gmeow:taggingScheme and gmeow:taggingInterval as available. Carry provenance, confidence and any supplied display flag on the act. Record an explicit withdrawal with the tagger's activity and gmeow:retractsClaim. gmeow:hasTag pairsWith Tagging as its promotion target."
+msgstr "Renseigner gmeow:taggingTagged, gmeow:taggingTag et gmeow:taggingTagger. Fournir gmeow:taggingScheme et gmeow:taggingInterval selon les valeurs disponibles. Consigner la provenance, la confiance et tout indicateur d’affichage fourni sur l’acte. Consigner un retrait explicite avec l’activité de l’auteur et gmeow:retractsClaim. gmeow:hasTag désigne Tagging comme cible de promotion par pairsWith."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hasTag|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "has tag"
@@ -258,3 +258,7 @@ msgstr "Rattacher la seule référence Agent fournie au nœud Tagging réel. Pr�
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/tags|http://www.w3.org/2000/01/rdf-schema#comment"
 msgid "Universal tagging building block — open folksonomy, aboutness, and typing as three distinct axes (Principle 9). A gmeow:Tag is an information-object value (like a skos:Concept); a gmeow:TagScheme is its namespace bucket; and gmeow:Tagging is a logic:Relator that reifies the act of tagging with provenance, confidence, temporal scope and suppression (Principle 10). The flat gmeow:hasTag shortcut covers the 80% case; promote to Tagging when the act itself must be a node. Tags align (lossily) to SKOS, schema.org, W3C Web Annotation and MOAT."
 msgstr "Composant universel d’étiquetage : folksonomie ouverte, sujet traité et typage forment trois axes distincts (Principe 9). Un gmeow:Tag est une valeur de type objet informationnel (comme un skos:Concept) ; un gmeow:TagScheme est son conteneur d’espace de noms ; et gmeow:Tagging est un logic:Relator qui réifie l’acte d’étiquetage avec provenance, confiance, portée temporelle et masquage (Principe 10). Le raccourci plat gmeow:hasTag couvre 80 % des cas ; passer à Tagging lorsque l’acte lui-même doit être un nœud. Les étiquettes s’alignent, avec perte, sur SKOS, schema.org, W3C Web Annotation et MOAT."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggingInterval|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the Tagging to its gmeow:TimeInterval. Record the supplied end on that interval. Record the tagger's explicit withdrawal as a separate activity using gmeow:retractsClaim."
+msgstr "Relier le Tagging à son gmeow:TimeInterval. Consigner la fin fournie sur cet intervalle. Consigner le retrait explicite de l’auteur dans une activité distincte avec gmeow:retractsClaim."

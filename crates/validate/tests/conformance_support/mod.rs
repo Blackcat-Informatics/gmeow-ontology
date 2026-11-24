@@ -1240,7 +1240,7 @@ pub fn run_registered_conformance_contracts(lane: ConformanceLane) {
     if filter.is_none() {
         assert_eq!(
             contracts.len(),
-            519,
+            520,
             "the complete consolidated inventory retains every registered contract function"
         );
         assert_eq!(
@@ -1248,7 +1248,7 @@ pub fn run_registered_conformance_contracts(lane: ConformanceLane) {
                 .iter()
                 .map(|contract| contract.logical_cases)
                 .sum::<usize>(),
-            708,
+            709,
             "the complete consolidated inventory retains every ordinary and parameterized case"
         );
     }

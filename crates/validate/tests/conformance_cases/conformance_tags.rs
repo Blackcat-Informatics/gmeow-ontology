@@ -8,6 +8,8 @@
 //! (gmeow:hasTag) — orthogonal. Because rdf:type is not an owl:ObjectProperty,
 //! OWL cannot express the disjointness, so this closed-world absence guard runs
 //! over the merged ontology (`GraphStore::ontology()`).
+//! The contested tagging scene also exercises generated validation of ended
+//! applicability intervals.
 
 use crate::conformance_support::*;
 
@@ -17,6 +19,14 @@ const OWL_EQUIVALENT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#equivalentP
 
 fn gm(local: &str) -> String {
     format!("{GMEOW}{local}")
+}
+
+/// Ending the applicability period of an act does not trigger a withdrawal warning.
+#[gmeow_test_batch_macros::batch_test]
+fn ended_tagging_interval_does_not_require_suppression() {
+    Case::repo_path("slices/core/tags/examples/contested-tagging.ttl")
+        .no_warning("one whose interval has ended")
+        .run();
 }
 
 /// No subPropertyOf or equivalentProperty bridge exists among gmeow:hasTag,
