@@ -195,7 +195,7 @@ fn run_parallel_snapshot(
     let snapshot_inputs = ["a-exclusive", "b-shared", "c-later-reader", "d-retained"];
     let mut snapshot = spec("stage-snapshot", &snapshot_inputs);
     snapshot.cache_disposition = CachePolicy::Recompute;
-    snapshot.attaches_graphs = [USED_HANDLE, UNREAD_HANDLE].map(str::to_owned).to_vec();
+    snapshot.attaches_graphs = [UNREAD_HANDLE, USED_HANDLE].map(str::to_owned).to_vec();
     for input in snapshot_inputs {
         snapshot
             .reads
