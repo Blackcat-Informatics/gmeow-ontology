@@ -280,9 +280,8 @@ fn snapshot_handoff_keeps_sibling_publication_live() {
 /// A panic in the snapshot continuation reports a terminal result to the scheduler.
 #[test]
 fn snapshot_progress_panic_reaches_terminal_failure() {
-    let error = run_parallel_snapshot(true, ReadyOrder::StageId)
-        .err()
-        .expect("snapshot panic is a failure");
+    let error =
+        run_parallel_snapshot(true, ReadyOrder::StageId).expect_err("snapshot panic is a failure");
     assert!(
         error
             .message()
