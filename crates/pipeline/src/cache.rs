@@ -2090,12 +2090,19 @@ impl PipelineCache {
         selection: &ReceiptOutputSelection,
         product: &StageProduct,
     ) -> Result<StageReceipt, gmeow_errors::Diag> {
-        let manifest = CachedBundle::from_product(product, selection)?;
-        let serialized_bytes = bincode::serialized_size(&manifest).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
-                "cannot measure cached bundle encoding: {e}"
-            )))
-        })?;
+        let manifest =
+            crate::node::measure_stage_phase(&context.stage_id, "prepare-cache-bundle", || {
+                CachedBundle::from_product(product, selection)
+            })?;
+        let serialized_bytes =
+            crate::node::measure_stage_phase(&context.stage_id, "size-cache-bundle", || {
+                bincode::serialized_size(&manifest)
+            })
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                    "cannot measure cached bundle encoding: {e}"
+                )))
+            })?;
         if serialized_bytes > MAX_ENTRY_BYTES || serialized_bytes > self.max_bytes {
             return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 cause: None,
@@ -2113,7 +2120,12 @@ impl PipelineCache {
                 &context.action_context(),
                 product.digest.clone(),
                 move |writer| {
-                    bincode::serialize_into(writer, &manifest).map_err(|error| match *error {
+                    crate::node::measure_stage_phase(
+                        &context.stage_id,
+                        "encode-cache-bundle",
+                        || bincode::serialize_into(writer, &manifest),
+                    )
+                    .map_err(|error| match *error {
                         bincode::ErrorKind::Io(error) => {
                             gmeow_action_cache::ActionCacheError::from(error).into()
                         }
@@ -2132,14 +2144,20 @@ impl PipelineCache {
                         })
                         .into());
                     }
-                    StageReceipt::from_product(
-                        context.clone(),
-                        stability,
-                        cache_disposition,
-                        selection,
-                        product,
-                        Some(blob.digest.clone()),
-                        blob.bytes,
+                    crate::node::measure_stage_phase(
+                        &context.stage_id,
+                        "build-stage-receipt",
+                        || {
+                            StageReceipt::from_product(
+                                context.clone(),
+                                stability,
+                                cache_disposition,
+                                selection,
+                                product,
+                                Some(blob.digest.clone()),
+                                blob.bytes,
+                            )
+                        },
                     )
                     .map_err(PipelineActionError::from)
                 },

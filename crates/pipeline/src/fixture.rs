@@ -486,16 +486,20 @@ pub fn prepare_wasm_codebook_fixtures(
     validate_wasm_codebook_closure(
         &bound_selected_fixture_closure(WASM_CODEBOOK_STAGE_IDS)?.required,
     )?;
-    let run = prime_stage_fixtures(root, jobs, WASM_CODEBOOK_STAGE_IDS)?;
+    let mut run = prime_stage_fixtures_retaining(
+        root,
+        jobs,
+        WASM_CODEBOOK_STAGE_IDS,
+        WASM_CODEBOOK_ARTIFACTS,
+    )?;
     let manifest = selected_fixture_manifest(&run.stage_receipts, WASM_CODEBOOK_STAGE_IDS)?;
     validate_wasm_codebook_manifest(&manifest)?;
     let path = crate::stages::mappings::native_codebook::CHANNEL;
+    let stage = crate::stages::mappings::native_codebook::STAGE_ID;
     let codebook = run
-        .products
-        .get(crate::stages::mappings::native_codebook::STAGE_ID)
-        .and_then(|product| product.artifact(path))
-        .ok_or_else(|| fixture_manifest_error(format!("native-codebook product omitted {path}")))?
-        .to_vec();
+        .retained_artifacts
+        .remove(&(stage.to_owned(), path.to_owned()))
+        .ok_or_else(|| fixture_manifest_error(format!("native-codebook product omitted {path}")))?;
     let exports =
         export_selected_source_artifacts(root, &run.stage_receipts, WASM_CODEBOOK_ARTIFACTS)?;
     let mut selection = manifest.to_json();
@@ -986,12 +990,22 @@ pub fn stage_fixture(
 ///
 /// This API exists only for the explicit fixture-producer executable. The complete
 /// target set is scheduled together, so shared dependencies execute or hydrate once
-/// rather than once per requested fixture. Tests must use [`stage_fixture`], whose
-/// miss path is terminal.
+/// rather than once per requested fixture. The scheduler releases intermediate
+/// carriers after their last declared reader. The run result serves published
+/// receipts. Tests must use [`stage_fixture`], whose miss path is terminal.
 pub fn prime_stage_fixtures(
     root: &Path,
     jobs: usize,
     stage_ids: &[&str],
+) -> Result<crate::scheduler::RunResult, gmeow_errors::Diag> {
+    prime_stage_fixtures_retaining(root, jobs, stage_ids, &[])
+}
+
+fn prime_stage_fixtures_retaining(
+    root: &Path,
+    jobs: usize,
+    stage_ids: &[&str],
+    retained_artifacts: &[(&str, &str)],
 ) -> Result<crate::scheduler::RunResult, gmeow_errors::Diag> {
     let spec = full_spec();
     let graph = spec.validate()?;
@@ -1031,6 +1045,23 @@ pub fn prime_stage_fixtures(
 
     let targets: BTreeSet<String> = stage_ids.iter().map(|stage| (*stage).to_string()).collect();
     let mut context = RunContext::open(root, jobs)?;
+    use crate::scheduler::{CarrierRetention, ReadyOrder};
+    context.carrier_retention = match std::env::var("GMEOW_FIXTURE_CARRIER_TRIAL").as_deref() {
+        Ok("retain-all") => CarrierRetention::RetainAll,
+        Ok("last-reader") => CarrierRetention::DropAfterLastConsumer,
+        Ok("receipt-only") => CarrierRetention::ReceiptOnly,
+        choice => {
+            return Err(fixture_manifest_error(format!(
+                "fixture carrier trial requires retain-all, last-reader or receipt-only, got {choice:?}"
+            )));
+        }
+    };
+    context.retained_artifacts.extend(
+        retained_artifacts
+            .iter()
+            .map(|(stage, path)| ((*stage).to_owned(), (*path).to_owned())),
+    );
+    context.ready_order = ReadyOrder::Calibrate;
     run_targets(&graph, &bound, &mut context, &targets)
 }
 

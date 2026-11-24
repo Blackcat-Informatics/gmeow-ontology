@@ -135,6 +135,9 @@ pub enum CarrierRetention {
     /// [`StageProduct::carrier_released`] — it is reaching past the declared dataflow,
     /// exactly as a post-drop `span_index()` read does.
     DropAfterLastConsumer,
+    /// Keep published identities and receipts once every reader finishes.
+    /// Fixture producers declare any post-run artifacts they need separately.
+    ReceiptOnly,
     /// Retain every stage's full carrier for the life of the [`RunResult`].
     ///
     /// Required by the out-of-band whole-run consumers that read an INTERMEDIATE
@@ -455,6 +458,26 @@ struct StageRun {
     edges: Vec<Arc<crate::reads::EdgeAccess>>,
 }
 
+enum WorkerProduct {
+    Complete(Box<StageRun>),
+    Snapshot(Box<PreparedSnapshot>),
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(super) enum SnapshotReleaseTrial {
+    BeforeDigest,
+    AfterPublication,
+}
+
+struct PreparedSnapshot {
+    // The flattened carrier and attachment identities outlive the input views.
+    bundle: Arc<purrdf::PipelineBundle<crate::bundle::PipelineHandle>>,
+    attachments: AttachmentInputs,
+    key_context: StageKeyContext,
+    started: std::time::Instant,
+    edges: Vec<Arc<crate::reads::EdgeAccess>>,
+}
+
 /// Run a validated, bound pipeline. `bound` is the stages in topological order
 /// (from [`crate::loader::bind`]); `graph` provides the parallel levels.
 pub fn run(
@@ -546,6 +569,21 @@ pub fn run_without(
     bound: &[Arc<dyn Stage>],
     ctx: &mut RunContext,
     skip: &BTreeSet<String>,
+) -> Result<RunResult, gmeow_errors::Diag> {
+    let snapshot_release_trial = match std::env::var("GMEOW_SNAPSHOT_MEMORY_TRIAL").as_deref() {
+        Ok("early") => Some(SnapshotReleaseTrial::BeforeDigest),
+        Ok("late") => Some(SnapshotReleaseTrial::AfterPublication),
+        _ => None,
+    };
+    run_without_with_snapshot_trial(graph, bound, ctx, skip, snapshot_release_trial)
+}
+
+pub(super) fn run_without_with_snapshot_trial(
+    graph: &StageGraph,
+    bound: &[Arc<dyn Stage>],
+    ctx: &mut RunContext,
+    skip: &BTreeSet<String>,
+    snapshot_release_trial: Option<SnapshotReleaseTrial>,
 ) -> Result<RunResult, gmeow_errors::Diag> {
     let by_id: BTreeMap<&str, &Arc<dyn Stage>> = bound.iter().map(|s| (s.id(), s)).collect();
     for retained in ctx
@@ -679,7 +717,7 @@ pub fn run_without(
     }
     let declared_level_frontier = last_consumer_levels(graph, &by_id);
     ctx.ready_order.validate(&executed)?;
-    let depth = if matches!(ctx.ready_order, ReadyOrder::Memory(_)) {
+    let depth = if matches!(ctx.ready_order, ReadyOrder::Memory(..)) {
         ready_order::critical_depth(graph, &dependents)
     } else {
         BTreeMap::new()
@@ -715,7 +753,7 @@ pub fn run_without(
     };
     let read_policy = ctx.read_policy;
     let release_payloads = read_policy == crate::reads::ReadPolicy::Enforce
-        && ctx.carrier_retention == CarrierRetention::DropAfterLastConsumer;
+        && ctx.carrier_retention != CarrierRetention::RetainAll;
     let mut remaining_payload_readers = BTreeMap::<String, PayloadReaders>::new();
     let mut producers_with_persistent_readers = BTreeSet::new();
     let mut recorded_edges: Vec<Arc<crate::reads::EdgeAccess>> = Vec::new();
@@ -777,16 +815,61 @@ pub fn run_without(
     let provenance = &mut ctx.provenance;
     let retained_carriers = &ctx.retained_carriers;
     let retained_artifact_selection = &ctx.retained_artifacts;
+    let post_run_inputs = &ctx.post_run_inputs;
     let carrier_retention = ctx.carrier_retention;
+    if carrier_retention == CarrierRetention::ReceiptOnly
+        && (read_policy != crate::reads::ReadPolicy::Enforce || !stage_receipts_enabled)
+    {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::InvalidDag {
+            message: "receipt-only retention requires enforced reads and stage receipts".to_owned(),
+        }));
+    }
+    // A completed dependent has dropped its input views before publication.
+    // A prepared snapshot has also dropped its views before digesting.
+    let discard_product =
+        |producer: &str, products: &BTreeMap<String, StageProduct>, handoff: Option<&str>| {
+            carrier_retention == CarrierRetention::ReceiptOnly
+                && !retained_carriers.contains(producer)
+                && !post_run_inputs.contains_key(producer)
+                && dependents.get(producer).is_none_or(|consumers| {
+                    consumers.iter().all(|consumer| {
+                        handoff == Some(consumer.as_str()) || products.contains_key(consumer)
+                    })
+                })
+        };
     let ready_order = &ctx.ready_order;
     let rayon_workers = pool.current_num_threads();
     let stage_limit = ready_order.stage_limit(rayon_workers);
+    if snapshot_release_trial.is_some() {
+        let snapshot = by_id.get("stage-snapshot").filter(|stage| {
+            stage.cache_policy() == CachePolicy::Recompute && stage.resources().is_empty()
+        });
+        if snapshot.is_none()
+            || !executed.contains("stage-snapshot")
+            || read_policy != crate::reads::ReadPolicy::Enforce
+            || carrier_retention == CarrierRetention::RetainAll
+        {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                cause: None,
+                stage: "stage-snapshot".to_owned(),
+                message: "early release requires enforced reads, last-reader retention and a resource-free recomputed snapshot".to_owned(),
+            }));
+        }
+    }
+    let mut active_work = ready_order.active_work_admission();
+    if let Some((ceiling, _)) = active_work {
+        tracing::info!(
+            target: crate::memory_record::TARGET,
+            active_work_ceiling_bytes = ceiling,
+            "scheduler qualification active-work ceiling"
+        );
+    }
 
     let scheduling_result = pool.in_place_scope_fifo(|scope| -> Result<(), gmeow_errors::Diag> {
         let (tx, rx) = mpsc::channel::<(
             String,
             Vec<String>,
-            Result<StageRun, gmeow_errors::Diag>,
+            Result<WorkerProduct, gmeow_errors::Diag>,
             Vec<Arc<crate::reads::EdgeAccess>>,
             Vec<MemoryRecord>,
         )>();
@@ -806,10 +889,13 @@ pub fn run_without(
                         .resources()
                         .iter()
                         .all(|resource| !active_resources.contains(resource))
+                        && active_work.as_ref().is_none_or(|(remaining, estimates)| {
+                            estimates[stage_id.as_str()].active_work_bytes() <= *remaining
+                        })
                 });
                 let next = match ready_order {
                     ReadyOrder::StageId | ReadyOrder::Calibrate => eligible.next(),
-                    ReadyOrder::Memory(estimates) => {
+                    ReadyOrder::Memory(estimates, _) => {
                         let live = ready_order::LiveReads {
                             products: &products,
                             dataset_bytes: &dataset_bytes,
@@ -904,6 +990,9 @@ pub fn run_without(
                 ));
                 let tx = tx.clone();
                 let progress = progress.clone();
+                if let Some((remaining, estimates)) = &mut active_work {
+                    *remaining -= estimates[stage_id.as_str()].active_work_bytes();
+                }
                 active += 1;
                 // The worker reports its edges whether the stage returns, fails or
                 // panics: the reads recorded before a failure still say what the stage
@@ -920,7 +1009,31 @@ pub fn run_without(
                     // are delivered whether it returns, fails or panics.
                     let (result, phase_records) = crate::memory_record::collecting_phases(|| {
                         std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                            exec_stage(stage.as_ref(), root, &upstream, cache, stage_cache_enabled)
+                            let result = if let Some(trial) = snapshot_release_trial
+                                && stage.id() == "stage-snapshot"
+                            {
+                                let mode = match trial {
+                                    SnapshotReleaseTrial::BeforeDigest => "early",
+                                    SnapshotReleaseTrial::AfterPublication => "late",
+                                };
+                                tracing::info!(target: "pipeline_memory", mode, reclaim = true, "snapshot allocator reclaim trial");
+                                prepare_snapshot(stage.as_ref(), root, &upstream)
+                                    .map(|snapshot| WorkerProduct::Snapshot(Box::new(snapshot)))
+                            } else {
+                                exec_stage(stage.as_ref(), root, &upstream, cache, stage_cache_enabled)
+                                    .map(|run| WorkerProduct::Complete(Box::new(run)))
+                            };
+                            if let (Some(progress), Ok(WorkerProduct::Complete(run))) =
+                                (progress.as_deref(), &result)
+                            {
+                                progress.stage_end(
+                                    stage.id(),
+                                    Duration::from_millis(
+                                        u64::try_from(run.elapsed_ms).unwrap_or(u64::MAX),
+                                    ),
+                                );
+                            }
+                            result
                         }))
                         .unwrap_or_else(|payload| {
                             Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -933,14 +1046,6 @@ pub fn run_without(
                             }))
                         })
                     });
-                    if let (Some(progress), Ok(run)) = (progress.as_deref(), &result) {
-                        progress.stage_end(
-                            stage.id(),
-                            Duration::from_millis(
-                                u64::try_from(run.elapsed_ms).unwrap_or(u64::MAX),
-                            ),
-                        );
-                    }
                     // The views end here, before the coordinator learns the stage is done
                     // and may swap a producer's carrier for its residue.
                     drop(upstream);
@@ -973,14 +1078,102 @@ pub fn run_without(
                     })
                 })?;
             memory.extend(phase_records);
+            let stage = by_id[stage_id.as_str()];
+            let carrier_inputs = stage.carrier_consumes().to_vec();
+            let artifact_inputs = artifact_lane_producers(stage.as_ref(), read_policy);
+            let result = match result {
+                Ok(WorkerProduct::Complete(run)) => Ok(*run),
+                Ok(WorkerProduct::Snapshot(snapshot)) => {
+                    let release = (|| -> Result<(), gmeow_errors::Diag> {
+                        // Snapshot's views are gone. Account for its own reservations
+                        // when deciding which producers have another reader.
+                        if snapshot_release_trial == Some(SnapshotReleaseTrial::BeforeDigest) {
+                            let inputs: BTreeSet<_> = stage.consumes().iter().collect();
+                            for producer in inputs {
+                                let last_reader = remaining_carrier_readers
+                                    .get(producer)
+                                    .copied()
+                                    .unwrap_or(0)
+                                    == usize::from(carrier_inputs.contains(producer));
+                                let no_other_view = artifact_views_in_flight
+                                    .get(producer)
+                                    .copied()
+                                    .unwrap_or(0)
+                                    == usize::from(artifact_inputs.contains(producer));
+                                let discard =
+                                    discard_product(producer, &products, Some(&stage_id));
+                                if last_reader
+                                    && no_other_view
+                                    && logically_consumed.contains(producer)
+                                    && !retained_carriers.contains(producer)
+                                    && let Some(seq) = release_carrier(
+                                        &mut products,
+                                        producer,
+                                        (!discard).then(|| kept_for(producer)).as_ref(),
+                                        &mut memory,
+                                    )?
+                                {
+                                    trace_release_cause(&stage_id, producer, seq, "before-digest");
+                                }
+                            }
+                        }
+                        Ok(())
+                    })();
+                    if let Err(error) = release {
+                        Err(error)
+                    } else {
+                        memory.push(reclaim_allocator_slack(
+                            &stage_id,
+                            Some("publish-native-handles"),
+                        ));
+                        let stage = Arc::clone(stage);
+                        let tx = tx.clone();
+                        let progress = progress.clone();
+                        scope.spawn_fifo(move |_| {
+                            let (result, phase_records) = crate::memory_record::collecting_phases(|| {
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    let run = snapshot.finish(stage.as_ref(), stage_cache_enabled)?;
+                                    if let Some(progress) = progress.as_deref() {
+                                        progress.stage_end(
+                                            &stage_id,
+                                            Duration::from_millis(
+                                                u64::try_from(run.elapsed_ms).unwrap_or(u64::MAX),
+                                            ),
+                                        );
+                                    }
+                                    Ok(run)
+                                }))
+                                .unwrap_or_else(|payload| {
+                                    Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                                        cause: None,
+                                        stage: stage_id.clone(),
+                                        message: format!("snapshot publication panicked: {}", panic_message(&*payload)),
+                                    }))
+                                })
+                            });
+                            let _ = tx.send((
+                                stage_id,
+                                resources,
+                                result.map(|run| WorkerProduct::Complete(Box::new(run))),
+                                dispatched_edges,
+                                phase_records,
+                            ));
+                        });
+                        // Keep the stage slot, active-work charge and reader counts
+                        // until the digest worker sends its final result.
+                        continue;
+                    }
+                }
+                Err(error) => Err(error),
+            };
             active -= 1;
+            if let Some((remaining, estimates)) = &mut active_work {
+                *remaining += estimates[stage_id.as_str()].active_work_bytes();
+            }
             for resource in resources {
                 active_resources.remove(&resource);
             }
-            // This stage's artifact-lane views ended with it, whether it returned or
-            // failed.
-            for producer in artifact_lane_producers(by_id[stage_id.as_str()].as_ref(), read_policy)
-            {
+            for producer in artifact_inputs {
                 let in_flight = artifact_views_in_flight
                     .get_mut(&producer)
                     .expect("a dispatched artifact-lane view was counted");
@@ -988,7 +1181,6 @@ pub fn run_without(
                     .checked_sub(1)
                     .expect("a completed artifact-lane view was counted");
             }
-
             let mut run = match result {
                 Ok(run) => run,
                 Err(error) => {
@@ -1008,9 +1200,7 @@ pub fn run_without(
                     continue;
                 }
             };
-            let stage = by_id[stage_id.as_str()];
             let level = level_by_stage[stage_id.as_str()];
-            let carrier_inputs = stage.carrier_consumes().to_vec();
 
             // Publish each completed action immediately. Persistent cache publication
             // happens before downstream readiness, so a later failure retains every exact
@@ -1038,24 +1228,42 @@ pub fn run_without(
                     && stage.stability() == StageStability::StablePrefix
                     && stage.cache_policy() == CachePolicy::Persistent
                 {
-                    let receipt = cache.put(
-                        &run.key_context,
-                        stage.stability().iri(),
-                        stage.cache_policy().iri(),
-                        &run.output_selection,
-                        &run.product,
-                    )?;
+                    let (receipt, phase_records) = crate::memory_record::collecting_phases(|| {
+                        crate::node::measure_stage_phase(&run.id, "publish-stage-cache", || {
+                            cache.put(
+                                &run.key_context,
+                                stage.stability().iri(),
+                                stage.cache_policy().iri(),
+                                &run.output_selection,
+                                &run.product,
+                            )
+                        })
+                    });
+                    memory.extend(phase_records);
+                    let receipt = receipt?;
                     run.cache_write_bytes = receipt.product_blob_bytes;
                     run.receipt = Some(receipt);
                 }
                 if stage_receipts_enabled && run.receipt.is_none() {
-                    run.receipt = Some(PipelineCache::receipt_only(
-                        &run.key_context,
-                        stage.stability().iri(),
-                        stage.cache_policy().iri(),
-                        &run.output_selection,
-                        &run.product,
-                    )?);
+                    let build_receipt = || {
+                        PipelineCache::receipt_only(
+                            &run.key_context,
+                            stage.stability().iri(),
+                            stage.cache_policy().iri(),
+                            &run.output_selection,
+                            &run.product,
+                        )
+                    };
+                    let receipt = if snapshot_release_trial.is_some() && run.id == "stage-snapshot" {
+                        let (receipt, phase_records) = crate::memory_record::collecting_phases(|| {
+                            crate::node::measure_stage_phase(&run.id, "build-stage-receipt", build_receipt)
+                        });
+                        memory.extend(phase_records);
+                        receipt
+                    } else {
+                        build_receipt()
+                    };
+                    run.receipt = Some(receipt?);
                 }
                 if let Some(receipt) = run.receipt.clone() {
                     stage_receipts.push(receipt);
@@ -1109,7 +1317,7 @@ pub fn run_without(
                         .insert((selected_stage.clone(), path.clone()), bytes.to_vec());
                 }
                 let footprint = run.product.footprint();
-                if matches!(ready_order, ReadyOrder::Memory(_)) {
+                if matches!(ready_order, ReadyOrder::Memory(..)) {
                     dataset_bytes.insert(run.id.clone(), footprint.dataset_payload_bytes);
                 }
                 memory.push(crate::memory_record::record(
@@ -1122,7 +1330,7 @@ pub fn run_without(
                 products.insert(run.id.clone(), run.product);
                 completed += 1;
 
-                if carrier_retention == CarrierRetention::DropAfterLastConsumer {
+                if carrier_retention != CarrierRetention::RetainAll {
                     for producer in &carrier_inputs {
                         let remaining = remaining_carrier_readers
                             .get_mut(producer)
@@ -1148,6 +1356,7 @@ pub fn run_without(
                     candidates.extend(artifact_lane_producers(stage.as_ref(), read_policy));
                     candidates.insert(stage_id.clone());
                     for producer in candidates {
+                        let discard = discard_product(&producer, &products, None);
                         let dead = logically_consumed.contains(&producer)
                             && remaining_carrier_readers
                                 .get(&producer)
@@ -1160,34 +1369,23 @@ pub fn run_without(
                                 .unwrap_or(0)
                                 == 0
                             && !retained_carriers.contains(&producer);
-                        if dead
-                            && let Some(product) = products.get(&producer)
-                            && !product.carrier_released
-                        {
-                            let before = product.footprint();
-                            let released = product
-                                .clone()
-                                .into_carrier_released_keeping(&kept_for(&producer))?;
-                            let after = released.footprint();
-                            let mut detached = before.released_to(&after);
-                            (
-                                detached.representation_records,
-                                detached.representation_payload_bytes,
-                            ) = crate::bundle::released_rep_blobs(
-                                product.raw_bundle(),
-                                released.raw_bundle(),
-                            )?;
-                            products.insert(producer.clone(), released);
-                            // Made after the swap, so the process figures are those with
-                            // the scheduler's reference to the carrier gone.
-                            memory.push(crate::memory_record::record(
+                        if discard || dead {
+                            let released = release_carrier(
+                                &mut products,
                                 &producer,
-                                MemoryEvent::Release,
-                                None,
-                                Some(after),
-                                Some(detached),
-                            ));
-                        } else if release_payloads
+                                (!discard).then(|| kept_for(&producer)).as_ref(),
+                                &mut memory,
+                            )?;
+                            if let Some(seq) = released
+                                && snapshot_release_trial.is_some()
+                            {
+                                trace_release_cause(&stage_id, &producer, seq, "publication");
+                            }
+                            if discard || released.is_some() {
+                                continue;
+                            }
+                        }
+                        if release_payloads
                             && logically_consumed.contains(&producer)
                             && !retained_carriers.contains(&producer)
                             && let Some(product) = products.get_mut(&producer)
@@ -1487,6 +1685,126 @@ fn panic_message(payload: &(dyn std::any::Any + Send)) -> String {
         .unwrap_or_else(|| "a non-text panic payload".to_owned())
 }
 
+fn trace_release_cause(stage: &str, producer: &str, seq: u64, boundary: &str) {
+    tracing::info!(
+        target: crate::memory_record::TARGET,
+        pid = std::process::id(),
+        seq,
+        stage,
+        producer,
+        boundary,
+        "carrier release cause"
+    );
+}
+
+/// Preserve the named artifact residue, or keep only the product's identity.
+fn release_carrier(
+    products: &mut BTreeMap<String, StageProduct>,
+    producer: &str,
+    kept: Option<&BTreeSet<&str>>,
+    memory: &mut Vec<MemoryRecord>,
+) -> Result<Option<u64>, gmeow_errors::Diag> {
+    let Some(product) = products.get(producer).filter(|product| {
+        !product.carrier_released
+            || (kept.is_none() && !product.raw_bundle().lookaside().resources.is_empty())
+    }) else {
+        return Ok(None);
+    };
+    let event = if product.carrier_released {
+        MemoryEvent::ReleaseArtifacts
+    } else {
+        MemoryEvent::Release
+    };
+    let before = product.footprint();
+    let released = match kept {
+        Some(kept) => product.clone().into_carrier_released_keeping(kept)?,
+        None => {
+            let mut identity = StageProduct::new(producer, product.digest.clone());
+            identity.carrier_released = true;
+            identity
+        }
+    };
+    let after = released.footprint();
+    let mut detached = before.released_to(&after);
+    (
+        detached.representation_records,
+        detached.representation_payload_bytes,
+    ) = crate::bundle::released_rep_blobs(product.raw_bundle(), released.raw_bundle())?;
+    products.insert(producer.to_owned(), released);
+    let record = crate::memory_record::record(producer, event, None, Some(after), Some(detached));
+    let seq = record.seq;
+    memory.push(record);
+    Ok((event == MemoryEvent::Release).then_some(seq))
+}
+
+fn prepare_snapshot(
+    stage: &dyn Stage,
+    root: &Path,
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<PreparedSnapshot, gmeow_errors::Diag> {
+    let key_context = action_key_context(stage, root, upstream)?;
+    let started = std::time::Instant::now();
+    let bundle = stage.prepare_snapshot_before_digest(StageInput { root, upstream })?;
+    let attachments =
+        crate::node::measure_stage_phase(stage.id(), "collect-attachment-inputs", || {
+            collect_attachment_inputs(stage, upstream)
+        })?;
+    let edges = upstream
+        .values()
+        .filter_map(|product| product.edge_access().cloned())
+        .collect();
+    Ok(PreparedSnapshot {
+        bundle,
+        attachments,
+        key_context,
+        started,
+        edges,
+    })
+}
+
+impl PreparedSnapshot {
+    fn finish(
+        self,
+        stage: &dyn Stage,
+        stage_cache_enabled: bool,
+    ) -> Result<StageRun, gmeow_errors::Diag> {
+        let id = stage.id().to_owned();
+        let product = StageProduct::from_bundle(id.clone(), self.bundle)?;
+        crate::memory_record::keep(reclaim_allocator_slack(&id, Some("digest-stage-product")));
+        let output_selection = crate::node::measure_stage_phase(&id, "verify-attachments", || {
+            verify_attachments(stage, &self.attachments, &product)
+        })?;
+        Ok(StageRun {
+            id,
+            key_context: self.key_context,
+            product,
+            cached: false,
+            elapsed_ms: self.started.elapsed().as_millis(),
+            diags: Vec::new(),
+            timings: Vec::new(),
+            receipt: None,
+            output_selection,
+            cache_outcome: fresh_cache_outcome(stage, stage_cache_enabled).to_owned(),
+            cache_read_bytes: 0,
+            cache_write_bytes: 0,
+            cache_hydration_rss_delta_kib: None,
+            edges: self.edges,
+        })
+    }
+}
+
+fn fresh_cache_outcome(stage: &dyn Stage, stage_cache_enabled: bool) -> &'static str {
+    if !stage_cache_enabled {
+        "bypass:disabled"
+    } else if stage.stability() != StageStability::StablePrefix {
+        "bypass:unstable"
+    } else if stage.cache_policy() == CachePolicy::Recompute {
+        "bypass:recompute"
+    } else {
+        "miss:not-found"
+    }
+}
+
 /// Execute one stage: assemble its upstream inputs, consult the cache, and run it
 /// (holding any resource it requires exclusively) on a miss.
 fn exec_stage(
@@ -1600,17 +1918,10 @@ fn exec_stage(
     // Verify the stage's ACTUAL attach delta against its declaration on the cache-miss
     // path too — the same compare as the cache-hit branch, so drift HARD-fails regardless
     // of whether the product came fresh or from cache.
-    let output_selection = verify_attach_drift(stage, &upstream, &out.product)?;
-
-    let cache_outcome = if !stage_cache_enabled {
-        "bypass:disabled"
-    } else if stage.stability() != StageStability::StablePrefix {
-        "bypass:unstable"
-    } else if stage.cache_policy() == CachePolicy::Recompute {
-        "bypass:recompute"
-    } else {
-        "miss:not-found"
-    };
+    let output_selection =
+        crate::node::measure_stage_phase(stage.id(), "verify-attachments", || {
+            verify_attach_drift(stage, &upstream, &out.product)
+        })?;
 
     Ok(StageRun {
         id: stage.id().to_string(),
@@ -1622,7 +1933,7 @@ fn exec_stage(
         timings: out.timings,
         receipt: None,
         output_selection,
-        cache_outcome: cache_outcome.to_string(),
+        cache_outcome: fresh_cache_outcome(stage, stage_cache_enabled).to_owned(),
         cache_read_bytes: 0,
         cache_write_bytes: 0,
         cache_hydration_rss_delta_kib: None,
@@ -1660,6 +1971,17 @@ fn product_handle_records(product: &StageProduct) -> BTreeMap<String, String> {
         .collect()
 }
 
+#[derive(Default)]
+struct AttachmentInputs {
+    graphs: BTreeSet<String>,
+    blobs: BTreeMap<String, BTreeSet<String>>,
+    artifacts: BTreeMap<String, BTreeSet<String>>,
+    handles: BTreeMap<String, BTreeSet<String>>,
+    default_graph: BTreeSet<String>,
+    provenance: BTreeSet<String>,
+    content_store: BTreeSet<String>,
+}
+
 /// HARD-fail if a stage's ACTUAL attach delta diverges from its DECLARED attach set,
 /// in either direction. The delta is "what this stage attaches" = the named graphs /
 /// blob-rep lanes present in its OUTPUT product bundle but NOT in its effective INPUT.
@@ -1680,8 +2002,14 @@ pub(crate) fn verify_attach_drift(
     upstream: &BTreeMap<String, StageProduct>,
     product: &StageProduct,
 ) -> Result<ReceiptOutputSelection, gmeow_errors::Diag> {
-    use std::collections::BTreeSet;
+    verify_attachments(stage, &collect_attachment_inputs(stage, upstream)?, product)
+}
 
+/// Capture attachment identities without keeping any upstream carrier alive.
+fn collect_attachment_inputs(
+    stage: &dyn Stage,
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<AttachmentInputs, gmeow_errors::Diag> {
     // Effective input graph set = the same typed-entity narrowing used by the cache key.
     // A producer absent from the declaration remains a whole-product dependency.
     // Blob record identities come from publication even when a consumer view holds
@@ -1691,13 +2019,7 @@ pub(crate) fn verify_attach_drift(
         .iter()
         .map(|(producer, ents)| (producer.as_str(), ents.as_slice()))
         .collect();
-    let mut input_graphs: BTreeSet<String> = BTreeSet::new();
-    let mut input_blob_records: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let mut input_artifacts: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let mut input_handles: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let mut input_default_graph = BTreeSet::new();
-    let mut input_provenance = BTreeSet::new();
-    let mut input_content_store = BTreeSet::new();
+    let mut inputs = AttachmentInputs::default();
     let carrier_inputs: BTreeSet<&str> = stage
         .carrier_consumes()
         .iter()
@@ -1706,24 +2028,25 @@ pub(crate) fn verify_attach_drift(
     for (producer, up) in upstream {
         let upstream_graphs = product_graphs(up);
         match entities.get(producer.as_str()) {
-            Some(ents) if !ents.is_empty() => input_graphs.extend(
+            Some(ents) if !ents.is_empty() => inputs.graphs.extend(
                 upstream_graphs
                     .into_iter()
                     .filter(|graph| ents.iter().any(|entity| entity == graph)),
             ),
-            _ => input_graphs.extend(upstream_graphs),
+            _ => inputs.graphs.extend(upstream_graphs),
         }
         for (representation, digests) in up.published_blob_records() {
-            input_blob_records
+            inputs
+                .blobs
                 .entry(representation.clone())
                 .or_default()
                 .extend(digests.iter().cloned());
         }
         for (name, digests) in up.artifact_records() {
-            input_artifacts.entry(name).or_default().extend(digests);
+            inputs.artifacts.entry(name).or_default().extend(digests);
         }
         for (graph, digest) in product_handle_records(up) {
-            input_handles.entry(graph).or_default().insert(digest);
+            inputs.handles.entry(graph).or_default().insert(digest);
         }
         // Only declared carrier inputs can contribute transport lanes. An
         // artifact-only dependency's view carries no dataset, provenance or store of its
@@ -1733,36 +2056,43 @@ pub(crate) fn verify_attach_drift(
         if stage.cache_policy() == CachePolicy::Persistent
             && carrier_inputs.contains(producer.as_str())
         {
-            input_default_graph.extend(default_graph_keys(up));
-            input_provenance.extend(provenance_keys(up)?);
+            inputs.default_graph.extend(default_graph_keys(up));
+            inputs.provenance.extend(provenance_keys(up)?);
             if let Some(keys) = up.published_store_keys() {
-                input_content_store.extend(keys.iter().cloned());
+                inputs.content_store.extend(keys.iter().cloned());
             } else {
-                input_content_store.extend(content_store_keys(up)?);
+                inputs.content_store.extend(content_store_keys(up)?);
             }
         }
     }
+    Ok(inputs)
+}
 
+fn verify_attachments(
+    stage: &dyn Stage,
+    inputs: &AttachmentInputs,
+    product: &StageProduct,
+) -> Result<ReceiptOutputSelection, gmeow_errors::Diag> {
     if stage.cache_policy() == CachePolicy::Persistent {
         for (lane, inherited) in [
             (
                 "default graph",
                 default_graph_keys(product)
-                    .intersection(&input_default_graph)
+                    .intersection(&inputs.default_graph)
                     .cloned()
                     .collect::<Vec<_>>(),
             ),
             (
                 "provenance",
                 provenance_keys(product)?
-                    .intersection(&input_provenance)
+                    .intersection(&inputs.provenance)
                     .cloned()
                     .collect::<Vec<_>>(),
             ),
             (
                 "content store",
                 content_store_keys(product)?
-                    .intersection(&input_content_store)
+                    .intersection(&inputs.content_store)
                     .cloned()
                     .collect::<Vec<_>>(),
             ),
@@ -1782,13 +2112,14 @@ pub(crate) fn verify_attach_drift(
     }
 
     let delta_graphs: BTreeSet<String> = product_graphs(product)
-        .difference(&input_graphs)
+        .difference(&inputs.graphs)
         .cloned()
         .collect();
     let delta_blob_reps: BTreeSet<String> = product
         .published_blob_records()
         .filter_map(|(representation, output_digests)| {
-            let already_present = input_blob_records
+            let already_present = inputs
+                .blobs
                 .get(representation)
                 .is_some_and(|input_digests| output_digests.is_subset(input_digests));
             (!already_present).then(|| representation.clone())
@@ -1811,7 +2142,8 @@ pub(crate) fn verify_attach_drift(
         .artifact_records()
         .into_iter()
         .filter_map(|(name, output_digests)| {
-            let already_present = input_artifacts
+            let already_present = inputs
+                .artifacts
                 .get(&name)
                 .is_some_and(|input_digests| output_digests.is_subset(input_digests));
             (!already_present).then_some(name)
@@ -1820,7 +2152,8 @@ pub(crate) fn verify_attach_drift(
     let delta_handles = product_handle_records(product)
         .into_iter()
         .filter_map(|(graph, digest)| {
-            let already_present = input_handles
+            let already_present = inputs
+                .handles
                 .get(&graph)
                 .is_some_and(|input_digests| input_digests.contains(&digest));
             (!already_present).then_some(graph)

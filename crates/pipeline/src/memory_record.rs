@@ -246,6 +246,8 @@ pub enum MemoryEvent {
     Complete,
     /// The scheduler swapped the stage's carrier for its residue.
     Release,
+    /// The scheduler discarded the artifact lane of an already released carrier.
+    ReleaseArtifacts,
     /// The scheduler detached named representations from a live carrier.
     ReleaseRepBlobs,
     /// A named phase inside a stage body began.
@@ -266,6 +268,7 @@ impl MemoryEvent {
             Self::Dispatch => "dispatch",
             Self::Complete => "complete",
             Self::Release => "release",
+            Self::ReleaseArtifacts => "release-artifacts",
             Self::ReleaseRepBlobs => "release-blob-reps",
             Self::PhaseStart => "phase-start",
             Self::PhaseEnd => "phase-end",
@@ -293,9 +296,9 @@ pub struct MemoryRecord {
     /// The allocator's totals at the boundary. Absent where the allocator offers none.
     pub allocator: Option<AllocatorMemory>,
     /// The stage's product: as published for [`MemoryEvent::Complete`], and as left
-    /// after the release for [`MemoryEvent::Release`]. Absent for the other events.
+    /// after a carrier or artifact-lane release. Absent for the other events.
     pub product: Option<ProductFootprint>,
-    /// What a carrier or representation release removed.
+    /// What a carrier, artifact-lane or representation release removed.
     pub released: Option<ReleasedFootprint>,
     /// The return of freed pages, for [`MemoryEvent::Reclaim`].
     pub reclaim: Option<ReclaimedMemory>,

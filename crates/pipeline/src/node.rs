@@ -1071,4 +1071,16 @@ pub trait Stage: Send + Sync {
     }
     /// Execute the stage over its upstream products.
     fn run(&self, input: StageInput<'_>) -> gmeow_errors::Result<StageOutput>;
+
+    /// Assemble the flat snapshot for a local release comparison.
+    fn prepare_snapshot_before_digest(
+        &self,
+        _input: StageInput<'_>,
+    ) -> gmeow_errors::Result<Arc<PipelineBundle<PipelineHandle>>> {
+        Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
+            stage: self.id().to_owned(),
+            message: "snapshot preparation requires the snapshot stage".to_owned(),
+        }))
+    }
 }

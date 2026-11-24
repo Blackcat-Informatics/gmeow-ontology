@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use std::collections::BTreeMap;
+use std::num::NonZeroU64;
 use std::path::Path;
 use std::sync::Arc;
 
@@ -150,6 +151,60 @@ fn calibration_serializes_dispatch_with_the_full_worker_pool() {
     );
 }
 
+/// Admission queues a second heavy stage while lighter work uses the
+/// remaining estimate. Delaying dispatch preserves products and receipts.
+#[test]
+fn active_work_ceiling_queues_heavy_work_while_a_lighter_stage_runs() {
+    let directory = tempfile::tempdir().expect("synthetic admission root");
+    let pipeline = PipelineSpec {
+        id: "admission-fixture".into(),
+        stages: vec![
+            spec("a-heavy", &[]),
+            spec("b-heavy", &[]),
+            spec("c-light", &[]),
+            spec("sink", &["a-heavy", "b-heavy", "c-light"]),
+        ],
+    };
+    let estimates = serde_json::from_str(
+        r#"{
+            "a-heavy":{"transient_bytes":6,"published_bytes":0},
+            "b-heavy":{"transient_bytes":1,"published_bytes":6},
+            "c-light":{"transient_bytes":3,"published_bytes":0},
+            "sink":{"transient_bytes":0,"published_bytes":0}
+        }"#,
+    )
+    .expect("fixed admission estimates");
+    let baseline = run_frontier(&pipeline, directory.path(), ReadyOrder::StageId, 3);
+    let limited = run_frontier(
+        &pipeline,
+        directory.path(),
+        ReadyOrder::Memory(Some(estimates), NonZeroU64::new(9)),
+        3,
+    );
+    let boundaries: Vec<_> = limited
+        .memory
+        .iter()
+        .filter(|record| matches!(record.event, MemoryEvent::Dispatch | MemoryEvent::Complete))
+        .map(|record| (record.stage_id.as_str(), record.event))
+        .collect();
+    assert_eq!(
+        boundaries[0..2],
+        [
+            ("c-light", MemoryEvent::Dispatch),
+            ("a-heavy", MemoryEvent::Dispatch),
+        ]
+    );
+    let completed = boundaries
+        .iter()
+        .position(|boundary| *boundary == ("a-heavy", MemoryEvent::Complete));
+    let next = boundaries
+        .iter()
+        .position(|boundary| *boundary == ("b-heavy", MemoryEvent::Dispatch));
+    assert!(matches!((completed, next), (Some(left), Some(right)) if left < right));
+    assert_eq!(limited.combined_digest, baseline.combined_digest);
+    assert_eq!(limited.receipt_root, baseline.receipt_root);
+}
+
 /// Independent ready stages can run in either order. The default memory
 /// preference frees the live dataset before publishing the unrelated product.
 /// A calibrated scratch requirement can instead favor the unrelated stage.
@@ -171,7 +226,7 @@ fn memory_ready_order_uses_last_reader_credit_and_fixed_transient_cost() {
     };
     let execute = |order| execute_frontier(&pipeline, directory.path(), order);
     let (stage_id_order, digest, receipts) = execute(ReadyOrder::StageId);
-    let (memory_order, memory_digest, memory_receipts) = execute(ReadyOrder::Memory(None));
+    let (memory_order, memory_digest, memory_receipts) = execute(ReadyOrder::Memory(None, None));
     assert_eq!(stage_id_order, ["producer", "a-peer", "z-reader", "sink"]);
     assert_eq!(memory_order, ["producer", "z-reader", "a-peer", "sink"]);
     assert_eq!(memory_digest, digest);
@@ -187,7 +242,7 @@ fn memory_ready_order_uses_last_reader_credit_and_fixed_transient_cost() {
     )
     .expect("fixed transient estimates");
     let (profile_order, profile_digest, profile_receipts) =
-        execute(ReadyOrder::Memory(Some(estimates)));
+        execute(ReadyOrder::Memory(Some(estimates), None));
     assert_eq!(profile_order, stage_id_order);
     assert_eq!(profile_digest, digest);
     assert_eq!(profile_receipts, receipts);
@@ -231,7 +286,7 @@ fn memory_ready_order_credits_the_exclusive_source_catalog_payload() {
 
     let execute = |order| execute_frontier(&pipeline, directory.path(), order);
     let (_, digest, receipts) = execute(ReadyOrder::StageId);
-    let (dispatch, memory_digest, memory_receipts) = execute(ReadyOrder::Memory(None));
+    let (dispatch, memory_digest, memory_receipts) = execute(ReadyOrder::Memory(None, None));
     assert_eq!(
         dispatch,
         [

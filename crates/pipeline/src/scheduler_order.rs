@@ -5,6 +5,7 @@
 
 use std::cmp::Reverse;
 use std::collections::{BTreeMap, BTreeSet};
+use std::num::NonZeroU64;
 use std::path::Path;
 use std::sync::Arc;
 
@@ -19,7 +20,7 @@ pub(crate) enum ReadyOrder {
     #[default]
     StageId,
     Calibrate,
-    Memory(Option<BTreeMap<String, StageEstimate>>),
+    Memory(Option<BTreeMap<String, StageEstimate>>, Option<NonZeroU64>),
 }
 
 #[derive(serde::Deserialize)]
@@ -29,17 +30,41 @@ pub(crate) struct StageEstimate {
     published_bytes: u64,
 }
 
+impl StageEstimate {
+    pub(super) fn active_work_bytes(&self) -> u64 {
+        self.transient_bytes.max(self.published_bytes)
+    }
+}
+
 impl ReadyOrder {
     pub(crate) fn from_environment() -> gmeow_errors::Result<Self> {
         let profile = std::env::var_os("GMEOW_PIPELINE_MEMORY_ESTIMATES");
+        let active_work_ceiling = std::env::var_os("GMEOW_PIPELINE_TRIAL_ACTIVE_WORK_BYTES")
+            .map(|value| {
+                value
+                    .to_str()
+                    .and_then(|text| text.parse::<NonZeroU64>().ok())
+                    .ok_or_else(|| {
+                        invalid_order("trial active-work ceiling must be a positive byte count")
+                    })
+            })
+            .transpose()?;
         match std::env::var_os("GMEOW_PIPELINE_READY_ORDER").as_deref() {
             None => {}
             Some(mode) if mode == "memory" => {}
-            Some(mode) if mode == "stage-id" && profile.is_none() => return Ok(Self::StageId),
-            Some(mode) if mode == "calibrate" && profile.is_none() => return Ok(Self::Calibrate),
+            Some(mode)
+                if mode == "stage-id" && profile.is_none() && active_work_ceiling.is_none() =>
+            {
+                return Ok(Self::StageId);
+            }
+            Some(mode)
+                if mode == "calibrate" && profile.is_none() && active_work_ceiling.is_none() =>
+            {
+                return Ok(Self::Calibrate);
+            }
             Some(mode) if mode == "stage-id" || mode == "calibrate" => {
                 return Err(invalid_order(format!(
-                    "{mode:?} order cannot use memory estimates"
+                    "{mode:?} order cannot use memory estimates or the trial active-work ceiling"
                 )));
             }
             Some(mode) => {
@@ -58,25 +83,53 @@ impl ReadyOrder {
                 })
             })
             .transpose()?;
-        Ok(Self::Memory(estimates))
+        Ok(Self::Memory(estimates, active_work_ceiling))
     }
 
     /// Calibration isolates one stage without reducing its Rayon pool.
     pub(crate) const fn stage_limit(&self, jobs: usize) -> usize {
         match self {
             Self::Calibrate => 1,
-            Self::StageId | Self::Memory(_) => jobs,
+            Self::StageId | Self::Memory(..) => jobs,
+        }
+    }
+
+    pub(super) fn active_work_admission(&self) -> Option<(u64, &BTreeMap<String, StageEstimate>)> {
+        match self {
+            Self::Memory(Some(estimates), Some(ceiling)) => Some((ceiling.get(), estimates)),
+            _ => None,
         }
     }
 
     pub(super) fn validate(&self, selected: &BTreeSet<String>) -> gmeow_errors::Result<()> {
-        if let Self::Memory(Some(estimates)) = self {
-            let stages: BTreeSet<_> = estimates.keys().cloned().collect();
-            if &stages != selected {
+        let Self::Memory(estimates, ceiling) = self else {
+            return Ok(());
+        };
+        let Some(estimates) = estimates else {
+            return if ceiling.is_some() {
+                Err(invalid_order(
+                    "the trial active-work ceiling requires a complete memory estimate profile",
+                ))
+            } else {
+                Ok(())
+            };
+        };
+        let stages: BTreeSet<_> = estimates.keys().cloned().collect();
+        if &stages != selected {
+            return Err(invalid_order(format!(
+                "memory estimates must cover the selected DAG. Missing: {:?}. Unexpected: {:?}",
+                selected.difference(&stages).collect::<Vec<_>>(),
+                stages.difference(selected).collect::<Vec<_>>()
+            )));
+        }
+        if let Some(ceiling) = ceiling {
+            let oversized = estimates
+                .iter()
+                .find(|(_, estimate)| estimate.active_work_bytes() > ceiling.get());
+            if let Some((stage, estimate)) = oversized {
                 return Err(invalid_order(format!(
-                    "memory estimates must cover the selected DAG. Missing: {:?}. Unexpected: {:?}",
-                    selected.difference(&stages).collect::<Vec<_>>(),
-                    stages.difference(selected).collect::<Vec<_>>()
+                    "{stage} requires {} estimated active-work bytes, above the trial ceiling of {ceiling} bytes",
+                    estimate.active_work_bytes(),
                 )));
             }
         }
@@ -187,14 +240,13 @@ impl LiveReads<'_> {
         terminal_only: bool,
         depth: usize,
     ) -> (u64, i128, bool, Reverse<usize>) {
-        let transient = estimate.map_or(0, |estimate| estimate.transient_bytes);
         let published = estimate.map_or(0, |estimate| estimate.published_bytes);
         // Inputs coexist with the stage work and its publication. Credit a
         // release only when comparing the frontier after completion.
         let frontier_growth =
             i128::from(published) - i128::from(self.released_payload_bytes(stage));
         (
-            transient.max(published),
+            estimate.map_or(0, StageEstimate::active_work_bytes),
             frontier_growth,
             terminal_only,
             Reverse(depth),
