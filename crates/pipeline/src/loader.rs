@@ -837,6 +837,13 @@ impl Stage for BoundStage {
     ) -> gmeow_errors::Result<crate::node::StageOutput> {
         self.body.run(input)
     }
+
+    fn prepare_snapshot_before_digest(
+        &self,
+        input: crate::node::StageInput<'_>,
+    ) -> gmeow_errors::Result<Arc<purrdf::PipelineBundle<crate::bundle::PipelineHandle>>> {
+        self.body.prepare_snapshot_before_digest(input)
+    }
 }
 
 // ── RDF helpers (mirror gmeow-slice::catalog idioms) ─────────────────────────
