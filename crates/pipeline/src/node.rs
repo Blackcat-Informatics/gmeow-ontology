@@ -14,7 +14,7 @@
 //! serializers and dictionary materialization require
 //! [`SERIALIZATION_BUFFER_RESOURCE`] (their peak residency is exclusive).
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::Arc;
 
@@ -186,6 +186,9 @@ pub struct StageProduct {
     pub carrier_released: bool,
     /// Published typed identities survive payload release and avoid repeated lowering.
     handle_commitments: BTreeMap<String, crate::handle_identity::HandleCommitment>,
+    /// The published representation and verified store identities used by attach checks.
+    published_blobs: Option<Arc<PublishedBlobs>>,
+    published_store_keys: Option<Arc<BTreeSet<String>>>,
     /// The dataflow edge this view of the product was handed out under. `None` for the
     /// product a stage emits and for the scheduler's, the cache's and the reconcile's own
     /// view; `Some` for the view a consuming stage receives, which records each access made
@@ -198,6 +201,8 @@ pub struct StageProduct {
     /// is served. `bundle` is then an empty carrier.
     lane: Option<ArtifactLane>,
 }
+
+type PublishedBlobs = BTreeMap<String, BTreeSet<String>>;
 
 /// The producer's carrier as an artifact-only consumer sees it: shared, never copied, and
 /// served only through the artifact accessors.
@@ -243,6 +248,8 @@ impl StageProduct {
             )),
             carrier_released: false,
             handle_commitments: BTreeMap::new(),
+            published_blobs: None,
+            published_store_keys: None,
             access: None,
             lane: None,
         }
@@ -296,12 +303,23 @@ impl StageProduct {
             crate::handle_identity::product_digest(&bundle, &handle_commitments, &mut control)
         })
         .map_err(|error| carrier_digest_failure(&stage_id, error, &control))?;
+        let mut records = PublishedBlobs::new();
+        for record in &bundle.lookaside().blobs {
+            if let Some(representation) = &record.representation {
+                records
+                    .entry(representation.clone())
+                    .or_default()
+                    .insert(record.digest.clone());
+            }
+        }
         Ok(Self {
             stage_id,
             digest,
             bundle,
             carrier_released: false,
             handle_commitments,
+            published_blobs: (!records.is_empty()).then(|| Arc::new(records)),
+            published_store_keys: None,
             access: None,
             lane: None,
         })
@@ -341,6 +359,8 @@ impl StageProduct {
             bundle: Arc::new(bundle),
             carrier_released: true,
             handle_commitments: self.handle_commitments,
+            published_blobs: None,
+            published_store_keys: None,
             access: self.access,
             lane: self.lane,
         })
@@ -353,13 +373,25 @@ impl StageProduct {
         &self.handle_commitments
     }
 
-    /// Release a declared payload after its last consumer while preserving the
-    /// published product and entity identities used by immutable receipts.
-    pub(crate) fn with_released_bundle(&self, bundle: PipelineBundle<PipelineHandle>) -> Self {
-        Self {
-            bundle: Arc::new(bundle),
-            ..self.clone()
+    /// Blob attachment identities from the full publication, including records
+    /// subsequently detached from a carrier view.
+    pub(crate) fn published_blob_records(
+        &self,
+    ) -> impl Iterator<Item = (&String, &BTreeSet<String>)> {
+        self.published_blobs.as_deref().into_iter().flatten()
+    }
+
+    /// Validate the publication's full store before a view can drop entries.
+    pub(crate) fn preserve_input_content_keys(&mut self) -> gmeow_errors::Result<()> {
+        if self.published_blobs.is_some() {
+            self.published_store_keys = Some(Arc::new(crate::cache::content_store_keys(self)?));
         }
+        Ok(())
+    }
+
+    /// The original store keys for a persistent consumer's attachment check.
+    pub(crate) fn published_store_keys(&self) -> Option<&BTreeSet<String>> {
+        self.published_store_keys.as_deref()
     }
 
     /// Drop unread handles without copying a carrier held by a running consumer.
@@ -378,6 +410,49 @@ impl StageProduct {
             drop(bundle.detach_handle(&key));
             crate::memory_record::handle_release(&self.stage_id, &key);
         }
+    }
+
+    /// Detach expired representation records after complete stage publication.
+    pub(crate) fn release_unread_rep_blobs(
+        &mut self,
+        is_live: impl Fn(&str) -> bool,
+    ) -> gmeow_errors::Result<Option<crate::memory_record::MemoryRecord>> {
+        let (records, bytes) = crate::bundle::retain_rep_blobs(&mut self.bundle, is_live)?;
+        Ok((records != 0).then(|| {
+            crate::memory_record::record(
+                &self.stage_id,
+                crate::memory_record::MemoryEvent::ReleaseRepBlobs,
+                None,
+                None,
+                Some(crate::memory_record::ReleasedFootprint {
+                    representation_records: records,
+                    representation_payload_bytes: bytes,
+                    ..crate::memory_record::ReleasedFootprint::default()
+                }),
+            )
+        }))
+    }
+
+    /// Keep only the named representation reads in an enforcing consumer view.
+    /// A whole-carrier read retains all representation bytes.
+    pub(crate) fn restrict_rep_blob_reads(&mut self) -> gmeow_errors::Result<()> {
+        use crate::reads::Read;
+
+        let access = self
+            .access
+            .as_ref()
+            .expect("a consumer view records its reads");
+        if access.declared().contains(&Read::Carrier) {
+            return Ok(());
+        }
+        let bundle = self
+            .lane
+            .as_mut()
+            .map_or(&mut self.bundle, |lane| &mut lane.source);
+        crate::bundle::retain_rep_blobs(bundle, |rep| {
+            access.declared().contains(&Read::BlobRep(rep.to_owned()))
+        })?;
+        Ok(())
     }
 
     /// This product as `consumer` may read it: the same carrier, recording each access made through
@@ -415,6 +490,8 @@ impl StageProduct {
             )),
             carrier_released: true,
             handle_commitments: self.handle_commitments.clone(),
+            published_blobs: None,
+            published_store_keys: None,
             access: Some(access),
             lane: Some(ArtifactLane {
                 source: Arc::clone(&self.bundle),
@@ -629,11 +706,8 @@ impl StageProduct {
     /// product to lift spans onto their findings.
     ///
     /// The blob being ABSENT is a HARD FAIL ([`crate::error::SpanTableConsumedAfterDrop`]):
-    /// the span table is stripped from the source-load product once the last consumer has
-    /// run (drop-after-last-consumer), so a reader finding it absent is a stage reaching
-    /// for it AFTER the drop — never a legitimate read (the drop level is computed as the
-    /// max consumer level, so real consumers always run before it). A present-but-malformed
-    /// blob is likewise a HARD FAIL (no-optionality).
+    /// enforcing views serve this representation when the reader declares it, and the
+    /// producer releases it once its final reader completes. A malformed blob also fails.
     pub fn span_index(&self) -> gmeow_errors::Result<crate::ingest::SpanIndex> {
         self.record(crate::reads::Read::BlobRep(
             crate::stages::carrier::REP_SPAN_TABLE.to_owned(),
@@ -946,19 +1020,6 @@ pub trait Stage: Send + Sync {
     /// `gmeow:BuildDataFlow` declaration (single source of truth).
     fn consumed_entities(&self) -> &[(String, Vec<String>)] {
         &[]
-    }
-    /// Whether this stage READS `stage-source-load`'s source-span table (via
-    /// [`StageProduct::span_index`]). The bound stage of the production pipeline answers
-    /// `true` exactly when its dataflow edge from `stage-source-load` PERMITS reading the
-    /// `spans:source-table` blob representation, by naming it or by declaring the whole
-    /// carrier; the default, which a
-    /// hand-written stage gets, is `false`. The scheduler folds the
-    /// exact remaining-consumer count into the drop-after-last-consumer point: after the
-    /// final declared reader commits, the span-table blob is stripped from the source-load
-    /// product, so every later stage that reaches for it HARD-fails and the shipped bundle
-    /// never carries it. The default is `false` — a stage that does not read spans.
-    fn consumes_span_table(&self) -> bool {
-        false
     }
     /// The named-graph IRIs this stage ATTACHES to the carrier — the graphs
     /// present in its output product bundle but NOT in its effective input (its
