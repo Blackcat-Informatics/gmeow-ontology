@@ -293,11 +293,28 @@ impl StageProduct {
         stage_id: impl Into<String>,
         bundle: Arc<PipelineBundle<PipelineHandle>>,
     ) -> Result<Self, gmeow_errors::Diag> {
+        Self::from_bundle_releasing_handles(stage_id, bundle, &BTreeSet::new())
+    }
+
+    /// Capture every binding before releasing unread snapshot payloads.
+    pub(crate) fn from_bundle_releasing_handles(
+        stage_id: impl Into<String>,
+        mut bundle: Arc<PipelineBundle<PipelineHandle>>,
+        releases: &BTreeSet<String>,
+    ) -> Result<Self, gmeow_errors::Diag> {
         let stage_id = stage_id.into();
         let handle_commitments =
             measure_stage_phase(&stage_id, "capture-handle-commitments", || {
                 crate::handle_identity::handle_commitments(&bundle)
             });
+        if !releases.is_empty()
+            && Self::detach_unread_handles(&stage_id, &mut bundle, |key| !releases.contains(key))
+        {
+            crate::memory_record::keep(crate::scheduler::reclaim_allocator_slack(
+                &stage_id,
+                Some("release-output-handles"),
+            ));
+        }
         let mut control = purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None);
         let digest = measure_stage_phase(&stage_id, "digest-stage-product", || {
             crate::handle_identity::product_digest(&bundle, &handle_commitments, &mut control)
@@ -397,8 +414,16 @@ impl StageProduct {
     /// Drop unread handles without copying a carrier held by a running consumer.
     /// The original handle commitments and stage digest remain the published identity.
     pub(crate) fn release_unread_handles(&mut self, is_live: impl Fn(&str) -> bool) {
-        let Some(bundle) = Arc::get_mut(&mut self.bundle) else {
-            return;
+        Self::detach_unread_handles(&self.stage_id, &mut self.bundle, is_live);
+    }
+
+    fn detach_unread_handles(
+        stage_id: &str,
+        bundle: &mut Arc<PipelineBundle<PipelineHandle>>,
+        is_live: impl Fn(&str) -> bool,
+    ) -> bool {
+        let Some(bundle) = Arc::get_mut(bundle) else {
+            return false;
         };
         let keys: Vec<_> = bundle
             .handles()
@@ -406,10 +431,11 @@ impl StageProduct {
             .filter(|key| !is_live(key))
             .cloned()
             .collect();
-        for key in keys {
-            drop(bundle.detach_handle(&key));
-            crate::memory_record::handle_release(&self.stage_id, &key);
+        for key in &keys {
+            drop(bundle.detach_handle(key));
+            crate::memory_record::handle_release(stage_id, key);
         }
+        !keys.is_empty()
     }
 
     /// Detach expired representation records after complete stage publication.

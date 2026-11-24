@@ -1075,6 +1075,26 @@ pub fn run_without(
                             &stage_id,
                             Some("publish-native-handles"),
                         ));
+                        // Snapshot's dependents cannot dispatch until it publishes.
+                        let late_handle_release =
+                            std::env::var("GMEOW_SNAPSHOT_HANDLE_TRIAL").as_deref() == Ok("late");
+                        let handle_releases = if !late_handle_release
+                            && logically_consumed.contains(&stage_id)
+                            && !retained_carriers.contains(&stage_id)
+                        {
+                            let readers = remaining_payload_readers.get(&stage_id);
+                            snapshot
+                                .bundle
+                                .handles()
+                                .keys()
+                                .filter(|key| {
+                                    readers.is_none_or(|readers| !readers.keeps_handle(key))
+                                })
+                                .cloned()
+                                .collect()
+                        } else {
+                            BTreeSet::new()
+                        };
                         let stage = Arc::clone(stage);
                         let tx = tx.clone();
                         let progress = progress.clone();
@@ -1082,8 +1102,11 @@ pub fn run_without(
                             let (result, phase_records) =
                                 crate::memory_record::collecting_phases(|| {
                                     std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                                        let run =
-                                            snapshot.finish(stage.as_ref(), stage_cache_enabled)?;
+                                        let run = snapshot.finish(
+                                            stage.as_ref(),
+                                            stage_cache_enabled,
+                                            &handle_releases,
+                                        )?;
                                         if let Some(progress) = progress.as_deref() {
                                             progress.stage_end(
                                                 &stage_id,
@@ -1714,9 +1737,11 @@ impl PreparedSnapshot {
         self,
         stage: &dyn Stage,
         stage_cache_enabled: bool,
+        handle_releases: &BTreeSet<String>,
     ) -> Result<StageRun, gmeow_errors::Diag> {
         let id = stage.id().to_owned();
-        let product = StageProduct::from_bundle(id.clone(), self.bundle)?;
+        let product =
+            StageProduct::from_bundle_releasing_handles(id.clone(), self.bundle, handle_releases)?;
         crate::memory_record::keep(reclaim_allocator_slack(&id, Some("digest-stage-product")));
         let output_selection = crate::node::measure_stage_phase(&id, "verify-attachments", || {
             verify_attachments(stage, &self.attachments, &product)
