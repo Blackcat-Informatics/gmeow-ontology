@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/operational-conditions/ledger/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:intake a gmeow:BodyConditionObservation ;
+    gmeow:recordedAt "2026-02-18T14:10:00Z"^^xsd:dateTime ;
+    gmeow:bodyConditionKind "buffer_pressure"^^xsd:token ;
+    gmeow:bodyConditionKey "20613a6220"^^xsd:hexBinary ;
+    gmeow:bodyConditionOrgan "6465636f646572"^^xsd:hexBinary ;
+    gmeow:bodyConditionSite "71756575652f696e"^^xsd:hexBinary ;
+    gmeow:bodyConditionEvidenceDigest "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"^^xsd:hexBinary ;
+    gmeow:bodyConditionOccurrence "6f63633a3137"^^xsd:hexBinary ;
+    gmeow:originatingPacket "blake3:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"^^xsd:token ;
+    gmeow:bodyConditionToolCall "63616c6c3a3720"^^xsd:hexBinary ;
+    gmeow:bodyConditionHeldKind "63617074757265"^^xsd:hexBinary ;
+    gmeow:bodyConditionHeldHandle "68656c642037"^^xsd:hexBinary .
+
+ex:outlet a gmeow:BodyConditionObservation ;
+    gmeow:recordedAt "2026-02-18T14:11:00Z"^^xsd:dateTime ;
+    gmeow:bodyConditionKind "buffer_pressure"^^xsd:token ;
+    gmeow:bodyConditionKey "20613a6220"^^xsd:hexBinary ;
+    gmeow:bodyConditionOrgan "6465636f646572"^^xsd:hexBinary ;
+    gmeow:bodyConditionSite "71756575652f6f7574"^^xsd:hexBinary ;
+    gmeow:bodyConditionEvidenceDigest "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"^^xsd:hexBinary .
+
+ex:acknowledgement a gmeow:BodyConditionAcknowledgement ;
+    gmeow:recordedAt "2026-02-18T14:12:00Z"^^xsd:dateTime ;
+    gmeow:bodyConditionKind "buffer_pressure"^^xsd:token ;
+    gmeow:bodyConditionKey "20613a6220"^^xsd:hexBinary ;
+    gmeow:bodyConditionAcknowledgedBy "6d61696e74206f70"^^xsd:hexBinary .

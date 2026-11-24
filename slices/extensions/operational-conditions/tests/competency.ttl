@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/operational-conditions/competency/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+ex:acknowledgementAcrossSites a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/condition-ledger.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX record: <https://example.org/operational-conditions/ledger/>
+ASK {
+    record:acknowledgement a gmeow:BodyConditionAcknowledgement ;
+        gmeow:bodyConditionKind ?kind ;
+        gmeow:bodyConditionKey ?key .
+    record:intake a gmeow:BodyConditionObservation ;
+        gmeow:bodyConditionKind ?kind ;
+        gmeow:bodyConditionKey ?key ;
+        gmeow:bodyConditionSite ?intakeSite .
+    record:outlet a gmeow:BodyConditionObservation ;
+        gmeow:bodyConditionKind ?kind ;
+        gmeow:bodyConditionKey ?key ;
+        gmeow:bodyConditionSite ?outletSite .
+    FILTER (!sameTerm(?intakeSite, ?outletSite))
+}""" ;
+    gmeow:cqExpectAsk true ;
+    gmeow:cqRationale "A single acknowledgement matches two distinct report sites through the stored kind and exact key." .
