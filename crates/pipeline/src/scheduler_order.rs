@@ -12,7 +12,7 @@ use crate::bundle::PipelineHandle;
 use crate::graph::StageGraph;
 use crate::node::{Stage, StageProduct};
 
-use super::HandleReaders;
+use super::PayloadReaders;
 
 #[derive(Default)]
 pub(crate) enum ReadyOrder {
@@ -114,7 +114,7 @@ pub(super) struct LiveReads<'a> {
     pub(super) products: &'a BTreeMap<String, StageProduct>,
     pub(super) dataset_bytes: &'a BTreeMap<String, u64>,
     pub(super) carrier_readers: &'a BTreeMap<String, usize>,
-    pub(super) handle_readers: Option<&'a BTreeMap<String, HandleReaders>>,
+    pub(super) payload_readers: Option<&'a BTreeMap<String, PayloadReaders>>,
     pub(super) artifact_views: &'a BTreeMap<String, usize>,
     pub(super) retained: &'a BTreeSet<String>,
 }
@@ -130,7 +130,7 @@ impl LiveReads<'_> {
                 && self.artifact_views.get(id).copied().unwrap_or(0) == 0
                 && !self.retained.contains(id)
         };
-        let completing_reads = self.handle_readers.map(|_| stage.reads());
+        let completing_reads = self.payload_readers.map(|_| stage.reads());
         let mut credited = BTreeSet::new();
         let mut bytes = 0_u64;
         for id in stage.carrier_consumes() {
@@ -143,10 +143,11 @@ impl LiveReads<'_> {
             let carrier_dead = dead(id);
             let bundle = product.raw_bundle();
             if Arc::strong_count(bundle) == 1 && (carrier_dead || Arc::weak_count(bundle) == 0) {
-                let readers = self.handle_readers.and_then(|readers| readers.get(id));
+                let readers = self.payload_readers.and_then(|readers| readers.get(id));
                 let completed = completing_reads.as_ref().and_then(|reads| reads.get(id));
                 for (key, entry) in bundle.handles() {
-                    if !carrier_dead && readers.is_none_or(|r| r.contains_after(key, completed)) {
+                    if !carrier_dead && readers.is_none_or(|r| r.keeps_handle_after(key, completed))
+                    {
                         continue;
                     }
                     if let PipelineHandle::SourceCatalog(catalog) = &entry.payload {

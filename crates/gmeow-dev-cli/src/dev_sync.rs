@@ -789,7 +789,12 @@ fn stage_memory_observation(
                 .with("quads", freed.quads)
                 .with("terms", freed.terms)
                 .with("committed_lane_bytes", freed.committed_lane_bytes)
-                .with("internal_lane_bytes", freed.internal_lane_bytes),
+                .with("internal_lane_bytes", freed.internal_lane_bytes)
+                .with("representation_records", freed.representation_records)
+                .with(
+                    "representation_payload_bytes",
+                    freed.representation_payload_bytes,
+                ),
         )
     });
     let reclaim = made.reclaim.map(|returned| {

@@ -1436,61 +1436,91 @@ impl Stage for MappingsStage {
         // carried as a named graph so the presenter reads it via `producer_graph`. Like
         // the projection-ledger and alignments graphs it stays OUT of the reasoned EDB
         // (the object-level EDB assembly never selects this named graph).
-        // Each parsed graph owns its terms. Consume the source buffers here so
-        // they can be freed before the union and product digest.
-        let lang_translation_graph = crate::stages::carrier::parse_into_graph(
-            &std::mem::take(&mut compiled.lang_translation_corpus),
-            "application/n-triples",
+        let mode = std::env::var_os("GMEOW_MAPPINGS_CORPUS_TRIAL");
+        let retained = match mode.as_deref() {
+            Some(mode) if mode == "retained" => true,
+            Some(mode) if mode == "released" => false,
+            _ => {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    cause: None,
+                    stage: self.id().to_owned(),
+                    message: format!(
+                        "mapping corpus trial requires retained or released mode, got {mode:?}"
+                    ),
+                }));
+            }
+        };
+        let source_buffer_capacity_bytes: usize = [
+            compiled.lang_translation_corpus.capacity(),
+            compiled.lang_form_corpus.capacity(),
+            compiled.lang_projection_corpus.capacity(),
+            compiled.lang_lowering_corpus.capacity(),
+            compiled.lang_docs_rendering_corpus.capacity(),
+            compiled.lang_glossary_corpus.capacity(),
+            compiled.correspondence_laws_corpus.capacity(),
+        ]
+        .into_iter()
+        .sum();
+        tracing::info!(target: "pipeline_memory", stage = self.id(), retained,
+            source_buffer_capacity_bytes, "mapping corpus trial");
+        crate::memory_record::phase(
+            self.id(),
+            "parse-mapping-corpora",
+            crate::memory_record::MemoryEvent::PhaseStart,
+        );
+        let lang_translation_graph = parse_trial_corpus(
+            &mut compiled.lang_translation_corpus,
             crate::stages::carrier::GRAPH_LANG_TRANSLATION_CORPUS,
+            retained,
         )?;
         // graph/lang-form-corpus — the total prose lift (Gate 1): every distinct
         // `@x-gmeow-english` source literal typed as a raw `lang:SurfaceForm`. Carried as a
         // named graph so the presenter reads it via `producer_graph`; like the
         // translation-corpus graph it stays OUT of the reasoned EDB (the object-level
         // EDB assembly never selects it).
-        let lang_form_graph = crate::stages::carrier::parse_into_graph(
-            &std::mem::take(&mut compiled.lang_form_corpus),
-            "application/n-triples",
+        let lang_form_graph = parse_trial_corpus(
+            &mut compiled.lang_form_corpus,
             crate::stages::carrier::GRAPH_LANG_FORM_CORPUS,
+            retained,
         )?;
         // graph/lang-projection-corpus — the `lang:ProjectionEmission` records (every
         // lowering to an external linguistic ecosystem) plus the lifted `lang:Grammar`
         // structure. Carried as a named graph so the presenter reads it via
         // `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the
         // reasoned EDB (the object-level EDB assembly never selects it).
-        let lang_projection_graph = crate::stages::carrier::parse_into_graph(
-            &std::mem::take(&mut compiled.lang_projection_corpus),
-            "application/n-triples",
+        let lang_projection_graph = parse_trial_corpus(
+            &mut compiled.lang_projection_corpus,
             crate::stages::carrier::GRAPH_LANG_PROJECTION_CORPUS,
+            retained,
         )?;
         // graph/lang-lowering-corpus — the flagship quantified-SVO sentence lowered to its
         // compositional first-order `lang:CompositionalLowering` formula, one
         // `lang:LoweringStage` per lowering step. Carried as a named graph so the presenter reads
         // it via `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the
         // reasoned EDB (the object-level EDB assembly never selects it).
-        let lang_lowering_graph = crate::stages::carrier::parse_into_graph(
-            &std::mem::take(&mut compiled.lang_lowering_corpus),
-            "application/n-triples",
+        let lang_lowering_graph = parse_trial_corpus(
+            &mut compiled.lang_lowering_corpus,
             crate::stages::carrier::GRAPH_LANG_LOWERING_CORPUS,
+            retained,
         )?;
         // graph/lang-docs-rendering-corpus — the `.po`-derived documentation language trees
         // re-typed as `lang:Rendering` / `lang:Translation` crossings plus the exec-docs
         // English-only boundary gap. Carried as a named graph so the presenter reads it via
         // `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the reasoned
         // EDB (the object-level EDB assembly never selects it).
-        let lang_docs_rendering_graph = crate::stages::carrier::parse_into_graph(
-            &std::mem::take(&mut compiled.lang_docs_rendering_corpus),
-            "application/n-triples",
+        let lang_docs_rendering_graph = parse_trial_corpus(
+            &mut compiled.lang_docs_rendering_corpus,
             crate::stages::carrier::GRAPH_LANG_DOCS_RENDERING_CORPUS,
+            retained,
         )?;
         // graph/lang-glossary-corpus — the per-slice terminology glossary derived from the
         // reviewed `.po` pairs. Carried as a named graph so the presenter reads it via
         // `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the reasoned
         // EDB (the object-level EDB assembly never selects it).
-        let lang_glossary_graph = crate::stages::carrier::parse_into_graph(
-            &std::mem::take(&mut compiled.lang_glossary_corpus),
-            "application/n-triples",
+        let lang_glossary_graph = parse_trial_corpus(
+            &mut compiled.lang_glossary_corpus,
             crate::stages::carrier::GRAPH_LANG_GLOSSARY_CORPUS,
+            retained,
         )?;
         // graph/correspondence-laws — every authored `logic:Correspondence` re-projected with
         // its EXECUTED lens-law discharge verdicts. Carried as a named graph so
@@ -1498,11 +1528,16 @@ impl Stage for MappingsStage {
         // OUT of the reasoned EDB (the object-level EDB assembly never selects this named
         // graph — the verdicts are
         // presenter/provenance RDF, not reasoned facts).
-        let correspondence_laws_graph = crate::stages::carrier::parse_into_graph(
-            &std::mem::take(&mut compiled.correspondence_laws_corpus),
-            "application/n-triples",
+        let correspondence_laws_graph = parse_trial_corpus(
+            &mut compiled.correspondence_laws_corpus,
             crate::stages::carrier::GRAPH_CORRESPONDENCE_LAWS,
+            retained,
         )?;
+        crate::memory_record::phase(
+            self.id(),
+            "parse-mapping-corpora",
+            crate::memory_record::MemoryEvent::PhaseEnd,
+        );
         // graph/substrate-sbom — the substrate reconciliation A-Box
         // projected through THIS run's compiled `spdx.rq` into pure SPDX (one spdx:Package
         // per engine/library + `contains` relationships). It rides its own bundle-internal
@@ -1572,6 +1607,22 @@ impl Stage for MappingsStage {
             self.id(),
             std::sync::Arc::new(bundle),
         )?))
+    }
+}
+
+fn parse_trial_corpus(
+    source: &mut Vec<u8>,
+    graph: &str,
+    retained: bool,
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+    if retained {
+        crate::stages::carrier::parse_into_graph(source, "application/n-triples", graph)
+    } else {
+        crate::stages::carrier::parse_into_graph(
+            &std::mem::take(source),
+            "application/n-triples",
+            graph,
+        )
     }
 }
 

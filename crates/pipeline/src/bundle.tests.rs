@@ -27,14 +27,27 @@ fn artifact_lane_round_trips_exact_bytes() {
     assert_eq!(bundle_artifacts(&bundle), artifacts);
 }
 
+/// Representation changes preserve the same allocation while artifact paths still
+/// reference its digest.
 #[test]
-fn shared_bytes_dedup_but_both_paths_reconstruct() {
-    // Two artifacts with identical bytes share one content-store blob, yet both
-    // logical paths must reconstruct the bytes (the resource index is per-path).
+fn artifact_paths_keep_shared_bytes_when_a_representation_is_removed() {
     let artifacts = arts(&[("x", b"same"), ("y", b"same")]);
     let bundle = bundle_from_artifacts(artifacts.clone(), DatasetProvenance::new());
+    let previous = bundle.clone();
+    let bundle = attach_rep_blob(bundle, "sample:shared", "text/plain", b"same".to_vec())
+        .expect("attach the aliased representation");
     assert_eq!(bundle.blobs().len(), 1, "equal bytes stored once");
-    assert_eq!(bundle_artifacts(&bundle), artifacts);
+    let representation = bundle_rep_blob(&bundle, "sample:shared").expect("attached bytes");
+    let original = bundle_artifact(&previous, "x").expect("original artifact bytes");
+    assert!(std::ptr::eq(representation, original));
+
+    let mut stripped = Arc::new(bundle);
+    retain_rep_blobs(&mut stripped, |rep| rep != "sample:shared")
+        .expect("remove the representation");
+    assert!(bundle_rep_blob(&stripped, "sample:shared").is_none());
+    assert_eq!(bundle_artifacts(&stripped), artifacts);
+    let surviving = bundle_artifact(&stripped, "y").expect("surviving artifact bytes");
+    assert!(std::ptr::eq(surviving, original));
 }
 
 /// A representation can share a digest with an artifact without reclaiming the artifact.
@@ -55,10 +68,11 @@ fn artifact_survives_representation_attachment_and_reclamation() {
         Some(payload.as_slice())
     );
 
-    let stripped = strip_rep_blob(&attached, "diagnostic").expect("strip the representation");
     let released = release_carrier(&attached, &std::collections::BTreeSet::new())
         .expect("release the carrier and keep committed artifacts");
-    for bundle in [&stripped, &released] {
+    let mut stripped = Arc::new(attached);
+    retain_rep_blobs(&mut stripped, |rep| rep != "diagnostic").expect("strip the representation");
+    for bundle in [stripped.as_ref(), &released] {
         assert_eq!(bundle_rep_blob(bundle, "diagnostic"), None);
         assert_eq!(
             bundle_artifact(bundle, "artifact"),

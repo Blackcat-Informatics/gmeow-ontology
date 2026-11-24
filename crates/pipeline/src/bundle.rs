@@ -298,22 +298,21 @@ pub fn bundle_from_artifacts_over_with_rep_blob(
 
 /// Fold one representation-keyed raw blob into an ALREADY-ASSEMBLED bundle (e.g. the
 /// compile-logic bundle, after its typed handles are pinned), returning the bundle with
-/// the blob in its by-reference lane. Rebuilds the content store + lookaside blob lane
-/// and re-attaches every pinned handle to its original backing graph (the handle pins
-/// are dataset-scoped, so they survive verbatim). See
+/// the blob in its by-reference lane. Existing payloads keep their backing
+/// allocations and the original graph pins stay attached. See
 /// [`bundle_from_artifacts_over_with_rep_blob`] for the lane semantics.
 pub fn attach_rep_blob(
-    bundle: PipelineBundle<PipelineHandle>,
+    mut bundle: PipelineBundle<PipelineHandle>,
     representation: &str,
     media_type: &str,
     blob_bytes: Vec<u8>,
 ) -> Result<PipelineBundle<PipelineHandle>, gmeow_errors::Diag> {
     // Clone the store without rehashing its verified payloads.
     let mut blobs = bundle.blobs().clone();
-    let mut lookaside = bundle.lookaside().clone();
+    let mut records = bundle.lookaside().blobs.clone();
     let decoded_len = blob_bytes.len() as u64;
     let digest = blobs.insert(blob_bytes);
-    lookaside.blobs.push(RdfBlobRecord {
+    records.push(RdfBlobRecord {
         digest: digest.to_hex(),
         media_type: Some(media_type.to_owned()),
         representation: Some(representation.to_owned()),
@@ -321,29 +320,10 @@ pub fn attach_rep_blob(
         metadata: BTreeMap::new(),
         origin: None,
     });
-    let mut rebuilt = PipelineBundle::new(
-        bundle.dataset_arc(),
-        lookaside,
-        Arc::new(blobs),
-        bundle.provenance().clone(),
-    );
-    // Re-attach every pinned handle to the SAME backing graph digest it already carried
-    // (the pins are stable against the unchanged dataset).
-    for (graph, entry) in bundle.handles() {
-        rebuilt
-            .pin_handle(
-                graph.clone(),
-                entry.payload.clone(),
-                entry.content_digest,
-                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
-            )
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
-                    "attach_rep_blob: re-pin handle <{graph}>: {e}"
-                )))
-            })?;
-    }
-    Ok(rebuilt)
+    bundle
+        .replace_resident_blob_records(records, blobs)
+        .map_err(gmeow_errors::Diag::from_rdf)?;
+    Ok(bundle)
 }
 
 /// Read back the bytes of the representation-keyed blob folded by
@@ -362,82 +342,105 @@ pub fn bundle_rep_blob<'b>(
     bundle.blobs().get(&digest).map(AsRef::as_ref)
 }
 
-/// Rebuild `bundle` WITHOUT its `representation`-keyed raw blob — the inverse of
-/// [`attach_rep_blob`]. The matching lookaside blob record is dropped and its backing
-/// bytes are evicted from the content store (kept only if still referenced by an
-/// artifact resource or a surviving blob record), so the rebuilt bundle's `digest()`
-/// reflects the removal and [`bundle_rep_blob`] resolves the rep to `None`. Every pinned
-/// typed handle is re-attached to its unchanged backing graph (the pins are
-/// dataset-scoped, so they survive verbatim).
-///
-/// The scheduler calls this to strip `stage-source-load`'s source-span blob at the
-/// drop-after-last-consumer point — a no-op-safe operation when the rep is already absent
-/// (idempotent). Deterministic: the content store is rebuilt in the source store's
-/// iteration order over the surviving digests.
-pub fn strip_rep_blob(
-    bundle: &PipelineBundle<PipelineHandle>,
-    representation: &str,
-) -> Result<PipelineBundle<PipelineHandle>, gmeow_errors::Diag> {
-    let mut lookaside = bundle.lookaside().clone();
-    lookaside
+/// Select the representation records this carrier still serves. Preserve bytes
+/// addressed by another record or a resource, and leave unrelated store entries
+/// intact. Return the number of removed records and bytes detached from this store.
+pub(crate) fn retain_rep_blobs(
+    bundle: &mut Arc<PipelineBundle<PipelineHandle>>,
+    keep: impl Fn(&str) -> bool,
+) -> gmeow_errors::Result<(usize, usize)> {
+    let removed = |record: &RdfBlobRecord| {
+        record
+            .representation
+            .as_deref()
+            .is_some_and(|rep| !keep(rep))
+    };
+    let mut detached =
+        std::collections::HashSet::with_hasher(purrdf_hash::fixed::FixedState::new());
+    let mut removed_records = 0;
+    for record in bundle
+        .lookaside()
         .blobs
-        .retain(|r| r.representation.as_deref() != Some(representation));
-    // Every content digest still referenced by an artifact resource or a surviving blob.
-    // Keyed by `ContentDigest` (not its hex string) so the membership test below does NOT
-    // re-allocate a hex `String` per stored blob; a malformed stored digest is a HARD FAIL
-    // (silently dropping it would GC a still-referenced content-store blob).
-    let mut referenced: std::collections::HashSet<purrdf::ContentDigest> =
-        std::collections::HashSet::new();
-    for resource in &lookaside.resources {
-        if let Some(hex) = resource.content_digest.as_deref() {
-            let digest = purrdf::ContentDigest::from_hex(hex).ok_or_else(|| {
-                gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
-                    "strip_rep_blob: malformed resource content digest {hex:?}"
-                )))
-            })?;
-            referenced.insert(digest);
+        .iter()
+        .filter(|record| removed(record))
+    {
+        let digest = sidecar_digest(&record.digest)?;
+        if !bundle.blobs().contains(&digest) {
+            let detail =
+                format!("carrier representation references missing content digest {digest}");
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode::new(
+                detail,
+            )));
+        }
+        detached.insert(digest);
+        removed_records += 1;
+    }
+    if detached.is_empty() {
+        return Ok((0, 0));
+    }
+
+    let lookaside = bundle.lookaside();
+    let records: Vec<_> = lookaside
+        .blobs
+        .iter()
+        .filter(|record| !removed(record))
+        .cloned()
+        .collect();
+    for hex in lookaside
+        .resources
+        .iter()
+        .filter_map(|resource| resource.content_digest.as_deref())
+        .chain(records.iter().map(|record| record.digest.as_str()))
+    {
+        detached.remove(&sidecar_digest(hex)?);
+    }
+    let detached_bytes = detached
+        .iter()
+        .filter_map(|digest| bundle.blobs().get(digest))
+        .map(Vec::len)
+        .sum();
+    let mut blobs = bundle.blobs().clone();
+    if !detached.is_empty() {
+        blobs.retain(|digest| !detached.contains(digest));
+    }
+    Arc::make_mut(bundle)
+        .replace_resident_blob_records(records, blobs)
+        .map_err(gmeow_errors::Diag::from_rdf)?;
+    Ok((removed_records, detached_bytes))
+}
+
+/// Count representation records and digest entries removed by a carrier swap.
+/// A shared digest that remains in the artifact residue contributes zero bytes.
+pub(crate) fn released_rep_blobs(
+    carrier: &PipelineBundle<PipelineHandle>,
+    residue: &PipelineBundle<PipelineHandle>,
+) -> gmeow_errors::Result<(usize, usize)> {
+    let mut detached =
+        std::collections::HashSet::with_hasher(purrdf_hash::fixed::FixedState::new());
+    let mut records = 0;
+    for record in &carrier.lookaside().blobs {
+        if record.representation.is_some() {
+            let digest = sidecar_digest(&record.digest)?;
+            if !residue.blobs().contains(&digest) {
+                detached.insert(digest);
+            }
+            records += 1;
         }
     }
-    for blob in &lookaside.blobs {
-        let digest = purrdf::ContentDigest::from_hex(&blob.digest).ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
-                "strip_rep_blob: malformed lookaside blob digest {:?}",
-                blob.digest
-            )))
-        })?;
-        referenced.insert(digest);
-    }
-    let mut blobs = ContentStore::new();
-    for (digest, bytes) in bundle.blobs().iter() {
-        if referenced.contains(digest) {
-            blobs.insert_checked(*digest, bytes.clone()).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
-                    "strip_rep_blob: re-insert content-store blob: {e}"
-                )))
-            })?;
-        }
-    }
-    let mut rebuilt = PipelineBundle::new(
-        bundle.dataset_arc(),
-        lookaside,
-        Arc::new(blobs),
-        bundle.provenance().clone(),
-    );
-    for (graph, entry) in bundle.handles() {
-        rebuilt
-            .pin_handle(
-                graph.clone(),
-                entry.payload.clone(),
-                entry.content_digest,
-                &mut purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None),
-            )
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
-                    "strip_rep_blob: re-pin handle <{graph}>: {e}"
-                )))
-            })?;
-    }
-    Ok(rebuilt)
+    let bytes = detached
+        .iter()
+        .filter_map(|digest| carrier.blobs().get(digest))
+        .map(|bytes| bytes.len())
+        .sum();
+    Ok((records, bytes))
+}
+
+fn sidecar_digest(hex: &str) -> gmeow_errors::Result<ContentDigest> {
+    ContentDigest::from_hex(hex).ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+            "carrier lookaside references malformed content digest {hex:?}"
+        )))
+    })
 }
 
 /// Reconstruct the exact bytes of the byte-artifact lane entry at `logical_path`,

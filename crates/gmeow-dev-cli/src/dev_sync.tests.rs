@@ -253,7 +253,7 @@ fn generated_and_docs_selection_exclude_unrequested_runtime_outputs() {
 fn stage_memory_observation_carries_allocator_totals_and_the_reclaim_figures() {
     use gmeow_pipeline::memory_record::{
         AllocatorMemory, MemoryEvent, MemoryRecord, ProcessMemory, ProductFootprint,
-        ReclaimedMemory,
+        ReclaimedMemory, ReleasedFootprint,
     };
     use purrdf_lex::json::Value;
     let returned = MemoryRecord {
@@ -303,6 +303,27 @@ fn stage_memory_observation_carries_allocator_totals_and_the_reclaim_figures() {
     assert_eq!(
         written["product"]["dataset_payload_bytes"],
         Value::from(4_096_u64)
+    );
+
+    let detached = MemoryRecord {
+        event: MemoryEvent::ReleaseRepBlobs,
+        released: Some(ReleasedFootprint {
+            representation_records: 2,
+            representation_payload_bytes: 100,
+            ..ReleasedFootprint::default()
+        }),
+        reclaim: None,
+        ..returned.clone()
+    };
+    let written = stage_memory_observation(&detached);
+    assert_eq!(written["event"], Value::from("release-blob-reps"));
+    assert_eq!(
+        written["released"]["representation_records"],
+        Value::from(2_u64)
+    );
+    assert_eq!(
+        written["released"]["representation_payload_bytes"],
+        Value::from(100_u64)
     );
 
     let unsupported = MemoryRecord {
