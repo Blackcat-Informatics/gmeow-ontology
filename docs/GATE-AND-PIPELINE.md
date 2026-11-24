@@ -45,8 +45,8 @@ The PurRDF manifests select the released registry requirement (`purrdf = "=5"`),
 `purrdf*` requirement or locked package may admit a release below major 3
 (`PURRDF_MAJOR_FLOOR`).
 The partial requirement `=5` admits stable releases throughout major 5. The three
-lockfiles select registry release `5.0.0`. JSON source-input macro expansion is a
-separate reviewed capability for `purrdf-lex` `5.0.0`, recorded by `REVIEWED_REGISTRY_VERSION` in
+lockfiles select registry release `5.0.1`. JSON source-input macro expansion is a
+separate reviewed capability for `purrdf-lex` `5.0.1`, recorded by `REVIEWED_REGISTRY_VERSION` in
 `crates/build-inputs/src/json_macros.rs`. A lockfile bump beyond that release must
 review the macro protocol and update that capability boundary alongside ordinary
 dependency and consumer qualification; a matching Cargo requirement alone does not

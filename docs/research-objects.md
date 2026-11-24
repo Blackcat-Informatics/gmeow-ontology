@@ -8,8 +8,8 @@ A GMEOW-described dataset, made discoverable to the ML/research ecosystem —
 single source of truth, and every format below is a lossy projection that
 declares its drops (P5) in its own native slot.
 
-Four of the five formats are projected by the Rust **purrdf 5.0.0
-research-object codecs** — strict, versioned, bidirectional codecs with a
+Four of the five formats use the Rust **PurRDF research-object codecs** —
+strict, versioned, bidirectional codecs with a
 soundness-checked, located loss ledger. DCAT is deliberately kept on a
 mapping-DSL CONSTRUCT (see Architecture notes).
 
