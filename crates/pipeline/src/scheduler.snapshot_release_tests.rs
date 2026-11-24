@@ -7,10 +7,11 @@ use std::time::Duration;
 
 use gmeow_cli_core::Reporter;
 use gmeow_errors::Report;
+use gmeow_logic_compile::ir::LogicProgram;
 use purrdf::provenance::DatasetProvenance;
 
 use super::{PipelineSpec, StageSpec, registry_for, spec};
-use crate::bundle::{PipelineHandle, bundle_from_artifacts};
+use crate::bundle::{PipelineHandle, bundle_from_artifacts_over};
 use crate::memory_record::MemoryEvent;
 use crate::node::{CachePolicy, OutputFamily, Stage, StageInput, StageOutput, StageProduct};
 use crate::reads::Read;
@@ -19,6 +20,8 @@ use crate::scheduler::{CarrierRetention, ReadyOrder, RunContext, RunResult, run}
 const ARTIFACT: &str = "generated/shared.txt";
 const POST_RUN_ARTIFACT: &str = "pipeline/post-run.txt";
 const POST_RUN_BYTES: &[u8] = b"retained for the post-run reader";
+const USED_HANDLE: &str = "urn:handle:snapshot-used";
+const UNREAD_HANDLE: &str = "urn:handle:snapshot-unread";
 
 struct PublicationOrder {
     digest_finished: mpsc::Sender<()>,
@@ -54,6 +57,7 @@ impl Reporter for PublicationOrder {
 struct SnapshotStage {
     spec: StageSpec,
     order: Arc<PublicationOrder>,
+    retain_snapshot: bool,
 }
 
 impl Stage for SnapshotStage {
@@ -79,6 +83,10 @@ impl Stage for SnapshotStage {
 
     fn cache_policy(&self) -> CachePolicy {
         self.spec.cache_disposition
+    }
+
+    fn attaches_graphs(&self) -> &[String] {
+        &self.spec.attaches_graphs
     }
 
     fn run(&self, input: StageInput<'_>) -> gmeow_errors::Result<StageOutput> {
@@ -120,6 +128,15 @@ impl Stage for SnapshotStage {
             "stage-snapshot" => {
                 StageProduct::from_bundle(self.id(), self.prepare_snapshot_before_digest(input)?)?
             }
+            "sink" => {
+                let snapshot = &input.upstream["stage-snapshot"];
+                assert!(snapshot.handle(USED_HANDLE).is_some());
+                assert_eq!(
+                    snapshot.raw_bundle().handle(UNREAD_HANDLE).is_some(),
+                    self.retain_snapshot,
+                );
+                StageProduct::from_artifacts(self.id(), BTreeMap::new())?
+            }
             _ => StageProduct::from_artifacts(self.id(), BTreeMap::new())?,
         };
         Ok(StageOutput::new(product))
@@ -133,14 +150,37 @@ impl Stage for SnapshotStage {
         assert_eq!(input.upstream["b-shared"].dataset().quad_count(), 0);
         assert_eq!(input.upstream["c-later-reader"].dataset().quad_count(), 1);
         assert_eq!(input.upstream["d-retained"].dataset().quad_count(), 1);
-        Ok(Arc::new(bundle_from_artifacts(
-            BTreeMap::new(),
-            DatasetProvenance::new(),
-        )))
+        let quads = [USED_HANDLE, UNREAD_HANDLE]
+            .map(|graph| format!("<urn:s> <urn:p> <urn:o> <{graph}> .\n"))
+            .concat();
+        let dataset = purrdf::parse_dataset(quads.as_bytes(), "application/n-quads", None)
+            .expect("synthetic typed backing graphs");
+        let mut bundle =
+            bundle_from_artifacts_over(dataset, BTreeMap::new(), DatasetProvenance::new());
+        let mut control = purrdf::CanonicalizationControl::new(purrdf::CANON_CORPUS_POLICY, None);
+        for graph in [USED_HANDLE, UNREAD_HANDLE] {
+            let pin = bundle
+                .graph_digest(graph, &mut control)
+                .expect("snapshot graph digest");
+            let program =
+                LogicProgram::new(Vec::new(), Vec::new(), Vec::new(), Some(graph.to_owned()));
+            bundle
+                .pin_handle(
+                    graph,
+                    PipelineHandle::Logic(Arc::new(program)),
+                    pin,
+                    &mut control,
+                )
+                .expect("pin snapshot typed handle");
+        }
+        Ok(Arc::new(bundle))
     }
 }
 
-fn run_parallel_snapshot(panic_after_publication: bool) -> gmeow_errors::Result<RunResult> {
+fn run_parallel_snapshot(
+    panic_after_publication: bool,
+    retain_snapshot: bool,
+) -> gmeow_errors::Result<RunResult> {
     let (digest_finished, digest) = mpsc::channel();
     let (sibling_published, publication) = mpsc::channel();
     let order = Arc::new(PublicationOrder {
@@ -153,6 +193,7 @@ fn run_parallel_snapshot(panic_after_publication: bool) -> gmeow_errors::Result<
     let snapshot_inputs = ["a-exclusive", "b-shared", "c-later-reader", "d-retained"];
     let mut snapshot = spec("stage-snapshot", &snapshot_inputs);
     snapshot.cache_disposition = CachePolicy::Recompute;
+    snapshot.attaches_graphs = [USED_HANDLE, UNREAD_HANDLE].map(str::to_owned).to_vec();
     for input in snapshot_inputs {
         snapshot
             .reads
@@ -167,6 +208,11 @@ fn run_parallel_snapshot(panic_after_publication: bool) -> gmeow_errors::Result<
     after_sibling
         .reads
         .insert("c-later-reader".to_owned(), [Read::Dataset].into());
+    let mut sink = spec("sink", &["after-sibling", "stage-snapshot"]);
+    sink.reads.insert(
+        "stage-snapshot".to_owned(),
+        [Read::Handle(USED_HANDLE.to_owned())].into(),
+    );
     let pipeline = PipelineSpec {
         id: "parallel-snapshot-release".to_owned(),
         stages: vec![
@@ -177,7 +223,7 @@ fn run_parallel_snapshot(panic_after_publication: bool) -> gmeow_errors::Result<
             snapshot,
             sibling,
             after_sibling,
-            spec("sink", &["after-sibling", "stage-snapshot"]),
+            sink,
         ],
     };
     let graph = pipeline.validate().expect("valid parallel snapshot graph");
@@ -190,6 +236,7 @@ fn run_parallel_snapshot(panic_after_publication: bool) -> gmeow_errors::Result<
                 Arc::new(SnapshotStage {
                     spec: spec.clone(),
                     order: Arc::clone(&order),
+                    retain_snapshot,
                 }) as Arc<dyn Stage>
             })
             .collect(),
@@ -199,6 +246,9 @@ fn run_parallel_snapshot(panic_after_publication: bool) -> gmeow_errors::Result<
     let mut ctx = RunContext::open_ephemeral(root.path(), 2)?.with_progress(order);
     ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
     ctx.retain_carriers(["d-retained"]);
+    if retain_snapshot {
+        ctx.retain_carriers(["stage-snapshot"]);
+    }
     ctx.retain_post_run_inputs([(
         "a-exclusive".to_owned(),
         [Read::Artifact(POST_RUN_ARTIFACT.to_owned())].into(),
@@ -207,11 +257,13 @@ fn run_parallel_snapshot(panic_after_publication: bool) -> gmeow_errors::Result<
     run(&graph, &bound, &mut ctx)
 }
 
-/// Snapshot releases an exclusive carrier before hashing and keeps the inputs
-/// needed by in-flight, pending and post-run readers available.
+/// Snapshot releases exclusive inputs and unread output handles before hashing.
+/// Pending readers and explicitly retained products keep their payloads.
+/// Receipt identity commits the released handles as well as the retained ones.
 #[test]
 fn snapshot_handoff_keeps_sibling_publication_live() {
-    let result = run_parallel_snapshot(false).expect("parallel snapshot publishes");
+    let result = run_parallel_snapshot(false, false).expect("parallel snapshot publishes");
+    let retained = run_parallel_snapshot(false, true).expect("retained snapshot publishes");
     let boundary = |stage, event| {
         let mut records = result
             .memory
@@ -231,20 +283,33 @@ fn snapshot_handoff_keeps_sibling_publication_live() {
         })
         .expect("snapshot digest starts")
         .seq;
+    let handle_release = result
+        .memory
+        .iter()
+        .find(|record| {
+            record.stage_id == "stage-snapshot"
+                && record.event == MemoryEvent::Reclaim
+                && record.phase.as_deref() == Some("release-output-handles")
+        })
+        .expect("snapshot reclaims its unread handles");
+    assert!(handle_release.seq < digest_start);
     let snapshot = boundary("stage-snapshot", MemoryEvent::Complete);
     assert!(boundary("a-exclusive", MemoryEvent::Release) < digest_start);
     assert!(boundary("after-sibling", MemoryEvent::Dispatch) < snapshot);
     assert!(snapshot < boundary("b-shared", MemoryEvent::Release));
     assert!(digest_start < boundary("c-later-reader", MemoryEvent::Release));
     assert!(snapshot < boundary("sink", MemoryEvent::Dispatch));
-    assert_eq!(
-        result
+    let [released_receipt, retained_receipt] = [&result, &retained].map(|run| {
+        let mut receipts = run
             .stage_receipts
             .iter()
-            .filter(|receipt| receipt.context.stage_id == "stage-snapshot")
-            .count(),
-        1,
-    );
+            .filter(|receipt| receipt.context.stage_id == "stage-snapshot");
+        let receipt = receipts.next().expect("snapshot receipt");
+        assert!(receipts.next().is_none(), "snapshot publishes once");
+        receipt
+    });
+    assert_eq!(released_receipt.typed_handles.len(), 2);
+    assert_eq!(released_receipt, retained_receipt);
     assert_eq!(
         result.products["b-shared"].artifact(ARTIFACT),
         Some(b"retained".as_slice())
@@ -259,7 +324,7 @@ fn snapshot_handoff_keeps_sibling_publication_live() {
 /// A panic in the snapshot continuation reports a terminal result to the scheduler.
 #[test]
 fn snapshot_progress_panic_reaches_terminal_failure() {
-    let error = run_parallel_snapshot(true).expect_err("snapshot panic is a failure");
+    let error = run_parallel_snapshot(true, false).expect_err("snapshot panic is a failure");
     assert!(
         error
             .message()
