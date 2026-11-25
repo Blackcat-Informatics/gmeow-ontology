@@ -179,6 +179,16 @@ pub fn release_carrier(
     bundle: &PipelineBundle<PipelineHandle>,
     kept_internal: &std::collections::BTreeSet<&str>,
 ) -> Result<PipelineBundle<PipelineHandle>, gmeow_errors::Diag> {
+    release_carrier_except(bundle, kept_internal, &std::collections::BTreeSet::new())
+}
+
+/// Release a carrier while dropping the expired artifacts already recorded
+/// for reconciliation from the terminal bundle.
+pub(crate) fn release_carrier_except(
+    bundle: &PipelineBundle<PipelineHandle>,
+    kept_internal: &std::collections::BTreeSet<&str>,
+    expired: &std::collections::BTreeSet<&str>,
+) -> Result<PipelineBundle<PipelineHandle>, gmeow_errors::Diag> {
     let mut lookaside = RdfLookaside::default();
     let mut retained_digests = std::collections::BTreeSet::new();
     for resource in bundle.lookaside().resources_of_kind(ARTIFACT_KIND) {
@@ -187,7 +197,9 @@ pub fn release_carrier(
         else {
             continue;
         };
-        if name.starts_with(INTERNAL_ARTIFACT_PREFIX) && !kept_internal.contains(name) {
+        if expired.contains(name)
+            || (name.starts_with(INTERNAL_ARTIFACT_PREFIX) && !kept_internal.contains(name))
+        {
             continue;
         }
         let digest = purrdf::ContentDigest::from_hex(hex).ok_or_else(|| {

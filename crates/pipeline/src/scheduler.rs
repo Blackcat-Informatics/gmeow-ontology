@@ -115,22 +115,18 @@ fn return_free_allocator_pages() {}
 ///
 /// This is an explicit, first-class profile selection, not a degradation switch: the
 /// run's `combined_digest` and every product's committed byte-artifact lane are
-/// byte-identical under both arms (`crate::tests::carrier_retention_is_bounded_by_the_live_frontier`
-/// pins that),
-/// because a released product keeps its `stage_id` and `digest` verbatim and keeps
-/// every committed artifact. The arms differ ONLY in whether material that no declared
-/// consumer can still read stays resident for the life of the [`RunResult`].
+/// byte-identical under both arms when reconciled. A released product keeps its
+/// `stage_id` and `digest` verbatim. Update mode can reconcile expired, declared
+/// fanout artifacts by path from the terminal bundle and retain fewer payloads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CarrierRetention {
     /// Release each stage's carrier when its exact remaining carrier-reader count
     /// reaches zero and no artifact-lane view of it is in flight (a running consumer
     /// whose edge declares no carrier read shares the carrier by reference): the
     /// frozen dataset, typed handles, blob records, provenance, and the internal
-    /// `pipeline/` byte artifacts no consumer declares are then freed, bounding peak
-    /// residency to the live frontier plus every run OUTPUT. THE profile for the
-    /// whole-repository build
-    /// ([`crate::run::run_full_scoped_with_progress`]), whose reconcile reads only
-    /// committed artifacts.
+    /// `pipeline/` byte artifacts no consumer declares are then freed. The
+    /// whole-repository build ([`crate::run::run_full_scoped_with_progress`])
+    /// reconciles committed artifacts and can release eligible fanout bytes in update mode.
     ///
     /// Under this profile a post-run reader of an INTERMEDIATE product's dataset,
     /// handles, or `pipeline/` artifacts HARD-fails on
@@ -187,6 +183,8 @@ pub struct RunContext {
     /// The scheduler copies only these bytes before releasing their carriers. A
     /// missing stage or artifact is an error; selection never changes execution.
     pub retained_artifacts: BTreeSet<(String, String)>,
+    /// Declared output paths eligible for reconciliation from the terminal bundle.
+    pub(crate) fanout_paths: BTreeSet<String>,
     /// Inputs borrowed from the run products by a reader outside the DAG. Internal
     /// byte artifacts stay in the producer's released product.
     post_run_inputs: BTreeMap<String, crate::reads::ReadSet>,
@@ -226,6 +224,7 @@ impl RunContext {
             carrier_retention: CarrierRetention::RetainAll,
             retained_carriers: BTreeSet::new(),
             retained_artifacts: BTreeSet::new(),
+            fanout_paths: BTreeSet::new(),
             post_run_inputs: BTreeMap::new(),
             read_policy: crate::reads::ReadPolicy::Enforce,
             ready_order: ReadyOrder::default(),
@@ -268,6 +267,7 @@ impl RunContext {
             carrier_retention: CarrierRetention::RetainAll,
             retained_carriers: BTreeSet::new(),
             retained_artifacts: BTreeSet::new(),
+            fanout_paths: BTreeSet::new(),
             post_run_inputs: BTreeMap::new(),
             read_policy: crate::reads::ReadPolicy::Enforce,
             ready_order: ReadyOrder::default(),
@@ -292,6 +292,7 @@ impl RunContext {
             carrier_retention: CarrierRetention::RetainAll,
             retained_carriers: BTreeSet::new(),
             retained_artifacts: BTreeSet::new(),
+            fanout_paths: BTreeSet::new(),
             post_run_inputs: BTreeMap::new(),
             read_policy: crate::reads::ReadPolicy::Enforce,
             ready_order: ReadyOrder::default(),
@@ -347,6 +348,8 @@ pub struct RunResult {
     pub products: BTreeMap<String, StageProduct>,
     /// Selected observations surviving carrier release, keyed by (stage, path).
     pub retained_artifacts: BTreeMap<(String, String), Vec<u8>>,
+    /// Generated path occurrences whose bytes will be reconstructed by fanout.
+    pub(crate) released_fanout_paths: Vec<String>,
     /// The hex SHA-256 over the sorted `(id, product-digest)` pairs.
     pub combined_digest: String,
     /// Per-stage wall-clock timings in deterministic topological order.
@@ -616,6 +619,7 @@ pub fn run_without(
 
     let mut products: BTreeMap<String, StageProduct> = BTreeMap::new();
     let mut retained_artifacts = BTreeMap::new();
+    let mut released_fanout_paths = Vec::new();
     let profile = std::env::var_os("GMEOW_PIPELINE_TIMING").is_some();
     let mut stage_timings: Vec<StageTiming> = Vec::new();
     let mut stage_phase_timings: Vec<StagePhaseTiming> = Vec::new();
@@ -732,6 +736,8 @@ pub fn run_without(
     let read_policy = ctx.read_policy;
     let release_payloads = read_policy == crate::reads::ReadPolicy::Enforce
         && ctx.carrier_retention == CarrierRetention::DropAfterLastConsumer;
+    let fanout_paths = &ctx.fanout_paths;
+    let release_fanout_artifacts = release_payloads && !fanout_paths.is_empty();
     let mut remaining_payload_readers = BTreeMap::<String, PayloadReaders>::new();
     let mut producers_with_persistent_readers = BTreeSet::new();
     let mut recorded_edges: Vec<Arc<crate::reads::EdgeAccess>> = Vec::new();
@@ -777,6 +783,14 @@ pub fn run_without(
                     undeclared.join("\n  ")
                 ),
             }));
+        }
+    }
+    if release_fanout_artifacts {
+        for (producer, reads) in &ctx.post_run_inputs {
+            remaining_payload_readers
+                .entry(producer.clone())
+                .or_default()
+                .declare(reads.clone());
         }
     }
     let mut ready: BTreeSet<String> = remaining_dependencies
@@ -1043,6 +1057,7 @@ pub fn run_without(
                         // Snapshot's views are gone. Account for its own reservations
                         // when deciding which producers have another reader.
                         let inputs: BTreeSet<_> = stage.consumes().iter().collect();
+                        let completed_reads = release_fanout_artifacts.then(|| stage.reads());
                         for producer in inputs {
                             let last_reader = remaining_carrier_readers
                                 .get(producer)
@@ -1060,6 +1075,15 @@ pub fn run_without(
                                     &mut products,
                                     producer,
                                     &kept_for(producer),
+                                    release_fanout_artifacts.then_some(FanoutRelease {
+                                        expected: fanout_paths,
+                                        paths: &mut released_fanout_paths,
+                                        readers: remaining_payload_readers.get(producer),
+                                        completed: completed_reads
+                                            .as_ref()
+                                            .and_then(|reads| reads.get(producer)),
+                                        retained: retained_artifact_selection,
+                                    }),
                                     &mut memory,
                                 )?
                             {
@@ -1351,6 +1375,13 @@ pub fn run_without(
                                 &mut products,
                                 &producer,
                                 &kept_for(&producer),
+                                release_fanout_artifacts.then_some(FanoutRelease {
+                                    expected: fanout_paths,
+                                    paths: &mut released_fanout_paths,
+                                    readers: remaining_payload_readers.get(&producer),
+                                    completed: None,
+                                    retained: retained_artifact_selection,
+                                }),
                                 &mut memory,
                             )?
                         {
@@ -1488,6 +1519,7 @@ pub fn run_without(
         rayon_workers,
         products,
         retained_artifacts,
+        released_fanout_paths,
         combined_digest,
         stage_timings,
         stage_phase_timings,
@@ -1561,10 +1593,12 @@ pub(crate) fn last_consumer_levels(
     last
 }
 
-/// Selected readers that still have access to a producer's keyed payloads.
+/// Selected readers that still have access to a producer's payloads.
 #[derive(Default)]
 struct PayloadReaders {
     whole: usize,
+    all_artifacts: usize,
+    artifacts: BTreeMap<String, usize>,
     handles: BTreeMap<String, usize>,
     blobs: BTreeMap<String, usize>,
 }
@@ -1574,6 +1608,8 @@ impl PayloadReaders {
         for read in reads {
             match read {
                 crate::reads::Read::Carrier => self.whole += 1,
+                crate::reads::Read::AllArtifacts => self.all_artifacts += 1,
+                crate::reads::Read::Artifact(path) => *self.artifacts.entry(path).or_default() += 1,
                 crate::reads::Read::Handle(key) => *self.handles.entry(key).or_default() += 1,
                 crate::reads::Read::BlobRep(rep) => *self.blobs.entry(rep).or_default() += 1,
                 _ => {}
@@ -1585,6 +1621,11 @@ impl PayloadReaders {
         for read in reads {
             let remaining = match read {
                 crate::reads::Read::Carrier => &mut self.whole,
+                crate::reads::Read::AllArtifacts => &mut self.all_artifacts,
+                crate::reads::Read::Artifact(path) => self
+                    .artifacts
+                    .get_mut(&path)
+                    .expect("declared byte artifact reader was counted"),
                 crate::reads::Read::Handle(key) => self
                     .handles
                     .get_mut(&key)
@@ -1624,6 +1665,23 @@ impl PayloadReaders {
 
     fn keeps_blob(&self, rep: &str) -> bool {
         self.whole > 0 || self.blobs.get(rep).is_some_and(|&readers| readers > 0)
+    }
+
+    /// A generated artifact stays live for whole-lane and exact path readers.
+    fn keeps_artifact_after(&self, path: &str, completed: Option<&crate::reads::ReadSet>) -> bool {
+        use crate::reads::Read;
+
+        self.whole > usize::from(completed.is_some_and(|reads| reads.contains(&Read::Carrier)))
+            || self.all_artifacts
+                > usize::from(completed.is_some_and(|reads| reads.contains(&Read::AllArtifacts)))
+            || self.artifacts.get(path).is_some_and(|&readers| {
+                readers
+                    > usize::from(completed.is_some_and(|reads| {
+                        reads
+                            .iter()
+                            .any(|read| matches!(read, Read::Artifact(key) if key == path))
+                    }))
+            })
     }
 }
 
@@ -1671,10 +1729,19 @@ fn trace_release_cause(stage: &str, producer: &str, seq: u64, boundary: &str) {
     );
 }
 
+struct FanoutRelease<'a> {
+    expected: &'a BTreeSet<String>,
+    paths: &'a mut Vec<String>,
+    readers: Option<&'a PayloadReaders>,
+    completed: Option<&'a crate::reads::ReadSet>,
+    retained: &'a BTreeSet<(String, String)>,
+}
+
 fn release_carrier(
     products: &mut BTreeMap<String, StageProduct>,
     producer: &str,
     kept: &BTreeSet<&str>,
+    fanout: Option<FanoutRelease<'_>>,
     memory: &mut Vec<MemoryRecord>,
 ) -> Result<Option<u64>, gmeow_errors::Diag> {
     let Some(product) = products
@@ -1684,7 +1751,27 @@ fn release_carrier(
         return Ok(None);
     };
     let before = product.footprint();
-    let released = product.clone().into_carrier_released_keeping(kept)?;
+    let mut expired = BTreeSet::new();
+    if let Some(fanout) = fanout {
+        for path in product.artifact_refs()?.into_keys() {
+            if fanout.expected.contains(path)
+                && path != crate::run::GTS_PATH
+                && fanout
+                    .readers
+                    .is_none_or(|readers| !readers.keeps_artifact_after(path, fanout.completed))
+                && !fanout
+                    .retained
+                    .iter()
+                    .any(|(stage, selected)| stage == producer && selected == path)
+            {
+                expired.insert(path);
+                fanout.paths.push(path.to_owned());
+            }
+        }
+    }
+    let released = product
+        .clone()
+        .into_carrier_released_except(kept, &expired)?;
     let after = released.footprint();
     let mut detached = before.released_to(&after);
     (

@@ -19,6 +19,7 @@ use crate::reads::Read;
 use crate::scheduler::{CarrierRetention, ReadyOrder, RunContext, RunResult, run};
 
 const ARTIFACT: &str = "generated/shared.txt";
+const SNAPSHOT_ARTIFACT: &str = "generated/snapshot-only.txt";
 const POST_RUN_ARTIFACT: &str = "pipeline/post-run.txt";
 const POST_RUN_BYTES: &[u8] = b"retained for the post-run reader";
 const USED_HANDLE: &str = "urn:handle:snapshot-used";
@@ -97,7 +98,11 @@ impl Stage for SnapshotStage {
                 let dataset = purrdf::parse_dataset(data, "application/n-quads", None)
                     .expect("valid synthetic dataset");
                 let artifacts = if self.id() == "a-exclusive" {
-                    [(POST_RUN_ARTIFACT.to_owned(), POST_RUN_BYTES.to_vec())].into()
+                    [
+                        (POST_RUN_ARTIFACT.to_owned(), POST_RUN_BYTES.to_vec()),
+                        (SNAPSHOT_ARTIFACT.to_owned(), b"snapshot-only".to_vec()),
+                    ]
+                    .into()
                 } else {
                     BTreeMap::new()
                 };
@@ -148,6 +153,10 @@ impl Stage for SnapshotStage {
         input: StageInput<'_>,
     ) -> gmeow_errors::Result<Arc<purrdf::PipelineBundle<PipelineHandle>>> {
         assert_eq!(input.upstream["a-exclusive"].dataset().quad_count(), 1);
+        assert_eq!(
+            input.upstream["a-exclusive"].artifact(SNAPSHOT_ARTIFACT),
+            Some(b"snapshot-only".as_slice())
+        );
         assert_eq!(input.upstream["b-shared"].dataset().quad_count(), 0);
         assert_eq!(input.upstream["c-later-reader"].dataset().quad_count(), 1);
         assert_eq!(input.upstream["d-retained"].dataset().quad_count(), 1);
@@ -201,6 +210,11 @@ fn run_parallel_snapshot(
             .reads
             .insert(input.to_owned(), [Read::Dataset].into());
     }
+    snapshot
+        .reads
+        .get_mut("a-exclusive")
+        .expect("snapshot declares the exclusive input")
+        .insert(Read::Artifact(SNAPSHOT_ARTIFACT.to_owned()));
     let mut sibling = spec("stage-sibling", &["b-shared"]);
     sibling.reads.insert(
         "b-shared".to_owned(),
@@ -248,6 +262,7 @@ fn run_parallel_snapshot(
     let root = tempfile::tempdir().expect("synthetic pipeline root");
     let mut ctx = RunContext::open_ephemeral(root.path(), 3)?.with_progress(order);
     ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
+    ctx.fanout_paths.insert(SNAPSHOT_ARTIFACT.to_owned());
     ctx.retain_carriers(["d-retained"]);
     if retain_snapshot {
         ctx.retain_carriers(["stage-snapshot"]);
@@ -318,6 +333,12 @@ fn snapshot_handoff_keeps_sibling_publication_live() {
     assert!(handle_release.seq < digest_start);
     let snapshot = boundary("stage-snapshot", MemoryEvent::Complete);
     assert!(boundary("a-exclusive", MemoryEvent::Release) < digest_start);
+    assert_eq!(result.released_fanout_paths, [SNAPSHOT_ARTIFACT]);
+    assert!(
+        result.products["a-exclusive"]
+            .artifact(SNAPSHOT_ARTIFACT)
+            .is_none()
+    );
     assert!(boundary("after-sibling", MemoryEvent::Dispatch) < snapshot);
     assert!(snapshot < boundary("deferred", MemoryEvent::Dispatch));
     assert!(snapshot < boundary("b-shared", MemoryEvent::Release));

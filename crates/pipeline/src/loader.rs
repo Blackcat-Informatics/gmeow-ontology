@@ -195,6 +195,14 @@ impl PipelineSpec {
     /// `@x-gmeow-*` language tags are accepted. Each document is merged under a
     /// fresh blank scope (`push_dataset`); quads dedup at freeze.
     pub fn from_turtle(docs: &[&str]) -> Result<Self, gmeow_errors::Diag> {
+        let dataset = Self::parse_turtle_documents(docs)?;
+        Self::from_dataset(&dataset)
+    }
+
+    /// Parse the authored documents shared by the stage and output inventories.
+    pub(crate) fn parse_turtle_documents(
+        docs: &[&str],
+    ) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
         let mut builder = RdfDatasetBuilder::new();
         for doc in docs {
             let parsed = parse_dataset(doc.as_bytes(), "text/turtle", None).map_err(|e| {
@@ -204,12 +212,11 @@ impl PipelineSpec {
             })?;
             builder.push_dataset(&parsed)?;
         }
-        let ds = builder.freeze().map_err(|e| {
+        builder.freeze().map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Parse {
                 message: format!("dataset freeze failed: {e}"),
             })
-        })?;
-        Self::from_dataset(&ds)
+        })
     }
 
     /// Extract the (single) `gmeow:Pipeline` and its stages from a parsed dataset.
