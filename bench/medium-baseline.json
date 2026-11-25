@@ -3,226 +3,226 @@
   "engine_identity": [
     {
       "name": "purrdf",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "d6adeb5f4c7d5b2afa02d698dda9695d5c5f8c443112a00ae4f42244b0250af3"
     },
     {
       "name": "purrdf-cdt",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "747a883ddfe9826d5fa26d130802c5c71811b23655215aa7885ae118920c766f"
     },
     {
       "name": "purrdf-columnar",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "32d54f1d24126af78cd024542686303a587ace636a6718351c2baaff758c99a7"
     },
     {
       "name": "purrdf-core",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "a397ccb8f029b38c7a1795b1d11b4e73528416e605a70c877efe1443d3374e26"
     },
     {
       "name": "purrdf-datalog",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "6801db6869631f0f183bd6a1bfeebcfdbd428503ea57f5812ca21ec692229a06"
     },
     {
       "name": "purrdf-deflate",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "e5c1c7345e8fe905aec5e34eda22cc90291a1ed0a62d3d8b971bc89cc0e25a9f"
     },
     {
       "name": "purrdf-ed25519",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "6811605ad6d577e4f13b1e8b5c3c05ec4fbdcdaae0a5f8659200a756ddc86345"
     },
     {
       "name": "purrdf-entail",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "5f2bf99633ec97a139ad26b1002bebb035aef06b9483b878a6d4b7e3622995c1"
     },
     {
       "name": "purrdf-events",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "02077e4604401eadac676e6b529885589f8cbe11920d034e5c49f4d1ab23a2d6"
     },
     {
       "name": "purrdf-geo",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "b11a946431e893c73bce842d04420eae80807d2d5bc0cd8b095abc7cd6ac000d"
     },
     {
       "name": "purrdf-geo-kernel",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "79ffc4b81ffa4cfc4eeddefec05c5a893966fd2319bf96e374673dfd276cacc1"
     },
     {
       "name": "purrdf-glob",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "7d17aceca3d9147884ff18d3d9b7224ddc5de5ecab5ed1ce238ea0085edde3fe"
     },
     {
       "name": "purrdf-gts",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "ec9de8f2f265117b74d29b38233d7d17a5ef4c09fe4ee649cb579d717b66a607"
     },
     {
       "name": "purrdf-hash",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "1cbe7e1b1b6ebe3e36de11945079d55a129555fb35127f43bebf0e6d7a881594"
     },
     {
       "name": "purrdf-hnsw",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "9eb416b3f0d7c88003e2bc4b5bcc35bba08a0977f672f4daf9265f258ee5c8d6"
     },
     {
       "name": "purrdf-iri",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "7c0cdb396dcc0c71dcb374a313cc0efbdf9da847c96e14ac9cc12a31387252e4"
     },
     {
       "name": "purrdf-json",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "a95688250e2038f68cf10e8134c3402e8e91f2d25fa5551bf20b6fe7bd9bdcdb"
     },
     {
       "name": "purrdf-jsonschema",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "d61b353a7f8dbaa46ca501424e4962f7dd39532aa9c242061887d0a6502f9189"
     },
     {
       "name": "purrdf-lex",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "028953d9bd42808b4afc162c58d8ccb22164b366344bb3553ecd63dcc02d25a1"
     },
     {
       "name": "purrdf-markdown",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "f17544e8691048c96941af88fc0aed8b2390310f9f41e71b58fd3b9d48ed93e2"
     },
     {
       "name": "purrdf-mime",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "923275f6c4f4562310bd881b5e5897f90da64bccc0b03893b6d6823f51a94298"
     },
     {
       "name": "purrdf-rdf",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "adff826372682206b1ee767ed79ad716bd46f3bd86823f4bcf2fd1473bceffba"
     },
     {
       "name": "purrdf-retrieval",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "c73705b5faf111d56f2a3a45a8ab2eede89f3513c431f4244b4e7ead3a3245a1"
     },
     {
       "name": "purrdf-shapes",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "7c87fafe944f392bb93e60eb35195d09b68a687f891456b32c739cbd86d4bee8"
     },
     {
       "name": "purrdf-shex",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "b1260d8357efc7320ca5b5333d5bfd56216a26ec05f0de1183ee9da7312f2793"
     },
     {
       "name": "purrdf-slice",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "5937a290b47b25775301d4256050105064d7990ff471dbe55b4f4d74523b6121"
     },
     {
       "name": "purrdf-sparql-algebra",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "129178b686fe6e866f1220f409d48070f6b5497e1105edf68264c44b289cffd7"
     },
     {
       "name": "purrdf-sparql-eval",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "0fe4ecd4a1023b45beb93bb12eb3d27dd86e3df2027da2bf1acae887dff78b83"
     },
     {
       "name": "purrdf-sparql-results",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "7886048e6754bd260224ca81d64ecad649a50c9b1982cc1c6b2e4dd76147f865"
     },
     {
       "name": "purrdf-stack",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "36798bc41673c8343edeb1d1362e2982f0ef000538ce7222d76db2f19e4020ca"
     },
     {
       "name": "purrdf-text",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "68d1ce83fda1cadeaeed000fd25699ae2130c9b388efadf1030e5c6e74388970"
     },
     {
       "name": "purrdf-toml",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "b6c92724dea2ce845448efdd49ceeb254a0af7960a2bf65d0381ebf5589d1e3c"
     },
     {
       "name": "purrdf-validate",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "a59d47c0f207cc94860e77542610486b065d347bed7565016e026d2b0562833d"
     },
     {
       "name": "purrdf-xsd",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "0213c81a34f0abc00f6b25b663935a9f26b0e8acc474fc0b5eff068903a343bb"
     },
     {
       "name": "purrdf-yaml",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "fb303dca0b8ccf1187c079fe6e833427afe4e60b0db867a5c312d0c25c6a95e0"
     },
     {
       "name": "purrdf-zstd",
-      "version": "5.0.0",
-      "source": "git+https://github.com/Blackcat-Informatics/purrdf?rev=875d59c77385d8607cfe1cba503c2c08a878f08f#875d59c77385d8607cfe1cba503c2c08a878f08f",
-      "checksum": ""
+      "version": "5.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "937513929488b2efa3cb6c88f5a4cd0a645b431bd0fe24c87b8758acb62193b1"
     }
   ],
   "codec_sweep": {
     "mandated_codec": "zstd-rsyncable",
     "mandated_level": 12,
     "corpus_frame_count": 22,
-    "corpus_bytes": 1779444438,
+    "corpus_bytes": 1783644133,
     "excluded_reps": [
       "docs-book",
       "docs-print",
@@ -233,42 +233,42 @@
       {
         "codec": "zstd",
         "level": 3,
-        "bytes": 156632816
+        "bytes": 157003967
       },
       {
         "codec": "zstd",
         "level": 9,
-        "bytes": 143304579
+        "bytes": 143761476
       },
       {
         "codec": "zstd",
         "level": 12,
-        "bytes": 142042633
+        "bytes": 142498204
       },
       {
         "codec": "zstd",
         "level": 19,
-        "bytes": 119523579
+        "bytes": 119780625
       },
       {
         "codec": "zstd-rsyncable",
         "level": 3,
-        "bytes": 196984613
+        "bytes": 197540303
       },
       {
         "codec": "zstd-rsyncable",
         "level": 9,
-        "bytes": 189708858
+        "bytes": 190214528
       },
       {
         "codec": "zstd-rsyncable",
         "level": 12,
-        "bytes": 188208746
+        "bytes": 188750077
       },
       {
         "codec": "zstd-rsyncable",
         "level": 19,
-        "bytes": 180427163
+        "bytes": 180918822
       }
     ],
     "mandated_is_argmin": false
@@ -282,87 +282,87 @@
       "winning_strategy": "trained",
       "winning_target_length": 262144,
       "declared_is_argmin": true,
-      "bytes_on_disk": 71727758,
-      "bytes_on_disk_baseline": 79242068,
-      "dictionary_in_band_bytes": 262142,
-      "two_part_code_bytes": 71989900,
-      "dictionary_gain_fraction": "0.091519",
+      "bytes_on_disk": 71898846,
+      "bytes_on_disk_baseline": 79454248,
+      "dictionary_in_band_bytes": 262144,
+      "two_part_code_bytes": 72160990,
+      "dictionary_gain_fraction": "0.091792",
       "corpus_sample_count": 1010,
       "held_out_sample_count": 18,
-      "corpus_digest": "blake3:d70a9d9259cbd77b75e2a1fb1f85ef872cf7dca4a14a01e39ae67c8ad1b64174",
+      "corpus_digest": "blake3:c16f02f8f10356d21d3d8522edfef01898f5650a7280c54dcc5f6b77a64854e2",
       "evaluated_frame_count": 7,
       "grid": [
         {
           "strategy": "trained",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 76237133
+          "two_part_code_bytes": 76446327
         },
         {
           "strategy": "trained",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 74253330
+          "two_part_code_bytes": 74460893
         },
         {
           "strategy": "trained",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 72109644
+          "two_part_code_bytes": 72441772
         },
         {
           "strategy": "trained",
           "target_length": 262144,
-          "dictionary_bytes": 262142,
-          "two_part_code_bytes": 71989900
+          "dictionary_bytes": 262144,
+          "two_part_code_bytes": 72160990
         },
         {
           "strategy": "raw-content",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 78400696
+          "two_part_code_bytes": 78619196
         },
         {
           "strategy": "raw-content",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 77603447
+          "two_part_code_bytes": 77821844
         },
         {
           "strategy": "raw-content",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 76081024
+          "two_part_code_bytes": 76300945
         },
         {
           "strategy": "raw-content",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 75798351
+          "two_part_code_bytes": 76017116
         },
         {
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 80061001
+          "two_part_code_bytes": 80269158
         },
         {
           "strategy": "term-table",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 81394994
+          "two_part_code_bytes": 81599642
         },
         {
           "strategy": "term-table",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 82034218
+          "two_part_code_bytes": 82241193
         },
         {
           "strategy": "term-table",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 80736556
+          "two_part_code_bytes": 80951688
         }
       ]
     },
@@ -374,87 +374,87 @@
       "winning_strategy": "trained",
       "winning_target_length": 262144,
       "declared_is_argmin": true,
-      "bytes_on_disk": 10877105,
-      "bytes_on_disk_baseline": 13503631,
-      "dictionary_in_band_bytes": 262140,
-      "two_part_code_bytes": 11139245,
-      "dictionary_gain_fraction": "0.175093",
+      "bytes_on_disk": 10762133,
+      "bytes_on_disk_baseline": 13530131,
+      "dictionary_in_band_bytes": 262144,
+      "two_part_code_bytes": 11024277,
+      "dictionary_gain_fraction": "0.185205",
       "corpus_sample_count": 252,
       "held_out_sample_count": 6,
-      "corpus_digest": "blake3:73ce9570ad79dda47ef093d9a8e198cb80ef960dedcaa94e948897934d412321",
+      "corpus_digest": "blake3:3527ebab806dbddceacd37251a24086f49cff98f909d2608cfbfd3b602c35a24",
       "evaluated_frame_count": 3,
       "grid": [
         {
           "strategy": "trained",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 12829698
+          "two_part_code_bytes": 12836242
         },
         {
           "strategy": "trained",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 12024684
+          "two_part_code_bytes": 12020286
         },
         {
           "strategy": "trained",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 11231471
+          "two_part_code_bytes": 11146108
         },
         {
           "strategy": "trained",
           "target_length": 262144,
-          "dictionary_bytes": 262140,
-          "two_part_code_bytes": 11139245
+          "dictionary_bytes": 262144,
+          "two_part_code_bytes": 11024277
         },
         {
           "strategy": "raw-content",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 13438496
+          "two_part_code_bytes": 13464469
         },
         {
           "strategy": "raw-content",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 13418032
+          "two_part_code_bytes": 13443894
         },
         {
           "strategy": "raw-content",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 13354391
+          "two_part_code_bytes": 13379983
         },
         {
           "strategy": "raw-content",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 13363305
+          "two_part_code_bytes": 12458113
         },
         {
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 13496415
+          "two_part_code_bytes": 13522926
         },
         {
           "strategy": "term-table",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 13498305
+          "two_part_code_bytes": 13524872
         },
         {
           "strategy": "term-table",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 13511933
+          "two_part_code_bytes": 13538217
         },
         {
           "strategy": "term-table",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 13559404
+          "two_part_code_bytes": 13584971
         }
       ]
     },
@@ -466,87 +466,87 @@
       "winning_strategy": "trained",
       "winning_target_length": 65536,
       "declared_is_argmin": true,
-      "bytes_on_disk": 5952927,
-      "bytes_on_disk_baseline": 6929495,
+      "bytes_on_disk": 5965390,
+      "bytes_on_disk_baseline": 6944996,
       "dictionary_in_band_bytes": 65536,
-      "two_part_code_bytes": 6018463,
-      "dictionary_gain_fraction": "0.131472",
+      "two_part_code_bytes": 6030926,
+      "dictionary_gain_fraction": "0.131616",
       "corpus_sample_count": 162,
       "held_out_sample_count": 1,
-      "corpus_digest": "blake3:7d59f44384263e11b325dfadfd8e546d1a5420f37535d28ffc97d5ea066e6e16",
+      "corpus_digest": "blake3:eb1c0b4404b483427378d94fdf1d24989f6bba46de2ef7b1fbe1e8d22414e911",
       "evaluated_frame_count": 6,
       "grid": [
         {
           "strategy": "trained",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 6578554
+          "two_part_code_bytes": 6598380
         },
         {
           "strategy": "trained",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 6302508
+          "two_part_code_bytes": 6310350
         },
         {
           "strategy": "trained",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 6018463
+          "two_part_code_bytes": 6030926
         },
         {
           "strategy": "trained",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 6048282
+          "two_part_code_bytes": 6066090
         },
         {
           "strategy": "raw-content",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 6853074
+          "two_part_code_bytes": 6868167
         },
         {
           "strategy": "raw-content",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 6703216
+          "two_part_code_bytes": 6717705
         },
         {
           "strategy": "raw-content",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 6543890
+          "two_part_code_bytes": 6557551
         },
         {
           "strategy": "raw-content",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 6676182
+          "two_part_code_bytes": 6689095
         },
         {
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 6929649
+          "two_part_code_bytes": 6945258
         },
         {
           "strategy": "term-table",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 6945601
+          "two_part_code_bytes": 6961134
         },
         {
           "strategy": "term-table",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 6994699
+          "two_part_code_bytes": 7010068
         },
         {
           "strategy": "term-table",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 7096335
+          "two_part_code_bytes": 7111125
         }
       ]
     },
@@ -558,87 +558,87 @@
       "winning_strategy": "trained",
       "winning_target_length": 4096,
       "declared_is_argmin": true,
-      "bytes_on_disk": 392752,
-      "bytes_on_disk_baseline": 421836,
+      "bytes_on_disk": 392180,
+      "bytes_on_disk_baseline": 421911,
       "dictionary_in_band_bytes": 4096,
-      "two_part_code_bytes": 396848,
-      "dictionary_gain_fraction": "0.059236",
+      "two_part_code_bytes": 396276,
+      "dictionary_gain_fraction": "0.060759",
       "corpus_sample_count": 1,
       "held_out_sample_count": 0,
-      "corpus_digest": "blake3:551ff590e5929dd3cc0134cfa211b52c86e652661c6abe28a2548c4959f82d26",
+      "corpus_digest": "blake3:b3309edd574e9bcc1d0e42235db856aed0f388a384aceaf6de86f312412d173f",
       "evaluated_frame_count": 512,
       "grid": [
         {
           "strategy": "trained",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 396848
+          "two_part_code_bytes": 396276
         },
         {
           "strategy": "trained",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 403172
+          "two_part_code_bytes": 403812
         },
         {
           "strategy": "trained",
           "target_length": 65536,
-          "dictionary_bytes": 65536,
-          "two_part_code_bytes": 444880
+          "dictionary_bytes": 65531,
+          "two_part_code_bytes": 443867
         },
         {
           "strategy": "trained",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 644302
+          "two_part_code_bytes": 640474
         },
         {
           "strategy": "raw-content",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 407405
+          "two_part_code_bytes": 407509
         },
         {
           "strategy": "raw-content",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 419970
+          "two_part_code_bytes": 419616
         },
         {
           "strategy": "raw-content",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 468688
+          "two_part_code_bytes": 468818
         },
         {
           "strategy": "raw-content",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 664583
+          "two_part_code_bytes": 664806
         },
         {
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 434908
+          "two_part_code_bytes": 434834
         },
         {
           "strategy": "term-table",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 448306
+          "two_part_code_bytes": 448472
         },
         {
           "strategy": "term-table",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 498904
+          "two_part_code_bytes": 499276
         },
         {
           "strategy": "term-table",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 677881
+          "two_part_code_bytes": 677995
         }
       ]
     },
@@ -650,87 +650,87 @@
       "winning_strategy": "trained",
       "winning_target_length": 4096,
       "declared_is_argmin": true,
-      "bytes_on_disk": 390692,
-      "bytes_on_disk_baseline": 421878,
+      "bytes_on_disk": 392330,
+      "bytes_on_disk_baseline": 421820,
       "dictionary_in_band_bytes": 4096,
-      "two_part_code_bytes": 394788,
-      "dictionary_gain_fraction": "0.064213",
+      "two_part_code_bytes": 396426,
+      "dictionary_gain_fraction": "0.060201",
       "corpus_sample_count": 3,
       "held_out_sample_count": 0,
-      "corpus_digest": "blake3:ad9255f68548d74cb7e106b0c19c89a65f91aa4315bda8a2ddc662cd92617b86",
+      "corpus_digest": "blake3:1940455c165530b7d9dc53dccea6c8f4f0fb6e30a54563f52bcbf01ad8f9431b",
       "evaluated_frame_count": 512,
       "grid": [
         {
           "strategy": "trained",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 394788
+          "two_part_code_bytes": 396426
         },
         {
           "strategy": "trained",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 404321
+          "two_part_code_bytes": 405273
         },
         {
           "strategy": "trained",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 443138
+          "two_part_code_bytes": 445426
         },
         {
           "strategy": "trained",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 630968
+          "two_part_code_bytes": 633414
         },
         {
           "strategy": "raw-content",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 407459
+          "two_part_code_bytes": 407455
         },
         {
           "strategy": "raw-content",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 420017
+          "two_part_code_bytes": 419736
         },
         {
           "strategy": "raw-content",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 468812
+          "two_part_code_bytes": 468967
         },
         {
           "strategy": "raw-content",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 664611
+          "two_part_code_bytes": 664771
         },
         {
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 434950
+          "two_part_code_bytes": 434927
         },
         {
           "strategy": "term-table",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 448312
+          "two_part_code_bytes": 448460
         },
         {
           "strategy": "term-table",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 498947
+          "two_part_code_bytes": 499263
         },
         {
           "strategy": "term-table",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 677863
+          "two_part_code_bytes": 677788
         }
       ]
     },
@@ -742,87 +742,87 @@
       "winning_strategy": "trained",
       "winning_target_length": 4096,
       "declared_is_argmin": true,
-      "bytes_on_disk": 85552049,
-      "bytes_on_disk_baseline": 88511338,
-      "dictionary_in_band_bytes": 4096,
-      "two_part_code_bytes": 85556145,
-      "dictionary_gain_fraction": "0.033388",
+      "bytes_on_disk": 85772909,
+      "bytes_on_disk_baseline": 88798488,
+      "dictionary_in_band_bytes": 4095,
+      "two_part_code_bytes": 85777004,
+      "dictionary_gain_fraction": "0.034026",
       "corpus_sample_count": 3,
       "held_out_sample_count": 0,
-      "corpus_digest": "blake3:42d4d23782b1ab08e5e028c789021623180e26ff31956274d9c2154b698e135d",
+      "corpus_digest": "blake3:28ac8c9c5766ec09cb0503098cf6c1e438459460e1298fb275b268ec160d2336",
       "evaluated_frame_count": 4,
       "grid": [
         {
           "strategy": "trained",
           "target_length": 4096,
-          "dictionary_bytes": 4096,
-          "two_part_code_bytes": 85556145
+          "dictionary_bytes": 4095,
+          "two_part_code_bytes": 85777004
         },
         {
           "strategy": "trained",
           "target_length": 16384,
-          "dictionary_bytes": 16384,
-          "two_part_code_bytes": 85730864
+          "dictionary_bytes": 16383,
+          "two_part_code_bytes": 85992571
         },
         {
           "strategy": "trained",
           "target_length": 65536,
-          "dictionary_bytes": 65536,
-          "two_part_code_bytes": 86327839
+          "dictionary_bytes": 65535,
+          "two_part_code_bytes": 86598840
         },
         {
           "strategy": "trained",
           "target_length": 262144,
-          "dictionary_bytes": 262139,
-          "two_part_code_bytes": 87082926
+          "dictionary_bytes": 262144,
+          "two_part_code_bytes": 87369866
         },
         {
           "strategy": "raw-content",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 86993384
+          "two_part_code_bytes": 87264577
         },
         {
           "strategy": "raw-content",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 87075386
+          "two_part_code_bytes": 87353173
         },
         {
           "strategy": "raw-content",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 87296520
+          "two_part_code_bytes": 87591103
         },
         {
           "strategy": "raw-content",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 88696155
+          "two_part_code_bytes": 88993841
         },
         {
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 89264455
+          "two_part_code_bytes": 89549103
         },
         {
           "strategy": "term-table",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 90490279
+          "two_part_code_bytes": 90774631
         },
         {
           "strategy": "term-table",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 91121168
+          "two_part_code_bytes": 91405349
         },
         {
           "strategy": "term-table",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 90335266
+          "two_part_code_bytes": 90622602
         }
       ]
     }
