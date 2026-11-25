@@ -41,6 +41,27 @@ fn synthetic_bundle(object: &str) -> Vec<u8> {
     .bytes
 }
 
+/// A released output missing from the bundle stops fanout before any file mutation.
+#[test]
+fn update_refuses_absent_released_output_before_writing() {
+    let work = tempfile::tempdir().expect("create isolated fanout root");
+    let root = work.path();
+    std::fs::create_dir_all(root.join("generated/dist")).expect("create terminal directory");
+    std::fs::create_dir_all(root.join("generated/logic")).expect("create output directory");
+    std::fs::write(root.join(GTS_PATH), synthetic_bundle("urn:original")).expect("write bundle");
+    std::fs::write(root.join(ORPHAN), b"original bytes").expect("write existing output");
+
+    let error = fanout_for_update(root, 1, &[ORPHAN.to_owned()])
+        .err()
+        .expect("an absent representative must refuse fanout");
+    assert!(error.message().contains(ORPHAN), "{error}");
+    assert!(!root.join(OUTPUT).exists());
+    assert_eq!(
+        std::fs::read(root.join(ORPHAN)).expect("existing output remains"),
+        b"original bytes"
+    );
+}
+
 /// The update sweep checks disk outputs and never certifies a replaced bundle
 /// using the previous bundle's reconstruction.
 #[test]
@@ -51,7 +72,9 @@ fn update_sweep_follows_the_current_bundle() {
     std::fs::create_dir_all(root.join("generated/dist")).expect("create terminal directory");
     std::fs::write(&bundle, synthetic_bundle("urn:original")).expect("write initial bundle");
 
-    let (report, fanout) = fanout_for_update(root, 1).expect("write original projection");
+    let released = [OUTPUT.to_owned()];
+    let (report, fanout) =
+        fanout_for_update(root, 1, &released).expect("write original projection");
     assert_eq!(report.produced, 1);
     assert!(
         fanout
@@ -60,14 +83,14 @@ fn update_sweep_follows_the_current_bundle() {
             .is_clean()
     );
 
-    let (_, fanout) = fanout_for_update(root, 1).expect("retain original projection");
+    let (_, fanout) = fanout_for_update(root, 1, &released).expect("retain original projection");
     std::fs::write(root.join(OUTPUT), b"drift").expect("change materialized file");
     let drift = fanout
         .sweep_materialized_tree(root)
         .expect("sweep modified tree");
     assert_eq!(drift.mismatch, [OUTPUT]);
 
-    let (_, fanout) = fanout_for_update(root, 1).expect("restore original projection");
+    let (_, fanout) = fanout_for_update(root, 1, &released).expect("restore original projection");
     std::fs::rename(root.join(OUTPUT), root.join(ORPHAN)).expect("move materialized file");
     let drift = fanout
         .sweep_materialized_tree(root)
@@ -75,14 +98,14 @@ fn update_sweep_follows_the_current_bundle() {
     assert_eq!(drift.missing, [OUTPUT]);
     assert_eq!(drift.orphan, [ORPHAN]);
 
-    let (_, fanout) = fanout_for_update(root, 1).expect("restore original projection");
+    let (_, fanout) = fanout_for_update(root, 1, &released).expect("restore original projection");
     std::fs::write(&bundle, synthetic_bundle("urn:replacement")).expect("replace bundle");
     let drift = fanout
         .sweep_materialized_tree(root)
         .expect("sweep replacement");
     assert_eq!(drift.mismatch, [OUTPUT]);
 
-    let (_, fanout) = fanout_for_update(root, 1).expect("write replacement projection");
+    let (_, fanout) = fanout_for_update(root, 1, &released).expect("write replacement projection");
     std::fs::rename(&bundle, work.path().join("retired.gts")).expect("move the published bundle");
     let error = fanout
         .sweep_materialized_tree(root)

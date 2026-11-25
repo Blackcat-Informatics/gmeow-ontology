@@ -596,6 +596,14 @@ Every committed output is therefore the meeting of two halves:
 - a **fanout extraction** — the post-pipeline phase projects those bytes back to
   their path under `generated/`.
 
+During update, carrier release detaches expired artifact bytes for paths in
+the authored output inventory. The scheduler keeps bytes for remaining
+readers and preserves the published path and digest for attachment and receipt
+verification. Reconciliation counts each released path occurrence and includes
+it in the output inventory. Fanout verifies that the terminal bundle
+reconstructs those paths before writing or pruning files. Check mode keeps
+the stage bytes for drift comparison.
+
 Fanout is built on the existing bundle-introspection surface — the `gmeow export`
 consumer views, and the GTS structural verbs (`fold` for named graphs, `extract`
 for a blob by digest, `unpack` for a files-profile archive). No output requires a
