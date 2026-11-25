@@ -22,7 +22,7 @@
 //! schemas read those bytes from their in-memory upstream product, with no Python
 //! subprocess and no disk-read dependency.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::io::{BufRead, BufReader, ErrorKind};
 use std::path::Path;
 use std::sync::Arc;
@@ -324,13 +324,28 @@ const PIPELINE_DESCRIPTION: &str = include_str!("../../../slices/core/pipeline/m
 /// the authored slice, and no run can proceed without a pipeline.
 #[must_use]
 pub fn full_spec() -> PipelineSpec {
-    static SPEC: std::sync::OnceLock<PipelineSpec> = std::sync::OnceLock::new();
-    SPEC.get_or_init(|| {
-        PipelineSpec::from_turtle(&[PIPELINE_DESCRIPTION]).unwrap_or_else(|error| {
+    authored_pipeline().spec.clone()
+}
+
+struct AuthoredPipeline {
+    spec: PipelineSpec,
+    fanout_paths: BTreeSet<String>,
+}
+
+fn authored_pipeline() -> &'static AuthoredPipeline {
+    static DESCRIPTION: std::sync::OnceLock<AuthoredPipeline> = std::sync::OnceLock::new();
+    DESCRIPTION.get_or_init(|| {
+        let load = || -> gmeow_errors::Result<AuthoredPipeline> {
+            let dataset = PipelineSpec::parse_turtle_documents(&[PIPELINE_DESCRIPTION])?;
+            Ok(AuthoredPipeline {
+                spec: PipelineSpec::from_dataset(&dataset)?,
+                fanout_paths: crate::stages::superset::read_expected_outputs(&dataset)?,
+            })
+        };
+        load().unwrap_or_else(|error| {
             panic!("slices/core/pipeline/module.ttl does not describe a pipeline: {error}")
         })
     })
-    .clone()
 }
 
 /// Select the stages one output scope runs, from each stage's declared
@@ -499,10 +514,15 @@ pub fn run_full_scoped_with_progress(
     // This path is the whole-repository build — roughly 47 contribution and
     // aggregate products — so retaining every product's bundle for the run's life makes
     // peak memory the SUM over the DAG rather than the live frontier, which is what
-    // OOM-kills a 16 GB CI runner. Everything the reconcile below reads (each product's
-    // COMMITTED byte-artifact lane, every digest) survives the release untouched, so the
-    // written/compared bytes and `combined_digest` are byte-identical either way.
+    // OOM-kills a 16 GB CI runner. Update mode reconciles expired fanout artifacts
+    // from their paths and the terminal bundle. Check mode keeps the stage bytes for
+    // comparison. Both preserve the published product digest.
     ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
+    if mode == RunMode::Update
+        && std::env::var("GMEOW_FANOUT_ARTIFACT_TRIAL").as_deref() != Ok("retain")
+    {
+        ctx.fanout_paths = authored_pipeline().fanout_paths.clone();
+    }
     ctx.ready_order = ready_order;
     let gmn_observation_key = (
         "stage-conformance".to_owned(),
@@ -605,6 +625,7 @@ pub fn run_full_scoped_with_progress(
     let stage_memory = result.memory.clone();
     let level_timings = result.level_timings.clone();
     let stage_receipts = result.stage_receipts.clone();
+    let released_fanout_paths = result.released_fanout_paths;
     let mut products: BTreeMap<String, StageProduct> = result.products;
     // The run-level ledger is the scheduler's FORWARD fold of every producer's
     // diagnostic nodes (their report findings, projected once — the single source). The
@@ -641,8 +662,8 @@ pub fn run_full_scoped_with_progress(
     })?;
 
     let mut drifted = canonical_drifted;
-    let mut produced = canonical_targets.len();
-    let mut reproduced = canonical_reproduced;
+    let mut produced = canonical_targets.len() + released_fanout_paths.len();
+    let mut reproduced = canonical_reproduced + released_fanout_paths.len();
     let mut written = canonical_written;
     let mut skipped_writes = canonical_skipped_writes;
     let mut removed = 0usize;
@@ -935,7 +956,8 @@ pub fn run_full_scoped_with_progress(
         if let Some(progress) = progress.as_ref() {
             progress.stage_start("pipeline:fanout");
         }
-        let (report, projection) = crate::fanout::fanout_for_update(root, jobs)?;
+        let (report, projection) =
+            crate::fanout::fanout_for_update(root, jobs, &released_fanout_paths)?;
         if let Some(progress) = progress.as_ref() {
             progress.stage_end("pipeline:fanout", fanout_started.elapsed());
         }
@@ -973,6 +995,7 @@ pub fn run_full_scoped_with_progress(
 
     drifted.sort();
     drifted.dedup();
+    output_paths.extend(released_fanout_paths);
     output_paths.sort();
     output_paths.dedup();
 

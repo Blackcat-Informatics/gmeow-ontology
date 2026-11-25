@@ -2567,9 +2567,10 @@ impl CarrierWatch {
 
 /// A synthetic stage that emits a REAL carrier exercising all three lanes
 /// [`crate::bundle::release_carrier`] treats differently: one named graph of its own,
-/// one COMMITTED byte artifact, and one INTERNAL `pipeline/`-prefixed byte artifact.
+/// committed byte artifacts, and one internal `pipeline/`-prefixed byte artifact.
 struct CarrierStage {
     id: String,
+    cache_policy: CachePolicy,
     empty: Vec<String>,
     capabilities: Vec<String>,
     consumes: Vec<String>,
@@ -2625,7 +2626,7 @@ impl Stage for CarrierStage {
         "v1"
     }
     fn cache_policy(&self) -> CachePolicy {
-        CachePolicy::Recompute
+        self.cache_policy
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Record what is STILL RESIDENT at this stage's execution instant — the live
@@ -2716,13 +2717,27 @@ impl Stage for CarrierStage {
             .lock()
             .unwrap()
             .insert(self.id.clone(), Arc::downgrade(&dataset));
-        let artifacts = std::collections::BTreeMap::from([
+        let mut artifacts = std::collections::BTreeMap::from([
             (
                 format!("generated/retention/{}.txt", self.id),
                 self.id.clone().into_bytes(),
             ),
+            (
+                format!("generated/retention/{}.metadata", self.id),
+                format!("metadata for {}", self.id).into_bytes(),
+            ),
+            (
+                format!("generated/retention/{}.report", self.id),
+                format!("report for {}", self.id).into_bytes(),
+            ),
             (format!("pipeline/{}.nq", self.id), nq.into_bytes()),
         ]);
+        if self.id == "late" && self.consumes.iter().any(|producer| producer == "source") {
+            artifacts.insert(
+                "generated/retention/source.metadata".to_owned(),
+                b"metadata for source".to_vec(),
+            );
+        }
         Ok(StageOutput::new(
             StageProduct::from_artifacts_over(self.id.clone(), dataset, artifacts)
                 .expect("the stage carrier digests"),
@@ -2804,6 +2819,7 @@ fn retention_registry(spec: &PipelineSpec, watch: &Arc<CarrierWatch>) -> StageRe
             s.impl_key.clone(),
             Arc::new(CarrierStage {
                 id: s.id.clone(),
+                cache_policy: s.cache_disposition,
                 empty: Vec::new(),
                 capabilities: s.capabilities.clone(),
                 consumes: s.consumes.clone(),
@@ -2877,14 +2893,18 @@ struct ArtifactOnlyPair {
     watch: Arc<CarrierWatch>,
 }
 
-fn artifact_only_pair(internal_reads: Vec<(&'static str, &'static str)>) -> ArtifactOnlyPair {
+fn artifact_only_pair(
+    internal_reads: Vec<(&'static str, &'static str)>,
+    source_cache_policy: CachePolicy,
+) -> ArtifactOnlyPair {
     let chain = retention_chain();
-    let source = chain
+    let mut source = chain
         .stages
         .iter()
         .find(|stage| stage.id == "source")
         .unwrap()
         .clone();
+    source.cache_disposition = source_cache_policy;
     let mut late = chain
         .stages
         .iter()
@@ -2905,6 +2925,7 @@ fn artifact_only_pair(internal_reads: Vec<(&'static str, &'static str)>) -> Arti
             stage.impl_key.clone(),
             Arc::new(CarrierStage {
                 id: stage.id.clone(),
+                cache_policy: stage.cache_disposition,
                 empty: Vec::new(),
                 capabilities: stage.capabilities.clone(),
                 consumes: stage.consumes.clone(),
@@ -2933,7 +2954,7 @@ fn artifact_only_dependency_releases_at_the_producers_own_level() {
         graph,
         bound,
         watch,
-    } = artifact_only_pair(Vec::new());
+    } = artifact_only_pair(Vec::new(), CachePolicy::Recompute);
     let bound = bound.expect("artifact-only graph binds");
     let by_id: std::collections::BTreeMap<&str, &Arc<dyn Stage>> =
         bound.iter().map(|stage| (stage.id(), stage)).collect();
@@ -2961,6 +2982,65 @@ fn artifact_only_dependency_releases_at_the_producers_own_level() {
     );
 }
 
+/// Cache hydration preserves the generated inventory and pending keyed reads.
+/// Identical downstream publication remains inherited after the upstream payload expires.
+#[test]
+fn carrier_release_preserves_fanout_inventory_and_pending_reads() {
+    let ArtifactOnlyPair { graph, bound, .. } = artifact_only_pair(
+        vec![("source", "pipeline/source.nq")],
+        CachePolicy::Persistent,
+    );
+    let bound = bound.expect("the artifact-only graph binds");
+    let dir = tempfile::tempdir().expect("create isolated workspace");
+    let mut check_ctx = RunContext::open(dir.path(), 2).expect("open the shared stage cache");
+    check_ctx.carrier_retention = crate::scheduler::CarrierRetention::DropAfterLastConsumer;
+    let check = run(&graph, &bound, &mut check_ctx).expect("byte reconciliation retains the lane");
+    assert!(check.stage_timings.iter().all(|timing| !timing.cached));
+
+    let released = "generated/retention/source.metadata";
+    let pending = "generated/retention/source.txt";
+    let mut ctx = RunContext::open(dir.path(), 2).expect("reopen the shared stage cache");
+    ctx.carrier_retention = crate::scheduler::CarrierRetention::DropAfterLastConsumer;
+    ctx.fanout_paths = [released.to_owned(), pending.to_owned()].into();
+    let update = run(&graph, &bound, &mut ctx).expect("the keyed reader runs after release");
+    assert!(
+        update
+            .stage_timings
+            .iter()
+            .any(|timing| timing.stage_id == "source" && timing.cached),
+        "the producer must hydrate its output from the stage cache"
+    );
+    assert_eq!(update.released_fanout_paths, [released]);
+    assert_eq!(update.combined_digest, check.combined_digest);
+    assert_eq!(update.receipt_root, check.receipt_root);
+    let downstream_receipt = update
+        .stage_receipts
+        .iter()
+        .find(|receipt| receipt.context.stage_id == "late")
+        .expect("the downstream receipt is present");
+    assert!(
+        downstream_receipt
+            .logical_artifacts
+            .iter()
+            .all(|artifact| artifact.identity != released),
+        "an independently republished identical artifact remains inherited"
+    );
+    assert_eq!(
+        update.products["late"].artifact(released),
+        Some(b"metadata for source".as_slice())
+    );
+    assert!(check.products["source"].artifact(released).is_some());
+    assert!(update.products["source"].artifact(released).is_none());
+    assert_eq!(
+        update.products["source"].artifact(pending),
+        Some(b"source".as_slice())
+    );
+    assert_eq!(
+        update.products["source"].artifact("generated/retention/source.report"),
+        Some(b"report for source".as_slice())
+    );
+}
+
 /// An artifact-only consumer is served an internal artifact only when it declares the
 /// read. The declared bytes reach it whether the producer is whole or was released, and
 /// survive the producer's own release, under either retention policy; the undeclared
@@ -2971,8 +3051,10 @@ fn a_declared_internal_read_survives_every_release_of_its_producer() {
         crate::scheduler::CarrierRetention::DropAfterLastConsumer,
         crate::scheduler::CarrierRetention::RetainAll,
     ] {
-        let ArtifactOnlyPair { graph, bound, .. } =
-            artifact_only_pair(vec![("source", "pipeline/source.nq")]);
+        let ArtifactOnlyPair { graph, bound, .. } = artifact_only_pair(
+            vec![("source", "pipeline/source.nq")],
+            CachePolicy::Recompute,
+        );
         let bound = bound.expect("a declared internal read binds");
         let dir = tempfile::tempdir().unwrap();
         let mut ctx = RunContext::open_uncached(dir.path(), 2);
@@ -2991,8 +3073,10 @@ fn a_declared_internal_read_survives_every_release_of_its_producer() {
 /// with a run that retains the entire carrier.
 #[test]
 fn a_declared_post_run_artifact_stays_borrowable_after_carrier_release() {
-    let ArtifactOnlyPair { graph, bound, .. } =
-        artifact_only_pair(vec![("source", "pipeline/source.nq")]);
+    let ArtifactOnlyPair { graph, bound, .. } = artifact_only_pair(
+        vec![("source", "pipeline/source.nq")],
+        CachePolicy::Recompute,
+    );
     let bound = bound.expect("the artifact-only graph binds");
     let sink = bound
         .iter()
@@ -3033,7 +3117,10 @@ fn an_artifact_only_consumer_reads_the_producers_own_bytes() {
             graph,
             bound,
             watch,
-        } = artifact_only_pair(vec![("source", "pipeline/source.nq")]);
+        } = artifact_only_pair(
+            vec![("source", "pipeline/source.nq")],
+            CachePolicy::Recompute,
+        );
         let bound = bound.expect("a declared internal read binds");
         let dir = tempfile::tempdir().unwrap();
         let mut ctx = RunContext::open_uncached(dir.path(), 2);

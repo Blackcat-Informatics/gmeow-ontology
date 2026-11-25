@@ -100,11 +100,23 @@ impl FanoutProjection {
 pub(crate) fn fanout_for_update(
     root: &Path,
     jobs: usize,
+    released_paths: &[String],
 ) -> gmeow_errors::Result<(FanoutReport, FanoutProjection)> {
     let gts = read_shipped_bundle(root)?;
     let input_sha256 = bytes_digest(&gts);
     let projection = project_bundle(&gts)?;
     drop(gts);
+    if let Some(path) = released_paths
+        .iter()
+        .filter(|path| !projection.files.contains_key(path.as_str()))
+        .min()
+    {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            cause: None,
+            stage: "fanout".to_owned(),
+            message: format!("gmeow.gts has no reconstruction for released output {path}"),
+        }));
+    }
     let report = write_projection(root, jobs, &projection)?;
     Ok((
         report,
