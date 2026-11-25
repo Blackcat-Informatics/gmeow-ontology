@@ -309,6 +309,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/memory.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/music.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/narrative.ttl",
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/operational-conditions.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/purremb.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/projections/core-prefixes.ttl",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/projections/math/data-cube.ttl",
