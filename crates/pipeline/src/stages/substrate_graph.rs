@@ -207,18 +207,24 @@ fn parse_substrate_stamp(
     Ok(out)
 }
 
-/// Find purrdf's version as mentioned in documentation prose (`purrdf <version>`),
-/// returning the first plausible semver-looking mention.
+/// Find the first complete PurRDF release version stated in documentation prose.
 fn parse_prose_purrdf_version(prose: &str) -> Option<String> {
-    for token_window in prose.split_whitespace().collect::<Vec<_>>().windows(2) {
-        let word = token_window[0].trim_matches(|c: char| !c.is_alphanumeric());
-        if word == "purrdf" {
-            let candidate =
-                token_window[1].trim_matches(|c: char| !(c.is_ascii_digit() || c == '.'));
-            if candidate.contains('.')
-                && candidate.chars().next().is_some_and(|c| c.is_ascii_digit())
-            {
-                return Some(candidate.to_string());
+    let mut words = prose.split_whitespace().peekable();
+    while let Some(word) = words.next() {
+        if word
+            .trim_matches(['*', '`', '(', ')'])
+            .eq_ignore_ascii_case("purrdf")
+        {
+            let token = *words.peek()?;
+            let token = token
+                .strip_suffix([')', ',', '.', ';', ':'])
+                .unwrap_or(token);
+            let candidate = token
+                .strip_prefix('`')
+                .and_then(|code| code.strip_suffix('`'))
+                .unwrap_or(token);
+            if let Ok(version) = semver::Version::parse(candidate) {
+                return Some(version.to_string());
             }
         }
     }
