@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/operational-conditions/conformance/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+ex:ledgerRecordsConform a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/condition-ledger.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Two sites report the same ledger condition. One report supplies both custody fields, one supplies neither, and the acknowledgement applies across the sites." .
+
+ex:closedObservation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/unexpected-fields.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:BodyConditionObservationClosedRecordConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The observation gains an acknowledgement author field. The observation's closed record rejects this field." .
+
+ex:closedAcknowledgement a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/unexpected-fields.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:BodyConditionAcknowledgementClosedRecordConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The acknowledgement gains a reporting site. The acknowledgement's closed record rejects this field." .
+
+ex:heldKindWithoutHandle a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/incomplete-custody.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:BodyConditionHeldKindRequiresHandleConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A custody kind alone leaves the held item unidentified." .
+
+ex:heldHandleWithoutKind a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/incomplete-custody.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:BodyConditionHeldHandleRequiresKindConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A custody handle alone leaves the kind of custody unspecified." .
+
+ex:shortEvidenceDigest a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/evidence-digest.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:BodyConditionEvidenceDigestWidthConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A hexadecimal digest of thirty-one bytes fails the evidence width check." .
+
+ex:missingEvidenceDigest a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/evidence-digest.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:BodyConditionObservation-shape ;
+    gmeow:conformanceRationale "An observation with no evidence digest fails the required field check." .
+
+ex:duplicateEvidenceDigest a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/evidence-digest.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MaxCountConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:BodyConditionObservation-shape ;
+    gmeow:conformanceRationale "Two distinct digests of the correct width fail the observation's upper bound." .

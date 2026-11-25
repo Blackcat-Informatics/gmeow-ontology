@@ -409,6 +409,11 @@ cumulative carrier snapshot over the DAG; the latter grows with both the corpus 
 the stage count, and is a build that dies as the ontology grows rather than one that
 scales with it.
 
+The snapshot handoff captures every typed handle commitment, then releases
+payloads with no declared reader before hashing the dataset. Whole-carrier
+reads, keyed handle reads and explicit retention keep their payloads available.
+The full commitments remain in the product identity and receipt.
+
 The release is invisible: it never changes a produced byte, and the run's
 order-independent `combined_digest` is identical with or without it. A stage that
 reaches for a carrier through an artifact-only edge, or an out-of-band whole-run

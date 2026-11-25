@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/operational-conditions/unexpected-fields/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:observation a gmeow:BodyConditionObservation ;
+    gmeow:recordedAt "2026-02-18T14:10:00Z"^^xsd:dateTime ;
+    gmeow:bodyConditionKind "buffer_pressure"^^xsd:token ;
+    gmeow:bodyConditionKey "20613a6220"^^xsd:hexBinary ;
+    gmeow:bodyConditionOrgan "6465636f646572"^^xsd:hexBinary ;
+    gmeow:bodyConditionSite "71756575652f696e"^^xsd:hexBinary ;
+    gmeow:bodyConditionEvidenceDigest "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"^^xsd:hexBinary ;
+    gmeow:bodyConditionAcknowledgedBy "6d61696e74206f70"^^xsd:hexBinary .
+
+ex:acknowledgement a gmeow:BodyConditionAcknowledgement ;
+    gmeow:recordedAt "2026-02-18T14:10:00Z"^^xsd:dateTime ;
+    gmeow:bodyConditionKind "buffer_pressure"^^xsd:token ;
+    gmeow:bodyConditionKey "20613a6220"^^xsd:hexBinary ;
+    gmeow:bodyConditionAcknowledgedBy "6d61696e74206f70"^^xsd:hexBinary ;
+    gmeow:bodyConditionSite "71756575652f696e"^^xsd:hexBinary .

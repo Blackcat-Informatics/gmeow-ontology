@@ -1,0 +1,376 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/slices/operational-conditions>
+    a logic:Ontology ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxConfigBox , gmeow:boxTBox .
+
+gmeow:BodyConditionObservation
+    a logic:Class , logic:Kind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "body condition observation"@x-gmeow-english ;
+    skos:definition "A ledger record of a machinery condition at the site where an organ reported it."@x-gmeow-english ;
+    gmeow:useWhen "Use for a machine report carrying its reporting organ, site and evidence digest."@x-gmeow-english ;
+    gmeow:avoidWhen "Use the acknowledgement class for a response that applies across reporting sites."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source time, kind and exact key with the fields supplied by the reporting organ."@x-gmeow-english ;
+    skos:example "ex:report a gmeow:BodyConditionObservation ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:BodyConditionAcknowledgement
+    a logic:Class , logic:Kind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "body condition acknowledgement"@x-gmeow-english ;
+    skos:definition "A ledger record showing that the named source author acknowledged a machinery condition by kind and key across reporting sites."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit acknowledgement recorded in the machinery ledger."@x-gmeow-english ;
+    gmeow:avoidWhen "Keep evidence of later remediation in a separate record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the author field and match the condition by its stored kind code and exact key."@x-gmeow-english ;
+    skos:example "ex:acknowledgement a gmeow:BodyConditionAcknowledgement ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:bodyConditionKind
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "condition kind code"@x-gmeow-english ;
+    skos:definition "The kind code stored by the ledger for the condition."@x-gmeow-english ;
+    gmeow:useWhen "Use for the source's machinery condition code."@x-gmeow-english ;
+    gmeow:avoidWhen "Keep historical codes even when the producer now emits different ones."@x-gmeow-english ;
+    gmeow:howToUse "Write the supplied code as an xsd:token literal."@x-gmeow-english ;
+    skos:example "ex:report gmeow:bodyConditionKind \"buffer_pressure\"^^xsd:token ."@x-gmeow-english ;
+    logic:range xsd:token .
+
+gmeow:bodyConditionKey
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "body condition key"@x-gmeow-english ;
+    skos:definition "The original UTF-8 bytes of the condition key used to match reports and acknowledgements."@x-gmeow-english ;
+    gmeow:useWhen "Use with the stored kind code when matching a condition."@x-gmeow-english ;
+    gmeow:avoidWhen "Keep whitespace and separators in the key."@x-gmeow-english ;
+    gmeow:howToUse "Encode the key bytes as xsd:hexBinary."@x-gmeow-english ;
+    skos:example "ex:report gmeow:bodyConditionKey \"20613a6220\"^^xsd:hexBinary ."@x-gmeow-english ;
+    logic:range xsd:hexBinary .
+
+gmeow:bodyConditionOrgan
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "condition-reporting organ"@x-gmeow-english ;
+    skos:definition "The original UTF-8 bytes of the machinery organ identifier supplied by the report."@x-gmeow-english ;
+    gmeow:useWhen "Use for the producer component identified by the report."@x-gmeow-english ;
+    gmeow:avoidWhen "Keep any resolved component identity separate from this source field."@x-gmeow-english ;
+    gmeow:howToUse "Encode the organ identifier as xsd:hexBinary."@x-gmeow-english ;
+    skos:example "ex:report gmeow:bodyConditionOrgan \"6465636f646572\"^^xsd:hexBinary ."@x-gmeow-english ;
+    logic:domain gmeow:BodyConditionObservation ;
+    logic:range xsd:hexBinary .
+
+gmeow:bodyConditionSite
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "condition-reporting site"@x-gmeow-english ;
+    skos:definition "The original UTF-8 bytes of the reporting site identifier supplied by the report."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish reporting sites within one machinery organ."@x-gmeow-english ;
+    gmeow:avoidWhen "Keep the site on the observation so acknowledgements apply across sites."@x-gmeow-english ;
+    gmeow:howToUse "Encode the site identifier as xsd:hexBinary."@x-gmeow-english ;
+    skos:example "ex:report gmeow:bodyConditionSite \"71756575652f696e\"^^xsd:hexBinary ."@x-gmeow-english ;
+    logic:domain gmeow:BodyConditionObservation ;
+    logic:range xsd:hexBinary .
+
+gmeow:bodyConditionEvidenceDigest
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "condition evidence digest"@x-gmeow-english ;
+    skos:definition "The thirty-two bytes of the BLAKE3 digest recorded for a condition observation's evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use for the bytes of the digest retained by the source report."@x-gmeow-english ;
+    gmeow:avoidWhen "Keep the algorithm name outside the literal."@x-gmeow-english ;
+    gmeow:howToUse "Write the digest as sixty-four hexadecimal digits typed xsd:hexBinary."@x-gmeow-english ;
+    skos:example "ex:report gmeow:bodyConditionEvidenceDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^xsd:hexBinary ."@x-gmeow-english ;
+    logic:domain gmeow:BodyConditionObservation ;
+    logic:range xsd:hexBinary .
+
+gmeow:bodyConditionToolCall
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "condition tool call identifier"@x-gmeow-english ;
+    skos:definition "The original UTF-8 bytes of the tool call identifier retained with the observation."@x-gmeow-english ;
+    gmeow:useWhen "Use when the report supplies a tool call identifier."@x-gmeow-english ;
+    gmeow:avoidWhen "Keep an actual tool call resource separate from the retained identifier."@x-gmeow-english ;
+    gmeow:howToUse "Encode the tool call identifier as xsd:hexBinary."@x-gmeow-english ;
+    skos:example "ex:report gmeow:bodyConditionToolCall \"63616c6c3a3720\"^^xsd:hexBinary ."@x-gmeow-english ;
+    logic:domain gmeow:BodyConditionObservation ;
+    logic:range xsd:hexBinary .
+
+gmeow:bodyConditionHeldKind
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "condition custody kind"@x-gmeow-english ;
+    skos:definition "The original UTF-8 bytes of the custody kind reported with a held item."@x-gmeow-english ;
+    gmeow:useWhen "Use when a condition observation declares custody."@x-gmeow-english ;
+    gmeow:avoidWhen "Leave the custody kind absent when the report supplies neither custody field."@x-gmeow-english ;
+    gmeow:howToUse "Encode the custody kind as xsd:hexBinary and include the corresponding handle."@x-gmeow-english ;
+    skos:example "ex:report gmeow:bodyConditionHeldKind \"63617074757265\"^^xsd:hexBinary ."@x-gmeow-english ;
+    logic:domain gmeow:BodyConditionObservation ;
+    logic:range xsd:hexBinary .
+
+gmeow:bodyConditionHeldHandle
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "condition custody handle"@x-gmeow-english ;
+    skos:definition "The original UTF-8 bytes of the handle through which the source identifies the held item."@x-gmeow-english ;
+    gmeow:useWhen "Use for the handle provided by the observation's custody field."@x-gmeow-english ;
+    gmeow:avoidWhen "Keep the custody handle distinct from the condition key."@x-gmeow-english ;
+    gmeow:howToUse "Encode the custody handle as xsd:hexBinary and include its kind."@x-gmeow-english ;
+    skos:example "ex:report gmeow:bodyConditionHeldHandle \"68656c642037\"^^xsd:hexBinary ."@x-gmeow-english ;
+    logic:domain gmeow:BodyConditionObservation ;
+    logic:range xsd:hexBinary .
+
+gmeow:bodyConditionAcknowledgedBy
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "condition acknowledgement author"@x-gmeow-english ;
+    skos:definition "The original UTF-8 bytes of the source ledger's acknowledgement author field."@x-gmeow-english ;
+    gmeow:useWhen "Use for the author field retained on an acknowledgement."@x-gmeow-english ;
+    gmeow:avoidWhen "Record any authenticated attribution separately from this field."@x-gmeow-english ;
+    gmeow:howToUse "Encode the exact author bytes as xsd:hexBinary."@x-gmeow-english ;
+    skos:example "ex:acknowledgement gmeow:bodyConditionAcknowledgedBy \"6d61696e74206f70\"^^xsd:hexBinary ."@x-gmeow-english ;
+    logic:domain gmeow:BodyConditionAcknowledgement ;
+    logic:range xsd:hexBinary .
+
+gmeow:bodyConditionOccurrence
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "condition occurrence identifier"@x-gmeow-english ;
+    skos:definition "The original UTF-8 bytes of an occurrence identifier retained with a condition record."@x-gmeow-english ;
+    gmeow:useWhen "Use when an observation or acknowledgement supplies an occurrence identifier."@x-gmeow-english ;
+    gmeow:avoidWhen "Preserve the occurrence identifier independently of the matching key."@x-gmeow-english ;
+    gmeow:howToUse "Encode the supplied occurrence as xsd:hexBinary and omit it when absent."@x-gmeow-english ;
+    skos:example "ex:report gmeow:bodyConditionOccurrence \"6f63633a3137\"^^xsd:hexBinary ."@x-gmeow-english ;
+    logic:range xsd:hexBinary .
+
+# Requiredness is class-local. Every permitted field has a value type and an upper bound.
+
+gmeow:BodyConditionObservation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:recordedAt ; logic:allValuesFrom xsd:dateTime ],
+    [ a logic:Restriction ; logic:onProperty gmeow:recordedAt ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:dateTime ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionKind ; logic:allValuesFrom xsd:token ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionKind ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:token ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionKey ; logic:allValuesFrom xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionOccurrence ; logic:allValuesFrom xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionOccurrence ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionOrgan ; logic:allValuesFrom xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionOrgan ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionSite ; logic:allValuesFrom xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionSite ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionEvidenceDigest ; logic:allValuesFrom xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionEvidenceDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:originatingPacket ; logic:allValuesFrom xsd:token ],
+    [ a logic:Restriction ; logic:onProperty gmeow:originatingPacket ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:token ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionToolCall ; logic:allValuesFrom xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionToolCall ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionHeldKind ; logic:allValuesFrom xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionHeldKind ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionHeldHandle ; logic:allValuesFrom xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionHeldHandle ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:hexBinary ] .
+
+[ a logic:ClosureEntry ;
+    logic:onClass gmeow:BodyConditionObservation ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/recordedAt" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ;
+    logic:onClass gmeow:BodyConditionObservation ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/bodyConditionKind" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ;
+    logic:onClass gmeow:BodyConditionObservation ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/bodyConditionKey" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ;
+    logic:onClass gmeow:BodyConditionObservation ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/bodyConditionOrgan" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ;
+    logic:onClass gmeow:BodyConditionObservation ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/bodyConditionSite" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ;
+    logic:onClass gmeow:BodyConditionObservation ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/bodyConditionEvidenceDigest" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:BodyConditionAcknowledgement logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:recordedAt ; logic:allValuesFrom xsd:dateTime ],
+    [ a logic:Restriction ; logic:onProperty gmeow:recordedAt ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:dateTime ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionKind ; logic:allValuesFrom xsd:token ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionKind ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:token ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionKey ; logic:allValuesFrom xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionOccurrence ; logic:allValuesFrom xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionOccurrence ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionAcknowledgedBy ; logic:allValuesFrom xsd:hexBinary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:bodyConditionAcknowledgedBy ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:hexBinary ] .
+
+[ a logic:ClosureEntry ;
+    logic:onClass gmeow:BodyConditionAcknowledgement ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/recordedAt" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ;
+    logic:onClass gmeow:BodyConditionAcknowledgement ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/bodyConditionKind" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ;
+    logic:onClass gmeow:BodyConditionAcknowledgement ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/bodyConditionKey" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ;
+    logic:onClass gmeow:BodyConditionAcknowledgement ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/bodyConditionAcknowledgedBy" ;
+    logic:closureValue logic:ClosedWorldClosure ] .
+
+# These two constraints close the predicate sets independently of field cardinality.
+
+gmeow:BodyConditionObservationClosedRecordConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "closed condition observation record"@x-gmeow-english ;
+    skos:definition "A condition observation carries only its declared ledger fields and RDF type."@x-gmeow-english ;
+    logic:formalizes gmeow:BodyConditionObservation ;
+    logic:message "A condition observation carries only its declared ledger fields and RDF type."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation rdf:type ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termIri gmeow:BodyConditionObservation ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:not [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ],
+                        [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+                    logic:exists [ a logic:Formula ; logic:and
+                        [ a logic:Formula ; logic:relation logic:linkVia ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                [ logic:termIndex 1 ; logic:termVariable "predicate" ],
+                                [ logic:termIndex 2 ; logic:termVariable "value" ] ],
+                        [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ],
+                                [ logic:termIndex 1 ; logic:termIri rdf:type ],
+                                [ logic:termIndex 2 ; logic:termIri gmeow:recordedAt ],
+                                [ logic:termIndex 3 ; logic:termIri gmeow:bodyConditionKind ],
+                                [ logic:termIndex 4 ; logic:termIri gmeow:bodyConditionKey ],
+                                [ logic:termIndex 5 ; logic:termIri gmeow:bodyConditionOccurrence ],
+                                [ logic:termIndex 6 ; logic:termIri gmeow:bodyConditionOrgan ],
+                                [ logic:termIndex 7 ; logic:termIri gmeow:bodyConditionSite ],
+                                [ logic:termIndex 8 ; logic:termIri gmeow:bodyConditionEvidenceDigest ],
+                                [ logic:termIndex 9 ; logic:termIri gmeow:originatingPacket ],
+                                [ logic:termIndex 10 ; logic:termIri gmeow:bodyConditionToolCall ],
+                                [ logic:termIndex 11 ; logic:termIri gmeow:bodyConditionHeldKind ],
+                                [ logic:termIndex 12 ; logic:termIri gmeow:bodyConditionHeldHandle ]
+                        ] ]
+                    ]
+                ]
+            ]
+        ]
+    ] .
+
+gmeow:BodyConditionAcknowledgementClosedRecordConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "closed condition acknowledgement record"@x-gmeow-english ;
+    skos:definition "A condition acknowledgement carries only the time, kind, key, optional occurrence, author and RDF type."@x-gmeow-english ;
+    logic:formalizes gmeow:BodyConditionAcknowledgement ;
+    logic:message "A condition acknowledgement carries only the time, kind, key, optional occurrence, author and RDF type."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation rdf:type ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termIri gmeow:BodyConditionAcknowledgement ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:not [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ],
+                        [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+                    logic:exists [ a logic:Formula ; logic:and
+                        [ a logic:Formula ; logic:relation logic:linkVia ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                [ logic:termIndex 1 ; logic:termVariable "predicate" ],
+                                [ logic:termIndex 2 ; logic:termVariable "value" ] ],
+                        [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ],
+                                [ logic:termIndex 1 ; logic:termIri rdf:type ],
+                                [ logic:termIndex 2 ; logic:termIri gmeow:recordedAt ],
+                                [ logic:termIndex 3 ; logic:termIri gmeow:bodyConditionKind ],
+                                [ logic:termIndex 4 ; logic:termIri gmeow:bodyConditionKey ],
+                                [ logic:termIndex 5 ; logic:termIri gmeow:bodyConditionOccurrence ],
+                                [ logic:termIndex 6 ; logic:termIri gmeow:bodyConditionAcknowledgedBy ]
+                        ] ]
+                    ]
+                ]
+            ]
+        ]
+    ] .
+
+gmeow:BodyConditionHeldKindRequiresHandleConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "condition custody kind requires handle"@x-gmeow-english ;
+    skos:definition "An observation with a custody kind also supplies the custody handle."@x-gmeow-english ;
+    logic:formalizes gmeow:bodyConditionHeldKind ;
+    logic:message "An observation with a custody kind also supplies the custody handle."@x-gmeow-english ;
+    logic:onClass gmeow:BodyConditionObservation ;
+    logic:trigger gmeow:bodyConditionHeldKind ;
+    logic:requires gmeow:bodyConditionHeldHandle .
+
+gmeow:BodyConditionHeldHandleRequiresKindConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "condition custody handle requires kind"@x-gmeow-english ;
+    skos:definition "An observation with a custody handle also supplies the custody kind."@x-gmeow-english ;
+    logic:formalizes gmeow:bodyConditionHeldHandle ;
+    logic:message "An observation with a custody handle also supplies the custody kind."@x-gmeow-english ;
+    logic:onClass gmeow:BodyConditionObservation ;
+    logic:trigger gmeow:bodyConditionHeldHandle ;
+    logic:requires gmeow:bodyConditionHeldKind .
+
+gmeow:BodyConditionEvidenceDigestWidthConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "condition evidence digest width"@x-gmeow-english ;
+    skos:definition "A condition evidence digest has exactly sixty-four hexadecimal digits."@x-gmeow-english ;
+    logic:formalizes gmeow:bodyConditionEvidenceDigest ;
+    logic:message "A condition evidence digest has exactly sixty-four hexadecimal digits."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ],
+            [ logic:termIndex 1 ; logic:termVariable "digest" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:BodyConditionObservation ] ],
+                [ a logic:Formula ; logic:relation gmeow:bodyConditionEvidenceDigest ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "digest" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termRegex ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "digest" ],
+                    [ logic:termIndex 1 ; logic:termLiteral "^[0-9A-Fa-f]{64}$" ] ] ] ] .
