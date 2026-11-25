@@ -1,0 +1,374 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionAcknowledgedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "condition acknowledgement author"
+msgstr "状态确认人"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionAcknowledgedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original UTF-8 bytes of the source ledger's acknowledgement author field."
+msgstr "源台账中确认人字段的原始 UTF-8 字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionAcknowledgedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:acknowledgement gmeow:bodyConditionAcknowledgedBy \"6d61696e74206f70\"^^xsd:hexBinary ."
+msgstr "ex:acknowledgement gmeow:bodyConditionAcknowledgedBy \"6d61696e74206f70\"^^xsd:hexBinary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionAcknowledgedBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Record any authenticated attribution separately from this field."
+msgstr "将经过认证的归属信息与此字段分别记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionAcknowledgedBy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Encode the exact author bytes as xsd:hexBinary."
+msgstr "将确认人字段的原始字节编码为 xsd:hexBinary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionAcknowledgedBy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the author field retained on an acknowledgement."
+msgstr "用于确认记录保留的确认人字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionAcknowledgement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "body condition acknowledgement"
+msgstr "机体状态确认记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionAcknowledgement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A ledger record showing that the named source author acknowledged a machinery condition by kind and key across reporting sites."
+msgstr "表明源记录所载确认人已按类型和键确认某项运行状态的台账条目，适用于各报告点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionAcknowledgement|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:acknowledgement a gmeow:BodyConditionAcknowledgement ."
+msgstr "ex:acknowledgement a gmeow:BodyConditionAcknowledgement ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionAcknowledgement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Keep evidence of later remediation in a separate record."
+msgstr "将后续处置的证据另行记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionAcknowledgement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the author field and match the condition by its stored kind code and exact key."
+msgstr "保留确认人字段，并按原存类型码和精确的键关联状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionAcknowledgement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit acknowledgement recorded in the machinery ledger."
+msgstr "用于运行台账中明确记载的确认。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionAcknowledgementClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "closed condition acknowledgement record"
+msgstr "封闭的状态确认记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionAcknowledgementClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A condition acknowledgement carries only the time, kind, key, optional occurrence, author and RDF type."
+msgstr "状态确认记录仅可包含时间、状态类型、键、可选的发生标识符、确认人及 RDF 类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionAcknowledgementClosedRecordConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A condition acknowledgement carries only the time, kind, key, optional occurrence, author and RDF type."
+msgstr "状态确认记录仅可包含时间、状态类型、键、可选的发生标识符、确认人及 RDF 类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionEvidenceDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "condition evidence digest"
+msgstr "状态证据摘要"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionEvidenceDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The thirty-two bytes of the BLAKE3 digest recorded for a condition observation's evidence."
+msgstr "状态观测证据中记录的 BLAKE3 摘要的三十二个字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionEvidenceDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:bodyConditionEvidenceDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^xsd:hexBinary ."
+msgstr "ex:report gmeow:bodyConditionEvidenceDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^xsd:hexBinary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionEvidenceDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Keep the algorithm name outside the literal."
+msgstr "摘要字面量中省略算法名称。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionEvidenceDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write the digest as sixty-four hexadecimal digits typed xsd:hexBinary."
+msgstr "用六十四位十六进制数字写出摘要，并指定 xsd:hexBinary 类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionEvidenceDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the bytes of the digest retained by the source report."
+msgstr "用于源报告保留的摘要字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionEvidenceDigestWidthConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "condition evidence digest width"
+msgstr "状态证据摘要长度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionEvidenceDigestWidthConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A condition evidence digest has exactly sixty-four hexadecimal digits."
+msgstr "状态证据摘要须恰好包含六十四位十六进制数字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionEvidenceDigestWidthConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A condition evidence digest has exactly sixty-four hexadecimal digits."
+msgstr "状态证据摘要须恰好包含六十四位十六进制数字。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionHeldHandle|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "condition custody handle"
+msgstr "状态保管句柄"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionHeldHandle|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original UTF-8 bytes of the handle through which the source identifies the held item."
+msgstr "来源用以识别被保管物品的句柄的原始 UTF-8 字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionHeldHandle|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:bodyConditionHeldHandle \"68656c642037\"^^xsd:hexBinary ."
+msgstr "ex:report gmeow:bodyConditionHeldHandle \"68656c642037\"^^xsd:hexBinary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionHeldHandle|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Keep the custody handle distinct from the condition key."
+msgstr "将保管句柄与状态键区分开来。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionHeldHandle|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Encode the custody handle as xsd:hexBinary and include its kind."
+msgstr "将保管句柄编码为 xsd:hexBinary，并附上其类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionHeldHandle|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the handle provided by the observation's custody field."
+msgstr "用于状态观测的保管字段所提供的句柄。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionHeldHandleRequiresKindConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "condition custody handle requires kind"
+msgstr "状态保管句柄须附类型"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionHeldHandleRequiresKindConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An observation with a custody handle also supplies the custody kind."
+msgstr "载有保管句柄的观测记录还须提供保管类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionHeldHandleRequiresKindConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "An observation with a custody handle also supplies the custody kind."
+msgstr "载有保管句柄的观测记录还须提供保管类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionHeldKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "condition custody kind"
+msgstr "状态保管类型"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionHeldKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original UTF-8 bytes of the custody kind reported with a held item."
+msgstr "某项物品的保管类型在报告中所用标识的原始 UTF-8 字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionHeldKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:bodyConditionHeldKind \"63617074757265\"^^xsd:hexBinary ."
+msgstr "ex:report gmeow:bodyConditionHeldKind \"63617074757265\"^^xsd:hexBinary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionHeldKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Leave the custody kind absent when the report supplies neither custody field."
+msgstr "若报告未提供任何保管字段，则省略保管类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionHeldKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Encode the custody kind as xsd:hexBinary and include the corresponding handle."
+msgstr "将保管类型编码为 xsd:hexBinary，并附上对应的句柄。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionHeldKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a condition observation declares custody."
+msgstr "用于状态观测声明保管的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionHeldKindRequiresHandleConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "condition custody kind requires handle"
+msgstr "状态保管类型须附句柄"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionHeldKindRequiresHandleConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An observation with a custody kind also supplies the custody handle."
+msgstr "载有保管类型的观测记录还须提供保管句柄。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionHeldKindRequiresHandleConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "An observation with a custody kind also supplies the custody handle."
+msgstr "载有保管类型的观测记录还须提供保管句柄。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "body condition key"
+msgstr "机体状态键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original UTF-8 bytes of the condition key used to match reports and acknowledgements."
+msgstr "用于匹配报告和确认记录的状态键的原始 UTF-8 字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:bodyConditionKey \"20613a6220\"^^xsd:hexBinary ."
+msgstr "ex:report gmeow:bodyConditionKey \"20613a6220\"^^xsd:hexBinary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Keep whitespace and separators in the key."
+msgstr "保留键中的空白和分隔符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Encode the key bytes as xsd:hexBinary."
+msgstr "将键的字节编码为 xsd:hexBinary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use with the stored kind code when matching a condition."
+msgstr "匹配状态时与原存类型码一同使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "condition kind code"
+msgstr "状态类型码"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The kind code stored by the ledger for the condition."
+msgstr "台账中原存的状态类型码。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:bodyConditionKind \"buffer_pressure\"^^xsd:token ."
+msgstr "ex:report gmeow:bodyConditionKind \"buffer_pressure\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Keep historical codes even when the producer now emits different ones."
+msgstr "即使生产方已改用其他代码，也应保留历史代码。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write the supplied code as an xsd:token literal."
+msgstr "将源代码值写为 xsd:token 字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's machinery condition code."
+msgstr "用于记录来源给出的运行状态代码。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionObservation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "body condition observation"
+msgstr "机体状态观测记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionObservation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A ledger record of a machinery condition at the site where an organ reported it."
+msgstr "记录某个机体部件在指定报告点报告的运行状态的台账条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionObservation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report a gmeow:BodyConditionObservation ."
+msgstr "ex:report a gmeow:BodyConditionObservation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionObservation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Use the acknowledgement class for a response that applies across reporting sites."
+msgstr "适用于所有报告点的回应应使用确认记录类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionObservation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source time, kind and exact key with the fields supplied by the reporting organ."
+msgstr "将源时间、类型码和原始键与报告部件提供的字段一并保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionObservation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a machine report carrying its reporting organ, site and evidence digest."
+msgstr "用于载有报告部件、报告点和证据摘要的机器报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionObservationClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "closed condition observation record"
+msgstr "封闭的状态观测记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionObservationClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A condition observation carries only its declared ledger fields and RDF type."
+msgstr "状态观测记录仅可包含声明的台账字段及 RDF 类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyConditionObservationClosedRecordConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A condition observation carries only its declared ledger fields and RDF type."
+msgstr "状态观测记录仅可包含声明的台账字段及 RDF 类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionOccurrence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "condition occurrence identifier"
+msgstr "状态发生标识符"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionOccurrence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original UTF-8 bytes of an occurrence identifier retained with a condition record."
+msgstr "随状态记录保留的发生标识符的原始 UTF-8 字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionOccurrence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:bodyConditionOccurrence \"6f63633a3137\"^^xsd:hexBinary ."
+msgstr "ex:report gmeow:bodyConditionOccurrence \"6f63633a3137\"^^xsd:hexBinary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionOccurrence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Preserve the occurrence identifier independently of the matching key."
+msgstr "将发生标识符与匹配键分别保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionOccurrence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Encode the supplied occurrence as xsd:hexBinary and omit it when absent."
+msgstr "将给出的发生标识符编码为 xsd:hexBinary，缺失时省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionOccurrence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an observation or acknowledgement supplies an occurrence identifier."
+msgstr "用于观测记录或确认记录提供发生标识符时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionOrgan|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "condition-reporting organ"
+msgstr "状态报告部件"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionOrgan|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original UTF-8 bytes of the machinery organ identifier supplied by the report."
+msgstr "报告中所载机器部件标识符的原始 UTF-8 字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionOrgan|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:bodyConditionOrgan \"6465636f646572\"^^xsd:hexBinary ."
+msgstr "ex:report gmeow:bodyConditionOrgan \"6465636f646572\"^^xsd:hexBinary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionOrgan|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Keep any resolved component identity separate from this source field."
+msgstr "将解析得到的部件身份与此源字段分别记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionOrgan|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Encode the organ identifier as xsd:hexBinary."
+msgstr "将报告部件的标识符编码为 xsd:hexBinary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionOrgan|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the producer component identified by the report."
+msgstr "用于报告所指明的生产组件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionSite|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "condition-reporting site"
+msgstr "状态报告点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionSite|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original UTF-8 bytes of the reporting site identifier supplied by the report."
+msgstr "报告中所载报告点标识符的原始 UTF-8 字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionSite|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:bodyConditionSite \"71756575652f696e\"^^xsd:hexBinary ."
+msgstr "ex:report gmeow:bodyConditionSite \"71756575652f696e\"^^xsd:hexBinary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionSite|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Keep the site on the observation so acknowledgements apply across sites."
+msgstr "在观测记录中保留报告点，使确认可跨报告点适用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionSite|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Encode the site identifier as xsd:hexBinary."
+msgstr "将报告点标识符编码为 xsd:hexBinary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionSite|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish reporting sites within one machinery organ."
+msgstr "用于区分同一机器部件中的各个报告点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionToolCall|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "condition tool call identifier"
+msgstr "状态工具调用标识符"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionToolCall|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original UTF-8 bytes of the tool call identifier retained with the observation."
+msgstr "随状态观测保留的工具调用标识符的原始 UTF-8 字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionToolCall|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:bodyConditionToolCall \"63616c6c3a3720\"^^xsd:hexBinary ."
+msgstr "ex:report gmeow:bodyConditionToolCall \"63616c6c3a3720\"^^xsd:hexBinary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionToolCall|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Keep an actual tool call resource separate from the retained identifier."
+msgstr "将实际工具调用资源与所保留的标识符区分开来。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionToolCall|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Encode the tool call identifier as xsd:hexBinary."
+msgstr "将工具调用标识符编码为 xsd:hexBinary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyConditionToolCall|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the report supplies a tool call identifier."
+msgstr "用于报告提供工具调用标识符的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/operational-conditions|http://purl.org/dc/terms/title"
+msgid "GMEOW Operational Conditions"
+msgstr "GMEOW 运行状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/operational-conditions|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "operational conditions"
+msgstr "运行状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/operational-conditions|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Ledger records of machinery conditions and their acknowledgements."
+msgstr "运行状态及其确认的台账记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/operational-conditions|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "The Memetics import of the Decodes condition ledger into the Body vault."
+msgstr "Memetics 将 Decodes 的状态台账导入 Body 库。"

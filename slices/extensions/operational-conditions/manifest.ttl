@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+<https://blackcatinformatics.ca/gmeow/slices/operational-conditions>
+    a gmeow:Slice ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    rdfs:label "operational conditions"@x-gmeow-english ;
+    skos:definition "Ledger records of machinery conditions and their acknowledgements."@x-gmeow-english ;
+    dcterms:title "GMEOW Operational Conditions"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierExtension ;
+    gmeow:sliceProfile "operational-conditions" ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
+        <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:sliceConsumer "The Memetics import of the Decodes condition ledger into the Body vault."@x-gmeow-english .
