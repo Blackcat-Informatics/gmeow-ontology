@@ -2431,6 +2431,45 @@ gmeow:acceptedAsStory
     skos:example "ex:candidate gmeow:acceptedAsStory ex:story ."@x-gmeow-english ;
     logic:domain gmeow:InformationObject ; logic:range gmeow:InformationObject .
 
+gmeow:StoryCandidate
+    a logic:Class, logic:Role ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Story Candidate"@x-gmeow-english ;
+    skos:definition "A cluster of records offered for a person's decision as a possible story. The claim that proposes it identifies the discovery event as evidence. It is a proposal only: neither an accepted story nor a preferred grouping."@x-gmeow-english ;
+    gmeow:useWhen "Use for a cluster of existing records that a storytelling process offers a person as a possible story, retaining the proposing claim."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a story itself, for a cluster a person has already accepted, or for a generated grouping presented as settled."@x-gmeow-english ;
+    gmeow:howToUse "Type the proposal gmeow:StoryCandidate, link its records with gmeow:storyCandidateRecord and its distinctive vocabulary with gmeow:storyCandidateTerm, and retain the proposing gmeow:ClaimToken with its discovery evidence through the existing justification vocabulary."@x-gmeow-english ;
+    skos:scopeNote "A generated display name, when one exists, is attached separately and is not a term of this class. Acceptance remains a claim made by the accepting person, recorded with gmeow:acceptedAsStory; the candidate asserts neither acceptance nor completed gathering."@x-gmeow-english ;
+    skos:example "ex:proposal a gmeow:StoryCandidate ; gmeow:storyCandidateRecord ex:letter1 ; gmeow:storyCandidateTerm \"lighthouse\"^^xsd:token ."@x-gmeow-english .
+
+gmeow:storyCandidateRecord
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "story candidate record"@x-gmeow-english ;
+    skos:definition "Relates a story candidate to a record in its cluster. The record can seed gathering once someone accepts the candidate; membership neither accepts the candidate nor makes the record a story member."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain each record that a candidate's proposal clusters, with the record's actual identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for records selected into an accepted story (use gmeow:hasPart on the story) and for inferring acceptance from membership."@x-gmeow-english ;
+    gmeow:howToUse "Write one statement per clustered record and keep each record identity exactly as supplied, including blank nodes or triple terms."@x-gmeow-english ;
+    skos:scopeNote "The statements name the records the proposal clusters. They do not certify that the cluster is complete or that its records share a story."@x-gmeow-english ;
+    skos:example "ex:proposal gmeow:storyCandidateRecord ex:letter1 ."@x-gmeow-english ;
+    logic:domain gmeow:StoryCandidate ; logic:range logic:Thing .
+
+gmeow:storyCandidateTerm
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "story candidate term"@x-gmeow-english ;
+    skos:definition "A distinctive vocabulary term of a story candidate's record cluster, retained as a token. It marks what sets the cluster apart; it is not a title, a display name or an accepted story name."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a distinctive term that the proposal found across the cluster's records."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a title, a generated display name or a word common to the records at large."@x-gmeow-english ;
+    gmeow:howToUse "Keep each supplied term as an xsd:token with its supplied lexical form, one term per statement."@x-gmeow-english ;
+    skos:scopeNote "Several terms may coexist. The set is neither a preferred nor a complete vocabulary of the cluster."@x-gmeow-english ;
+    skos:example "ex:proposal gmeow:storyCandidateTerm \"lighthouse\"^^xsd:token ."@x-gmeow-english ;
+    logic:domain gmeow:StoryCandidate ; logic:range xsd:token .
+
 gmeow:storyFocus
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;

@@ -2005,6 +2005,90 @@ msgctxt "https://blackcatinformatics.ca/gmeow/acceptedAsStory|http://www.w3.org/
 msgid "ex:candidate gmeow:acceptedAsStory ex:story ."
 msgstr "ex:candidate gmeow:acceptedAsStory ex:story ."
 
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryCandidate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Story Candidate"
+msgstr "故事候选"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryCandidate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A cluster of records offered for a person's decision as a possible story. The claim that proposes it identifies the discovery event as evidence. It is a proposal only: neither an accepted story nor a preferred grouping."
+msgstr "提供给某人决定是否作为可能故事的一组记录。提出它的断言将发现事件标识为证据。它仅是一项提议：既不是已接受的故事，也不是首选分组。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryCandidate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a cluster of existing records that a storytelling process offers a person as a possible story, retaining the proposing claim."
+msgstr "用于叙事过程向某人提供为可能故事的一组现有记录，并保留提出该候选的断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryCandidate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for a story itself, for a cluster a person has already accepted, or for a generated grouping presented as settled."
+msgstr "不用于故事本身、某人已接受的一组记录，或被呈现为既定结果的生成分组。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryCandidate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the proposal gmeow:StoryCandidate, link its records with gmeow:storyCandidateRecord and its distinctive vocabulary with gmeow:storyCandidateTerm, and retain the proposing gmeow:ClaimToken with its discovery evidence through the existing justification vocabulary."
+msgstr "将该提议标注为 gmeow:StoryCandidate，用 gmeow:storyCandidateRecord 关联其记录，用 gmeow:storyCandidateTerm 关联其独特词汇，并通过现有的论证词汇保留提出该提议的 gmeow:ClaimToken 及其发现证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryCandidate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A generated display name, when one exists, is attached separately and is not a term of this class. Acceptance remains a claim made by the accepting person, recorded with gmeow:acceptedAsStory; the candidate asserts neither acceptance nor completed gathering."
+msgstr "生成的显示名称（如存在）单独附加，不是本类的术语。接受仍是接受者所作的断言，由 gmeow:acceptedAsStory 记录；候选本身既不断言接受，也不断言收集已完成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryCandidate|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:proposal a gmeow:StoryCandidate ; gmeow:storyCandidateRecord ex:letter1 ; gmeow:storyCandidateTerm \"lighthouse\"^^xsd:token ."
+msgstr "ex:proposal a gmeow:StoryCandidate ; gmeow:storyCandidateRecord ex:letter1 ; gmeow:storyCandidateTerm \"灯塔\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "story candidate record"
+msgstr "故事候选记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a story candidate to a record in its cluster. The record can seed gathering once someone accepts the candidate; membership neither accepts the candidate nor makes the record a story member."
+msgstr "将故事候选与其组内的一条记录相关联。某人接受该候选后，该记录可用于启动收集；成员身份既不构成接受，也不使该记录成为故事成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each record that a candidate's proposal clusters, with the record's actual identity."
+msgstr "用于保留候选提议所聚类的每条记录及其实际标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for records selected into an accepted story (use gmeow:hasPart on the story) and for inferring acceptance from membership."
+msgstr "不用于已选入已接受故事的记录（应在故事上使用 gmeow:hasPart），也不用于从成员身份推断接受。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write one statement per clustered record and keep each record identity exactly as supplied, including blank nodes or triple terms."
+msgstr "每条聚类记录写一个陈述，并完全按提供的形式保留每条记录的标识，包括空白节点或三元组术语。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The statements name the records the proposal clusters. They do not certify that the cluster is complete or that its records share a story."
+msgstr "这些陈述指明提议所聚类的记录。它们不证明该组已完整，也不证明其记录属于同一故事。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:proposal gmeow:storyCandidateRecord ex:letter1 ."
+msgstr "ex:proposal gmeow:storyCandidateRecord ex:letter1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateTerm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "story candidate term"
+msgstr "故事候选术语"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateTerm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A distinctive vocabulary term of a story candidate's record cluster, retained as a token. It marks what sets the cluster apart; it is not a title, a display name or an accepted story name."
+msgstr "故事候选记录组中的一个独特词汇术语，以词元形式保留。它标示使该组区别于其他记录的特征；它不是标题、显示名称或已接受的故事名称。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateTerm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a distinctive term that the proposal found across the cluster's records."
+msgstr "用于保留提议在该组记录中发现的一个独特术语。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateTerm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for a title, a generated display name or a word common to the records at large."
+msgstr "不用于标题、生成的显示名称，或在整体记录中常见的词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateTerm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep each supplied term as an xsd:token with its supplied lexical form, one term per statement."
+msgstr "每个提供的术语以 xsd:token 保留其提供的词形，每条陈述一个术语。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateTerm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several terms may coexist. The set is neither a preferred nor a complete vocabulary of the cluster."
+msgstr "多个术语可以并存。该集合既不是首选词汇表，也不是该组的完整词汇表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateTerm|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:proposal gmeow:storyCandidateTerm \"lighthouse\"^^xsd:token ."
+msgstr "ex:proposal gmeow:storyCandidateTerm \"灯塔\"^^xsd:token ."
+
 msgctxt "https://blackcatinformatics.ca/gmeow/storyFocus|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "story focus"
 msgstr "故事聚焦"
