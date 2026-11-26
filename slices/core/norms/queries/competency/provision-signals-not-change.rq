@@ -1,0 +1,27 @@
+# Competency question: "Does a suppressed interpretation or a later-dated citation of a version
+# establish that an amendment or repeal changed it?"
+#
+# A signal is an authority claim superseded with displayable false, or a citation of a version
+# asserted later than the citation that sources the version. A signal reaches a change only if
+# the version it concerns was ended by an amendment or repeal. The signals in the fixture concern
+# a version with no ending event, so the query returns no row.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?signal ?version ?event WHERE {
+    {
+        ?signal a gmeow:AuthorityClaim ;
+            gmeow:displayable false ;
+            gmeow:interpretsVersion ?version .
+    } UNION {
+        ?signal a gmeow:CitationAct ;
+            gmeow:citingEntity ?version ;
+            gmeow:assertedAt ?signalAt .
+        ?version gmeow:versionSource ?source .
+        ?source gmeow:assertedAt ?sourceAt .
+        FILTER(?signalAt > ?sourceAt)
+    }
+    ?version gmeow:versionEndedBy ?event .
+    ?event gmeow:effectKind ?kind .
+    FILTER(?kind IN (gmeow:effectAmendment, gmeow:effectRepeal))
+}

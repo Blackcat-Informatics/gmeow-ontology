@@ -1,0 +1,14 @@
+# Competency question: "Which version of the pinned federal definition is current, and which
+# event began it?"
+#
+# The current account is the version with no recorded end. Its beginning event carries the
+# material date of the amendment, not the date any source was read.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?version ?began ?beganAt WHERE {
+    ?version gmeow:versionOf <https://blackcatinformatics.ca/gmeow/examples/norms/provision-canada/actDefinition> ;
+        gmeow:versionBeganBy ?began .
+    ?began gmeow:eventTime ?beganAt .
+    FILTER NOT EXISTS { ?version gmeow:versionEndedBy ?ended }
+}

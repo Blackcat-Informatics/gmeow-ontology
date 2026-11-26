@@ -1432,3 +1432,19 @@ msgstr "matière évaluée"
 msgctxt "https://blackcatinformatics.ca/gmeow/evaluatedMatter|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The event whose governing provision version the evaluation determines. Functional and mandatory."
 msgstr "L'événement dont l'évaluation détermine la version de disposition régissante. Fonctionnelle et obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretsVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interprets version"
+msgstr "interprète la version"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretsVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provision version whose text an authority claim reads, applies or interprets. A legal effect event that ends this version is a change that affected the basis of the claim. The claim is neither retracted nor suppressed by that change, and suppressing the claim or dating its source later is not a change to the version."
+msgstr "La version de disposition dont une revendication d'autorité lit, applique ou interprète le texte. Un événement d'effet juridique qui met fin à cette version est un changement qui a touché le fondement de la revendication. La revendication n'est ni retirée ni supprimée par ce changement, et supprimer la revendication ou dater sa source plus tard n'est pas un changement de la version."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretsVersion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim gmeow:interpretsVersion ex:sectionVersion ."
+msgstr "ex:claim gmeow:interpretsVersion ex:sectionVersion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretsVersion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to tie an interpretation to the exact provision version it reads, so that the amendment or repeal that ended the version can be found from the interpretation."
+msgstr "Utiliser pour relier une interprétation à la version exacte de la disposition qu'elle lit, afin de retrouver, à partir de l'interprétation, la modification ou l'abrogation qui a mis fin à la version."

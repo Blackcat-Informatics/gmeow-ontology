@@ -7,7 +7,8 @@
 #
 # The fixture exercises one provision with two versions split by an amendment, a transition rule
 # that keeps the earlier version for a matter begun after the amendment, a second provision whose
-# beginning event carries no material date, and a decoy citation whose publication date must not
+# beginning event carries no material date, interpretations of versions (one live, one superseded
+# with displayable false), and decoy citations whose publication dates must not
 # establish a change.
 #
 # Times are kept apart: a legal effect event's eventTime is the material date; a citation's
@@ -127,3 +128,57 @@ ex:evalLater a gmeow:ApplicabilityEvaluation ;
 ex:evalUndated a gmeow:ApplicabilityEvaluation ;
     gmeow:evaluatedMatter ex:undatedMatter ;
     gmeow:eventTime "2026-11-26"^^xsd:date .
+
+# --- Assessor interpretations of provision versions ------------------------------------------
+# One interpretation reads the earlier version of section 5, which the amendment ended: the
+# amendment is the change that affected it, and the claim stays recorded and displayable. A second
+# interpretation reads section 7 and was superseded, so it carries displayable false. Section 7 has
+# no ending event: the suppression is not a legal change.
+ex:assessor a gmeow:Organization ;
+    gmeow:name "Synthetic assessor (placeholder)"@x-gmeow-english .
+ex:propSec5Reading a gmeow:Proposition ;
+    rdfs:label "Synthetic section 5, enacted text, read as applying to every proceeding"@x-gmeow-english .
+ex:propSec7Reading a gmeow:Proposition ;
+    rdfs:label "Synthetic section 7, amended text, read as applying to every proceeding"@x-gmeow-english .
+ex:selClaimSec5 a gmeow:Selector ;
+    gmeow:selectorLocator "synthetic assessor note on section 5" .
+ex:selClaimSec7 a gmeow:Selector ;
+    gmeow:selectorLocator "synthetic assessor note on section 7" .
+ex:citeClaimSec5 a gmeow:CitationAct ;
+    gmeow:citingEntity ex:claimSec5 ; gmeow:citedEntity ex:consolidation ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selClaimSec5 ;
+    gmeow:assertedAt "2005-02-01T00:00:00Z"^^xsd:dateTime .
+ex:citeClaimSec7 a gmeow:CitationAct ;
+    gmeow:citingEntity ex:claimSec7Old ; gmeow:citedEntity ex:consolidation ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selClaimSec7 ;
+    gmeow:assertedAt "2011-02-01T00:00:00Z"^^xsd:dateTime .
+
+ex:claimSec5 a gmeow:AuthorityClaim ;
+    gmeow:expresses ex:propSec5Reading ;
+    gmeow:wasAssociatedWith ex:assessor ; gmeow:accordingTo ex:assessor ;
+    gmeow:authorityOrder ex:legalOrder ;
+    gmeow:authorityForce gmeow:authorityForceUnresolved ;
+    gmeow:authorityIssue "the proceedings to which section 5 applies"@en ;
+    gmeow:authoritySource ex:citeClaimSec5 ;
+    gmeow:interpretsVersion ex:sec5v1 ;
+    gmeow:eventTime "2005-02-01"^^xsd:date .
+
+ex:claimSec7Old a gmeow:AuthorityClaim ;
+    gmeow:expresses ex:propSec7Reading ;
+    gmeow:wasAssociatedWith ex:assessor ; gmeow:accordingTo ex:assessor ;
+    gmeow:authorityOrder ex:legalOrder ;
+    gmeow:authorityForce gmeow:authorityForceUnresolved ;
+    gmeow:authorityIssue "the proceedings to which section 7 applies"@en ;
+    gmeow:authoritySource ex:citeClaimSec7 ;
+    gmeow:interpretsVersion ex:sec7v1 ;
+    gmeow:displayable false ;
+    gmeow:eventTime "2011-02-01"^^xsd:date .
+
+# A later publication that cites the undated-start version of section 7: its publication time is
+# later than the source of that version and it is not a legal effect event.
+ex:selSec7Later a gmeow:Selector ;
+    gmeow:selectorLocator "synthetic section 7, later reprint" .
+ex:citeSec7Later a gmeow:CitationAct ;
+    gmeow:citingEntity ex:sec7v1 ; gmeow:citedEntity ex:consolidation ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selSec7Later ;
+    gmeow:assertedAt "2026-02-01T00:00:00Z"^^xsd:dateTime .

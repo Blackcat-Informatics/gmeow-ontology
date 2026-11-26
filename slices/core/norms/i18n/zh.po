@@ -1432,3 +1432,19 @@ msgstr "被评价事项"
 msgctxt "https://blackcatinformatics.ca/gmeow/evaluatedMatter|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The event whose governing provision version the evaluation determines. Functional and mandatory."
 msgstr "评价所确定其管辖条款版本的事件。函数性且必填。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretsVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interprets version"
+msgstr "解释版本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretsVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provision version whose text an authority claim reads, applies or interprets. A legal effect event that ends this version is a change that affected the basis of the claim. The claim is neither retracted nor suppressed by that change, and suppressing the claim or dating its source later is not a change to the version."
+msgstr "权威主张所阅读、适用或解释其文本的条款版本。终止该版本的法律效力事件是影响该主张依据的变更。该变更既不撤回也不压制该主张，压制该主张或将其来源日期后移也不构成对该版本的变更。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretsVersion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim gmeow:interpretsVersion ex:sectionVersion ."
+msgstr "ex:claim gmeow:interpretsVersion ex:sectionVersion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretsVersion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to tie an interpretation to the exact provision version it reads, so that the amendment or repeal that ended the version can be found from the interpretation."
+msgstr "用于将解释与其所阅读的确切条款版本相联系，以便从该解释找到终止该版本的修正或废止。"

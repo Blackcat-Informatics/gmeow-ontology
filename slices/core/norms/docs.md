@@ -407,8 +407,23 @@ matter event: a source that saves a class of matters by condition is recorded by
 it saves. The rulemap status of an external rule map is not modelled. A legal interpretation that a
 holder withdraws is an authority claim with its own force, not a legal effect event.
 
-The fixture `examples/provision-applicability.ttl` is synthetic. Its act, sections, dates, sources
-and transition are invented to exercise these queries, and they state no law of any jurisdiction.
+**Interpretations of a version.** `gmeow:interpretsVersion` ties an authority claim to the provision
+version whose text it reads. The change that affected the interpretation is the legal effect event
+that ended that version, found by following `gmeow:versionEndedBy` from the version the claim reads.
+The claim stays recorded, and the current version of the same provision is read beside it. An
+interpretation superseded with `gmeow:displayable false`, and a citation published after the source
+of a version, are not legal effect events and establish no change.
+
+The fixture `examples/provision-applicability-canada.ttl` pins one federal provision, the definition
+of "Act" in subsection 35(1) of the Interpretation Act, to the Justice Laws point-in-time pages. The
+material dates of its two versions are the version boundaries of that consolidation. Its transition
+rule is a synthetic companion: it cites the opening words of the Act's section on the effect of
+repeal as the general savings text, and its saved matter is invented. The header of the file records
+each source and what it does and does not establish.
+
+The fixture `examples/provision-applicability.ttl` is synthetic. Its act, sections, dates, sources,
+transition and interpretations are invented to exercise these queries, and they state no law of any
+jurisdiction.
 
 ## Literal language and direction
 

@@ -3035,6 +3035,17 @@ gmeow:evaluatedMatter
     skos:definition "The event whose governing provision version the evaluation determines. Functional and mandatory."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+gmeow:interpretsVersion
+    a logic:ObjectProperty ;
+    logic:domain gmeow:AuthorityClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "interprets version"@x-gmeow-english ;
+    logic:range gmeow:ProvisionVersion ;
+    skos:definition "The provision version whose text an authority claim reads, applies or interprets. A legal effect event that ends this version is a change that affected the basis of the claim. The claim is neither retracted nor suppressed by that change, and suppressing the claim or dating its source later is not a change to the version."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:interpretsVersion ex:sectionVersion ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Use to tie an interpretation to the exact provision version it reads, so that the amendment or repeal that ended the version can be found from the interpretation."@x-gmeow-english .
+
 # Cardinalities. A legal effect event has one kind. A provision version has one identity, one
 # jurisdiction, one beginning, at most one end, and at least one source. A transition rule has one
 # boundary, one saved version, at least one saved matter and one source. An evaluation has one matter.
