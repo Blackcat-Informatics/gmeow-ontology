@@ -1169,7 +1169,7 @@ fn native_leg(
     let mut selected: Option<gmeow_logic::reason::SelectedProgram> = None;
     let run = (|| {
         let (input, ingress) = prepared?;
-        let program = gmeow_logic::reason::prepare_selected_theory(inventory, &ingress)?;
+        let program = gmeow_logic::reason::prepare_selected_source_proof(inventory, &ingress)?;
         selected = Some(program.clone());
         let domains = SelectedDomains::new([SelectedLogicalWorld::new(
             LogicalGraph::Default,
@@ -1288,7 +1288,14 @@ fn native_leg(
             engine: ENGINE_NATIVE,
             law: axiom
                 .rule_name
-                .clone()
+                .as_deref()
+                .map(|rule| {
+                    selected
+                        .as_ref()
+                        .and_then(|program| program.authored_denial_owner(rule))
+                        .unwrap_or(rule)
+                        .to_owned()
+                })
                 .unwrap_or_else(|| "asserted-empty-class-membership".to_owned()),
             subject: Some(axiom.subject.clone()),
             world: Some(axiom.world.clone()),

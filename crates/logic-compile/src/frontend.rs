@@ -3723,33 +3723,115 @@ fn read_cross_node(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<C
 fn read_forbidden_pattern(
     store: &RdfDataset,
     node: &Subject,
+    source: SourceNode,
+    support: &mut BTreeSet<SourceStatementBinding>,
 ) -> gmeow_errors::Result<ConstraintIr> {
-    let class = sugar_target_class(store, node)?;
-    let forbidden = value(store, node, &nn(&logic_iri("forbiddenPredicate")))
-        .map(|t| term_str(&t))
-        .ok_or_else(|| {
-            sugar_err("logic:ForbiddenPatternConstraint requires logic:forbiddenPredicate")
-        })?;
-    let consequent = match value(store, node, &nn(&logic_iri("forbiddenValue"))) {
-        Some(v) => {
-            let obj = match &v {
-                Node::Iri(i) => Term::iri(i)?,
-                Node::Lit(literal) => Term::rdf_literal(literal.clone())?,
-                _ => {
-                    return Err(sugar_err(
-                        "logic:forbiddenValue must be an IRI or a literal",
-                    ));
-                }
+    let kind = logic_iri("ForbiddenPatternConstraint");
+    support.extend(source_fields(store, source, None).filter(|binding| {
+        let quad = binding.canonical;
+        matches!(store.resolve(quad.o), purrdf::TermRef::Iri(iri) if iri == kind.as_str())
+            && matches!(store.resolve(quad.p), purrdf::TermRef::Iri(predicate)
+                if crate::graphutil::is_structural_type_predicate(predicate, &kind))
+    }));
+    let ForbiddenPattern {
+        class,
+        predicate,
+        pin,
+    } = forbidden_pattern_fields(store, source, support)?;
+    let consequent = match pin {
+        Some(pin) => {
+            let object = match pin {
+                ShapeValue::Iri(iri) => Term::iri(&iri)?,
+                ShapeValue::Literal(literal) => Term::rdf_literal(literal)?,
             };
-            Formula::Not(Box::new(f_atom2(&forbidden, t_var("this"), obj)?))
+            Formula::Not(Box::new(f_atom2(&predicate, t_var("this"), object)?))
         }
-        None => Formula::Not(Box::new(f_pred_exists(&forbidden, "b")?)),
+        None => Formula::Not(Box::new(f_pred_exists(&predicate, "b")?)),
     };
-    finalize_sugar(
+    let constraint = finalize_sugar(
         store,
         node,
         f_forall_this(f_guard_class(&class)?, consequent),
-    )
+    )?;
+    for field in [
+        logic_iri("formalizes"),
+        logic_iri("severity"),
+        logic_iri("message"),
+        GMEOW_ENFORCES_FAILURE_CLASS.to_owned(),
+    ] {
+        if let Some(predicate) = store.term_id_by_iri(&field) {
+            support.extend(source_fields(store, source, Some(predicate)));
+        }
+    }
+    Ok(constraint)
+}
+
+struct ForbiddenPattern {
+    class: String,
+    predicate: String,
+    pin: Option<ShapeValue>,
+}
+
+fn forbidden_pattern_fields(
+    store: &RdfDataset,
+    source: SourceNode,
+    support: &mut BTreeSet<SourceStatementBinding>,
+) -> gmeow_errors::Result<ForbiddenPattern> {
+    let class = forbidden_pattern_iri(store, source, "onClass", support)?;
+    let predicate = forbidden_pattern_iri(store, source, "forbiddenPredicate", support)?;
+    let pin = match forbidden_pattern_field(store, source, "forbiddenValue", support)? {
+        Some(Node::Iri(iri)) => Some(ShapeValue::Iri(iri)),
+        Some(Node::Lit(literal)) => Some(ShapeValue::Literal(literal)),
+        None => None,
+        _ => {
+            return Err(sugar_err(
+                "logic:forbiddenValue must be an IRI or a literal",
+            ));
+        }
+    };
+    Ok(ForbiddenPattern {
+        class,
+        predicate,
+        pin,
+    })
+}
+
+fn forbidden_pattern_iri(
+    store: &RdfDataset,
+    source: SourceNode,
+    local: &str,
+    support: &mut BTreeSet<SourceStatementBinding>,
+) -> gmeow_errors::Result<String> {
+    match forbidden_pattern_field(store, source, local, support)? {
+        Some(Node::Iri(iri)) => Ok(iri),
+        _ => Err(sugar_err(format!(
+            "logic:ForbiddenPatternConstraint requires one IRI for logic:{local}"
+        ))),
+    }
+}
+
+/// Retain all physical carriers for the one semantic value read from this graph.
+fn forbidden_pattern_field(
+    store: &RdfDataset,
+    source: SourceNode,
+    local: &str,
+    support: &mut BTreeSet<SourceStatementBinding>,
+) -> gmeow_errors::Result<Option<Node>> {
+    let Some(predicate) = store.term_id_by_iri(&logic_iri(local)) else {
+        return Ok(None);
+    };
+    let mut selected = None;
+    for binding in source_fields(store, source, Some(predicate)) {
+        let object = binding.canonical.o;
+        if selected.is_some_and(|prior| prior != object) {
+            return Err(sugar_err(format!(
+                "logic:ForbiddenPatternConstraint has multiple distinct logic:{local} values"
+            )));
+        }
+        selected = Some(object);
+        support.insert(binding);
+    }
+    Ok(selected.map(|object| crate::graphutil::node_of(store, object)))
 }
 
 /// P6 / aggregate — an aggregate-comparison constraint: a target class + an aggregate function
@@ -4440,34 +4522,54 @@ fn extract_sugar_constraints(
     lowerings: &mut Vec<OwnerLowering>,
 ) -> gmeow_errors::Result<Vec<OwnerEmission<ConstraintIr>>> {
     type Reader = fn(&RdfDataset, &Subject) -> gmeow_errors::Result<ConstraintIr>;
-    let readers: [(&str, Reader); 18] = [
-        ("ChoiceGroupConstraint", read_choice_group),
-        ("GuardedImplicationConstraint", read_guarded_implication),
+    enum SugarReader {
+        Ordinary(Reader),
+        ForbiddenPattern,
+    }
+    use SugarReader::{ForbiddenPattern, Ordinary};
+    let readers = [
+        ("ChoiceGroupConstraint", Ordinary(read_choice_group)),
+        (
+            "GuardedImplicationConstraint",
+            Ordinary(read_guarded_implication),
+        ),
         (
             "DisjunctiveRequirednessConstraint",
-            read_disjunctive_requiredness,
+            Ordinary(read_disjunctive_requiredness),
         ),
-        ("PathValueTypeConstraint", read_path_value_type),
-        ("CrossNodeConstraint", read_cross_node),
-        ("ForbiddenPatternConstraint", read_forbidden_pattern),
-        ("ValueRangeConstraint", read_value_range),
-        ("AggregateConstraint", read_aggregate_constraint),
-        ("JoinAggregateConstraint", read_join_aggregate_constraint),
+        ("PathValueTypeConstraint", Ordinary(read_path_value_type)),
+        ("CrossNodeConstraint", Ordinary(read_cross_node)),
+        ("ForbiddenPatternConstraint", ForbiddenPattern),
+        ("ValueRangeConstraint", Ordinary(read_value_range)),
+        ("AggregateConstraint", Ordinary(read_aggregate_constraint)),
+        (
+            "JoinAggregateConstraint",
+            Ordinary(read_join_aggregate_constraint),
+        ),
         (
             "AggregateBalanceConstraint",
-            read_aggregate_balance_constraint,
+            Ordinary(read_aggregate_balance_constraint),
         ),
-        ("ComparisonConstraint", read_comparison),
-        ("PathNodeKindConstraint", read_path_node_kind),
-        ("SelfJoinUniquenessConstraint", read_self_join_uniqueness),
-        ("InverseExistenceConstraint", read_inverse_existence),
+        ("ComparisonConstraint", Ordinary(read_comparison)),
+        ("PathNodeKindConstraint", Ordinary(read_path_node_kind)),
+        (
+            "SelfJoinUniquenessConstraint",
+            Ordinary(read_self_join_uniqueness),
+        ),
+        (
+            "InverseExistenceConstraint",
+            Ordinary(read_inverse_existence),
+        ),
         (
             "TransitiveReachabilityConstraint",
-            read_transitive_reachability,
+            Ordinary(read_transitive_reachability),
         ),
-        ("AcyclicConstraint", read_acyclic),
-        ("ValueSetMembershipConstraint", read_value_set_membership),
-        ("StringPatternConstraint", read_string_pattern),
+        ("AcyclicConstraint", Ordinary(read_acyclic)),
+        (
+            "ValueSetMembershipConstraint",
+            Ordinary(read_value_set_membership),
+        ),
+        ("StringPatternConstraint", Ordinary(read_string_pattern)),
     ];
     let mut out: Vec<OwnerEmission<ConstraintIr>> = Vec::new();
     for (class_local, reader) in readers {
@@ -4485,13 +4587,21 @@ fn extract_sugar_constraints(
                     numeric_range_bound(store, &subj, &nn(&logic_iri(local)))?;
                 }
             }
-            if let Some(emitted) = capture_owner(
-                owner_source(store, &subj),
+            let source = owner_source(store, &subj);
+            let mut support = BTreeSet::new();
+            if let Some(mut emitted) = capture_owner(
+                source,
                 OwnerFamily::Constraint,
                 diagnostics,
                 lowerings,
                 |diagnostics| {
-                    reader(store, &subj).map_err(|err| {
+                    let result = match &reader {
+                        Ordinary(read) => read(store, &subj),
+                        ForbiddenPattern => {
+                            read_forbidden_pattern(store, &subj, source, &mut support)
+                        }
+                    };
+                    result.map_err(|err| {
                         diagnostics.push(Diagnostic::warning(
                             "MALFORMED_CONSTRAINT",
                             err.message().to_owned(),
@@ -4501,6 +4611,7 @@ fn extract_sugar_constraints(
                     })
                 },
             ) {
+                emitted.record_support = support;
                 out.push(emitted);
             }
         }
