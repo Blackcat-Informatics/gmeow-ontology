@@ -19,6 +19,7 @@ use std::collections::{BTreeMap, BTreeSet, HashSet};
 use gmeow_pipeline::medium::MEDIUM_REGISTRY_GRAPH;
 use gmeow_pipeline::medium::registry::MediumRegistry;
 use gmeow_pipeline::stages::medium_dictionaries::frame_iri;
+use gmeow_pipeline::stages::superset::DecodedProjectionSource;
 use purrdf::gts::wire::{iter_items, map_get, unwrap_header};
 use purrdf::{RdfLookaside, RdfQuad, RdfTerm};
 use purrdf_lex::cbor::Value;
@@ -380,11 +381,10 @@ fn the_emitted_bundle_ships_its_declared_medium() {
         );
     }
 
-    // Decode the two independent carrier surfaces ONCE for every assertion below:
-    // the segment-aware RDF event fold plus the raw graph/blob fold. The projection
-    // source keeps them tied to these exact bytes and still hard-fails either reader.
+    // Decode the authoritative RDF dataset and raw blob entries once. The
+    // projection source binds both to the same authenticated bytes.
     let decoded = gmeow_pipeline::stages::superset::decode_projection_source(&bundle)
-        .expect("the emitted bundle's RDF and raw blob surfaces fold back");
+        .expect("the emitted bundle's RDF and blob surfaces fold back");
     let dataset = decoded.dataset();
 
     // ── (b) graph/medium-registry: one realization per dictionary + one envelope per frame ──
@@ -627,13 +627,7 @@ fn the_emitted_bundle_ships_its_declared_medium() {
     // ── (g) every dictionary is carried in-band EXACTLY ONCE ──
     // Inspect the authenticated carrier directly. Reconstructing the repository fanout
     // here would turn a test into a corpus producer, which is forbidden.
-    the_dictionaries_are_carried_exactly_once(
-        decoded.graph(),
-        decoded.lookaside(),
-        &pinned,
-        &registry_quads,
-        &module,
-    );
+    the_dictionaries_are_carried_exactly_once(&decoded, &pinned, &registry_quads, &module);
     no_rep_is_primed_by_a_retired_dictionary(&module, &pinned);
 
     let emitted = emitted_reps(decoded.lookaside());
@@ -642,22 +636,9 @@ fn the_emitted_bundle_ships_its_declared_medium() {
     //        dictionaries named for them, each member is carried by exactly one rep,
     //        and NO rep or header entry is primed by a retired
     //        dictionary id ──
-    the_lang_reps_are_real_frames_primed_by_lang_ast(
-        decoded.graph(),
-        decoded.lookaside(),
-        &emitted,
-        &module,
-    );
-    the_claim_reps_are_real_frames_and_ride_unprimed(
-        decoded.graph(),
-        decoded.lookaside(),
-        &emitted,
-        &module,
-    );
-    the_split_out_archive_members_are_carried_by_exactly_one_rep(
-        decoded.graph(),
-        decoded.lookaside(),
-    );
+    the_lang_reps_are_real_frames_primed_by_lang_ast(&decoded, &emitted, &module);
+    the_claim_reps_are_real_frames_and_ride_unprimed(&decoded, &emitted, &module);
+    the_split_out_archive_members_are_carried_by_exactly_one_rep(&decoded);
     drop(decoded);
 
     // ── (i) the generalization both (h) clauses are instances of ──
@@ -679,8 +660,7 @@ const REP_GENERATED: &str = "generated-opaque-archive";
 /// bytes twice — re-folding a blob the snapshot already carries (Constitution §18) and
 /// inflating the archive it rode in.
 fn the_dictionaries_are_carried_exactly_once(
-    graph: &purrdf::gts::model::Graph,
-    lookaside: &RdfLookaside,
+    source: &DecodedProjectionSource,
     pinned: &BTreeMap<String, Vec<u8>>,
     registry_quads: &[RdfQuad],
     module: &MediumRegistry,
@@ -739,12 +719,12 @@ fn the_dictionaries_are_carried_exactly_once(
 
     // EXACTLY ONCE: no generated-opaque archive member is a dictionary.
     let mut archives_seen = 0usize;
-    for record in &lookaside.blobs {
+    for record in &source.lookaside().blobs {
         if record.representation.as_deref() != Some(REP_GENERATED) {
             continue;
         }
         archives_seen += 1;
-        let Some((_, entry)) = graph.blobs.iter().find(|(d, _)| d == &record.digest) else {
+        let Some(entry) = source.blob_entry(&record.digest) else {
             panic!("the {REP_GENERATED} lookaside record names no inline blob");
         };
         let bytes = entry.decoded_vec().expect("the archive decodes");
@@ -781,18 +761,14 @@ fn emitted_reps(lookaside: &RdfLookaside) -> BTreeSet<String> {
 /// Scoped to a single rep on purpose: the big `ontology-docs` / `okf-export` payloads trip
 /// the zstd decode safety bound, so a sweep that decoded every blob would be fatal as well
 /// as wasteful (the same reason `carrier::archive_rep_carries_generated` excludes them).
-fn decoded_frames_for_rep(
-    graph: &purrdf::gts::model::Graph,
-    lookaside: &RdfLookaside,
-    rep: &str,
-) -> (usize, usize) {
+fn decoded_frames_for_rep(source: &DecodedProjectionSource, rep: &str) -> (usize, usize) {
     let mut frames = 0usize;
     let mut bytes = 0usize;
-    for record in &lookaside.blobs {
+    for record in &source.lookaside().blobs {
         if record.representation.as_deref() != Some(rep) {
             continue;
         }
-        let Some((_, entry)) = graph.blobs.iter().find(|(d, _)| d == &record.digest) else {
+        let Some(entry) = source.blob_entry(&record.digest) else {
             panic!("the {rep:?} lookaside record names no inline blob");
         };
         frames += 1;
@@ -846,8 +822,7 @@ fn primed_reps_by_dictionary(module: &MediumRegistry) -> BTreeMap<String, BTreeS
 /// population). The registry-level half is enforced a third time, against the declaration
 /// alone, in `medium::registry::tests::the_live_gts_slice_reads_as_a_complete_registry`.
 fn the_lang_reps_are_real_frames_primed_by_lang_ast(
-    graph: &purrdf::gts::model::Graph,
-    lookaside: &RdfLookaside,
+    source: &DecodedProjectionSource,
     emitted_reps: &BTreeSet<String>,
     module: &MediumRegistry,
 ) {
@@ -865,10 +840,9 @@ fn the_lang_reps_are_real_frames_primed_by_lang_ast(
         emitted_reps.contains(REP_LANG_PROJECTIONS),
         "the bundle emits no {REP_LANG_PROJECTIONS} frame"
     );
-    let (surface_frames, surface_bytes) =
-        decoded_frames_for_rep(graph, lookaside, REP_LANG_SURFACE);
+    let (surface_frames, surface_bytes) = decoded_frames_for_rep(source, REP_LANG_SURFACE);
     let (projection_frames, projection_bytes) =
-        decoded_frames_for_rep(graph, lookaside, REP_LANG_PROJECTIONS);
+        decoded_frames_for_rep(source, REP_LANG_PROJECTIONS);
     assert!(
         surface_frames > 0,
         "the surface-blob half must be non-empty too, or the comparison below is vacuous"
@@ -901,7 +875,7 @@ fn the_lang_reps_are_real_frames_primed_by_lang_ast(
          must carry the ~18 MB TBX termbase and glossary table alongside the ~150 KB \
          generated/projections/lang/ tree, so a smaller archive means members were dropped"
     );
-    let members = archive_members(graph, lookaside, REP_LANG_PROJECTIONS);
+    let members = archive_members(source, REP_LANG_PROJECTIONS);
     for member in LANG_GLOSSARY_MEMBERS {
         let bytes = members
             .get(member)
@@ -940,8 +914,7 @@ fn the_lang_reps_are_real_frames_primed_by_lang_ast(
 /// counterpart — a rep whose dictionary was retired must ride the dictionary-less medium,
 /// never keep a dangling selection.
 fn the_claim_reps_are_real_frames_and_ride_unprimed(
-    graph: &purrdf::gts::model::Graph,
-    lookaside: &RdfLookaside,
+    source: &DecodedProjectionSource,
     emitted: &BTreeSet<String>,
     module: &MediumRegistry,
 ) {
@@ -963,10 +936,9 @@ fn the_claim_reps_are_real_frames_and_ride_unprimed(
         );
     }
 
-    let (frames, bytes) = decoded_frames_for_rep(graph, lookaside, REP_YAMLLD);
+    let (frames, bytes) = decoded_frames_for_rep(source, REP_YAMLLD);
     assert_eq!(frames, 1, "the claim serializations ride ONE tar frame");
-    let (statement_frames, statement_bytes) =
-        decoded_frames_for_rep(graph, lookaside, REP_STATEMENTS);
+    let (statement_frames, statement_bytes) = decoded_frames_for_rep(source, REP_STATEMENTS);
     assert_eq!(
         statement_frames, 1,
         "the statement byte projections ride ONE tar frame"
@@ -976,13 +948,13 @@ fn the_claim_reps_are_real_frames_and_ride_unprimed(
          {statement_frames} statements frame(s) / {statement_bytes} B"
     );
 
-    let members = archive_members(graph, lookaside, REP_YAMLLD);
+    let members = archive_members(source, REP_YAMLLD);
     assert_eq!(
         members.keys().map(String::as_str).collect::<Vec<_>>(),
         YAMLLD_MEMBERS.to_vec(),
         "the claim archive carries exactly its two declared members"
     );
-    let statement_members = archive_members(graph, lookaside, REP_STATEMENTS);
+    let statement_members = archive_members(source, REP_STATEMENTS);
     assert_eq!(
         statement_members
             .keys()
@@ -1180,17 +1152,13 @@ fn every_declared_dictionary_primes_an_emitted_frame(
 }
 
 /// The members of ONE tar archive rep of the emitted bundle, by member name.
-fn archive_members(
-    graph: &purrdf::gts::model::Graph,
-    lookaside: &RdfLookaside,
-    rep: &str,
-) -> BTreeMap<String, Vec<u8>> {
+fn archive_members(source: &DecodedProjectionSource, rep: &str) -> BTreeMap<String, Vec<u8>> {
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    for record in &lookaside.blobs {
+    for record in &source.lookaside().blobs {
         if record.representation.as_deref() != Some(rep) {
             continue;
         }
-        let Some((_, entry)) = graph.blobs.iter().find(|(d, _)| d == &record.digest) else {
+        let Some(entry) = source.blob_entry(&record.digest) else {
             panic!("the {rep:?} lookaside record names no inline blob");
         };
         let bytes = entry
@@ -1220,10 +1188,7 @@ fn archive_members(
 /// supposed to prime them primed nothing again. So the positive half is asserted here,
 /// over the shipped tars. Both families are checked in ONE sweep because the sweep is
 /// what costs — it decodes every non-oversized tar in the bundle.
-fn the_split_out_archive_members_are_carried_by_exactly_one_rep(
-    graph: &purrdf::gts::model::Graph,
-    lookaside: &RdfLookaside,
-) {
+fn the_split_out_archive_members_are_carried_by_exactly_one_rep(source: &DecodedProjectionSource) {
     // The documentation/export payloads are large enough to trip the zstd decode safety
     // bound (the same set `carrier::archive_rep_carries_generated` excludes), so they are
     // NOT decoded. The skip is DECLARED rather than silent: any other rep that failed to
@@ -1234,7 +1199,7 @@ fn the_split_out_archive_members_are_carried_by_exactly_one_rep(
     let mut carriers: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let mut scanned: BTreeSet<String> = BTreeSet::new();
     let mut undecodable: BTreeSet<String> = BTreeSet::new();
-    for record in &lookaside.blobs {
+    for record in &source.lookaside().blobs {
         if record.media_type.as_deref() != Some("application/x-tar") {
             continue;
         }
@@ -1246,7 +1211,7 @@ fn the_split_out_archive_members_are_carried_by_exactly_one_rep(
         if OVERSIZED.contains(&rep.as_str()) {
             continue;
         }
-        let Some((_, entry)) = graph.blobs.iter().find(|(d, _)| d == &record.digest) else {
+        let Some(entry) = source.blob_entry(&record.digest) else {
             panic!("the {rep:?} lookaside record names no inline blob");
         };
         let Ok(bytes) = entry.decoded_vec() else {

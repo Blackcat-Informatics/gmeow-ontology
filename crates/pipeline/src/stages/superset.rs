@@ -38,6 +38,7 @@ use std::sync::Arc;
 
 use bytes::Bytes;
 use purrdf::RdfDataset;
+use purrdf::gts::model::BlobEntry;
 
 pub(crate) mod source_contracts;
 
@@ -80,13 +81,12 @@ pub struct BundleProjection {
 /// One verified decode of the two bundle surfaces the projection proof needs.
 ///
 /// The RDF dataset deliberately comes from the authoritative segment-aware event
-/// importer, while the folded GTS graph retains the raw blob payloads and metadata
-/// that are outside RDF. Keeping both in one opaque value prevents callers from
-/// accidentally pairing a dataset and blob graph from different bundle bytes, and
-/// lets whole-bundle proofs reuse the expensive decode/index work across assertions.
+/// importer. The raw reader supplies the blob entries and their companion metadata.
+/// Keeping both in one opaque value binds them to the same bundle and lets
+/// whole-bundle proofs reuse the decode across assertions.
 pub struct DecodedProjectionSource {
     dataset: Arc<RdfDataset>,
-    graph: purrdf::gts::model::Graph,
+    blobs: Vec<(String, BlobEntry)>,
     lookaside: purrdf::RdfLookaside,
     header_dicts: BTreeMap<String, Vec<u8>>,
 }
@@ -98,13 +98,13 @@ impl DecodedProjectionSource {
         self.dataset.as_ref()
     }
 
-    /// The raw folded GTS graph, including inline blob payloads.
+    /// Look up an inline blob by its content digest without decoding its payload.
     #[must_use]
-    pub fn graph(&self) -> &purrdf::gts::model::Graph {
-        &self.graph
+    pub fn blob_entry(&self, digest: &str) -> Option<&BlobEntry> {
+        purrdf_lex::assoc::get(&self.blobs, digest)
     }
 
-    /// The blob/header companion index derived from [`Self::graph`].
+    /// The companion index derived from the raw fold.
     #[must_use]
     pub fn lookaside(&self) -> &purrdf::RdfLookaside {
         &self.lookaside
@@ -113,20 +113,23 @@ impl DecodedProjectionSource {
 
 /// Decode the RDF, blob and header surfaces of one emitted bundle exactly once.
 ///
-/// This is intentionally not a weaker graph-only import: the segment-aware event
-/// importer remains the RDF authority, and the raw reader remains the independent
-/// authority for blob/header semantics. Every error is a hard failure.
+/// The raw reader supplies the blob entries and metadata. Release its RDF
+/// tables before the segment-aware event importer constructs the native dataset.
+/// Every decoding error is a hard failure.
 pub fn decode_projection_source(
     gts_bytes: &[u8],
 ) -> Result<DecodedProjectionSource, gmeow_errors::Diag> {
+    let (blobs, lookaside) = {
+        let graph = purrdf::gts::read_graph(gts_bytes, true)
+            .map_err(|e| stage_err(&format!("read gmeow.gts blobs: {e}")))?;
+        let lookaside = purrdf::gts::lookaside_from_graph(&graph);
+        (graph.blobs, lookaside)
+    };
     let dataset = read_dataset(gts_bytes)?;
-    let graph = purrdf::gts::read_graph(gts_bytes, true)
-        .map_err(|e| stage_err(&format!("read gmeow.gts blobs: {e}")))?;
-    let lookaside = purrdf::gts::lookaside_from_graph(&graph);
     let header_dicts = read_header_dicts(gts_bytes)?;
     Ok(DecodedProjectionSource {
         dataset,
-        graph,
+        blobs,
         lookaside,
         header_dicts,
     })
@@ -162,7 +165,7 @@ pub fn project_decoded_bundle(
     source: &DecodedProjectionSource,
 ) -> Result<BundleProjection, gmeow_errors::Diag> {
     let dataset = source.dataset();
-    let blob_members = read_blob_members(source.graph(), source.lookaside())?;
+    let blob_members = read_blob_members(source)?;
     // The path↔representative map as DATA: the gmeow:fanoutExtracts rows read back from the
     // bundle. The RDF-fanout / EDOAL rows are AUTHORED (pipeline slice, default graph); the
     // opaque rows are EMITTED by the carrier (one per generated-opaque archive member,
@@ -1270,13 +1273,10 @@ struct BlobMembers {
     opaque_paths: BTreeSet<String>,
 }
 
-fn read_blob_members(
-    graph: &purrdf::gts::model::Graph,
-    lookaside: &purrdf::RdfLookaside,
-) -> Result<BlobMembers, gmeow_errors::Diag> {
+fn read_blob_members(source: &DecodedProjectionSource) -> Result<BlobMembers, gmeow_errors::Diag> {
     let mut out = BTreeMap::new();
     let mut opaque_paths: BTreeSet<String> = BTreeSet::new();
-    for record in &lookaside.blobs {
+    for record in &source.lookaside().blobs {
         // Only archive blobs unpack to member files; non-archive blobs (reports,
         // guides, docs) are not committed `generated/` reconstruction targets and
         // are skipped — their committed projections, if any, ride other reps.
@@ -1291,7 +1291,7 @@ fn read_blob_members(
         if !crate::stages::carrier::archive_rep_carries_generated(rep) {
             continue;
         }
-        let Some((_, entry)) = graph.blobs.iter().find(|(d, _)| d == &record.digest) else {
+        let Some(entry) = source.blob_entry(&record.digest) else {
             continue;
         };
         let bytes = entry
