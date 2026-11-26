@@ -3102,8 +3102,7 @@ logic:hasHolonicPosition
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:historicallyDependsOn
-    a logic:ObjectProperty ,
-        logic:transitiveProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "historically depends on"@x-gmeow-english ;
@@ -3114,6 +3113,16 @@ logic:historicallyDependsOn
     gmeow:howToUse "Assert it from the dependent individual to each individual it requires; read transitivity as the closure. It adds no membership, bearer or occupancy: a consumer reads the present state from the interval-scoped relators and the dependence from this relation."@x-gmeow-english ;
     logic:domain logic:ConcreteIndividual ;
     logic:range logic:ConcreteIndividual .
+
+logic:historicallyDependsOnTransitivity
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "historical dependence transitivity"@x-gmeow-english ;
+    skos:definition "Asserts that historical dependence is transitive: dependence on an antecedent that itself depends historically on a further antecedent is dependence on that further antecedent."@x-gmeow-english ;
+    logic:characterizes logic:historicallyDependsOn ;
+    logic:characteristicSort logic:transitiveProperty ;
+    logic:formalizes logic:historicallyDependsOn .
 
 logic:holonicLevel
     a logic:DatatypeProperty ;

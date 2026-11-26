@@ -724,7 +724,7 @@ logic:mediates skos:closeMatch gufo:mediates {|
 # commitments as GMEOW's own. Ontological dependence is kept apart from stochastic
 # dependence, which logic:DependencyModel expresses and no cell here carries.
 
-gmeow:bearer skos:narrowMatch gufo:inheresIn {|
+gmeow:bearer skos:broadMatch gufo:inheresIn {|
     a logic:GroundingCorrespondence ;
     gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
@@ -738,7 +738,7 @@ gmeow:bearer skos:narrowMatch gufo:inheresIn {|
     logic:preservationKind logic:ValidationOnly
 |} .
 
-gmeow:commitmentBeneficiary skos:narrowMatch gufo:externallyDependsOn {|
+gmeow:commitmentBeneficiary skos:broadMatch gufo:externallyDependsOn {|
     a logic:GroundingCorrespondence ;
     gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;

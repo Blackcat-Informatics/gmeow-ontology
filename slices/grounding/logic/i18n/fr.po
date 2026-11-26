@@ -24343,6 +24343,14 @@ msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|http://www.w3.or
 msgid "A reasoned document preserves a caller graph named graph/reasoning inside the isolated closure while its outer aggregate binds the required closure address."
 msgstr "Un document raisonné conserve un graphe fourni par l’appelant nommé graph/reasoning dans la clôture isolée, tandis que son agrégat externe lie l’adresse obligatoire de cette clôture."
 
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOnTransitivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "historical dependence transitivity"
+msgstr "transitivité de la dépendance historique"
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOnTransitivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that historical dependence is transitive: dependence on an antecedent that itself depends historically on a further antecedent is dependence on that further antecedent."
+msgstr "Affirme la transitivité de la dépendance historique : dépendre d’un antécédent qui dépend lui-même historiquement d’un autre antécédent, c’est dépendre de cet autre antécédent."
+
 msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "historically depends on"
 msgstr "dépend historiquement de"

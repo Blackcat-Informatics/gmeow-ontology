@@ -378,17 +378,18 @@ a commitment has; the correspondence is judged unsupported and states that loss.
 **Historical dependence.** No existing term distinguishes dependence on one's history from
 provenance, derivation, temporal order or parthood, so `logic:historicallyDependsOn` is a primitive.
 It is permanent: once it holds it holds at every later time, so a membership that ended by
-resignation still depends historically on the appointment that began it, and the appointment event
-and its record still exist. It is transitive, not functional, and not asserted asymmetric or
-irreflexive, because an instantaneous founding event coincides with the beginning of what it founds.
+resignation still depends historically on the appointment that began it. In the resignation
+example, the appointment event and its minutes are separate from the closed membership interval.
+It is transitive, not functional, and not asserted asymmetric or irreflexive, because an
+instantaneous founding event coincides with the beginning of what it founds.
 It entails no present state: no membership, no bearer and no occupied seat follows from it, and none
 follows from a provenance link to the minutes of the appointment. The present state comes from the
 interval-scoped relator.
 
-**Correspondence judgments.** The inherence cell is a validation-only narrow match. The
-external-dependence cell is unsupported for the reason above. The historical-dependence cell is a
-validation-only close match. Each cell holds in the unspecified standpoint, because the alignment
-cell form carries no standpoint index.
+**Correspondence judgments.** The inherence cell matches the broader gUFO relation for validation
+only. The external-dependence cell is unsupported for the reason above. The historical-dependence
+cell is a validation-only close match. Each cell holds in the unspecified standpoint, because the
+alignment cell form carries no standpoint index.
 
 ## Factored claim modality
 

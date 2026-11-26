@@ -24343,6 +24343,14 @@ msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|http://www.w3.or
 msgid "A reasoned document preserves a caller graph named graph/reasoning inside the isolated closure while its outer aggregate binds the required closure address."
 msgstr "经推理的文档在隔离闭包中保留调用者命名为 graph/reasoning 的图，同时其外层聚合绑定必需的闭包地址。"
 
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOnTransitivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "historical dependence transitivity"
+msgstr "历史依赖的传递性"
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOnTransitivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that historical dependence is transitive: dependence on an antecedent that itself depends historically on a further antecedent is dependence on that further antecedent."
+msgstr "声明历史依赖具有传递性：如果所依赖的先行者本身又历史依赖于另一个先行者，那么也依赖于后一个先行者。"
+
 msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "historically depends on"
 msgstr "历史依赖于"

@@ -12,7 +12,7 @@
 @prefix exa:   <https://blackcatinformatics.ca/gmeow/examples/organization/appointment/> .
 
 ex:cqAppointmentRecord a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "queries/competency/appointment-record.rq" ;
+    gmeow:cqQueryFile "slices/core/organization/queries/competency/appointment-record.rq" ;
     gmeow:cqDataFile "examples/appointment-and-minutes.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:shapeAppointmentRecord ;
@@ -31,19 +31,19 @@ ex:rowAppointmentRecord a gmeow:ExpectedRow ;
         [ a gmeow:ExpectedCell ; gmeow:cellVar "minutes" ; gmeow:cellValueIri exa:boardMinutes ] .
 
 ex:cqSeatOccupiedAfterResignation a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "queries/competency/seat-occupied-after-resignation.rq" ;
+    gmeow:cqQueryFile "slices/core/organization/queries/competency/seat-occupied-after-resignation.rq" ;
     gmeow:cqDataFile "examples/appointment-and-minutes.ttl" ;
     gmeow:cqRationale "Historical dependence on the appointment does not keep the seat occupied: the membership interval is closed, so no membership currently fills the board seat." ;
     gmeow:cqExpectAsk false .
 
 ex:cqMinutesOnlyNegative a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "queries/competency/minutes-only-negative.rq" ;
+    gmeow:cqQueryFile "slices/core/organization/queries/competency/minutes-only-negative.rq" ;
     gmeow:cqDataFile "examples/appointment-and-minutes.ttl" ;
     gmeow:cqRationale "A provenance link to minutes alone creates no membership, makes the minutes no bearer and establishes no occupancy of the seat." ;
     gmeow:cqExpectAsk false .
 
 ex:cqMinutesOnlyControl a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "queries/competency/minutes-only-control.rq" ;
+    gmeow:cqQueryFile "slices/core/organization/queries/competency/minutes-only-control.rq" ;
     gmeow:cqDataFile "examples/appointment-and-minutes.ttl" ;
     gmeow:cqRationale "The provenance link the negative case relies on is present in the fixture, so the negative answer is not vacuous." ;
     gmeow:cqExpectAsk true .

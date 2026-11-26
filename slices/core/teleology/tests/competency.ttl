@@ -34,7 +34,7 @@ ex:rowCommitment a gmeow:ExpectedRow ;
 
 # --- External dependence: a duty's bearer, beneficiary and founding agreement.
 ex:cqDutyParties a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "queries/competency/duty-parties.rq" ;
+    gmeow:cqQueryFile "slices/core/teleology/queries/competency/duty-parties.rq" ;
     gmeow:cqDataFile "examples/duty-owed.ttl" ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:shapeDutyParties ;
@@ -55,7 +55,7 @@ ex:rowDutyParties a gmeow:ExpectedRow ;
         [ a gmeow:ExpectedCell ; gmeow:cellVar "agreement" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/teleology/duty/loanAgreement> ] .
 
 ex:cqDutyPartiesNegative a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "queries/competency/duty-parties-negative.rq" ;
+    gmeow:cqQueryFile "slices/core/teleology/queries/competency/duty-parties-negative.rq" ;
     gmeow:cqDataFile "examples/duty-owed.ttl" ;
     gmeow:cqRationale "Being a party to the founding agreement, or being the agreement itself, does not make the guarantor or the agreement the duty's bearer or beneficiary." ;
     gmeow:cqExpectAsk false .
