@@ -1424,3 +1424,27 @@ msgstr "显式声明此值，核准它与所选可执行注册表的一致性，
 #: tests/structural.ttl
 msgid "Output scope selection must follow the same authored pipeline's family declarations and complete producer closure. A generated root keeps its required runtime projection producer, while an independent runtime exporter remains outside the committed scope. Exact native family admission and explicit closed-world requirements prevent an absent or false declaration from silently dropping work."
 msgstr "输出范围选择必须遵循同一份已编写流水线的输出族声明和完整生产者闭包。生成根保留其必需的运行时投影生产者，而独立的运行时导出阶段仍处于 committed 范围之外。精确的原生输出族准入与显式封闭世界要求可防止缺失或虚假的声明静默丢弃工作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budget-pipeline-mappings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mappings stage memory budget"
+msgstr "映射阶段的内存预算"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budget-pipeline-mappings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared memory budget used to reserve work for the mappings stage under an active work ceiling."
+msgstr "在设置活动工作上限时，用于为映射阶段预留资源的已声明内存预算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budget-pipeline-reason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reasoning stage memory budget"
+msgstr "推理阶段的内存预算"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budget-pipeline-reason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared memory budget used to reserve work for the reasoning stage under an active work ceiling."
+msgstr "在设置活动工作上限时，用于为推理阶段预留资源的已声明内存预算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetMaxMemoryBytes|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:budget-enrich gmeow:budgetMaxMemoryBytes \"2147483648\"^^xsd:nonNegativeInteger ."
+msgstr "声明示例。`gmeow:budget-enrich gmeow:budgetMaxMemoryBytes \"2147483648\"^^xsd:nonNegativeInteger .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetMaxMemoryBytes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared upper bound in bytes on the resident memory of one stage execution. Use it to reserve memory at admission. Detect a runtime breach only with memory observations attributable to that stage. An unset value declares no stage-specific bound. Unlike gmeow:budgetMaxInputBytes, this bound describes runtime residency rather than accepted input size."
+msgstr "一次阶段执行的常驻内存所声明的字节上限。准入时按此值预留内存。只有内存观测可归因于该阶段时，才判定运行时超限。未设置该值表示没有声明阶段专属上限。与 gmeow:budgetMaxInputBytes 不同，此上限描述运行时常驻内存，而非可接受的输入大小。"

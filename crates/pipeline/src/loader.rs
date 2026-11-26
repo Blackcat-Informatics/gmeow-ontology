@@ -51,6 +51,8 @@ pub struct StageSpec {
     /// exclusively while running, sorted, deduplicated. Validated against the Rust
     /// impl's `resources()` at bind time (Rust/RDF agreement).
     pub resources: Vec<String>,
+    /// Authored `gmeow:budgetMaxMemoryBytes`, checked against the Rust twin.
+    pub memory_budget_bytes: Option<u64>,
     /// Exactly one `gmeow:stageStability` closed-vocabulary individual. The loader
     /// rejects missing, multiple, non-IRI, or unknown declarations and proves this
     /// value agrees with the executable stage twin before scheduling.
@@ -357,6 +359,7 @@ fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, gmeow_erro
     attaches_graphs.dedup();
 
     let attaches_blob_reps = string_declarations(ds, stage_iri, "attachesBlobRep", &id)?;
+    let memory_budget_bytes = stage_memory_budget(ds, stage_iri, &id)?;
 
     Ok(StageSpec {
         id,
@@ -364,6 +367,7 @@ fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, gmeow_erro
         impl_key,
         consumes,
         resources,
+        memory_budget_bytes,
         stability,
         cache_disposition,
         output_family,
@@ -374,6 +378,73 @@ fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, gmeow_erro
         attaches_graphs,
         attaches_blob_reps,
     })
+}
+
+/// Read the memory axis of a single named stage budget in the default graph.
+fn stage_memory_budget(
+    ds: &RdfDataset,
+    stage_iri: &str,
+    stage_id: &str,
+) -> gmeow_errors::Result<Option<u64>> {
+    use purrdf::xsd::{XsdDatatype, numeric::parse_integer_typed};
+
+    let invalid = |property: &str, detail: &str| {
+        gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+            message: format!("stage {stage_id} gmeow:{property} {detail}"),
+        })
+    };
+    let links = objects(ds, stage_iri, &iri(GMEOW, "hasStageBudget"));
+    let budget = match links.as_slice() {
+        [] => return Ok(None),
+        [TermValue::Iri(budget)] => budget,
+        _ => {
+            return Err(invalid(
+                "hasStageBudget",
+                "must name at most one budget IRI",
+            ));
+        }
+    };
+    if !objects(ds, budget, RDF_TYPE).contains(&TermValue::iri(iri(GMEOW, "StageBudget"))) {
+        return Err(invalid(
+            "hasStageBudget",
+            "must name a declared gmeow:StageBudget",
+        ));
+    }
+    let values = objects(ds, budget, &iri(GMEOW, "budgetMaxMemoryBytes"));
+    let lexical = match values.as_slice() {
+        [] => return Ok(None),
+        [
+            TermValue::Literal {
+                lexical_form,
+                datatype,
+                language: None,
+                direction: None,
+            },
+        ] if datatype == purrdf::xsd::datatype::XSD_NON_NEGATIVE_INTEGER => lexical_form,
+        _ => {
+            return Err(invalid(
+                "budgetMaxMemoryBytes",
+                "must declare at most one xsd:nonNegativeInteger literal",
+            ));
+        }
+    };
+    let value =
+        parse_integer_typed(lexical, XsdDatatype::NonNegativeInteger).map_err(|source| {
+            invalid(
+                "budgetMaxMemoryBytes",
+                &format!("has invalid lexical form: {source}"),
+            )
+        })?;
+    value
+        .as_i128()
+        .and_then(|bytes| u64::try_from(bytes).ok())
+        .map(Some)
+        .ok_or_else(|| {
+            invalid(
+                "budgetMaxMemoryBytes",
+                "does not fit an unsigned 64-bit byte count",
+            )
+        })
 }
 
 /// Read one required closed-vocabulary stage declaration as an IRI.
@@ -596,7 +667,7 @@ pub(crate) fn admit_output_family(
 
 /// Resolve every stage's `gmeow:stageImpl` against the registry and prove the
 /// Rust impl agrees with the RDF declaration (its own id + capabilities + consumes +
-/// resources + stability + cache disposition + output family + typed dataflow + attach
+/// resources + memory budget + stability + cache disposition + output family + typed dataflow + attach
 /// sets). Returns the bound stages in the validated topological order.
 pub fn bind(
     spec: &PipelineSpec,
@@ -650,6 +721,18 @@ pub fn bind(
                     stage: s.id.clone(),
                     rdf: s.resources.clone(),
                     rust: rust_res,
+                },
+            ));
+        }
+
+        let rust_budget = stage.memory_budget_bytes();
+        if rust_budget != s.memory_budget_bytes {
+            return Err(gmeow_errors::Diag::of_kind(
+                crate::error::InvalidDeclaration {
+                    message: format!(
+                        "stage {}: RDF gmeow:budgetMaxMemoryBytes {:?} disagrees with the Rust executable twin {rust_budget:?}",
+                        s.id, s.memory_budget_bytes,
+                    ),
                 },
             ));
         }
@@ -816,6 +899,9 @@ impl Stage for BoundStage {
     }
     fn resources(&self) -> &[String] {
         &self.spec.resources
+    }
+    fn memory_budget_bytes(&self) -> Option<u64> {
+        self.spec.memory_budget_bytes
     }
     fn stability(&self) -> StageStability {
         self.spec.stability

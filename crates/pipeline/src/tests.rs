@@ -52,6 +52,7 @@ fn spec(id: &str, consumes: &[&str]) -> StageSpec {
         impl_key: format!("impl:{id}"),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
         resources: resources_for(id),
+        memory_budget_bytes: None,
         stability: StageStability::StablePrefix,
         cache_disposition: CachePolicy::Persistent,
         output_family: OutputFamily::Generated,
@@ -270,6 +271,36 @@ fn bind_succeeds_when_rust_agrees() {
     // Bound in topological order.
     assert_eq!(bound.first().unwrap().id(), "source");
     assert_eq!(bound.last().unwrap().id(), "sink");
+}
+
+/// An explicit zero estimate is not the same declaration as an absent memory axis.
+#[test]
+fn bind_refuses_an_authored_memory_budget_missing_from_rust() {
+    let mut pipeline = diamond();
+    pipeline
+        .stages
+        .iter_mut()
+        .find(|stage| stage.id == "a")
+        .expect("diamond declares stage a")
+        .memory_budget_bytes = Some(0);
+    let graph = pipeline.validate().expect("diamond graph");
+    let registry = registry_for(
+        &pipeline,
+        vec![
+            fake("source", &[]),
+            fake("a", &["source"]),
+            fake("b", &["source"]),
+            fake("sink", &["a", "b"]),
+        ],
+    );
+    let Err(refusal) = bind(&pipeline, &graph, &registry) else {
+        panic!("an absent executable declaration must not admit an authored budget");
+    };
+    assert!(
+        refusal
+            .message()
+            .contains("gmeow:budgetMaxMemoryBytes Some(0)")
+    );
 }
 
 #[test]
@@ -898,6 +929,53 @@ fn stage_output_family_declarations_fail_closed() {
         assert!(error.contains("stageOutputFamily"), "{error}");
         assert!(error.contains(expected), "{error}");
     }
+}
+
+/// Budget admission rejects ambiguity and out-of-range bytes before scheduling.
+#[test]
+fn stage_memory_budget_declarations_fail_closed() {
+    let prefix = r#"
+        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+        gmeow:stageSource gmeow:hasStageBudget gmeow:budget .
+    "#;
+    let budget = |value: &str| {
+        format!("{prefix} gmeow:budget a gmeow:StageBudget ; gmeow:budgetMaxMemoryBytes {value} .")
+    };
+    let zero = budget(r#""0"^^xsd:nonNegativeInteger"#);
+    let pipeline =
+        PipelineSpec::from_turtle(&[DAG_TTL, &zero]).expect("zero is an authored budget");
+    assert_eq!(
+        pipeline
+            .stage("stageSource")
+            .expect("source stage")
+            .memory_budget_bytes,
+        Some(0)
+    );
+    for value in [
+        "6",
+        r#""-1"^^xsd:nonNegativeInteger"#,
+        r#""18446744073709551616"^^xsd:nonNegativeInteger"#,
+        r#""1"^^xsd:nonNegativeInteger, "2"^^xsd:nonNegativeInteger"#,
+    ] {
+        let error = PipelineSpec::from_turtle(&[DAG_TTL, &budget(value)])
+            .expect_err("malformed or ambiguous budget must fail");
+        assert!(
+            error
+                .message()
+                .contains("stage stageSource gmeow:budgetMaxMemoryBytes"),
+            "{error}"
+        );
+    }
+    let duplicate = format!("{zero} gmeow:stageSource gmeow:hasStageBudget gmeow:other .");
+    let error = PipelineSpec::from_turtle(&[DAG_TTL, &duplicate])
+        .expect_err("multiple budget records must be refused");
+    assert!(
+        error
+            .message()
+            .contains("stage stageSource gmeow:hasStageBudget"),
+        "{error}"
+    );
 }
 
 // ── Cache key ─────────────────────────────────────────────────────────────────
@@ -2785,6 +2863,7 @@ fn retention_chain() -> PipelineSpec {
         impl_key: format!("impl:{id}"),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
         resources: Vec::new(),
+        memory_budget_bytes: None,
         stability: StageStability::StablePrefix,
         // This fixture isolates carrier lifetime. Its Rust twin intentionally
         // recomputes, so the RDF half must make the same declaration and let the

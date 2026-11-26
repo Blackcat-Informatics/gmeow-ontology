@@ -1046,6 +1046,11 @@ pub trait Stage: Send + Sync {
     fn resources(&self) -> &[String] {
         &[]
     }
+    /// The authored memory reservation in bytes for explicitly capped scheduling.
+    /// A bound stage returns the RDF value after verifying its Rust twin.
+    fn memory_budget_bytes(&self) -> Option<u64> {
+        None
+    }
     /// The output-stability declaration mirrored by RDF `gmeow:stageStability`.
     /// Deterministic repository stages use the stable-prefix class by default; a
     /// stage with intentional per-run variance must opt in explicitly.
