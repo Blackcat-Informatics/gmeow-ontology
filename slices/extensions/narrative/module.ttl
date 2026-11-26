@@ -2440,7 +2440,7 @@ gmeow:StoryCandidate
     skos:definition "A cluster of records offered for a person's decision as a possible story. The claim that proposes it identifies the discovery event as evidence. It is a proposal only: neither an accepted story nor a preferred grouping."@x-gmeow-english ;
     gmeow:useWhen "Use for a cluster of existing records that a storytelling process offers a person as a possible story, retaining the proposing claim."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for a story itself, for a cluster a person has already accepted, or for a generated grouping presented as settled."@x-gmeow-english ;
-    gmeow:howToUse "Type the proposal gmeow:StoryCandidate, link its records with gmeow:storyCandidateRecord and its distinctive vocabulary with gmeow:storyCandidateTerm, and retain the proposing gmeow:ClaimToken with its discovery evidence through the existing justification vocabulary."@x-gmeow-english ;
+    gmeow:howToUse "Link the records with gmeow:storyCandidateRecord and distinctive vocabulary with gmeow:storyCandidateTerm. Give the proposal statement a named RDF reifier, link it to the proposing gmeow:ClaimToken with gmeow:putForwardByClaim, and record the discovery event on that token with gmeow:storyDiscoveryEvidence."@x-gmeow-english ;
     skos:scopeNote "A generated display name, when one exists, is attached separately and is not a term of this class. Acceptance remains a claim made by the accepting person, recorded with gmeow:acceptedAsStory; the candidate asserts neither acceptance nor completed gathering."@x-gmeow-english ;
     skos:example "ex:proposal a gmeow:StoryCandidate ; gmeow:storyCandidateRecord ex:letter1 ; gmeow:storyCandidateTerm \"lighthouse\"^^xsd:token ."@x-gmeow-english .
 
@@ -2469,6 +2469,20 @@ gmeow:storyCandidateTerm
     skos:scopeNote "Several terms may coexist. The set is neither a preferred nor a complete vocabulary of the cluster."@x-gmeow-english ;
     skos:example "ex:proposal gmeow:storyCandidateTerm \"lighthouse\"^^xsd:token ."@x-gmeow-english ;
     logic:domain gmeow:StoryCandidate ; logic:range xsd:token .
+
+gmeow:storyDiscoveryEvidence
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "story discovery evidence"@x-gmeow-english ;
+    skos:definition "Relates a story proposal claim to the discovery event it cites as evidence for the proposed cluster."@x-gmeow-english ;
+    gmeow:useWhen "Use when a claim that puts forward a story candidate explicitly cites a discovery event as evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the event that merely produced the claim, for a person's acceptance of the candidate, or for a verdict that the evidence is sufficient."@x-gmeow-english ;
+    gmeow:howToUse "Link the proposing gmeow:ClaimToken to the actual gmeow:Event the claim cites. Identify the candidate through the proposal statement reifier and gmeow:putForwardByClaim."@x-gmeow-english ;
+    skos:scopeNote "The link records the claim's cited evidence. It does not assert that the event produced the claim or that anyone accepted the candidate."@x-gmeow-english ;
+    skos:example "ex:proposalClaim gmeow:storyDiscoveryEvidence ex:discovery ."@x-gmeow-english ;
+    logic:domain gmeow:ClaimToken ;
+    logic:range gmeow:Event .
 
 gmeow:storyFocus
     a logic:DatatypeProperty ;

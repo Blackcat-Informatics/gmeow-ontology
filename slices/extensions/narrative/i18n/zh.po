@@ -2005,6 +2005,34 @@ msgctxt "https://blackcatinformatics.ca/gmeow/acceptedAsStory|http://www.w3.org/
 msgid "ex:candidate gmeow:acceptedAsStory ex:story ."
 msgstr "ex:candidate gmeow:acceptedAsStory ex:story ."
 
+msgctxt "https://blackcatinformatics.ca/gmeow/storyDiscoveryEvidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "story discovery evidence"
+msgstr "故事提议的发现证据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyDiscoveryEvidence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a story proposal claim to the discovery event it cites as evidence for the proposed cluster."
+msgstr "将故事提议主张关联到它所引用的发现事件，该事件是所提议记录组合的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyDiscoveryEvidence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a claim that puts forward a story candidate explicitly cites a discovery event as evidence."
+msgstr "当提出故事候选的主张明确引用某个发现事件作为证据时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyDiscoveryEvidence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for the event that merely produced the claim, for a person's acceptance of the candidate, or for a verdict that the evidence is sufficient."
+msgstr "不用于仅仅产生主张的事件、个人对候选故事的接受，或对证据是否充分的裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyDiscoveryEvidence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the proposing gmeow:ClaimToken to the actual gmeow:Event the claim cites. Identify the candidate through the proposal statement reifier and gmeow:putForwardByClaim."
+msgstr "将提出提议的 gmeow:ClaimToken 关联到主张实际引用的 gmeow:Event。通过提议陈述的再述节点和 gmeow:putForwardByClaim 确定候选故事。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyDiscoveryEvidence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The link records the claim's cited evidence. It does not assert that the event produced the claim or that anyone accepted the candidate."
+msgstr "该链接记录主张所引用的证据。它不声称该事件产生了主张，也不声称有任何人接受了候选故事。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyDiscoveryEvidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:proposalClaim gmeow:storyDiscoveryEvidence ex:discovery ."
+msgstr "ex:proposalClaim gmeow:storyDiscoveryEvidence ex:discovery ."
+
 msgctxt "https://blackcatinformatics.ca/gmeow/StoryCandidate|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Story Candidate"
 msgstr "故事候选"
@@ -2022,8 +2050,8 @@ msgid "Avoid it for a story itself, for a cluster a person has already accepted,
 msgstr "不用于故事本身、某人已接受的一组记录，或被呈现为既定结果的生成分组。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/StoryCandidate|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Type the proposal gmeow:StoryCandidate, link its records with gmeow:storyCandidateRecord and its distinctive vocabulary with gmeow:storyCandidateTerm, and retain the proposing gmeow:ClaimToken with its discovery evidence through the existing justification vocabulary."
-msgstr "将该提议标注为 gmeow:StoryCandidate，用 gmeow:storyCandidateRecord 关联其记录，用 gmeow:storyCandidateTerm 关联其独特词汇，并通过现有的论证词汇保留提出该提议的 gmeow:ClaimToken 及其发现证据。"
+msgid "Link the records with gmeow:storyCandidateRecord and distinctive vocabulary with gmeow:storyCandidateTerm. Give the proposal statement a named RDF reifier, link it to the proposing gmeow:ClaimToken with gmeow:putForwardByClaim, and record the discovery event on that token with gmeow:storyDiscoveryEvidence."
+msgstr "使用 gmeow:storyCandidateRecord 关联记录，使用 gmeow:storyCandidateTerm 关联独特词汇。为提议陈述指定具名的 RDF 再述节点，通过 gmeow:putForwardByClaim 将它关联到提出提议的 gmeow:ClaimToken，再用 gmeow:storyDiscoveryEvidence 在该标记上记录发现事件。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/StoryCandidate|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "A generated display name, when one exists, is attached separately and is not a term of this class. Acceptance remains a claim made by the accepting person, recorded with gmeow:acceptedAsStory; the candidate asserts neither acceptance nor completed gathering."
