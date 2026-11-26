@@ -81,6 +81,7 @@ pub(super) struct SelectionIndex {
     pub(super) formula_occurrences: Vec<bool>,
     pub(super) axioms: Vec<bool>,
     pub(super) rules: Vec<bool>,
+    pub(super) forbidden_patterns: BTreeSet<usize>,
     pub(super) formulas: Vec<bool>,
     pub(super) ordinary: Vec<bool>,
     pub(super) annotations: Vec<bool>,
@@ -489,6 +490,7 @@ impl SelectionIndex {
             formula_occurrences: vec![false; theory.formula_lowerings().len()],
             axioms: vec![false; theory.program().axioms.len()],
             rules: vec![false; theory.program().rules.len()],
+            forbidden_patterns: BTreeSet::new(),
             formulas: vec![false; theory.program().formulas.len()],
             ordinary: Vec::new(), annotations: Vec::new(), reifiers: Vec::new(),
             excluded_rows: BTreeSet::new(),
@@ -524,13 +526,25 @@ impl SelectionIndex {
         index.block_contexts(inventory, |ordinal| {
             formula_provenance.contains_key(&ordinal)
         });
-        for lowering in theory.owner_lowerings() {
+        for (ordinal, lowering) in theory.owner_lowerings().iter().enumerate() {
+            let unit = owner(lowering.source, SyntaxFamily::Owner);
+            if inventory.is_forbidden_pattern(ordinal) {
+                if lowering.record_support.iter().any(|binding| {
+                    !inventory.statement_selected(binding.canonical, binding.carrier)
+                }) {
+                    index.blocked.entry(unit).or_insert_with(|| Boundary {
+                        code: "REQUIRED_SUPPORT_OUTSIDE_THEORY",
+                        detail: "forbidden pattern requires every consumed source field in the selected documents".into(),
+                    });
+                }
+                continue;
+            }
             if !matches!(
                 lowering.family,
                 OwnerFamily::Rule | OwnerFamily::Contract | OwnerFamily::Correspondence
             ) {
                 index.blocked.insert(
-                    owner(lowering.source, SyntaxFamily::Owner),
+                    unit,
                     Boundary {
                         code: "UNSUPPORTED_SELECTED_OWNER",
                         detail: format!(
@@ -924,7 +938,15 @@ impl SelectionIndex {
                 self.formulas[index] = true;
             }
         }
-        for lowering in theory.owner_lowerings() {
+        for (ordinal, lowering) in theory.owner_lowerings().iter().enumerate() {
+            if inventory.is_forbidden_pattern(ordinal)
+                && matches!(
+                    self.owner_membership(owner(lowering.source, SyntaxFamily::Owner)),
+                    Membership::Included
+                )
+            {
+                self.forbidden_patterns.insert(ordinal);
+            }
             if lowering.family == OwnerFamily::Rule
                 && let OwnerDisposition::Emitted { index } = lowering.disposition
                 && lowering.source.graph.is_none()
@@ -981,6 +1003,7 @@ impl SelectionIndex {
                 !self.selection_metadata.contains_key(&binding)
                     && !self.formula_links.contains_key(&binding)
                     && !self.is_formula_evidence_only(binding)
+                    && inventory.forbidden_pattern_owner(binding).is_none()
                     && inventory
                         .correspondence_record_owners(binding)
                         .next()
@@ -1107,6 +1130,7 @@ impl SelectionIndex {
                         };
                         self.selection_metadata.contains_key(&binding)
                             || self.is_formula_evidence_only(binding)
+                            || inventory.forbidden_pattern_owner(binding).is_some()
                             || inventory
                                 .correspondence_record_owners(binding)
                                 .next()
@@ -1196,6 +1220,10 @@ impl SelectionIndex {
         }
         if let Some(owners) = self.selection_metadata.get(&binding) {
             return self.combine(owners.iter().copied());
+        }
+        if let Some(ordinal) = inventory.forbidden_pattern_owner(binding) {
+            let lowering = &inventory.theory().owner_lowerings()[ordinal];
+            return self.owner_membership(owner(lowering.source, SyntaxFamily::Owner));
         }
         if inventory
             .correspondence_record_owners(binding)

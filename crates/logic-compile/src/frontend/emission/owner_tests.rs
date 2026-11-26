@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use std::collections::BTreeSet;
+
+use crate::frontend::SourceCarrier::{Annotation, Statement};
+
 use super::tests::{node, prepared};
 use super::*;
 
@@ -23,6 +27,97 @@ fn index(owner: &OwnerLowering) -> usize {
         panic!("owner did not emit: {owner:?}")
     };
     index
+}
+
+/// The compact constraint binds its selected source rows and refuses ambiguous fields.
+#[test]
+fn forbidden_pattern_owner_preserves_physical_field_support() {
+    let data = purrdf::parse_dataset(
+        br#"
+        @prefix ex: <https://example.org/> .
+        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        ex:ban a logic:ForbiddenPatternConstraint ; logic:onClass ex:C ;
+            logic:forbiddenPredicate ex:p ; logic:forbiddenValue ex:v ; logic:formalizes ex:C ;
+            logic:message "Forbidden value" ; logic:severity "Violation" ;
+            gmeow:enforcesFailureClass ex:ForbiddenValue .
+        ex:otherGraph { ex:ban logic:forbiddenPredicate ex:unselected . }
+        ex:ambiguous a logic:ForbiddenPatternConstraint ; logic:onClass gmeow:TestClass ;
+            logic:forbiddenPredicate ex:p, ex:q ; logic:forbiddenValue 0 ;
+            logic:formalizes gmeow:TestClass .
+        "#,
+        "application/trig",
+        None,
+    )
+    .expect("parse the selected and unselected source rows");
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    for quad in data.owned_quads() {
+        builder
+            .push_owned_quad(&quad)
+            .expect("copy the source quad");
+    }
+    let ban = builder.intern_iri("https://example.org/ban").unwrap();
+    let on_class = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/onClass")
+        .unwrap();
+    let class = builder.intern_iri("https://example.org/C").unwrap();
+    builder.push_annotation(ban, on_class, class).unwrap();
+    let source = PreparedLogicSource::new(&builder.freeze().unwrap()).unwrap();
+    let compiled = source.compile_with_sources(None).unwrap();
+
+    let valid = owner(&compiled, "ban", OwnerFamily::Constraint);
+    assert_eq!(
+        compiled.program().constraints[index(valid)].iri,
+        "https://example.org/ban"
+    );
+    let dataset = compiled.source().dataset();
+    let recorded: BTreeSet<_> = valid
+        .record_support
+        .iter()
+        .map(|binding| {
+            assert_eq!(binding.canonical.g, None);
+            let purrdf::TermRef::Iri(predicate) = dataset.resolve(binding.canonical.p) else {
+                panic!("recorded field must have an IRI predicate");
+            };
+            (predicate, binding.carrier)
+        })
+        .collect();
+    assert_eq!(
+        recorded,
+        BTreeSet::from([
+            ("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", Statement),
+            ("https://blackcatinformatics.ca/logic/onClass", Annotation),
+            ("https://blackcatinformatics.ca/logic/onClass", Statement),
+            (
+                "https://blackcatinformatics.ca/logic/forbiddenPredicate",
+                Statement
+            ),
+            (
+                "https://blackcatinformatics.ca/logic/forbiddenValue",
+                Statement
+            ),
+            ("https://blackcatinformatics.ca/logic/formalizes", Statement),
+            ("https://blackcatinformatics.ca/logic/message", Statement),
+            ("https://blackcatinformatics.ca/logic/severity", Statement),
+            (
+                "https://blackcatinformatics.ca/gmeow/enforcesFailureClass",
+                Statement
+            ),
+        ])
+    );
+    let ambiguous = owner(&compiled, "ambiguous", OwnerFamily::Constraint);
+    assert_eq!(ambiguous.disposition, OwnerDisposition::Rejected);
+    assert!(ambiguous.diagnostics.iter().any(|&index| {
+        compiled.diagnostics()[index]
+            .message
+            .contains("multiple distinct logic:forbiddenPredicate values")
+    }));
+    assert!(
+        crate::frontend::derive_validation_shapes(dataset)
+            .expect("derive Core shapes from the same source")
+            .is_empty(),
+        "an ambiguous predicate cannot turn into a literal-pinned Core shape"
+    );
 }
 
 #[test]

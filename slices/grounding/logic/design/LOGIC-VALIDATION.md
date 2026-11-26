@@ -172,19 +172,15 @@ explicit `logic:onClass` or `logic:onDataRange`, and
 equivalence inputs, never declarations to add to slice sources. Authored restrictions must
 remain inside the native reasoner's supported fragment, as described in the
 [migration guide](../../../../docs/MIGRATING-SHAPES-TO-LOGIC.md).
-Two validates-but-does-not-entail conditions have NO slice-authorable OWL
-antecedent, because their OWL renderings are outside the native reasoner's decidable
-fragment, and are authored as constraint-sugar records the derive lowers onto the target
-class shape instead: a literal-pinned **forbidden value** ("class C must never carry
-P = v" — the value-complement pattern) is a `logic:ForbiddenPatternConstraint` with a
-literal `logic:forbiddenValue`, lowered to `sh:not [ sh:hasValue v ]` (the IRI-pinned form
-is the class-negation idiom, carried node-level as `sh:not [ sh:class … ]` by the
-disjointness family, and keeps its procedural projection only); and a bounded **numeric
-range** (a faceted-datatype filler is undecidable natively the moment a literal is asserted
-on the constrained path) is a `logic:ValueRangeConstraint` with inclusive literal bounds,
-lowered to `sh:minInclusive`/`sh:maxInclusive`. There is no parallel hand-authored shape
-vocabulary; the only other authored signal is the closure/reading annotation described
-below.
+A literal-pinned **forbidden value** is a `logic:ForbiddenPatternConstraint`
+with a literal `logic:forbiddenValue`. Shape derivation lowers it to
+`sh:not [ sh:hasValue v ]` on the target class shape. IRI-pinned and unpinned
+records use procedural validation. The selected source prover uses the same
+authored integrity formula for the positive denial described in
+[the semantics contract](LOGIC-SEMANTICS.md#selected-positive-denials).
+A bounded **numeric range** is a `logic:ValueRangeConstraint` with inclusive
+literal bounds, lowered to `sh:minInclusive` and `sh:maxInclusive`. These
+records supply both the validation condition and its source identity.
 
 **Dataset-derive, not typed-IR lift.** The derivation reads the **merged authored dataset**
 directly (the root ontology plus every slice module, closed under the same fold the pipeline

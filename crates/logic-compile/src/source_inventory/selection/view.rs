@@ -9,9 +9,11 @@ use purrdf::{
     DatasetView, GraphMatch, QuadIds, RdfDataset, RdfStoreCapabilities, TermId, TermRef, TermValue,
 };
 
-use crate::frontend::{AxiomSource, FormulaLowering, SourceCarrier, SourceStatementBinding};
-use crate::ir::{Formula, LogicAxiom, LogicRule};
-use crate::source_inventory::{SourceInventory, SourceObligation};
+use crate::frontend::{
+    AxiomSource, FormulaLowering, OwnerDisposition, SourceCarrier, SourceStatementBinding,
+};
+use crate::ir::{ConstraintIr, Formula, LogicAxiom, LogicRule};
+use crate::source_inventory::{SourceInventory, SourceObligation, SourceObligationOrigin};
 
 use super::{ResolvedTheorySelection, index::Membership};
 
@@ -157,6 +159,53 @@ pub struct SelectedProgramView<'selection, 'source> {
 }
 
 impl SelectedProgramView<'_, '_> {
+    /// The compact forbidden-pattern record selected through this exact owner.
+    pub fn forbidden_pattern(&self, ordinal: usize) -> Option<&ConstraintIr> {
+        if !self.selection.0.index.forbidden_patterns.contains(&ordinal) {
+            return None;
+        }
+        let OwnerDisposition::Emitted { index } =
+            self.inventory.theory().owner_lowerings()[ordinal].disposition
+        else {
+            unreachable!("forbidden pattern mask contains only emitted records");
+        };
+        Some(&self.inventory.theory().program().constraints[index])
+    }
+
+    /// The selected forbidden patterns and their original compiler owner ordinals.
+    pub fn forbidden_patterns(&self) -> impl Iterator<Item = (usize, &ConstraintIr)> {
+        self.selection
+            .0
+            .index
+            .forbidden_patterns
+            .iter()
+            .map(|&ordinal| {
+                (
+                    ordinal,
+                    self.forbidden_pattern(ordinal)
+                        .expect("selected owner has a compiled forbidden pattern"),
+                )
+            })
+    }
+
+    /// Whether this physical statement is support for an admitted forbidden pattern.
+    ///
+    /// # Errors
+    /// Refuses obligations from a different inventory.
+    pub fn forbidden_pattern_support(
+        &self,
+        unit: SourceObligation<'_>,
+    ) -> gmeow_errors::Result<bool> {
+        self.selection.authorize_inventory(unit.inventory)?;
+        let SourceObligationOrigin::Statement(binding) = unit.origin() else {
+            return Ok(false);
+        };
+        Ok(self
+            .inventory
+            .forbidden_pattern_owner(binding)
+            .is_some_and(|ordinal| self.selection.0.index.forbidden_patterns.contains(&ordinal)))
+    }
+
     /// Classify an original axiom index without manufacturing an obligation.
     ///
     /// # Errors

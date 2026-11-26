@@ -19,7 +19,7 @@ const LOGIC_MODULE: &str = "https://blackcatinformatics.ca/logic/Module";
 const THEORY_SELECTION_DOMAIN: purrdf_hash::Domain =
     purrdf_hash::Domain::new(b"gmeow-resolved-theory-selection-v1\0");
 const THEORY_EXECUTION_MASKS_DOMAIN: purrdf_hash::Domain =
-    purrdf_hash::Domain::new(b"gmeow-theory-execution-masks-v1\0");
+    purrdf_hash::Domain::new(b"gmeow-theory-execution-masks-v2\0");
 
 mod index;
 mod view;
@@ -313,6 +313,7 @@ impl SourceInventory<'_> {
                 &index.reifiers,
                 &index.axioms,
                 &index.rules,
+                &index.forbidden_patterns,
                 &index.formulas,
                 &index.formula_occurrences,
             ),

@@ -231,6 +231,11 @@ pub(crate) enum SourceAdmissionProfile {
         theory: TheorySelection,
         execution_identity: String,
     },
+    /// Selected source proof additionally prepares the admitted denial rules.
+    SelectedSourceProofV1 {
+        theory: TheorySelection,
+        execution_identity: String,
+    },
 }
 
 /// Bare-program execution is explicitly a world-local template operation. It does
@@ -319,7 +324,8 @@ impl ProgramAdmission {
                 "world-local template",
                 self.outside(|source| !source.scope.selects_no_context()),
             ),
-            SourceAdmissionProfile::ResolvedTheoryV1 { .. } => (
+            SourceAdmissionProfile::ResolvedTheoryV1 { .. }
+            | SourceAdmissionProfile::SelectedSourceProofV1 { .. } => (
                 "resolved-theory",
                 self.outside(|source| {
                     !matches!(source.owner, SourceOwner::Axiom(_))

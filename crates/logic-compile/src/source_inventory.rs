@@ -177,6 +177,7 @@ pub struct SourceInventory<'source> {
     selection_issues: Vec<SourceSelectionIssue>,
     declarations: BTreeMap<(SourceNode, usize), SourceDeclaration>,
     correspondence_records: BTreeMap<SourceStatementBinding, BTreeSet<usize>>,
+    forbidden_pattern_records: BTreeMap<SourceStatementBinding, usize>,
     collection_constructors: BTreeMap<SourceStatementBinding, BTreeSet<CollectionRole>>,
     untranslated_formula_contexts: BTreeSet<SourceNode>,
 }
@@ -202,6 +203,7 @@ impl<'source> SourceInventory<'source> {
             declared_builtins: BTreeSet::new(),
             declarations: BTreeMap::new(),
             correspondence_records: BTreeMap::new(),
+            forbidden_pattern_records: BTreeMap::new(),
             collection_constructors: BTreeMap::new(),
             untranslated_formula_contexts: contexts::untranslated_formulas(theory.source()),
         };
@@ -333,6 +335,14 @@ impl<'source> SourceInventory<'source> {
                         .insert(index);
                 }
             }
+            if inventory.is_forbidden_pattern(index) {
+                inventory.forbidden_pattern_records.extend(
+                    lowering
+                        .record_support
+                        .iter()
+                        .map(|&binding| (binding, index)),
+                );
+            }
             if lowering.family == OwnerFamily::Rule
                 && let OwnerDisposition::Emitted { index } = &lowering.disposition
             {
@@ -451,6 +461,24 @@ impl<'source> SourceInventory<'source> {
             .get(&binding)
             .into_iter()
             .flat_map(|owners| owners.iter().copied())
+    }
+
+    pub(crate) fn forbidden_pattern_owner(&self, binding: SourceStatementBinding) -> Option<usize> {
+        self.forbidden_pattern_records.get(&binding).copied()
+    }
+
+    pub(crate) fn is_forbidden_pattern(&self, ordinal: usize) -> bool {
+        let lowering = &self.theory.owner_lowerings()[ordinal];
+        let dataset = self.theory.source().dataset();
+        const MARKER: &str = "https://blackcatinformatics.ca/logic/ForbiddenPatternConstraint";
+        lowering.family == OwnerFamily::Constraint
+            && matches!(lowering.disposition, OwnerDisposition::Emitted { .. })
+            && lowering.record_support.iter().any(|binding| {
+                let quad = binding.canonical;
+                matches!(dataset.resolve(quad.o), TermRef::Iri(MARKER))
+                    && matches!(dataset.resolve(quad.p), TermRef::Iri(predicate)
+                        if crate::graphutil::is_structural_type_predicate(predicate, MARKER))
+            })
     }
     #[must_use]
     pub(crate) fn contract_declaration(

@@ -8,7 +8,7 @@ use super::*;
 use crate::physical::{DomainProfile, SelectedDomains, SelectedLogicalWorld};
 use crate::query_ir::Budget;
 use crate::reason::{
-    NativeSourceAdmission, prepare_reasoning_input, prepare_selected_theory,
+    NativeSourceAdmission, prepare_reasoning_input, prepare_selected_source_proof,
     reason_admitted_theory_within, reason_program_within, reason_selected_theory_within,
 };
 use crate::result::ReasoningResult;
@@ -155,14 +155,15 @@ _:x logic:termIndex 0 . _:label logic:termIndex 1 .
             )),
         "an excluded chain contributes no executable collection cells"
     );
-    let selected = prepare_selected_theory(&inventory, &ingress).expect("selected module lowering");
+    let selected =
+        prepare_selected_source_proof(&inventory, &ingress).expect("selected module lowering");
     let mut admission =
         NativeSourceAdmission::inspect_selected(&inventory, ingress.resolved_selection())
             .expect("module source admission");
     let domains = default_domain(&input);
     let (other_input, other_ingress) = ingest_modules(&inventory, &[EXCLUDED]);
     let other_selected =
-        prepare_selected_theory(&inventory, &other_ingress).expect("other root preparation");
+        prepare_selected_source_proof(&inventory, &other_ingress).expect("other root preparation");
     let other_domains = default_domain(&other_input);
     for (program, candidate, domain) in [
         (&other_selected, input.clone(), &domains),
@@ -298,7 +299,8 @@ ex:scopedProbe rdf:reifies <<( ex:a ex:probe _:label )>> ; logic:inModule ex:Inc
         ),
         "a scoped reifier also retains its required native payload carrier"
     );
-    let selected = prepare_selected_theory(&inventory, &ingress).expect("blocked rule preparation");
+    let selected =
+        prepare_selected_source_proof(&inventory, &ingress).expect("blocked rule preparation");
     let mut admission =
         NativeSourceAdmission::inspect_selected(&inventory, ingress.resolved_selection())
             .expect("blocked owner remains accounted");
@@ -450,7 +452,8 @@ ex:blocked a logic:Rule ; logic:inModule ex:Included ; logic:standpoint ex:obser
             assert!(carriers.contains(&"https://example.org/claims/left"));
             assert!(carriers.contains(&"https://example.org/claims/alsoLeft"));
         }
-        let selected = prepare_selected_theory(&inventory, &ingress).expect("selected claims");
+        let selected =
+            prepare_selected_source_proof(&inventory, &ingress).expect("selected claims");
         let mut admission =
             NativeSourceAdmission::inspect_selected(&inventory, ingress.resolved_selection())
                 .expect("source account");
@@ -538,8 +541,8 @@ ex:bTerm logic:termIndex 1 ; logic:termIri ex:b .
         let theory = compile(&format!("{body}{extra}"));
         let inventory = whole_inventory(&theory);
         let (input, ingress) = ingest_modules(&inventory, &["https://example.org/claims/Included"]);
-        let selected =
-            prepare_selected_theory(&inventory, &ingress).expect("selected formula preparation");
+        let selected = prepare_selected_source_proof(&inventory, &ingress)
+            .expect("selected formula preparation");
         let names = selected
             .authored_rule_formulas(&theory)
             .expect("same source attribution");
@@ -997,8 +1000,8 @@ ex:absenceClash a logic:Rule ;
     let inventory = SourceInventory::new(&theory, SourceSelection::all_classical_roots(&theory));
     let mut admission = NativeSourceAdmission::inspect(&inventory).expect("whole source admission");
     let (input, ingress) = ingest(&theory);
-    let selected =
-        prepare_selected_theory(&inventory, &ingress).expect("procedural lowering prepares");
+    let selected = prepare_selected_source_proof(&inventory, &ingress)
+        .expect("source-proof lowering prepares");
     let domains = default_domain(&input);
     let error = reason_admitted_theory_within(
         &mut admission,
@@ -1039,7 +1042,8 @@ fn the_entry_refuses_an_input_or_program_the_ledger_does_not_account_for() {
 
     let inventory = SourceInventory::new(&theory, SourceSelection::all_classical_roots(&theory));
     let mut admission = NativeSourceAdmission::inspect(&inventory).expect("whole source admission");
-    let selected = prepare_selected_theory(&inventory, &ingress).expect("selected theory prepares");
+    let selected =
+        prepare_selected_source_proof(&inventory, &ingress).expect("selected theory prepares");
     let stale = prepare_reasoning_input(theory.source().dataset()).expect("bare ingestion");
     let domains = default_domain(&stale);
     let error = reason_admitted_theory_within(
@@ -1106,7 +1110,7 @@ fn the_entry_refuses_an_input_or_program_the_ledger_does_not_account_for() {
         "identical default facts do not erase the selected source-graph policy"
     );
     let own_selected =
-        prepare_selected_theory(&unscoped_inventory, &own_ingress).expect("own preparation");
+        prepare_selected_source_proof(&unscoped_inventory, &own_ingress).expect("own preparation");
     let own_inventory =
         SourceInventory::new(&unscoped, SourceSelection::all_classical_roots(&unscoped));
     let mut own_admission =
@@ -1125,7 +1129,7 @@ fn the_entry_refuses_an_input_or_program_the_ledger_does_not_account_for() {
     let (input, ingress) = ingest(&unscoped);
     let inventory = SourceInventory::new(&other, SourceSelection::all_classical_roots(&other));
     let (_, other_ingress) = ingest(&other);
-    let selected = prepare_selected_theory(&inventory, &other_ingress)
+    let selected = prepare_selected_source_proof(&inventory, &other_ingress)
         .expect("other unscoped program prepares");
     let mut admission = NativeSourceAdmission::inspect(&inventory).expect("whole other source");
     let domains = default_domain(&input);
@@ -1399,7 +1403,8 @@ fn a_claim_with_an_independent_qualification_is_named_and_adds_no_fact() {
     let (input, ingress) = ingest(&theory);
     assert!(ingress.read().is_empty());
     assert_eq!(unread_reasons(&ingress), [qualified(CLAIM, HAS_ELEMENT, 1)]);
-    let selected = prepare_selected_theory(&inventory, &ingress).expect("source program prepares");
+    let selected =
+        prepare_selected_source_proof(&inventory, &ingress).expect("source program prepares");
     let domains = default_domain(&input);
     let result = reason_admitted_theory_within(
         &mut admission,
@@ -1623,7 +1628,7 @@ fn a_preparation_made_from_another_theory_is_refused() {
         "{EVIDENCE_CLASH}\nex:Third logic:disjointWith ex:Fourth ."
     ));
     let (_, other_ingress) = ingest(&other);
-    let foreign = prepare_selected_theory(&whole_inventory(&other), &other_ingress)
+    let foreign = prepare_selected_source_proof(&whole_inventory(&other), &other_ingress)
         .expect("the other theory prepares");
 
     let inventory = SourceInventory::new(&theory, SourceSelection::all_classical_roots(&theory));
@@ -1646,7 +1651,7 @@ fn a_preparation_made_from_another_theory_is_refused() {
         "{refusal}"
     );
 
-    let own = prepare_selected_theory(&inventory, &ingress).expect("the theory prepares");
+    let own = prepare_selected_source_proof(&inventory, &ingress).expect("the theory prepares");
     let (input, ingress) = ingest(&theory);
     let domains = default_domain(&input);
     let mut result =

@@ -388,6 +388,44 @@ fn source_schema_target_aliases_refuse_without_renaming_data() {
     );
 }
 
+/// A source rule cannot use the execution identity of a selected denial.
+#[test]
+fn source_rule_identity_cannot_alias_a_selected_denial() {
+    let empty = gmeow_logic_compile::ir::LogicProgram::new(vec![], vec![], vec![], None);
+    let program = crate::program_analysis::prepare_program(&empty).expect("prepare empty program");
+    let sources = prepare(&usual(Some(A)));
+    let domains = crate::physical::SelectedDomains::new([]).expect("no explicit domain producers");
+    let facts = BTreeMap::new();
+    let owner = "urn:source:denial-owner";
+    let prepare_with_denial = |identity: &str| {
+        let mut prepared = program.publication();
+        prepared
+            .denial_owners
+            .insert(identity.to_owned(), owner.to_owned());
+        prepared
+    };
+
+    let colliding = prepare_with_denial(RULE);
+    let error = colliding
+        .reasoning_input(&[], &sources, &domains, &facts, Arc::from([]), &[])
+        .err()
+        .expect("a shared execution identity is refused before evaluation");
+    let refusal = error
+        .downcast_ref::<crate::error::NativeCoverage>()
+        .expect("an actionable source coverage refusal");
+    assert_eq!(refusal.world, A);
+    assert!(refusal.source.contains(RULE));
+    assert!(refusal.detail.contains(owner));
+
+    let separate = prepare_with_denial("urn:source:distinct-denial");
+    assert!(
+        separate
+            .reasoning_input(&[], &sources, &domains, &facts, Arc::from([]), &[])
+            .is_ok(),
+        "a distinct identity leaves the same source definition admissible"
+    );
+}
+
 #[test]
 fn positive_native_consumer_observes_source_multihead_output_in_same_fixed_point() {
     let mut rows = usual(None);

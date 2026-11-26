@@ -180,6 +180,19 @@ operation retains its selected-rule refusals, and source-proof execution
 refuses nonexcluded negation-as-failure rules before execution. Neither
 operation interprets procedural absence as classical negation.
 
+### Selected positive denials
+
+An admitted `logic:ForbiddenPatternConstraint` declares a denial over its
+`logic:onClass` guard and its `logic:forbiddenPredicate`. The optional
+`logic:forbiddenValue` pins the prohibited object to an exact IRI or RDF literal.
+The source-proof preparation uses the compiler's integrity formula and accounts
+for the original fields and physical carriers. A focus that satisfies both
+positive premises derives empty-class membership. Each denial has a dedicated
+execution rule identity bound to its authored owner. The witness identifies
+the owner and the two premises. Quotation preserves evidence without supplying
+either premise. Ambiguous scalar fields and unread owner support retain source
+boundaries.
+
 ### Explicit module composition
 
 `gmeow prove --module IRI` selects a declared module root; repeating the option

@@ -8,7 +8,10 @@
 //! are observations and have no constructor that can restore that authority.
 
 mod accounting;
+mod forbidden_pattern;
 mod governance;
+
+pub(crate) use forbidden_pattern::lower_forbidden_pattern;
 
 use std::collections::BTreeSet;
 
@@ -811,6 +814,25 @@ fn classify_selected(
         _ => None,
     };
     let view = selection.program_view(inventory)?;
+    if matches!(membership, TheoryUnitSelection::Included) {
+        if view.forbidden_pattern_support(unit)? {
+            return Ok(Disposition::support(
+                "exact compiler field of a selected forbidden-pattern owner",
+            ));
+        }
+        if let SourceObligationOrigin::Owner(ordinal) = unit.origin()
+            && let Some(constraint) = view.forbidden_pattern(ordinal)
+        {
+            return Ok(match lower_forbidden_pattern(constraint) {
+                Ok(_) => Disposition::accounted(
+                    "selected positive denial; native contradiction rule and its premises",
+                ),
+                Err(reason) => {
+                    Disposition::blocked("UNSUPPORTED_FORBIDDEN_PATTERN", reason.message())
+                }
+            });
+        }
+    }
     let axiom_sources = axiom_index
         .map(|index| {
             view.axiom_sources_at(index)
@@ -1070,7 +1092,7 @@ pub fn reason_admitted_theory_within(
     }
     let expected = crate::program_analysis::preparation_identity(
         theory.program(),
-        &crate::program_analysis::selected_profile(ingress.resolved_selection()),
+        &crate::program_analysis::selected_source_proof_profile(ingress.resolved_selection()),
     )?;
     if selected.prepared.identity != expected {
         return Err(reason_err(
@@ -1170,6 +1192,21 @@ pub fn reason_admitted_theory_within(
         ));
     };
     reachability.validate_preparation(&selected.prepared)?;
+    for (_, constraint) in admission
+        .selection
+        .program_view(admission.inventory)?
+        .forbidden_patterns()
+    {
+        if let Ok(rule) = lower_forbidden_pattern(constraint)
+            && (!selected.prepared.rules.contains(&rule)
+                || selected.authored_denial_owner(&rule.rule_iri) != Some(constraint.iri.as_str()))
+        {
+            return Err(reason_err(format!(
+                "selected proof preparation omitted the exact rule for {}",
+                constraint.iri
+            )));
+        }
+    }
     let verdict = result.native_verdict()?;
     if result.evaluation == EvaluationStatus::Completed {
         account_formula_evidence(admission, selected)?;
