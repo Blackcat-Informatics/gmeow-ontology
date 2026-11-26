@@ -30,7 +30,9 @@ SELECT ?matter ?version ?evaluatedAt WHERE {
         }
         FILTER NOT EXISTS {
             ?saving a gmeow:TransitionRule ;
-                gmeow:savedMatter ?matter .
+                gmeow:savedMatter ?matter ;
+                gmeow:savesVersion ?savedVersion .
+            ?savedVersion gmeow:versionOf <https://blackcatinformatics.ca/gmeow/examples/norms/provision/sec5> .
         }
     }
 }

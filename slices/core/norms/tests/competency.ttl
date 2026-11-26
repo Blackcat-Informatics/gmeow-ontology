@@ -167,7 +167,7 @@ ex:rowBoundaryDay a gmeow:ExpectedRow ;
 ex:cqProvisionUnknownMaterialDate a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/norms/queries/competency/provision-unknown-material-date.rq" ;
     gmeow:cqDataFile "examples/provision-applicability.ttl" ;
-    gmeow:cqRationale "A version whose beginning event carries no material date must not be placed on any date. Applicability is unestablished, so no governing version is asserted." ;
+    gmeow:cqRationale "The undated amendment establishes neither that the amended version had begun nor that the earlier version was still in force. Applicability is unestablished, so no governing version is asserted." ;
     gmeow:cqResultShape ex:cqUnknownDateShape ;
     gmeow:cqExpectRowCount 0 .
 
@@ -220,7 +220,7 @@ ex:rowChangeBegan a gmeow:ExpectedRow ;
 ex:cqProvisionMatterGoverning a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/norms/queries/competency/provision-matter-governing-version.rq" ;
     gmeow:cqDataFile "examples/provision-applicability.ttl" ;
-    gmeow:cqRationale "An older dispute, evaluated later, is governed by the version in force on its own material date. A matter begun after the amendment is governed by the amended version unless a transition rule saves the earlier one. The undated matter yields no row, and the evaluation time is reported apart from every material date." ;
+    gmeow:cqRationale "An older dispute, evaluated later, is governed by the version in force on its own material date. A matter begun after the amendment is governed by the amended version unless a transition rule saves an earlier version of that provision. A saving for another provision does not change the result. The undated matter yields no row, and the evaluation time is reported apart from every material date." ;
     gmeow:cqResultShape ex:cqMatterShape ;
     gmeow:cqExactRows true ;
     gmeow:cqExpectRow ex:rowDisputeEarlier , ex:rowProceedingSaved , ex:rowLaterAmended .

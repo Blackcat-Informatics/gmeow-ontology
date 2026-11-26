@@ -1,8 +1,8 @@
 # Competency question: "Does a version whose beginning event carries no material date govern a
 # matter at a date?"
 #
-# The beginning event of this version has no gmeow:eventTime, so no date can be compared with the
-# matter's date. The query returns no row: applicability stays unestablished rather than asserted.
+# The boundary has no gmeow:eventTime. It cannot establish the beginning of the amended version
+# or place the earlier version's end after the matter's date. No version is asserted to govern.
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
@@ -13,4 +13,9 @@ SELECT ?asOf ?version WHERE {
         gmeow:versionBeganBy ?began .
     ?began gmeow:eventTime ?beganAt .
     FILTER(?beganAt <= ?asOf)
+    FILTER NOT EXISTS {
+        ?version gmeow:versionEndedBy ?ended .
+        OPTIONAL { ?ended gmeow:eventTime ?endedAt }
+        FILTER(!BOUND(?endedAt) || ?endedAt <= ?asOf)
+    }
 }

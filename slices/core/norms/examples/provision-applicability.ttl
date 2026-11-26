@@ -38,6 +38,8 @@ ex:selV1 a gmeow:Selector ;
     gmeow:selectorLocator "synthetic section 5, enacted text" .
 ex:selV2 a gmeow:Selector ;
     gmeow:selectorLocator "synthetic section 5, amended text" .
+ex:selSec7Prior a gmeow:Selector ;
+    gmeow:selectorLocator "synthetic section 7, enacted text" .
 ex:selSec7 a gmeow:Selector ;
     gmeow:selectorLocator "synthetic section 7, amended text" .
 ex:selTransition a gmeow:Selector ;
@@ -54,6 +56,10 @@ ex:citeV2 a gmeow:CitationAct ;
     gmeow:citingEntity ex:sec5v2 ; gmeow:citedEntity ex:consolidation ;
     gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selV2 ;
     gmeow:assertedAt "2010-07-01T00:00:00Z"^^xsd:dateTime .
+ex:citeSec7Prior a gmeow:CitationAct ;
+    gmeow:citingEntity ex:sec7Prior ; gmeow:citedEntity ex:consolidation ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selSec7Prior ;
+    gmeow:assertedAt "2000-03-01T00:00:00Z"^^xsd:dateTime .
 ex:citeSec7 a gmeow:CitationAct ;
     gmeow:citingEntity ex:sec7v1 ; gmeow:citedEntity ex:consolidation ;
     gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selSec7 ;
@@ -92,6 +98,12 @@ ex:sec5v2 a gmeow:ProvisionVersion ;
     gmeow:versionJurisdiction ex:jurisdiction ;
     gmeow:versionBeganBy ex:evAmend ;
     gmeow:versionSource ex:citeV2 .
+ex:sec7Prior a gmeow:ProvisionVersion ;
+    gmeow:versionOf ex:sec7 ;
+    gmeow:versionJurisdiction ex:jurisdiction ;
+    gmeow:versionBeganBy ex:evEnact ;
+    gmeow:versionEndedBy ex:evSec7Amend ;
+    gmeow:versionSource ex:citeSec7Prior .
 ex:sec7v1 a gmeow:ProvisionVersion ;
     gmeow:versionOf ex:sec7 ;
     gmeow:versionJurisdiction ex:jurisdiction ;
@@ -104,6 +116,18 @@ ex:transition1 a gmeow:TransitionRule ;
     gmeow:savesVersion ex:sec5v1 ;
     gmeow:savedMatter ex:proceedingBegun2010 ;
     gmeow:transitionSource ex:citeTransition .
+
+# A saving for another provision does not override section 5's date-based answer.
+ex:sec7Transition a gmeow:TransitionRule ;
+    gmeow:transitionEvent ex:evSec7Amend ;
+    gmeow:savesVersion ex:sec7Prior ;
+    gmeow:savedMatter ex:laterMatter ;
+    gmeow:transitionSource ex:citeSec7Transition .
+ex:citeSec7Transition a gmeow:CitationAct ;
+    gmeow:citingEntity ex:sec7Transition ; gmeow:citedEntity ex:consolidation ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selSec7Transition .
+ex:selSec7Transition a gmeow:Selector ;
+    gmeow:selectorLocator "synthetic transitional provision for section 7" .
 
 # --- Matters (events with their own material dates) ------------------------------------------
 ex:disputeEvent a gmeow:Event ;
@@ -132,8 +156,8 @@ ex:evalUndated a gmeow:ApplicabilityEvaluation ;
 # --- Assessor interpretations of provision versions ------------------------------------------
 # One interpretation reads the earlier version of section 5, which the amendment ended: the
 # amendment is the change that affected it, and the claim stays recorded and displayable. A second
-# interpretation reads section 7 and was superseded, so it carries displayable false. Section 7 has
-# no ending event: the suppression is not a legal change.
+# interpretation reads the amended version of section 7 and was superseded, so it carries
+# displayable false. That version has no ending event: the suppression is not a legal change.
 ex:assessor a gmeow:Organization ;
     gmeow:name "Synthetic assessor (placeholder)"@x-gmeow-english .
 ex:propSec5Reading a gmeow:Proposition ;

@@ -3050,8 +3050,12 @@ gmeow:interpretsVersion
 # jurisdiction, one beginning, at most one end, and at least one source. A transition rule has one
 # boundary, one saved version, at least one saved matter and one source. An evaluation has one matter.
 gmeow:LegalEffectEvent logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:effectKind ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:LegalEffectKind ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:effectKind ;
+        logic:allValuesFrom [ a logic:Class ;
+            logic:oneOf ( gmeow:effectEnactment gmeow:effectCommencement gmeow:effectAmendment gmeow:effectRepeal ) ] ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:effectKind ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:LegalEffectEvent ; logic:closureKey "https://blackcatinformatics.ca/gmeow/effectKind" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:ProvisionVersion logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:versionOf ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Norm ] ,
@@ -3065,9 +3069,12 @@ gmeow:ProvisionVersion logic:subClassOf
 gmeow:TransitionRule logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:transitionEvent ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:LegalEffectEvent ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:transitionEvent ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:savesVersion ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:ProvisionVersion ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:savesVersion ; logic:allValuesFrom gmeow:ProvisionVersion ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:savesVersion ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:savedMatter ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Event ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:transitionSource ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:CitationAct ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:TransitionRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/savesVersion" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:ApplicabilityEvaluation logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:evaluatedMatter ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Event ] ,
