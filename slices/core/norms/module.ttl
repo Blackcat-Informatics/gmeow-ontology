@@ -2466,3 +2466,385 @@ gmeow:criterionPoleDistinctness
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:Criterion and nothing else. It is not a definition of gmeow:Criterion (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:criterionPoleDistinctness logic:characterizes gmeow:Criterion ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# =========================================================================== #
+# Authority of an identified legal proposition                                 #
+# A claim about a proposition in one legal order, on one issue, for one forum. #
+# Reuses ClaimToken and Proposition (epistemics), NormativeSystem (this slice),  #
+# CitationAct and Selector (citations), Condition (observations), Organization   #
+# (entities) and the rights Rule trio.                                          #
+# =========================================================================== #
+
+gmeow:AuthorityClaim
+    a logic:SubKind ,
+        logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "Authority Claim"@x-gmeow-english ;
+    logic:subClassOf gmeow:ClaimToken ;
+    skos:definition "A datable, attributed claim that a legal proposition has a stated authority status in one legal order, on one issue, for one forum. It is a claim token: the associated agent is the issuing body, the expressed proposition is the content, and force, opinion role, pinpoint source, relevant facts and time are separate facts. The claim records what a source says about authority and never settles the authority of the proposition in another legal order."@x-gmeow-english ;
+    skos:example "ex:claim a gmeow:AuthorityClaim ; gmeow:expresses ex:proposition ; gmeow:authorityOrder ex:legalOrder ; gmeow:authorityForce gmeow:authorityForceBinding ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a bare citation, which supplies no authority status (use gmeow:CitationAct), and for a specifically identified duty, permission or prohibition (use the rights rule through gmeow:authorityRule)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one claim per proposition, legal order and forum. Set gmeow:expresses, gmeow:authorityOrder, gmeow:authorityForce and gmeow:authorityIssue; add gmeow:opinionRole, gmeow:authoritySource, gmeow:relevantFact and gmeow:eventTime where the source gives them, and name the issuing body with gmeow:wasAssociatedWith."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that an identified body or legal order puts a legal proposition forward as binding, persuasive, dissenting or unresolved, together with the evidence that status needs."@x-gmeow-english .
+
+gmeow:AuthorityForce
+    a logic:AbstractIndividualType ,
+        logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "Authority Force"@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue ;
+    skos:definition "The value vocabulary of the force an authority claim asserts for its proposition: binding, persuasive, dissent or unresolved. Each value is a claim about one legal order and forum, never a global verdict on the proposition."@x-gmeow-english ;
+    skos:example "gmeow:authorityForcePersuasive a gmeow:AuthorityForce ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid per-value subclasses and avoid reading a value outside the claim's own legal order and forum."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Attach exactly one value to an authority claim with gmeow:authorityForce; binding requires a pinpoint source and a forum, persuasive requires a pinpoint source."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the force a legal authority claim asserts."@x-gmeow-english .
+
+gmeow:OpinionRole
+    a logic:AbstractIndividualType ,
+        logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "Opinion Role"@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue ;
+    skos:definition "The value vocabulary of the role of the opinion in which a proposition appears: the reasons of the deciding body, a concurrence or a dissent."@x-gmeow-english ;
+    skos:example "gmeow:opinionRoleDissenting a gmeow:OpinionRole ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the force a claim asserts (use gmeow:AuthorityForce); the role says where the proposition appears, not what status it has."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Attach one value to an authority claim with gmeow:opinionRole; a dissenting role cannot carry binding force."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the opinion role of a legal proposition."@x-gmeow-english .
+
+gmeow:PropositionDependency
+    a logic:Kind ,
+        logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "Proposition Dependency"@x-gmeow-english ;
+    logic:subClassOf logic:Relator ;
+    logic:mediates gmeow:dependencyReading ,
+        gmeow:dependencyProposition ,
+        gmeow:dependencyTreatment ;
+    skos:definition "An explicit dependency of one reading of a proposition on a proposition that another authority claim treats. Its existence flags the dependent reading for review and nothing else: it does not retract the earlier claim, reverse any decision that cited it, or make the treating claim binding for any other proposition."@x-gmeow-english ;
+    skos:example "ex:dep a gmeow:PropositionDependency ; gmeow:dependencyReading ex:earlierClaim ; gmeow:dependencyProposition ex:earlierProposition ; gmeow:dependencyTreatment ex:laterClaim ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a citation alone: a citation, even a disagreeing one, flags nothing. Avoid linking readings of propositions the treating claim does not bear on."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one dependency per affected reading. Name the reading, the proposition it depends on and the treating claim; review of the reading is a separate recorded act."@x-gmeow-english ;
+    gmeow:useWhen "Use to flag exactly the reading of a proposition that a later authority claim bears on, leaving other readings of the same case untouched."@x-gmeow-english .
+
+gmeow:AuthorityCorrespondence
+    a logic:SubKind ,
+        logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "Authority Correspondence"@x-gmeow-english ;
+    logic:disjointWith gmeow:AuthorityClaim ;
+    logic:subClassOf gmeow:ClaimToken ;
+    skos:definition "An attributed and scoped claim that an authority claim in one legal order corresponds to an authority claim in another. It is not an authority claim: it carries no force and transfers none, so neither legal order's interpretation is established by the other."@x-gmeow-english ;
+    skos:example "ex:link a gmeow:AuthorityCorrespondence ; gmeow:correspondenceFrom ex:claimA ; gmeow:correspondenceTo ex:claimB ; gmeow:wasAssociatedWith ex:commentator ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it as a source of binding force or interpretation for either order, and avoid leaving it unattributed or unscoped."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Name both claims, the asserting agent with gmeow:wasAssociatedWith, the frame with gmeow:accordingTo and the scope with gmeow:correspondenceScope."@x-gmeow-english ;
+    gmeow:useWhen "Use when an identified party asserts that two legal orders speak to a comparable matter and the comparison itself must stay attributable and scoped."@x-gmeow-english .
+
+gmeow:authorityForceBinding
+    a gmeow:AuthorityForce ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "binding"@x-gmeow-english ;
+    skos:definition "The claim asserts that the proposition binds in its own legal order for the named forum. It requires a pinpoint source and a forum."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:authorityForcePersuasive
+    a gmeow:AuthorityForce ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "persuasive"@x-gmeow-english ;
+    skos:definition "The claim asserts that the proposition may be relied on for its reasoning without binding the forum. It requires a pinpoint source."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:authorityForceDissent
+    a gmeow:AuthorityForce ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "dissent"@x-gmeow-english ;
+    skos:definition "The claim records a proposition put forward in dissent, which does not bind the forum."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:authorityForceUnresolved
+    a gmeow:AuthorityForce ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "unresolved"@x-gmeow-english ;
+    skos:definition "The claim records that the authority status of the proposition is not established by the evidence supplied; the issue it leaves open is stated."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:opinionRoleMajority
+    a gmeow:OpinionRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "reasons of the deciding body"@x-gmeow-english ;
+    skos:definition "The proposition appears in the reasons that carry the decision of the deciding body, whether unanimous or by majority."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:opinionRoleConcurring
+    a gmeow:OpinionRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "concurring reasons"@x-gmeow-english ;
+    skos:definition "The proposition appears in separate reasons that agree with the result."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:opinionRoleDissenting
+    a gmeow:OpinionRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "dissenting reasons"@x-gmeow-english ;
+    skos:definition "The proposition appears in separate reasons that disagree with the result."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:authorityOrder
+    a logic:ObjectProperty ;
+    logic:domain gmeow:AuthorityClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "authority order"@x-gmeow-english ;
+    logic:range gmeow:NormativeSystem ;
+    skos:definition "The one legal order in which an authority claim asserts its status. Functional: a status asserted in one order is not a status in another."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:authorityOrder ex:legalOrder ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Use to scope an authority claim to the legal order that grounds it."@x-gmeow-english .
+
+gmeow:authorityForum
+    a logic:ObjectProperty ;
+    logic:domain gmeow:AuthorityClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "authority forum"@x-gmeow-english ;
+    logic:range gmeow:Organization ;
+    skos:definition "The court, tribunal or other body before which an authority claim asserts its status."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:authorityForum ex:court ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Use to name the forum a binding or persuasive status is asserted for."@x-gmeow-english .
+
+gmeow:authorityForce
+    a logic:ObjectProperty ;
+    logic:domain gmeow:AuthorityClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "authority force"@x-gmeow-english ;
+    logic:range gmeow:AuthorityForce ;
+    skos:definition "The force an authority claim asserts for its proposition: binding, persuasive, dissent or unresolved. Functional and mandatory."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:authorityForce gmeow:authorityForcePersuasive ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Use to state which of the four forces the claim asserts."@x-gmeow-english .
+
+gmeow:opinionRole
+    a logic:ObjectProperty ;
+    logic:domain gmeow:AuthorityClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "opinion role"@x-gmeow-english ;
+    logic:range gmeow:OpinionRole ;
+    skos:definition "The role of the opinion in which the claimed proposition appears. Functional."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:opinionRole gmeow:opinionRoleMajority ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Use when the source identifies the opinion that carries the proposition."@x-gmeow-english .
+
+gmeow:authorityIssue
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:AuthorityClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "authority issue"@x-gmeow-english ;
+    logic:range rdfs:Literal ;
+    skos:definition "The question of law or issue on which the proposition is claimed, as text with its original language and direction. Functional and mandatory."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:authorityIssue \"the standard of review\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Use to state the issue a proposition is scoped to."@x-gmeow-english .
+
+gmeow:authoritySource
+    a logic:ObjectProperty ;
+    logic:domain gmeow:AuthorityClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "authority source"@x-gmeow-english ;
+    logic:range gmeow:CitationAct ;
+    skos:definition "The citation act, with its pinpoint selector, that locates the proposition in its source. The source is evidence for the claim and is never a claim of authority by itself."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:authoritySource ex:sourceCitation ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Use to point a claim at the pinpoint where its source states the proposition."@x-gmeow-english .
+
+gmeow:relevantFact
+    a logic:ObjectProperty ;
+    logic:domain gmeow:AuthorityClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "relevant fact"@x-gmeow-english ;
+    logic:range gmeow:Condition ;
+    skos:definition "A described circumstance of the decided matter that the proposition depends on. Several facts are read together."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:relevantFact ex:materialFact ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Use to record the facts that bound the reach of a legal proposition."@x-gmeow-english .
+
+gmeow:authorityRule
+    a logic:ObjectProperty ;
+    logic:domain gmeow:AuthorityClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "authority rule"@x-gmeow-english ;
+    logic:range gmeow:Rule ;
+    skos:definition "The specifically identified duty, permission or prohibition the claim concerns, as a rights rule with its assignee and action. Used only where those rights criteria apply."@x-gmeow-english ;
+    skos:example "ex:claim gmeow:authorityRule ex:identifiedDuty ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Use when the proposition identifies one duty, permission or prohibition with an assignee and an action."@x-gmeow-english .
+
+gmeow:dependencyReading
+    a logic:ObjectProperty ;
+    logic:domain gmeow:PropositionDependency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "dependency reading"@x-gmeow-english ;
+    logic:range gmeow:AuthorityClaim ;
+    skos:definition "The authority claim, a reading of a proposition, that the dependency flags for review. Functional and mandatory."@x-gmeow-english ;
+    skos:example "ex:dep gmeow:dependencyReading ex:earlierClaim ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Use to name the exact reading a treatment bears on."@x-gmeow-english .
+
+gmeow:dependencyProposition
+    a logic:ObjectProperty ;
+    logic:domain gmeow:PropositionDependency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "dependency proposition"@x-gmeow-english ;
+    logic:range gmeow:Proposition ;
+    skos:definition "The proposition that the flagged reading depends on and the treating claim bears on. Functional and mandatory."@x-gmeow-english ;
+    skos:example "ex:dep gmeow:dependencyProposition ex:earlierProposition ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Use to scope a dependency to one proposition rather than to a whole case."@x-gmeow-english .
+
+gmeow:dependencyTreatment
+    a logic:ObjectProperty ;
+    logic:domain gmeow:PropositionDependency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "dependency treatment"@x-gmeow-english ;
+    logic:range gmeow:AuthorityClaim ;
+    skos:definition "The authority claim that treats the depended-on proposition. Functional and mandatory. Naming it makes no claim that it binds anything beyond its own scope."@x-gmeow-english ;
+    skos:example "ex:dep gmeow:dependencyTreatment ex:laterClaim ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Use to name the claim whose treatment triggers the review flag."@x-gmeow-english .
+
+gmeow:correspondenceFrom
+    a logic:ObjectProperty ;
+    logic:domain gmeow:AuthorityCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "correspondence from"@x-gmeow-english ;
+    logic:range gmeow:AuthorityClaim ;
+    skos:definition "The authority claim at one end of a correspondence. Functional and mandatory."@x-gmeow-english ;
+    skos:example "ex:link gmeow:correspondenceFrom ex:claimA ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Use to name the first claim of a cross-order correspondence."@x-gmeow-english .
+
+gmeow:correspondenceTo
+    a logic:ObjectProperty ;
+    logic:domain gmeow:AuthorityCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "correspondence to"@x-gmeow-english ;
+    logic:range gmeow:AuthorityClaim ;
+    skos:definition "The authority claim at the other end of a correspondence. Functional and mandatory."@x-gmeow-english ;
+    skos:example "ex:link gmeow:correspondenceTo ex:claimB ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Use to name the second claim of a cross-order correspondence."@x-gmeow-english .
+
+gmeow:correspondenceScope
+    a logic:ObjectProperty ;
+    logic:domain gmeow:AuthorityCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "correspondence scope"@x-gmeow-english ;
+    logic:range gmeow:Condition ;
+    skos:definition "The described circumstance or subject matter within which the correspondence is asserted. Mandatory: an unscoped correspondence is not recorded."@x-gmeow-english ;
+    skos:example "ex:link gmeow:correspondenceScope ex:sharedSubject ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Use to bound what a correspondence is claimed to cover."@x-gmeow-english .
+
+# Cardinalities. An authority claim has one order, one force, at most one opinion role and one
+# issue, and expresses at least one proposition; a dependency and a correspondence name each
+# endpoint exactly once.
+gmeow:AuthorityClaim logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:expresses ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Proposition ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityOrder ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:NormativeSystem ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityOrder ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityForce ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:AuthorityForce ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityForce ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:opinionRole ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityIssue ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityIssue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:wasAssociatedWith ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Agent ] .
+
+gmeow:PropositionDependency logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:dependencyReading ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:AuthorityClaim ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dependencyReading ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dependencyProposition ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Proposition ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dependencyProposition ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dependencyTreatment ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:AuthorityClaim ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dependencyTreatment ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+gmeow:AuthorityCorrespondence logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:correspondenceFrom ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:AuthorityClaim ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:correspondenceFrom ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:correspondenceTo ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:AuthorityClaim ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:correspondenceTo ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:correspondenceScope ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Condition ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:wasAssociatedWith ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Agent ] .
+
+# The issue text admits plain, language-tagged and directional text.
+gmeow:AuthorityClaim logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityIssue ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+# Evidence each force needs. Binding needs a pinpoint source and a forum; persuasive needs a
+# pinpoint source. A citation supplies neither force nor binding effect on its own.
+gmeow:BindingAuthoritySourceConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:label "Binding authority source constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: an authority claim of binding force names the pinpoint source of its proposition through gmeow:authoritySource."@x-gmeow-english ;
+    logic:onClass gmeow:AuthorityClaim ;
+    logic:trigger gmeow:authorityForce ;
+    logic:triggerValue gmeow:authorityForceBinding ;
+    logic:requires gmeow:authoritySource ;
+    logic:formalizes gmeow:AuthorityClaim ;
+    logic:message "A binding authority claim must name its pinpoint source through gmeow:authoritySource." .
+
+gmeow:BindingAuthorityForumConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:label "Binding authority forum constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: an authority claim of binding force names the forum it binds through gmeow:authorityForum."@x-gmeow-english ;
+    logic:onClass gmeow:AuthorityClaim ;
+    logic:trigger gmeow:authorityForce ;
+    logic:triggerValue gmeow:authorityForceBinding ;
+    logic:requires gmeow:authorityForum ;
+    logic:formalizes gmeow:AuthorityClaim ;
+    logic:message "A binding authority claim must name the forum it binds through gmeow:authorityForum." .
+
+gmeow:PersuasiveAuthoritySourceConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:label "Persuasive authority source constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: an authority claim of persuasive force names the pinpoint source of its proposition through gmeow:authoritySource."@x-gmeow-english ;
+    logic:onClass gmeow:AuthorityClaim ;
+    logic:trigger gmeow:authorityForce ;
+    logic:triggerValue gmeow:authorityForcePersuasive ;
+    logic:requires gmeow:authoritySource ;
+    logic:formalizes gmeow:AuthorityClaim ;
+    logic:message "A persuasive authority claim must name its pinpoint source through gmeow:authoritySource." .
+
+# A proposition in dissenting reasons does not bind: a dissenting opinion role and binding force
+# never occur on one authority claim.
+gmeow:DissentNotBindingConstraint
+    a logic:Constraint ;
+    rdfs:label "Dissent not binding constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: an authority claim whose opinion role is dissenting does not carry binding force."@x-gmeow-english ;
+    logic:formalizes gmeow:AuthorityClaim ;
+    logic:severity "Violation" ;
+    logic:message "An authority claim in dissenting reasons must not carry binding force." ;
+    logic:integrity logic:dnbForall .
+logic:dnbForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:dnbImpl .
+logic:dnbImpl a logic:Formula ; logic:antecedent logic:dnbGuard ; logic:consequent logic:dnbNot .
+logic:dnbGuard a logic:Formula ; logic:and logic:dnbG1 , logic:dnbG2 .
+logic:dnbG1 a logic:Formula ; logic:relation logic:directType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AuthorityClaim ] .
+logic:dnbG2 a logic:Formula ; logic:relation gmeow:opinionRole ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:opinionRoleDissenting ] .
+logic:dnbNot a logic:Formula ; logic:not logic:dnbAtom .
+logic:dnbAtom a logic:Formula ; logic:relation gmeow:authorityForce ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:authorityForceBinding ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:AuthorityClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/authorityIssue" ; logic:closureValue logic:ClosedWorldClosure ] .

@@ -1,0 +1,17 @@
+# Competency question: "Which readings anchored on the earlier decision are not flagged for
+# review?"
+#
+# Negative case for the dependency: the later decision cites the earlier decision at two
+# paragraphs, but only the reading whose proposition it revises carries a dependency. The
+# reading it restates stays unflagged and keeps its binding force.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX ex: <https://blackcatinformatics.ca/gmeow/examples/norms/>
+
+SELECT ?reading WHERE {
+    ?reading a gmeow:AuthorityClaim ;
+        gmeow:authoritySource ?source .
+    ?source gmeow:citedEntity ex:dunsmuirDecision .
+    FILTER NOT EXISTS { ?dependency gmeow:dependencyReading ?reading . }
+}
+ORDER BY ?reading

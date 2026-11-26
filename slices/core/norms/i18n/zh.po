@@ -824,3 +824,435 @@ msgstr "范围：该记录仅承载关于 gmeow:PrecedenceTenure 的一项完整
 msgctxt "https://blackcatinformatics.ca/gmeow/criterionPoleDistinctness|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:Criterion and nothing else. It is not a definition of gmeow:Criterion (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:Criterion 的一项完整性义务，别无其他。它不是 gmeow:Criterion 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityClaim|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Authority Claim"
+msgstr "权威主张"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityClaim|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A datable, attributed claim that a legal proposition has a stated authority status in one legal order, on one issue, for one forum. It is a claim token: the associated agent is the issuing body, the expressed proposition is the content, and force, opinion role, pinpoint source, relevant facts and time are separate facts. The claim records what a source says about authority and never settles the authority of the proposition in another legal order."
+msgstr "一项可确定时间、有归属的主张，称某一法律命题在某一法律秩序中、就某一问题并针对某一审理机构具有特定的权威地位。它是一种主张令牌：相关联的行为主体即发布机构，所表达的命题即内容，效力、意见角色、精确出处、相关事实与时间均为各自独立的事实。该主张只记录某一来源对权威的陈述，绝不裁定该命题在其他法律秩序中的权威。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityClaim|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim a gmeow:AuthorityClaim ; gmeow:expresses ex:proposition ; gmeow:authorityOrder ex:legalOrder ; gmeow:authorityForce gmeow:authorityForceBinding ."
+msgstr "ex:claim a gmeow:AuthorityClaim ; gmeow:expresses ex:proposition ; gmeow:authorityOrder ex:legalOrder ; gmeow:authorityForce gmeow:authorityForceBinding ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityClaim|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for a bare citation, which supplies no authority status (use gmeow:CitationAct), and for a specifically identified duty, permission or prohibition (use the rights rule through gmeow:authorityRule)."
+msgstr "避免用于单纯的引用（引用不赋予任何权威地位，应使用 gmeow:CitationAct），也避免用于具体确定的义务、许可或禁止（应通过 gmeow:authorityRule 使用权利规则）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityClaim|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint one claim per proposition, legal order and forum. Set gmeow:expresses, gmeow:authorityOrder, gmeow:authorityForce and gmeow:authorityIssue; add gmeow:opinionRole, gmeow:authoritySource, gmeow:relevantFact and gmeow:eventTime where the source gives them, and name the issuing body with gmeow:wasAssociatedWith."
+msgstr "每个命题、法律秩序与审理机构各创建一项主张。设置 gmeow:expresses、gmeow:authorityOrder、gmeow:authorityForce 和 gmeow:authorityIssue；来源提供时再添加 gmeow:opinionRole、gmeow:authoritySource、gmeow:relevantFact 和 gmeow:eventTime，并以 gmeow:wasAssociatedWith 指明发布机构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityClaim|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record that an identified body or legal order puts a legal proposition forward as binding, persuasive, dissenting or unresolved, together with the evidence that status needs."
+msgstr "用于记录某一已确认的机构或法律秩序将某一法律命题作为有约束力、有说服力、异议或未决的命题提出，并附上该地位所需的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityForce|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Authority Force"
+msgstr "权威效力"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityForce|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The value vocabulary of the force an authority claim asserts for its proposition: binding, persuasive, dissent or unresolved. Each value is a claim about one legal order and forum, never a global verdict on the proposition."
+msgstr "权威主张就其命题所断言的效力的取值词汇：有约束力、有说服力、异议或未决。每个取值都只是针对某一法律秩序和审理机构的主张，绝不是对该命题的全局裁决。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityForce|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:authorityForcePersuasive a gmeow:AuthorityForce ."
+msgstr "gmeow:authorityForcePersuasive a gmeow:AuthorityForce ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityForce|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid per-value subclasses and avoid reading a value outside the claim's own legal order and forum."
+msgstr "避免按取值建立子类，也避免在主张自身的法律秩序和审理机构之外解读取值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityForce|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach exactly one value to an authority claim with gmeow:authorityForce; binding requires a pinpoint source and a forum, persuasive requires a pinpoint source."
+msgstr "通过 gmeow:authorityForce 为权威主张恰好附加一个取值；有约束力的效力需要精确出处和审理机构，有说服力的效力需要精确出处。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityForce|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the value vocabulary for the force a legal authority claim asserts."
+msgstr "用作法律权威主张所断言效力的取值词汇。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpinionRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Opinion Role"
+msgstr "意见角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpinionRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The value vocabulary of the role of the opinion in which a proposition appears: the reasons of the deciding body, a concurrence or a dissent."
+msgstr "命题所出现的意见之角色的取值词汇：裁判机构的理由、协同意见或异议意见。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpinionRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:opinionRoleDissenting a gmeow:OpinionRole ."
+msgstr "gmeow:opinionRoleDissenting a gmeow:OpinionRole ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpinionRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for the force a claim asserts (use gmeow:AuthorityForce); the role says where the proposition appears, not what status it has."
+msgstr "避免用于主张所断言的效力（应使用 gmeow:AuthorityForce）；角色说明命题出现在何处，而非其地位。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpinionRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach one value to an authority claim with gmeow:opinionRole; a dissenting role cannot carry binding force."
+msgstr "通过 gmeow:opinionRole 为权威主张附加一个取值；异议角色不能带有约束效力。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OpinionRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the value vocabulary for the opinion role of a legal proposition."
+msgstr "用作法律命题意见角色的取值词汇。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PropositionDependency|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Proposition Dependency"
+msgstr "命题依赖"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PropositionDependency|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit dependency of one reading of a proposition on a proposition that another authority claim treats. Its existence flags the dependent reading for review and nothing else: it does not retract the earlier claim, reverse any decision that cited it, or make the treating claim binding for any other proposition."
+msgstr "某一命题的一种解读对另一权威主张所处理的命题的明确依赖。它的存在只意味着该解读被标记为需要复核，别无他意：它不撤回先前的主张，不推翻任何引用过它的裁决，也不使处理主张对其他命题产生约束力。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PropositionDependency|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:dep a gmeow:PropositionDependency ; gmeow:dependencyReading ex:earlierClaim ; gmeow:dependencyProposition ex:earlierProposition ; gmeow:dependencyTreatment ex:laterClaim ."
+msgstr "ex:dep a gmeow:PropositionDependency ; gmeow:dependencyReading ex:earlierClaim ; gmeow:dependencyProposition ex:earlierProposition ; gmeow:dependencyTreatment ex:laterClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PropositionDependency|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for a citation alone: a citation, even a disagreeing one, flags nothing. Avoid linking readings of propositions the treating claim does not bear on."
+msgstr "避免仅用于引用：引用即使表示不同意，也不标记任何内容。也避免关联处理主张并不涉及的命题的解读。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PropositionDependency|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint one dependency per affected reading. Name the reading, the proposition it depends on and the treating claim; review of the reading is a separate recorded act."
+msgstr "为每一项受影响的解读创建一项依赖。指明该解读、它所依赖的命题以及处理主张；对该解读的复核是另行记录的独立行为。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PropositionDependency|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to flag exactly the reading of a proposition that a later authority claim bears on, leaving other readings of the same case untouched."
+msgstr "用于恰好标记后来的权威主张所涉及的某一命题解读，而不触动同一案件的其他解读。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityCorrespondence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Authority Correspondence"
+msgstr "权威对应"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityCorrespondence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed and scoped claim that an authority claim in one legal order corresponds to an authority claim in another. It is not an authority claim: it carries no force and transfers none, so neither legal order's interpretation is established by the other."
+msgstr "一项有归属、有范围的主张，称某一法律秩序中的权威主张与另一法律秩序中的权威主张相对应。它不是权威主张：它不带有任何效力，也不转移任何效力，因此任何一个法律秩序的解释都不会由另一个确立。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityCorrespondence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:link a gmeow:AuthorityCorrespondence ; gmeow:correspondenceFrom ex:claimA ; gmeow:correspondenceTo ex:claimB ; gmeow:wasAssociatedWith ex:commentator ."
+msgstr "ex:link a gmeow:AuthorityCorrespondence ; gmeow:correspondenceFrom ex:claimA ; gmeow:correspondenceTo ex:claimB ; gmeow:wasAssociatedWith ex:commentator ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityCorrespondence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it as a source of binding force or interpretation for either order, and avoid leaving it unattributed or unscoped."
+msgstr "避免将其作为任一秩序的约束效力或解释的来源，也避免使其缺少归属或范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityCorrespondence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name both claims, the asserting agent with gmeow:wasAssociatedWith, the frame with gmeow:accordingTo and the scope with gmeow:correspondenceScope."
+msgstr "指明两项主张，以 gmeow:wasAssociatedWith 指明作出主张的主体，以 gmeow:accordingTo 指明框架，并以 gmeow:correspondenceScope 指明范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorityCorrespondence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an identified party asserts that two legal orders speak to a comparable matter and the comparison itself must stay attributable and scoped."
+msgstr "用于已确认的一方主张两个法律秩序论及可比事项，且该比较本身必须保持可归属、有范围的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityForceBinding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "binding"
+msgstr "有约束力"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityForceBinding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The claim asserts that the proposition binds in its own legal order for the named forum. It requires a pinpoint source and a forum."
+msgstr "该主张断言此命题在其自身的法律秩序中对所指名的审理机构具有约束力。它需要精确出处和审理机构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityForcePersuasive|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "persuasive"
+msgstr "有说服力"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityForcePersuasive|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The claim asserts that the proposition may be relied on for its reasoning without binding the forum. It requires a pinpoint source."
+msgstr "该主张断言此命题可因其推理而被援引，但不约束审理机构。它需要精确出处。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityForceDissent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dissent"
+msgstr "异议"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityForceDissent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The claim records a proposition put forward in dissent, which does not bind the forum."
+msgstr "该主张记录以异议形式提出的命题，该命题不约束审理机构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityForceUnresolved|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unresolved"
+msgstr "未决"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityForceUnresolved|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The claim records that the authority status of the proposition is not established by the evidence supplied; the issue it leaves open is stated."
+msgstr "该主张记录该命题的权威地位未被所提供的证据确立；其所遗留的未决问题已予说明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opinionRoleMajority|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reasons of the deciding body"
+msgstr "裁判机构的理由"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opinionRoleMajority|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The proposition appears in the reasons that carry the decision of the deciding body, whether unanimous or by majority."
+msgstr "该命题出现在承载裁判机构裁决的理由之中，无论是一致意见还是多数意见。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opinionRoleConcurring|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "concurring reasons"
+msgstr "协同意见的理由"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opinionRoleConcurring|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The proposition appears in separate reasons that agree with the result."
+msgstr "该命题出现在与结果一致的单独理由之中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opinionRoleDissenting|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dissenting reasons"
+msgstr "异议意见的理由"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opinionRoleDissenting|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The proposition appears in separate reasons that disagree with the result."
+msgstr "该命题出现在与结果不一致的单独理由之中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityOrder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "authority order"
+msgstr "权威秩序"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityOrder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one legal order in which an authority claim asserts its status. Functional: a status asserted in one order is not a status in another."
+msgstr "权威主张在其中陈述其地位的唯一法律秩序。函数式：在一个秩序中陈述的地位不是另一个秩序中的地位。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityOrder|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim gmeow:authorityOrder ex:legalOrder ."
+msgstr "ex:claim gmeow:authorityOrder ex:legalOrder ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityOrder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to scope an authority claim to the legal order that grounds it."
+msgstr "用于将权威主张限定于作为其依据的法律秩序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityForum|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "authority forum"
+msgstr "权威审理机构"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityForum|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The court, tribunal or other body before which an authority claim asserts its status."
+msgstr "权威主张就其地位所面向的法院、裁判庭或其他机构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityForum|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim gmeow:authorityForum ex:court ."
+msgstr "ex:claim gmeow:authorityForum ex:court ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityForum|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the forum a binding or persuasive status is asserted for."
+msgstr "用于指明有约束力或有说服力的地位所针对的审理机构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityForce|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "authority force"
+msgstr "权威效力"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityForce|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The force an authority claim asserts for its proposition: binding, persuasive, dissent or unresolved. Functional and mandatory."
+msgstr "权威主张就其命题所断言的效力：有约束力、有说服力、异议或未决。函数式且必填。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityForce|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim gmeow:authorityForce gmeow:authorityForcePersuasive ."
+msgstr "ex:claim gmeow:authorityForce gmeow:authorityForcePersuasive ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityForce|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state which of the four forces the claim asserts."
+msgstr "用于说明该主张断言四种效力中的哪一种。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opinionRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "opinion role"
+msgstr "意见角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opinionRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The role of the opinion in which the claimed proposition appears. Functional."
+msgstr "所主张命题出现于其中的意见之角色。函数式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opinionRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim gmeow:opinionRole gmeow:opinionRoleMajority ."
+msgstr "ex:claim gmeow:opinionRole gmeow:opinionRoleMajority ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opinionRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies the opinion that carries the proposition."
+msgstr "用于来源指明承载该命题的意见时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityIssue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "authority issue"
+msgstr "权威问题"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityIssue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The question of law or issue on which the proposition is claimed, as text with its original language and direction. Functional and mandatory."
+msgstr "该命题所针对的法律问题或争点，以带有原始语言和方向的文本表示。函数式且必填。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityIssue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim gmeow:authorityIssue \"the standard of review\" ."
+msgstr "ex:claim gmeow:authorityIssue \"the standard of review\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityIssue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state the issue a proposition is scoped to."
+msgstr "用于陈述命题所限定的争点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authoritySource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "authority source"
+msgstr "权威来源"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authoritySource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The citation act, with its pinpoint selector, that locates the proposition in its source. The source is evidence for the claim and is never a claim of authority by itself."
+msgstr "以精确选择器在来源中定位该命题的引用行为。来源是该主张的证据，其本身绝不是权威主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authoritySource|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim gmeow:authoritySource ex:sourceCitation ."
+msgstr "ex:claim gmeow:authoritySource ex:sourceCitation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authoritySource|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to point a claim at the pinpoint where its source states the proposition."
+msgstr "用于使主张指向其来源陈述该命题的精确位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relevantFact|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relevant fact"
+msgstr "相关事实"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relevantFact|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A described circumstance of the decided matter that the proposition depends on. Several facts are read together."
+msgstr "所裁决事项中该命题所依赖的一项被描述的情形。多项事实合并解读。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relevantFact|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim gmeow:relevantFact ex:materialFact ."
+msgstr "ex:claim gmeow:relevantFact ex:materialFact ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relevantFact|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the facts that bound the reach of a legal proposition."
+msgstr "用于记录限定某一法律命题适用范围的事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "authority rule"
+msgstr "权威规则"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The specifically identified duty, permission or prohibition the claim concerns, as a rights rule with its assignee and action. Used only where those rights criteria apply."
+msgstr "该主张所涉及的具体确定的义务、许可或禁止，以带有受让方和行为的权利规则表示。仅在适用这些权利标准时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim gmeow:authorityRule ex:identifiedDuty ."
+msgstr "ex:claim gmeow:authorityRule ex:identifiedDuty ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorityRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the proposition identifies one duty, permission or prohibition with an assignee and an action."
+msgstr "用于命题确定了带有受让方和行为的某一项义务、许可或禁止的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dependencyReading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dependency reading"
+msgstr "依赖解读"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dependencyReading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The authority claim, a reading of a proposition, that the dependency flags for review. Functional and mandatory."
+msgstr "依赖所标记、需要复核的权威主张，即某一命题的一种解读。函数式且必填。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dependencyReading|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:dep gmeow:dependencyReading ex:earlierClaim ."
+msgstr "ex:dep gmeow:dependencyReading ex:earlierClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dependencyReading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the exact reading a treatment bears on."
+msgstr "用于指明某一处理所涉及的确切解读。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dependencyProposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dependency proposition"
+msgstr "依赖命题"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dependencyProposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The proposition that the flagged reading depends on and the treating claim bears on. Functional and mandatory."
+msgstr "被标记的解读所依赖、且处理主张所涉及的命题。函数式且必填。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dependencyProposition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:dep gmeow:dependencyProposition ex:earlierProposition ."
+msgstr "ex:dep gmeow:dependencyProposition ex:earlierProposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dependencyProposition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to scope a dependency to one proposition rather than to a whole case."
+msgstr "用于把依赖限定于某一命题，而不是整个案件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dependencyTreatment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dependency treatment"
+msgstr "依赖处理"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dependencyTreatment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The authority claim that treats the depended-on proposition. Functional and mandatory. Naming it makes no claim that it binds anything beyond its own scope."
+msgstr "处理该被依赖命题的权威主张。函数式且必填。指明它并不表示其约束力超出其自身范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dependencyTreatment|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:dep gmeow:dependencyTreatment ex:laterClaim ."
+msgstr "ex:dep gmeow:dependencyTreatment ex:laterClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dependencyTreatment|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the claim whose treatment triggers the review flag."
+msgstr "用于指明其处理触发复核标记的主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondenceFrom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "correspondence from"
+msgstr "对应起点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondenceFrom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The authority claim at one end of a correspondence. Functional and mandatory."
+msgstr "对应关系一端的权威主张。函数式且必填。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondenceFrom|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:link gmeow:correspondenceFrom ex:claimA ."
+msgstr "ex:link gmeow:correspondenceFrom ex:claimA ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondenceFrom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the first claim of a cross-order correspondence."
+msgstr "用于指明跨秩序对应关系中的第一项主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondenceTo|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "correspondence to"
+msgstr "对应终点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondenceTo|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The authority claim at the other end of a correspondence. Functional and mandatory."
+msgstr "对应关系另一端的权威主张。函数式且必填。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondenceTo|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:link gmeow:correspondenceTo ex:claimB ."
+msgstr "ex:link gmeow:correspondenceTo ex:claimB ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondenceTo|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name the second claim of a cross-order correspondence."
+msgstr "用于指明跨秩序对应关系中的第二项主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondenceScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "correspondence scope"
+msgstr "对应范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondenceScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The described circumstance or subject matter within which the correspondence is asserted. Mandatory: an unscoped correspondence is not recorded."
+msgstr "作出该对应所限定的被描述的情形或主题。必填：没有范围的对应不予记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondenceScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:link gmeow:correspondenceScope ex:sharedSubject ."
+msgstr "ex:link gmeow:correspondenceScope ex:sharedSubject ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/correspondenceScope|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to bound what a correspondence is claimed to cover."
+msgstr "用于限定一项对应所声称涵盖的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BindingAuthoritySourceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Binding authority source constraint"
+msgstr "有约束力权威的来源约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BindingAuthoritySourceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: an authority claim of binding force names the pinpoint source of its proposition through gmeow:authoritySource."
+msgstr "封闭世界完整性约束：具有约束效力的权威主张须通过 gmeow:authoritySource 指明其命题的精确出处。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BindingAuthorityForumConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Binding authority forum constraint"
+msgstr "有约束力权威的审理机构约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BindingAuthorityForumConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: an authority claim of binding force names the forum it binds through gmeow:authorityForum."
+msgstr "封闭世界完整性约束：具有约束效力的权威主张须通过 gmeow:authorityForum 指明其所约束的审理机构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PersuasiveAuthoritySourceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Persuasive authority source constraint"
+msgstr "有说服力权威的来源约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PersuasiveAuthoritySourceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: an authority claim of persuasive force names the pinpoint source of its proposition through gmeow:authoritySource."
+msgstr "封闭世界完整性约束：具有说服效力的权威主张须通过 gmeow:authoritySource 指明其命题的精确出处。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DissentNotBindingConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dissent not binding constraint"
+msgstr "异议不具约束力约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DissentNotBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: an authority claim whose opinion role is dissenting does not carry binding force."
+msgstr "封闭世界完整性约束：意见角色为异议的权威主张不带有约束效力。"

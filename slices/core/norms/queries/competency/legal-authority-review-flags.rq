@@ -1,0 +1,14 @@
+# Competency question: "Which authority claims are flagged for review by an explicit
+# proposition dependency?"
+#
+# Only a gmeow:PropositionDependency flags a reading. A later decision that cites an earlier
+# one, whatever the citation intent, flags nothing, and a reading of the same earlier decision
+# on a different proposition is not flagged.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?reading WHERE {
+    ?dependency a gmeow:PropositionDependency ;
+        gmeow:dependencyReading ?reading .
+}
+ORDER BY ?reading

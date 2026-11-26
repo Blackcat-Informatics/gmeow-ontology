@@ -1,0 +1,17 @@
+# Competency question: "Which correspondences link claims of different legal orders, and who
+# attributes them?"
+#
+# A correspondence names both claims, both orders, its attributing agent and its scope.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?correspondence ?fromOrder ?toOrder ?agent ?scope WHERE {
+    ?correspondence a gmeow:AuthorityCorrespondence ;
+        gmeow:correspondenceFrom ?from ;
+        gmeow:correspondenceTo ?to ;
+        gmeow:correspondenceScope ?scope ;
+        gmeow:wasAssociatedWith ?agent .
+    ?from gmeow:authorityOrder ?fromOrder .
+    ?to gmeow:authorityOrder ?toOrder .
+    FILTER (?fromOrder != ?toOrder)
+}

@@ -48,3 +48,93 @@ wordtest:arabicRow a gmeow:ExpectedRow ;
 wordtest:unspecifiedRow a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "condition" ; gmeow:cellValueIri wordcase:unspecified ],
         [ a gmeow:ExpectedCell ; gmeow:cellVar "words" ; gmeow:cellValueLiteral "Source words without a declared language." ] .
+
+# --- Authority and later treatment of an identified legal proposition ---------------------------
+@prefix exd: <https://blackcatinformatics.ca/gmeow/examples/norms/> .
+
+ex:cqLegalReviewFlags a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/norms/queries/competency/legal-authority-review-flags.rq" ;
+    gmeow:cqDataFile "examples/legal-authority-treatment.ttl" ;
+    gmeow:cqRationale "A later decision flags one earlier reading only through an explicit proposition dependency. The reading of the earlier decision on jurisdictional questions is flagged; no citation, no later claim and no other reading is." ;
+    gmeow:cqResultShape ex:cqLegalReadingShape ;
+    gmeow:cqExpectRow ex:rowFlagJurisdiction .
+
+ex:cqLegalUnflaggedReadings a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/norms/queries/competency/legal-authority-unflagged-readings.rq" ;
+    gmeow:cqDataFile "examples/legal-authority-treatment.ttl" ;
+    gmeow:cqRationale "The later decision cites the earlier decision at two paragraphs, yet only the revised proposition's reading is flagged. The reading on the jurisdictional boundaries between administrative bodies is cited, restated and left unflagged, so a citation alone neither erases an earlier decision nor reverses every result that cited it." ;
+    gmeow:cqResultShape ex:cqLegalReadingShape ;
+    gmeow:cqExpectRow ex:rowUnflaggedBoundaries .
+
+ex:cqLegalReadingShape a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "reading" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ex:rowFlagJurisdiction a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reading" ; gmeow:cellValueIri exd:claimDunsmuirJurisdiction ] .
+ex:rowUnflaggedBoundaries a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reading" ; gmeow:cellValueIri exd:claimDunsmuirBoundaries ] .
+
+ex:cqLegalBindingByOrder a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/norms/queries/competency/legal-authority-binding-by-order.rq" ;
+    gmeow:cqDataFile "examples/legal-authority-treatment.ttl" ;
+    gmeow:cqRationale "Binding force is a claim in one legal order. The flagged earlier reading keeps its binding record, the Gitanyow statement of its own supremacy binds in its own order, and the concurring claim and the unresolved section 35 claim are not returned, so no source supplies force it does not state." ;
+    gmeow:cqResultShape ex:cqLegalBindingShape ;
+    gmeow:cqExpectRow ex:rowBindPresumption , ex:rowBindNoCategory , ex:rowBindJurisdiction , ex:rowBindBoundaries , ex:rowBindAyookxw .
+
+ex:cqLegalBindingShape a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn
+        [ logic:columnVariable "order" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "claim" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ex:rowBindPresumption a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "order" ; gmeow:cellValueIri exd:canadianLegalOrder ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exd:claimVavilovPresumption ] .
+ex:rowBindNoCategory a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "order" ; gmeow:cellValueIri exd:canadianLegalOrder ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exd:claimVavilovNoCategory ] .
+ex:rowBindJurisdiction a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "order" ; gmeow:cellValueIri exd:canadianLegalOrder ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exd:claimDunsmuirJurisdiction ] .
+ex:rowBindBoundaries a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "order" ; gmeow:cellValueIri exd:canadianLegalOrder ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exd:claimDunsmuirBoundaries ] .
+ex:rowBindAyookxw a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "order" ; gmeow:cellValueIri exd:gitanyowAyookxw ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exd:claimAyookxwSupreme ] .
+
+ex:cqLegalCorrespondence a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/norms/queries/competency/legal-authority-correspondence.rq" ;
+    gmeow:cqDataFile "examples/legal-authority-treatment.ttl" ;
+    gmeow:cqRationale "The only link between the Gitanyow order and the Canadian order is a correspondence attributed to the Gitanyow Nation and scoped to its own preamble; neither order's interpretation is established by the other's source." ;
+    gmeow:cqResultShape ex:cqLegalCorrespondenceShape ;
+    gmeow:cqExpectRow ex:rowCorrespondence .
+
+ex:cqLegalCorrespondenceShape a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn
+        [ logic:columnVariable "correspondence" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "fromOrder" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "toOrder" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "agent" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "scope" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ex:rowCorrespondence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "correspondence" ; gmeow:cellValueIri exd:correspondenceAyookxwSection35 ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fromOrder" ; gmeow:cellValueIri exd:gitanyowAyookxw ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "toOrder" ; gmeow:cellValueIri exd:canadianLegalOrder ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "agent" ; gmeow:cellValueIri exd:gitanyowNation ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "scope" ; gmeow:cellValueIri exd:scopePreamble ] .
+
+ex:cqLegalUnsupportedForce a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/norms/queries/competency/legal-authority-unsupported-force.rq" ;
+    gmeow:cqDataFile "examples/legal-authority-treatment.ttl" ;
+    gmeow:cqRationale "No correspondence carries force, and every binding or persuasive claim carries the pinpoint source and forum its force needs, so a recorded force is always backed by evidence." ;
+    gmeow:cqResultShape ex:cqLegalUnsupportedShape ;
+    gmeow:cqExpectRowCount 0 .
+
+ex:cqLegalUnsupportedShape a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 ;
+    logic:declaresColumn [ logic:columnVariable "subject" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .

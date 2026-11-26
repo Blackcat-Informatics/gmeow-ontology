@@ -1,0 +1,14 @@
+# Competency question: "Which authority claims assert binding force, and in which legal order?"
+#
+# Force belongs to a claim in one legal order. The flagged earlier reading keeps its binding
+# record: a citation or a dependency never erases it. A concurring claim, and a claim whose
+# force is unresolved, are not returned even where they concern the same subject.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?order ?claim WHERE {
+    ?claim a gmeow:AuthorityClaim ;
+        gmeow:authorityOrder ?order ;
+        gmeow:authorityForce gmeow:authorityForceBinding .
+}
+ORDER BY ?order ?claim

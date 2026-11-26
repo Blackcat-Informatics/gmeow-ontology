@@ -314,6 +314,51 @@ invariant queryable rather than a shape (divergence is legal).
 byte-perfect content-digested `Document`s that carry `aboutnessEnacts` — the document does not
 describe the voice, it is the voice; an undigested exemplar is a SHACL violation.
 
+## Authority and later treatment of a legal proposition
+
+Legal effect belongs to a proposition in a legal order, on an issue, for a forum. One decision can
+revise one proposition of an earlier decision and leave a different use of the earlier decision
+untouched, and an order's own statement of its authority differs from another institution's
+interpretation of it. The facility reuses existing terms and adds only what they lack.
+
+- **The claim.** `AuthorityClaim ⊑ ClaimToken` (epistemics). The issuing body is the associated agent
+  (`wasAssociatedWith`), the content is the expressed `Proposition`, the frame is `accordingTo`, and
+  the time is `eventTime`. The legal order is a `NormativeSystem` (`authorityOrder`, exactly one),
+  the forum an `Organization` (`authorityForum`), the relevant facts are `Condition`s
+  (`relevantFact`), and the issue is language-faithful text (`authorityIssue`, exactly one).
+- **The pinpoint.** `authoritySource` points at a `CitationAct` whose `Selector` carries the locator
+  and the verbatim quote. A legal authority is cited through the citation vocabulary, never by a
+  bare address in a term. The source is evidence for the claim, not a claim of authority.
+- **Force and opinion role.** `AuthorityForce` has four values: binding, persuasive, dissent and
+  unresolved. `OpinionRole` has three: the reasons of the deciding body, concurring reasons and
+  dissenting reasons. Each force names the evidence it needs: a binding claim carries a pinpoint
+  source and a forum, a persuasive claim a pinpoint source, and a dissenting opinion role never
+  carries binding force. An unresolved claim records that the supplied evidence does not establish
+  a status.
+- **Duties, permissions, prohibitions.** `authorityRule` points at a rights `Rule` only where the
+  rights criteria apply: one identified duty, permission or prohibition with an assignee and an
+  action. A proposition that does not meet them stays a plain `Proposition`.
+- **The dependency.** `PropositionDependency` names the flagged reading (`dependencyReading`), the
+  proposition it depends on (`dependencyProposition`) and the treating claim
+  (`dependencyTreatment`). Its existence flags that reading for review and does nothing else. It
+  does not retract the earlier claim, reverse a result that cited it, or give the treating claim
+  force over another proposition; a citation, whatever its intent, flags nothing. Which readings a
+  treatment reaches is data, so a reader can follow it through a query. Review is a separate
+  recorded act and the flag is never a stored verdict (Principle 12). The inference attack and
+  acceptability terms are not reused: they decide which argument survives, and a dependency flag
+  must decide nothing.
+- **Two orders.** `AuthorityCorrespondence ⊑ ClaimToken` is disjoint from `AuthorityClaim`. It names
+  two claims, an attributing agent and a mandatory scope, and carries no force, so neither order's
+  interpretation is established by the other. Each claim has exactly one order.
+
+The worked example `examples/legal-authority-treatment.ttl` anchors one proposition in the Supreme
+Court of Canada's account of the revised review framework and its treatment of an earlier decision,
+and contrasts the Gitanyow Ayookxw's statement of its own supremacy with a Canadian constitutional
+proposition. Its facts come only from the cited texts, and the force and forum of each claim are
+classifications of the record. The competency questions return the one flagged reading, the cited
+and unflagged reading, the binding claims by order, the single attributed correspondence, and no
+unsupported force.
+
 ## Literal language and direction
 
 The natural-language fields `gmeow:conditionText` admit

@@ -1,0 +1,23 @@
+# Competency question: "Does any correspondence carry authority force, or any binding or
+# persuasive claim lack the evidence its force needs?"
+#
+# A correspondence transfers no force, a binding claim needs a pinpoint source and a forum, and a
+# persuasive claim needs a pinpoint source. The answer is no row.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?subject WHERE {
+    {
+        ?subject a gmeow:AuthorityCorrespondence ;
+            gmeow:authorityForce ?force .
+    } UNION {
+        ?subject a gmeow:AuthorityClaim ;
+            gmeow:authorityForce ?force .
+        FILTER (?force IN (gmeow:authorityForceBinding, gmeow:authorityForcePersuasive))
+        FILTER NOT EXISTS { ?subject gmeow:authoritySource ?source . }
+    } UNION {
+        ?subject a gmeow:AuthorityClaim ;
+            gmeow:authorityForce gmeow:authorityForceBinding .
+        FILTER NOT EXISTS { ?subject gmeow:authorityForum ?forum . }
+    }
+}
