@@ -36,6 +36,19 @@ A known `intentionTransitionTenure` can retain the existing holding interval.
 Pausing does not itself close tenure or abandon the intention. A later withdrawal
 can close that same tenure without making its earlier pause record false.
 
+`pauseBlocked` is a `PauseCause` value for a pause because pursuit cannot proceed
+until an external condition the agent does not control is met; its evidence is
+the source record's own statement of that condition. It does not say the
+condition was met and neither closes tenure nor implies an enactment state.
+A status event can retain the identifier of its successor intention as written in
+`supersedingIntentionId`, and the identifier of the transition it expected to
+follow in `expectedTransitionId`. Both are `xsd:token` literals and assert no
+resolved link: `supersededBy` remains the resolved link for a successor that
+resolves, and no outcome of a writer's compare-and-swap check is implied.
+`adoptionNextReviewAt` retains the next review time that an adoption wrote on a
+goal or tenure, as written. It declares no domain and is not the `nextReviewAt`
+of that goal or tenure.
+
 A satisfied transition links its separate judgment with `agencyGoalEvaluation`.
 Supersession keeps the old intention and names the replacement through existing
 `supersededBy`. No status selects a privileged global interpretation or erases an
@@ -223,6 +236,19 @@ Prose retains supplied language and direction; opaque identifiers preserve all
 source code points as strings. See
 [`GOALS-AND-SATISFACTION.md`](design/GOALS-AND-SATISFACTION.md) for the canonical
 laws, evidence paths and honest limits (Principles 2, 3, 4, 9 and 17).
+
+A status event that cites evidence for its conditions, without any per-condition
+verdict or `logic:GoalEvaluation`, links one `ConditionEvidence` per condition
+through `hasConditionEvidence`. `conditionEvidenceKey` names the condition the
+evidence answers as the complete source literal, `xsd:string` or `xsd:token`. A
+join to a `verifierKey` or `conditionKey` compares the complete literal, lexical
+form and datatype: a string "a" and a token "a" do not join by value, and a
+reader must not normalize or retype either side. Each cited reference is an
+opaque source-supplied identifier kept verbatim with the existing
+`evidenceReference`: it is not a node, and it is not a derivation. A
+`ConditionEvidence` states no verdict that a condition held and is neither a
+`ConditionVerifier`, which configures how a condition is checked, nor a
+`GoalEvaluation`.
 
 ## Runtime trace kinds and lifecycle readings
 
