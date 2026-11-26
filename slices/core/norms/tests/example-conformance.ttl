@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/norms/tests/> .
+
+ex:ecAuthoritySelectorNeedsPinpoint a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/authority-source-empty-selector.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:AuthoritySourcePinpointConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A binding authority claim with a typed selector and a whitespace-only locator still has no pinpoint." .
+
+ex:ecDissentingAuthoritySubclass a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/dissenting-authority-subclass.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:DissentNotBindingConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "Dissenting reasons cannot assert binding force even when the claim is typed only as an authority claim subclass." .

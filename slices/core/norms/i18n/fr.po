@@ -1256,3 +1256,75 @@ msgstr "Contrainte de dissidence non contraignante"
 msgctxt "https://blackcatinformatics.ca/gmeow/DissentNotBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world integrity constraint: an authority claim whose opinion role is dissenting does not carry binding force."
 msgstr "Contrainte d'intégrité en monde clos : une affirmation d'autorité dont le rôle d'opinion est dissident ne porte pas de force contraignante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/sccCanada|https://blackcatinformatics.ca/gmeow/name"
+msgid "Supreme Court of Canada"
+msgstr "Cour suprême du Canada"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/reviewingCourts|https://blackcatinformatics.ca/gmeow/name"
+msgid "Courts reviewing the merits of an administrative decision"
+msgstr "Tribunaux qui contrôlent le fond d’une décision administrative"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/justiceCanada|https://blackcatinformatics.ca/gmeow/name"
+msgid "Department of Justice Canada, publisher of the consolidated Constitution Acts"
+msgstr "Ministère de la Justice du Canada, éditeur des Lois constitutionnelles consolidées"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/gitanyowNation|https://blackcatinformatics.ca/gmeow/name"
+msgid "Gitanyow Nation"
+msgstr "Nation gitanyow"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/canadianLegalOrder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Canadian legal order"
+msgstr "Ordre juridique canadien"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/gitanyowAyookxw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Gitanyow Ayookxw"
+msgstr "Gitanyow Ayookxw (droit gitanyow)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/vavilovDecision|https://blackcatinformatics.ca/gmeow/bibliographicCitation"
+msgid "Canada (Minister of Citizenship and Immigration) v. Vavilov, 2019 SCC 65, [2019] 4 S.C.R. 653"
+msgstr "Canada (Ministre de la Citoyenneté et de l’Immigration) c. Vavilov, 2019 CSC 65, [2019] 4 R.C.S. 653"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/dunsmuirDecision|https://blackcatinformatics.ca/gmeow/bibliographicCitation"
+msgid "Dunsmuir v. New Brunswick, [2008] 1 S.C.R. 190, 2008 SCC 9"
+msgstr "Dunsmuir c. Nouveau-Brunswick, [2008] 1 R.C.S. 190, 2008 CSC 9"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/constitutionAct1982|https://blackcatinformatics.ca/gmeow/bibliographicCitation"
+msgid "Constitution Act, 1982, section 35(1)"
+msgstr "Loi constitutionnelle de 1982, paragraphe 35(1)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/gitanyowConstitution|https://blackcatinformatics.ca/gmeow/bibliographicCitation"
+msgid "The Gitanyow Ayookxw: The Constitution of the Gitanyow Nation"
+msgstr "Le Gitanyow Ayookxw : la Constitution de la Nation gitanyow"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/propJurisdictionalCorrectness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Correctness review applies to jurisdictional questions"
+msgstr "La norme de la décision correcte s’applique aux questions de compétence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/propNoJurisdictionalCategory|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Jurisdictional questions are not a distinct category attracting correctness review"
+msgstr "Les questions de compétence ne sont pas une catégorie distincte soumise à la norme de la décision correcte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/propBoundariesCorrectness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Correctness review applies to questions about the jurisdictional boundaries between administrative bodies"
+msgstr "La norme de la décision correcte s’applique aux questions portant sur les frontières de compétence entre organismes administratifs"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/propPresumptionReasonableness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "The standard of review begins from a presumption of reasonableness"
+msgstr "La détermination de la norme de contrôle part d’une présomption de raisonnabilité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/propAyookxwSupreme|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "The Gitanyow Ayookxw is the supreme law of the Gitanyow Nation and for the Gitanyow People"
+msgstr "Le Gitanyow Ayookxw est la loi suprême de la Nation gitanyow et de son peuple"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/propSection35|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "The existing aboriginal and treaty rights of the aboriginal peoples of Canada are recognized and affirmed"
+msgstr "Les droits existants, ancestraux ou issus de traités, des peuples autochtones du Canada sont reconnus et confirmés"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthoritySourcePinpointConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Authority source pinpoint constraint"
+msgstr "Contrainte de localisation précise de la source d’autorité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthoritySourcePinpointConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every authority source citation has a selector with a populated pinpoint."
+msgstr "Contrainte d’intégrité en monde clos : chaque citation de source d’autorité doit comporter un sélecteur dont la localisation précise est renseignée."
