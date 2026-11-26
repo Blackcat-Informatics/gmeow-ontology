@@ -1256,3 +1256,179 @@ msgstr "异议不具约束力约束"
 msgctxt "https://blackcatinformatics.ca/gmeow/DissentNotBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world integrity constraint: an authority claim whose opinion role is dissenting does not carry binding force."
 msgstr "封闭世界完整性约束：意见角色为异议的权威主张不带有约束效力。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectEnactment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "enactment"
+msgstr "颁布"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectEnactment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The act that makes a provision part of its legal order."
+msgstr "使某一条款成为其法律秩序组成部分的行为。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectCommencement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "commencement"
+msgstr "施行"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectCommencement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The event at which an enacted provision version begins to operate, where that is distinct from its enactment."
+msgstr "已颁布的条款版本开始生效的事件；与颁布不同时才单独记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectAmendment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "amendment"
+msgstr "修正"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectAmendment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The event at which a provision version is altered, ending the earlier version and beginning a new one."
+msgstr "条款版本被修改的事件，它终止先前版本并开始新版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectRepeal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "repeal"
+msgstr "废止"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectRepeal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The event at which a provision version ceases to operate without a replacement version beginning at the same event."
+msgstr "条款版本停止生效、且没有替代版本在同一事件中开始的事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LegalEffectKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Legal Effect Kind"
+msgstr "法律效力类型"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LegalEffectKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The value vocabulary of the legal act a legal effect event records: enactment, commencement, amendment or repeal."
+msgstr "法律效力事件所记录法律行为的值词汇表：颁布、施行、修正或废止。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LegalEffectEvent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Legal Effect Event"
+msgstr "法律效力事件"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LegalEffectEvent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An occurrence that begins or ends the operation of a provision version: its enactment, commencement, amendment or repeal. Its material date is its gmeow:eventTime. When the source gives no date the event carries none, and any applicability that depends on that date stays unestablished."
+msgstr "开始或终止某条款版本效力的事件，包括其颁布、施行、修正或废止。其物质日期即 gmeow:eventTime。若来源未给出日期，事件便不带日期，依赖该日期的适用性保持未确立。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LegalEffectEvent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the legal act that began or ended a provision version, with its gmeow:effectKind and, where the source supplies it, its gmeow:eventTime."
+msgstr "用于记录开始或终止某条款版本的法律行为，并在来源提供时记录其 gmeow:effectKind 与 gmeow:eventTime。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effect kind"
+msgstr "效力类型"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The kind of legal act a legal effect event records. Functional and mandatory."
+msgstr "法律效力事件所记录的法律行为类型。函数性且必填。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProvisionVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Provision Version"
+msgstr "条款版本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProvisionVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One version of a provision as it operates in one jurisdiction, between the legal effect events that began and ended it. Its text is sourced through a citation act and its jurisdiction is a place. A version asserts nothing about whether a matter falls under it at a given date: that is an applicability evaluation."
+msgstr "条款在某一法域中生效的一个版本，位于开始和终止它的法律效力事件之间。其文本由引用行为提供来源，其法域为一个地点。版本本身不断言某事项在某日期是否属于它；这属于适用性评价。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProvisionVersion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for each version of a provision whose operating period must be bound to its enactment, commencement, amendment or repeal."
+msgstr "用于条款的每个版本，其运行期间须与其颁布、施行、修正或废止相绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "version of"
+msgstr "版本所属"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provision identity that a provision version is a version of. Versions of one provision share this identity, and their operating periods are kept apart by their legal effect events."
+msgstr "某条款版本所属的条款身份。同一条款的各版本共享此身份，其运行期间由法律效力事件区分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionJurisdiction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "version jurisdiction"
+msgstr "版本法域"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionJurisdiction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The jurisdiction in which a provision version operates. A version does not operate in another jurisdiction; each jurisdiction's version is a separate provision version. Functional and mandatory."
+msgstr "条款版本运行的法域。版本不在其他法域运行；每个法域的版本是独立的条款版本。函数性且必填。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionBeganBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "version began by"
+msgstr "版本开始于"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionBeganBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The legal effect event that began the operation of a provision version: its enactment, commencement or amendment. Functional and mandatory."
+msgstr "开始某条款版本运行的法律效力事件，即其颁布、施行或修正。函数性且必填。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionEndedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "version ended by"
+msgstr "版本终止于"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionEndedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The legal effect event that ended the operation of a provision version: an amendment or a repeal. Functional; absent while the version has not ended."
+msgstr "终止某条款版本运行的法律效力事件，即修正或废止。函数性；版本未终止时缺省。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "version source"
+msgstr "版本来源"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The citation act, with its pinpoint selector, that sources the text of a provision version, such as a consolidation. The act's assertedAt is the source's publication or assertion time, which is not a material date of the version."
+msgstr "提供某条款版本文本来源的引用行为及其精确选择器，例如合并文本。该行为的 assertedAt 是来源的发布或断言时间，不是版本的物质日期。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Transition Rule"
+msgstr "过渡规则"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A sourced savings or transition rule under which an earlier provision version continues to govern a saved matter after a later version has begun. It names the transition event, the version it saves, the matter and its source. It does not decide the matter."
+msgstr "有来源的保留或过渡规则：较早的条款版本在较晚版本开始后，仍继续适用于被保留的事项。它指明过渡事件、被保留的版本、事项及其来源，但不裁定该事项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use where a source states that an earlier provision version continues to govern identified matters after an amendment or repeal."
+msgstr "用于来源指出较早的条款版本在修正或废止之后仍继续管辖特定事项的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionEvent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transition event"
+msgstr "过渡事件"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionEvent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The legal effect event that marks the boundary of a transition rule. Functional and mandatory."
+msgstr "标记过渡规则边界的法律效力事件。函数性且必填。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/savesVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "saves version"
+msgstr "保留版本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/savesVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The earlier provision version that continues to govern the saved matter under a transition rule. Mandatory."
+msgstr "根据过渡规则，继续管辖被保留事项的较早条款版本。必填。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/savedMatter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "saved matter"
+msgstr "被保留事项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/savedMatter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An event whose governing version the transition rule fixes to the version it saves, whatever the operating periods of the versions would otherwise give. Mandatory, and at least one."
+msgstr "过渡规则将其管辖版本固定为所保留版本的事件，无论各版本的运行期间原本会给出何种结果。必填，至少一个。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transition source"
+msgstr "过渡来源"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The citation act, with its pinpoint selector, that states a transition rule in its source. A transition rule without a source is not recorded. Mandatory."
+msgstr "在其来源中陈述过渡规则的引用行为及其精确选择器。没有来源的过渡规则不予记录。必填。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ApplicabilityEvaluation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Applicability Evaluation"
+msgstr "适用性评价"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ApplicabilityEvaluation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An activity that evaluates which provision version governs a matter. Its eventTime is the evaluation time, distinct from the material dates of the legal effect events it reads and from the publication time of its sources. It records no verdict: the governing version is computed from the recorded events and transition rules."
+msgstr "评价某事项由哪个条款版本管辖的活动。其 eventTime 为评价时间，区别于其所读取法律效力事件的物质日期及其来源的发布时间。它不记录结论：管辖版本由已记录的事件和规则计算得出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ApplicabilityEvaluation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record when a governing provision version was determined for a matter, so that the evaluation time stays separate from the material dates."
+msgstr "用于记录为某事项确定管辖条款版本的时间，使评价时间与物质日期保持分离。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluatedMatter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evaluated matter"
+msgstr "被评价事项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluatedMatter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The event whose governing provision version the evaluation determines. Functional and mandatory."
+msgstr "评价所确定其管辖条款版本的事件。函数性且必填。"

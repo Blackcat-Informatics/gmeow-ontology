@@ -138,3 +138,109 @@ ex:cqLegalUnsupportedShape a logic:ResultShape ;
     logic:shapeCardinality logic:RowsCount ;
     logic:shapeRowCount 0 ;
     logic:declaresColumn [ logic:columnVariable "subject" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+# --- Provision versions bound to legal effect events (synthetic fixture) ---------------------
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix exp: <https://blackcatinformatics.ca/gmeow/examples/norms/provision/> .
+
+ex:cqProvisionVersionAtDate a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/norms/queries/competency/provision-version-at-date.rq" ;
+    gmeow:cqDataFile "examples/provision-applicability.ttl" ;
+    gmeow:cqRationale "The governing version of a provision changes at its amendment's material date. Both sides of that boundary are queried: the day before, the earlier version governs; on the boundary day, the amended version governs and the earlier one has ended." ;
+    gmeow:cqResultShape ex:cqProvisionDateShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:rowDayBefore , ex:rowBoundaryDay .
+
+ex:cqProvisionDateShape a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn
+        [ logic:columnVariable "asOf" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "version" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ex:rowDayBefore a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "asOf" ; gmeow:cellValueLiteral "2010-05-31"^^xsd:date ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueIri exp:sec5v1 ] .
+ex:rowBoundaryDay a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "asOf" ; gmeow:cellValueLiteral "2010-06-01"^^xsd:date ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueIri exp:sec5v2 ] .
+
+ex:cqProvisionUnknownMaterialDate a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/norms/queries/competency/provision-unknown-material-date.rq" ;
+    gmeow:cqDataFile "examples/provision-applicability.ttl" ;
+    gmeow:cqRationale "A version whose beginning event carries no material date must not be placed on any date. Applicability is unestablished, so no governing version is asserted." ;
+    gmeow:cqResultShape ex:cqUnknownDateShape ;
+    gmeow:cqExpectRowCount 0 .
+
+ex:cqUnknownDateShape a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 ;
+    logic:declaresColumn
+        [ logic:columnVariable "asOf" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "version" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ex:cqProvisionCurrentVersion a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/norms/queries/competency/provision-current-version.rq" ;
+    gmeow:cqDataFile "examples/provision-applicability.ttl" ;
+    gmeow:cqRationale "The current account of a provision is the version with no recorded end, queryable beside the historic governing version." ;
+    gmeow:cqResultShape ex:cqCurrentShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:rowCurrentSec5 .
+
+ex:cqCurrentShape a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "version" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ex:rowCurrentSec5 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueIri exp:sec5v2 ] .
+
+ex:cqProvisionChangeEvents a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/norms/queries/competency/provision-change-events.rq" ;
+    gmeow:cqDataFile "examples/provision-applicability.ttl" ;
+    gmeow:cqRationale "Only the amendment that ends one version and begins the next changes the provision. The enactment produces no change row, and a later publication that cites the provision, with no legal effect event, produces none either." ;
+    gmeow:cqResultShape ex:cqChangeShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:rowChangeEnded , ex:rowChangeBegan .
+
+ex:cqChangeShape a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn
+        [ logic:columnVariable "version" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "event" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ex:rowChangeEnded a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueIri exp:sec5v1 ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "event" ; gmeow:cellValueIri exp:evAmend ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:effectAmendment ] .
+ex:rowChangeBegan a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueIri exp:sec5v2 ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "event" ; gmeow:cellValueIri exp:evAmend ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:effectAmendment ] .
+
+ex:cqProvisionMatterGoverning a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/norms/queries/competency/provision-matter-governing-version.rq" ;
+    gmeow:cqDataFile "examples/provision-applicability.ttl" ;
+    gmeow:cqRationale "An older dispute, evaluated later, is governed by the version in force on its own material date. A matter begun after the amendment is governed by the amended version unless a transition rule saves the earlier one. The undated matter yields no row, and the evaluation time is reported apart from every material date." ;
+    gmeow:cqResultShape ex:cqMatterShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:rowDisputeEarlier , ex:rowProceedingSaved , ex:rowLaterAmended .
+
+ex:cqMatterShape a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn
+        [ logic:columnVariable "matter" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "version" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "evaluatedAt" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] .
+
+ex:rowDisputeEarlier a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "matter" ; gmeow:cellValueIri exp:disputeEvent ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueIri exp:sec5v1 ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluatedAt" ; gmeow:cellValueLiteral "2026-11-26"^^xsd:date ] .
+ex:rowProceedingSaved a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "matter" ; gmeow:cellValueIri exp:proceedingBegun2010 ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueIri exp:sec5v1 ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluatedAt" ; gmeow:cellValueLiteral "2026-11-26"^^xsd:date ] .
+ex:rowLaterAmended a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "matter" ; gmeow:cellValueIri exp:laterMatter ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueIri exp:sec5v2 ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluatedAt" ; gmeow:cellValueLiteral "2026-11-26"^^xsd:date ] .

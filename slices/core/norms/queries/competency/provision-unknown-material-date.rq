@@ -1,0 +1,16 @@
+# Competency question: "Does a version whose beginning event carries no material date govern a
+# matter at a date?"
+#
+# The beginning event of this version has no gmeow:eventTime, so no date can be compared with the
+# matter's date. The query returns no row: applicability stays unestablished rather than asserted.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?asOf ?version WHERE {
+    VALUES ?asOf { "2012-01-01"^^xsd:date }
+    ?version gmeow:versionOf <https://blackcatinformatics.ca/gmeow/examples/norms/provision/sec7> ;
+        gmeow:versionBeganBy ?began .
+    ?began gmeow:eventTime ?beganAt .
+    FILTER(?beganAt <= ?asOf)
+}

@@ -1,0 +1,18 @@
+# Competency question: "Which amendment or repeal changed the versions of the provision?"
+#
+# A change to a cited provision is a legal effect event of kind amendment or repeal that begins or
+# ends one of its versions. A citation's publication time, an assessor's claim about the provision
+# and any rulemap status are not legal effect events and so produce no row here.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?version ?event ?kind WHERE {
+    ?version gmeow:versionOf <https://blackcatinformatics.ca/gmeow/examples/norms/provision/sec5> .
+    {
+        ?version gmeow:versionBeganBy ?event .
+    } UNION {
+        ?version gmeow:versionEndedBy ?event .
+    }
+    ?event gmeow:effectKind ?kind .
+    FILTER(?kind IN (gmeow:effectAmendment, gmeow:effectRepeal))
+}

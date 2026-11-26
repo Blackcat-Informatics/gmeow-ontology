@@ -2848,3 +2848,216 @@ logic:dnbAtom a logic:Formula ; logic:relation gmeow:authorityForce ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:authorityForceBinding ] .
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:AuthorityClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/authorityIssue" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# =========================================================================== #
+# Provision versions, legal effect events and transition rules                 #
+# A provision version operates in one jurisdiction between the legal effect   #
+# events that began and ended it. Its operating period is read from those      #
+# events' material dates; the source publication time and the evaluation time  #
+# are carried by other facts (citation assertedAt, evaluation eventTime).       #
+# Reuses Norm and Event (this slice and events), Place (places) and CitationAct #
+# (citations).                                                                 #
+# =========================================================================== #
+
+gmeow:LegalEffectKind
+    a logic:AbstractIndividualType ,
+        logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "Legal Effect Kind"@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue ;
+    skos:definition "The value vocabulary of the legal act a legal effect event records: enactment, commencement, amendment or repeal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:effectEnactment
+    a gmeow:LegalEffectKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "enactment"@x-gmeow-english ;
+    skos:definition "The act that makes a provision part of its legal order."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:effectCommencement
+    a gmeow:LegalEffectKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "commencement"@x-gmeow-english ;
+    skos:definition "The event at which an enacted provision version begins to operate, where that is distinct from its enactment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:effectAmendment
+    a gmeow:LegalEffectKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "amendment"@x-gmeow-english ;
+    skos:definition "The event at which a provision version is altered, ending the earlier version and beginning a new one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:effectRepeal
+    a gmeow:LegalEffectKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "repeal"@x-gmeow-english ;
+    skos:definition "The event at which a provision version ceases to operate without a replacement version beginning at the same event."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:LegalEffectEvent
+    a logic:SubKind ,
+        logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "Legal Effect Event"@x-gmeow-english ;
+    logic:subClassOf gmeow:Event ;
+    skos:definition "An occurrence that begins or ends the operation of a provision version: its enactment, commencement, amendment or repeal. Its material date is its gmeow:eventTime. When the source gives no date the event carries none, and any applicability that depends on that date stays unestablished."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Use to record the legal act that began or ended a provision version, with its gmeow:effectKind and, where the source supplies it, its gmeow:eventTime."@x-gmeow-english .
+
+gmeow:effectKind
+    a logic:ObjectProperty ;
+    logic:domain gmeow:LegalEffectEvent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "effect kind"@x-gmeow-english ;
+    logic:range gmeow:LegalEffectKind ;
+    skos:definition "The kind of legal act a legal effect event records. Functional and mandatory."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:ProvisionVersion
+    a logic:SubKind ,
+        logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "Provision Version"@x-gmeow-english ;
+    logic:subClassOf gmeow:Norm ;
+    skos:definition "One version of a provision as it operates in one jurisdiction, between the legal effect events that began and ended it. Its text is sourced through a citation act and its jurisdiction is a place. A version asserts nothing about whether a matter falls under it at a given date: that is an applicability evaluation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Use for each version of a provision whose operating period must be bound to its enactment, commencement, amendment or repeal."@x-gmeow-english .
+
+gmeow:versionOf
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ProvisionVersion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "version of"@x-gmeow-english ;
+    logic:range gmeow:Norm ;
+    skos:definition "The provision identity that a provision version is a version of. Versions of one provision share this identity, and their operating periods are kept apart by their legal effect events."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:versionJurisdiction
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ProvisionVersion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "version jurisdiction"@x-gmeow-english ;
+    logic:range gmeow:Place ;
+    skos:definition "The jurisdiction in which a provision version operates. A version does not operate in another jurisdiction; each jurisdiction's version is a separate provision version. Functional and mandatory."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:versionBeganBy
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ProvisionVersion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "version began by"@x-gmeow-english ;
+    logic:range gmeow:LegalEffectEvent ;
+    skos:definition "The legal effect event that began the operation of a provision version: its enactment, commencement or amendment. Functional and mandatory."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:versionEndedBy
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ProvisionVersion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "version ended by"@x-gmeow-english ;
+    logic:range gmeow:LegalEffectEvent ;
+    skos:definition "The legal effect event that ended the operation of a provision version: an amendment or a repeal. Functional; absent while the version has not ended."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:versionSource
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ProvisionVersion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "version source"@x-gmeow-english ;
+    logic:range gmeow:CitationAct ;
+    skos:definition "The citation act, with its pinpoint selector, that sources the text of a provision version, such as a consolidation. The act's assertedAt is the source's publication or assertion time, which is not a material date of the version."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:TransitionRule
+    a logic:SubKind ,
+        logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "Transition Rule"@x-gmeow-english ;
+    logic:subClassOf gmeow:Norm ;
+    skos:definition "A sourced savings or transition rule under which an earlier provision version continues to govern a saved matter after a later version has begun. It names the transition event, the version it saves, the matter and its source. It does not decide the matter."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Use where a source states that an earlier provision version continues to govern identified matters after an amendment or repeal."@x-gmeow-english .
+
+gmeow:transitionEvent
+    a logic:ObjectProperty ;
+    logic:domain gmeow:TransitionRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "transition event"@x-gmeow-english ;
+    logic:range gmeow:LegalEffectEvent ;
+    skos:definition "The legal effect event that marks the boundary of a transition rule. Functional and mandatory."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:savesVersion
+    a logic:ObjectProperty ;
+    logic:domain gmeow:TransitionRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "saves version"@x-gmeow-english ;
+    logic:range gmeow:ProvisionVersion ;
+    skos:definition "The earlier provision version that continues to govern the saved matter under a transition rule. Mandatory."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:savedMatter
+    a logic:ObjectProperty ;
+    logic:domain gmeow:TransitionRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "saved matter"@x-gmeow-english ;
+    logic:range gmeow:Event ;
+    skos:definition "An event whose governing version the transition rule fixes to the version it saves, whatever the operating periods of the versions would otherwise give. Mandatory, and at least one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:transitionSource
+    a logic:ObjectProperty ;
+    logic:domain gmeow:TransitionRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "transition source"@x-gmeow-english ;
+    logic:range gmeow:CitationAct ;
+    skos:definition "The citation act, with its pinpoint selector, that states a transition rule in its source. A transition rule without a source is not recorded. Mandatory."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:ApplicabilityEvaluation
+    a logic:SubKind ,
+        logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "Applicability Evaluation"@x-gmeow-english ;
+    logic:subClassOf gmeow:Activity ;
+    skos:definition "An activity that evaluates which provision version governs a matter. Its eventTime is the evaluation time, distinct from the material dates of the legal effect events it reads and from the publication time of its sources. It records no verdict: the governing version is computed from the recorded events and transition rules."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Use to record when a governing provision version was determined for a matter, so that the evaluation time stays separate from the material dates."@x-gmeow-english .
+
+gmeow:evaluatedMatter
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ApplicabilityEvaluation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    rdfs:label "evaluated matter"@x-gmeow-english ;
+    logic:range gmeow:Event ;
+    skos:definition "The event whose governing provision version the evaluation determines. Functional and mandatory."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# Cardinalities. A legal effect event has one kind. A provision version has one identity, one
+# jurisdiction, one beginning, at most one end, and at least one source. A transition rule has one
+# boundary, one saved version, at least one saved matter and one source. An evaluation has one matter.
+gmeow:LegalEffectEvent logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:effectKind ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:LegalEffectKind ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:effectKind ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+gmeow:ProvisionVersion logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:versionOf ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Norm ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:versionJurisdiction ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Place ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:versionJurisdiction ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:versionBeganBy ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:LegalEffectEvent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:versionBeganBy ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:versionEndedBy ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:versionSource ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:CitationAct ] .
+
+gmeow:TransitionRule logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:transitionEvent ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:LegalEffectEvent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:transitionEvent ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:savesVersion ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:ProvisionVersion ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:savedMatter ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Event ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:transitionSource ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:CitationAct ] .
+
+gmeow:ApplicabilityEvaluation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:evaluatedMatter ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Event ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:evaluatedMatter ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .

@@ -359,6 +359,57 @@ classifications of the record. The competency questions return the one flagged r
 and unflagged reading, the binding claims by order, the single attributed correspondence, and no
 unsupported force.
 
+## Provision versions and applicability at a date
+
+A `gmeow:ProvisionVersion` is one version of a provision as it operates in one jurisdiction. It is
+bound to the `gmeow:LegalEffectEvent`s that began and ended it, so its operating period is read from
+the material dates of those events. Three times stay apart:
+
+- **Material event time**: `gmeow:eventTime` on a legal effect event, the enactment, commencement,
+  amendment or repeal itself.
+- **Source publication or assertion time**: `gmeow:assertedAt` on the `gmeow:CitationAct` that sources
+  a version's text (`gmeow:versionSource`) or a transition rule (`gmeow:transitionSource`).
+- **Evaluation time**: `gmeow:eventTime` on a `gmeow:ApplicabilityEvaluation`, a `gmeow:Activity`
+  that names the matter it determines through `gmeow:evaluatedMatter`.
+
+Ingestion time stays `gmeow:ingestedAt` on `gmeow:ImportActivity`. The statement-level
+`validFrom` and `validUntil` of the temporal slice are not used for a version's period: the
+bounding events carry that period, and asserting it a second time would create a clock that can
+disagree with them. No existing term carries the evaluation time of an act, since the as-of
+parameter of the bitemporal query is not stored data, so the activity's `eventTime` is reused.
+
+A version's `gmeow:versionJurisdiction` is a `gmeow:Place`. Its `gmeow:versionOf` names the provision
+identity, a `gmeow:Norm`, that the versions share.
+
+**Governing version.** A version governs a matter at a date when it has begun by the matter's
+material date and no ending event dated on or before that date is recorded. An ending event with no
+date leaves the end unknown, so the version does not govern on its strength. A version whose
+beginning event carries no date governs no matter at any date: applicability is unestablished, and
+no governing version is asserted.
+
+**Transition.** A `gmeow:TransitionRule` keeps an earlier version (`gmeow:savesVersion`) for each
+matter it names (`gmeow:savedMatter`), whatever the operating periods would otherwise give. Its
+boundary (`gmeow:transitionEvent`) and its source (`gmeow:transitionSource`) are mandatory. The rule
+fixes which version governs a saved matter; it does not record the outcome of that matter.
+
+**Change.** A change to a cited provision is a legal effect event of kind amendment or repeal that
+begins or ends one of its versions. A publication time, an authority claim, a rulemap status or the
+suppression of a claim is not a legal effect event, and no axiom derives a change from any of them.
+
+**Historic and current account.** The version that governed at a date and the version with no
+recorded end are both queries over the same records. The historic basis for a past dispute is read
+from the governing version at the dispute's material date, and the current account is read from the
+version without an end.
+
+**Boundaries of the vocabulary.** The beginning kinds (enactment, commencement, amendment) and the
+ending kinds (amendment, repeal) are a usage contract that no axiom enforces. Savings are stated per
+matter event: a source that saves a class of matters by condition is recorded by naming each matter
+it saves. The rulemap status of an external rule map is not modelled. A legal interpretation that a
+holder withdraws is an authority claim with its own force, not a legal effect event.
+
+The fixture `examples/provision-applicability.ttl` is synthetic. Its act, sections, dates, sources
+and transition are invented to exercise these queries, and they state no law of any jurisdiction.
+
 ## Literal language and direction
 
 The natural-language fields `gmeow:conditionText` admit

@@ -1256,3 +1256,179 @@ msgstr "Contrainte de dissidence non contraignante"
 msgctxt "https://blackcatinformatics.ca/gmeow/DissentNotBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world integrity constraint: an authority claim whose opinion role is dissenting does not carry binding force."
 msgstr "Contrainte d'intégrité en monde clos : une affirmation d'autorité dont le rôle d'opinion est dissident ne porte pas de force contraignante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectEnactment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "enactment"
+msgstr "promulgation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectEnactment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The act that makes a provision part of its legal order."
+msgstr "L'acte qui fait entrer une disposition dans son ordre juridique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectCommencement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "commencement"
+msgstr "entrée en vigueur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectCommencement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The event at which an enacted provision version begins to operate, where that is distinct from its enactment."
+msgstr "L'événement à partir duquel une version promulguée d'une disposition commence à produire effet, lorsque cela est distinct de sa promulgation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectAmendment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "amendment"
+msgstr "modification"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectAmendment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The event at which a provision version is altered, ending the earlier version and beginning a new one."
+msgstr "L'événement par lequel une version d'une disposition est modifiée, mettant fin à la version antérieure et commençant une nouvelle version."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectRepeal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "repeal"
+msgstr "abrogation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectRepeal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The event at which a provision version ceases to operate without a replacement version beginning at the same event."
+msgstr "L'événement par lequel une version d'une disposition cesse de produire effet sans qu'une version de remplacement ne commence au même événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LegalEffectKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Legal Effect Kind"
+msgstr "Genre d'effet juridique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LegalEffectKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The value vocabulary of the legal act a legal effect event records: enactment, commencement, amendment or repeal."
+msgstr "Le vocabulaire de valeurs de l'acte juridique qu'enregistre un événement d'effet juridique : promulgation, entrée en vigueur, modification ou abrogation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LegalEffectEvent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Legal Effect Event"
+msgstr "Événement d'effet juridique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LegalEffectEvent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An occurrence that begins or ends the operation of a provision version: its enactment, commencement, amendment or repeal. Its material date is its gmeow:eventTime. When the source gives no date the event carries none, and any applicability that depends on that date stays unestablished."
+msgstr "Un événement qui commence ou termine l'application d'une version de disposition : sa promulgation, son entrée en vigueur, sa modification ou son abrogation. Sa date matérielle est son gmeow:eventTime. Lorsque la source ne donne aucune date, l'événement n'en porte aucune, et toute applicabilité qui dépend de cette date reste non établie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LegalEffectEvent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the legal act that began or ended a provision version, with its gmeow:effectKind and, where the source supplies it, its gmeow:eventTime."
+msgstr "Utiliser pour enregistrer l'acte juridique qui a commencé ou terminé une version de disposition, avec son gmeow:effectKind et, lorsque la source le fournit, son gmeow:eventTime."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effect kind"
+msgstr "genre d'effet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The kind of legal act a legal effect event records. Functional and mandatory."
+msgstr "Le genre d'acte juridique qu'enregistre un événement d'effet juridique. Fonctionnelle et obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProvisionVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Provision Version"
+msgstr "Version de disposition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProvisionVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One version of a provision as it operates in one jurisdiction, between the legal effect events that began and ended it. Its text is sourced through a citation act and its jurisdiction is a place. A version asserts nothing about whether a matter falls under it at a given date: that is an applicability evaluation."
+msgstr "Une version d'une disposition telle qu'elle s'applique dans une juridiction, entre les événements d'effet juridique qui l'ont commencée et terminée. Son texte est sourcé par un acte de citation et sa juridiction est un lieu. Une version n'affirme pas qu'une affaire relève d'elle à une date donnée : cela relève d'une évaluation d'applicabilité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProvisionVersion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for each version of a provision whose operating period must be bound to its enactment, commencement, amendment or repeal."
+msgstr "Utiliser pour chaque version d'une disposition dont la période d'application doit être liée à sa promulgation, son entrée en vigueur, sa modification ou son abrogation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "version of"
+msgstr "version de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provision identity that a provision version is a version of. Versions of one provision share this identity, and their operating periods are kept apart by their legal effect events."
+msgstr "L'identité de disposition dont une version de disposition est une version. Les versions d'une même disposition partagent cette identité, et leurs périodes d'application sont distinguées par leurs événements d'effet juridique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionJurisdiction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "version jurisdiction"
+msgstr "juridiction de la version"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionJurisdiction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The jurisdiction in which a provision version operates. A version does not operate in another jurisdiction; each jurisdiction's version is a separate provision version. Functional and mandatory."
+msgstr "La juridiction dans laquelle une version de disposition s'applique. Une version ne s'applique pas dans une autre juridiction ; la version de chaque juridiction est une version de disposition distincte. Fonctionnelle et obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionBeganBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "version began by"
+msgstr "version commencée par"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionBeganBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The legal effect event that began the operation of a provision version: its enactment, commencement or amendment. Functional and mandatory."
+msgstr "L'événement d'effet juridique qui a commencé l'application d'une version de disposition : sa promulgation, son entrée en vigueur ou sa modification. Fonctionnelle et obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionEndedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "version ended by"
+msgstr "version terminée par"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionEndedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The legal effect event that ended the operation of a provision version: an amendment or a repeal. Functional; absent while the version has not ended."
+msgstr "L'événement d'effet juridique qui a mis fin à l'application d'une version de disposition : une modification ou une abrogation. Fonctionnelle ; absente tant que la version n'a pas pris fin."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "version source"
+msgstr "source de la version"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The citation act, with its pinpoint selector, that sources the text of a provision version, such as a consolidation. The act's assertedAt is the source's publication or assertion time, which is not a material date of the version."
+msgstr "L'acte de citation, avec son sélecteur précis, qui source le texte d'une version de disposition, comme une refonte. L'assertedAt de l'acte est l'heure de publication ou d'assertion de la source, qui n'est pas une date matérielle de la version."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Transition Rule"
+msgstr "Règle de transition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A sourced savings or transition rule under which an earlier provision version continues to govern a saved matter after a later version has begun. It names the transition event, the version it saves, the matter and its source. It does not decide the matter."
+msgstr "Une règle de sauvegarde ou de transition sourcée, selon laquelle une version antérieure de disposition continue de régir une matière sauvegardée après le début d'une version postérieure. Elle nomme l'événement de transition, la version qu'elle sauvegarde, la matière et sa source. Elle ne tranche pas la matière."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use where a source states that an earlier provision version continues to govern identified matters after an amendment or repeal."
+msgstr "Utiliser lorsqu'une source indique qu'une version antérieure de disposition continue de régir des matières identifiées après une modification ou une abrogation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionEvent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transition event"
+msgstr "événement de transition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionEvent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The legal effect event that marks the boundary of a transition rule. Functional and mandatory."
+msgstr "L'événement d'effet juridique qui marque la frontière d'une règle de transition. Fonctionnelle et obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/savesVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "saves version"
+msgstr "sauvegarde la version"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/savesVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The earlier provision version that continues to govern the saved matter under a transition rule. Mandatory."
+msgstr "La version antérieure de disposition qui continue de régir la matière sauvegardée en vertu d'une règle de transition. Obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/savedMatter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "saved matter"
+msgstr "matière sauvegardée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/savedMatter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An event whose governing version the transition rule fixes to the version it saves, whatever the operating periods of the versions would otherwise give. Mandatory, and at least one."
+msgstr "Un événement dont la version régissante est fixée par la règle de transition à la version qu'elle sauvegarde, quelle que soit la période d'application que les versions donneraient autrement. Obligatoire, au moins une."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transition source"
+msgstr "source de la transition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The citation act, with its pinpoint selector, that states a transition rule in its source. A transition rule without a source is not recorded. Mandatory."
+msgstr "L'acte de citation, avec son sélecteur précis, qui énonce une règle de transition dans sa source. Une règle de transition sans source n'est pas enregistrée. Obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ApplicabilityEvaluation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Applicability Evaluation"
+msgstr "Évaluation d'applicabilité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ApplicabilityEvaluation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An activity that evaluates which provision version governs a matter. Its eventTime is the evaluation time, distinct from the material dates of the legal effect events it reads and from the publication time of its sources. It records no verdict: the governing version is computed from the recorded events and transition rules."
+msgstr "Une activité qui évalue quelle version de disposition régit une matière. Son eventTime est le moment de l'évaluation, distinct des dates matérielles des événements d'effet juridique qu'elle lit et de l'heure de publication de ses sources. Elle n'enregistre aucun verdict : la version régissante est calculée à partir des événements et règles de transition enregistrés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ApplicabilityEvaluation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record when a governing provision version was determined for a matter, so that the evaluation time stays separate from the material dates."
+msgstr "Utiliser pour enregistrer le moment où une version de disposition régissante a été déterminée pour une matière, afin que le moment de l'évaluation reste distinct des dates matérielles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluatedMatter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evaluated matter"
+msgstr "matière évaluée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluatedMatter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The event whose governing provision version the evaluation determines. Functional and mandatory."
+msgstr "L'événement dont l'évaluation détermine la version de disposition régissante. Fonctionnelle et obligatoire."

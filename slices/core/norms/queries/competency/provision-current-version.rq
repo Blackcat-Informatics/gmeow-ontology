@@ -1,0 +1,11 @@
+# Competency question: "Which version of the provision is current, without an end event?"
+#
+# The current account is queryable beside the historic basis: this query reads the version with no
+# recorded end, while provision-version-at-date.rq reads the version that governed at a date.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?version WHERE {
+    ?version gmeow:versionOf <https://blackcatinformatics.ca/gmeow/examples/norms/provision/sec5> .
+    FILTER NOT EXISTS { ?version gmeow:versionEndedBy ?ended }
+}
