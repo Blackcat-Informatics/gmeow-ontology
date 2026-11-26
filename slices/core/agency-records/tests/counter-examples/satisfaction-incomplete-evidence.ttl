@@ -17,4 +17,5 @@ ex:reportedSatisfaction a gmeow:Event ;
     gmeow:eventTime "2026-01-08T15:00:00Z"^^xsd:dateTime ;
     gmeow:hasConditionEvidence ex:citation .
 ex:citation a gmeow:ConditionEvidence ;
-    gmeow:conditionEvidenceKey "archive accessible" .
+    gmeow:conditionEvidenceKey "archive accessible" ;
+    gmeow:evidenceReference " " .

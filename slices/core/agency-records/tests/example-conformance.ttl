@@ -21,4 +21,4 @@ ex:ecSatisfactionRequiresCompleteCitation a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape gmeow:SatisfiedIntentionEvaluationConstraintProceduralConstraintShape ;
-    gmeow:conformanceRationale "A claimed satisfaction without an evaluation needs a complete citation. A condition key alone is not cited evidence." .
+    gmeow:conformanceRationale "A claimed satisfaction without an evaluation needs a complete citation. A blank reference is not evidence, even with a source key." .

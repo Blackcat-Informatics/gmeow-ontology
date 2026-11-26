@@ -51,7 +51,8 @@ of that goal or tenure.
 
 A satisfied transition links a separately recorded judgment with
 `agencyGoalEvaluation`. If the source records citations but no judgment, retain
-its keyed `ConditionEvidence` instead. Neither a citation nor a status marker
+its keyed `ConditionEvidence` instead. Its source key and reference must be
+nonblank and are preserved as written. Neither a citation nor a status marker
 creates a verdict. For supersession, retain a typed replacement via
 `supersededBy` when the source resolves it. With no replacement link, a supplied
 `supersedingIntentionId` retains the unresolved reference. An identifier does not

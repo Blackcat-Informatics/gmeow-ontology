@@ -996,13 +996,13 @@ gmeow:SatisfiedIntentionEvaluationConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Satisfied intention evaluation constraint"@x-gmeow-english ;
-    skos:definition "An intention-satisfied event retains its separate GoalEvaluation when recorded or at least one cited condition with a source key and reference. Cited evidence and attempt stops do not assert a judgment."@x-gmeow-english ;
+    skos:definition "An intention-satisfied event retains its separate GoalEvaluation when recorded or at least one cited condition with a nonblank source key and reference. Cited evidence and attempt stops do not assert a judgment."@x-gmeow-english ;
     gmeow:useWhen "Use to enforce the source-evidence obligation of eventTypeIntentionSatisfied."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid satisfying SatisfiedIntentionEvaluationConstraint by fabricating missing source data."@x-gmeow-english ;
     gmeow:howToUse "Retain the actual eventTypeIntentionSatisfied bindings expressed by this canonical formula."@x-gmeow-english ;
     skos:example "gmeow:SatisfiedIntentionEvaluationConstraint logic:formalizes gmeow:eventTypeIntentionSatisfied ."@x-gmeow-english ;
     logic:formalizes gmeow:eventTypeIntentionSatisfied ;
-    logic:message "An intention-satisfied event retains its separate GoalEvaluation when recorded or at least one cited condition with a source key and reference. Cited evidence and attempt stops do not assert a judgment." ;
+    logic:message "An intention-satisfied event retains its separate GoalEvaluation when recorded or at least one cited condition with a nonblank source key and reference. Cited evidence and attempt stops do not assert a judgment." ;
     logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
         logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeIntentionSatisfied ] ] ;
             logic:consequent [ a logic:Formula ; logic:or
@@ -1014,7 +1014,9 @@ gmeow:SatisfiedIntentionEvaluationConstraint
                         [ a logic:Formula ; logic:relation gmeow:conditionEvidenceKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "evidence" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ],
                         [ a logic:Formula ; logic:relation gmeow:evidenceReference ; logic:argument [ logic:termIndex 0 ; logic:termVariable "evidence" ], [ logic:termIndex 1 ; logic:termVariable "ref" ] ],
                         [ a logic:Formula ; logic:relation logic:termIsLiteral ; logic:argument [ logic:termIndex 0 ; logic:termVariable "key" ] ],
-                        [ a logic:Formula ; logic:relation logic:termIsLiteral ; logic:argument [ logic:termIndex 0 ; logic:termVariable "ref" ] ] ] ] ] ] ] .
+                        [ a logic:Formula ; logic:relation logic:termIsLiteral ; logic:argument [ logic:termIndex 0 ; logic:termVariable "ref" ] ],
+                        [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "key" ], [ logic:termIndex 1 ; logic:termLiteral "\\S" ] ],
+                        [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "ref" ], [ logic:termIndex 1 ; logic:termLiteral "\\S" ] ] ] ] ] ] ] .
 
 gmeow:ReadAfterWriteEvidenceConstraint
     a logic:Constraint ;

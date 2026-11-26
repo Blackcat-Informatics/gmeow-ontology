@@ -1710,8 +1710,8 @@ msgid "Satisfied intention evaluation constraint"
 msgstr "意图满足评估约束"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/SatisfiedIntentionEvaluationConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An intention-satisfied event retains its separate GoalEvaluation when recorded or at least one cited condition with a source key and reference. Cited evidence and attempt stops do not assert a judgment."
-msgstr "意图满足事件保留来源记录的单独 GoalEvaluation；否则至少保留一项引用的条件及其来源键和引用。证据引用和尝试停止都不作出判断。"
+msgid "An intention-satisfied event retains its separate GoalEvaluation when recorded or at least one cited condition with a nonblank source key and reference. Cited evidence and attempt stops do not assert a judgment."
+msgstr "意图满足事件保留来源记录的单独 GoalEvaluation；否则至少保留一项引用的条件及其非空白的来源键和引用。证据引用和尝试停止都不作出判断。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/SatisfiedIntentionEvaluationConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to enforce the source-evidence obligation of eventTypeIntentionSatisfied."

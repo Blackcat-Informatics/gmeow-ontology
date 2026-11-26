@@ -1710,8 +1710,8 @@ msgid "Satisfied intention evaluation constraint"
 msgstr "Contrainte d’évaluation d’intention satisfaite"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/SatisfiedIntentionEvaluationConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An intention-satisfied event retains its separate GoalEvaluation when recorded or at least one cited condition with a source key and reference. Cited evidence and attempt stops do not assert a judgment."
-msgstr "Un événement d’intention satisfaite conserve sa GoalEvaluation distincte si elle est consignée, ou au moins une condition citée avec une clé et une référence issues de la source. Les preuves citées et les arrêts de tentative n’affirment aucun jugement."
+msgid "An intention-satisfied event retains its separate GoalEvaluation when recorded or at least one cited condition with a nonblank source key and reference. Cited evidence and attempt stops do not assert a judgment."
+msgstr "Un événement d’intention satisfaite conserve sa GoalEvaluation distincte si elle est consignée, ou au moins une condition citée avec une clé et une référence non vides issues de la source. Les preuves citées et les arrêts de tentative n’affirment aucun jugement."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/SatisfiedIntentionEvaluationConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to enforce the source-evidence obligation of eventTypeIntentionSatisfied."
