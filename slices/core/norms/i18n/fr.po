@@ -1329,14 +1329,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/ProvisionVersion|https://blackcati
 msgid "Use for each version of a provision whose operating period must be bound to its enactment, commencement, amendment or repeal."
 msgstr "Utiliser pour chaque version d'une disposition dont la période d'application doit être liée à sa promulgation, son entrée en vigueur, sa modification ou son abrogation."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/versionOf|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "version of"
-msgstr "version de"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/versionOf|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The provision identity that a provision version is a version of. Versions of one provision share this identity, and their operating periods are kept apart by their legal effect events."
-msgstr "L'identité de disposition dont une version de disposition est une version. Les versions d'une même disposition partagent cette identité, et leurs périodes d'application sont distinguées par leurs événements d'effet juridique."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/versionJurisdiction|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "version jurisdiction"
 msgstr "juridiction de la version"

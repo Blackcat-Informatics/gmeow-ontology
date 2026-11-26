@@ -378,8 +378,9 @@ bounding events carry that period, and asserting it a second time would create a
 disagree with them. No existing term carries the evaluation time of an act, since the as-of
 parameter of the bitemporal query is not stored data, so the activity's `eventTime` is reused.
 
-A version's `gmeow:versionJurisdiction` is a `gmeow:Place`. Its `gmeow:versionOf` names the provision
-identity, a `gmeow:Norm`, that the versions share.
+A version's `gmeow:versionJurisdiction` is a `gmeow:Place`. It uses the coreference
+slice's `gmeow:versionOf` to name exactly one provision identity, a `gmeow:Norm`
+that its versions share.
 
 **Governing version.** A version governs a matter at a date when it has begun by the matter's
 material date and no ending event dated on or before that date is recorded. An ending event with no

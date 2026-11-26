@@ -25,6 +25,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/standpoint> ,
         <https://blackcatinformatics.ca/gmeow/slices/rights> ,
         <https://blackcatinformatics.ca/gmeow/slices/citations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/coreference> ,
         <https://blackcatinformatics.ca/gmeow/slices/names> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ,
         <https://blackcatinformatics.ca/gmeow/slices/sources> ,

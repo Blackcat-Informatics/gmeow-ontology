@@ -2925,15 +2925,6 @@ gmeow:ProvisionVersion
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Use for each version of a provision whose operating period must be bound to its enactment, commencement, amendment or repeal."@x-gmeow-english .
 
-gmeow:versionOf
-    a logic:ObjectProperty ;
-    logic:domain gmeow:ProvisionVersion ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "version of"@x-gmeow-english ;
-    logic:range gmeow:Norm ;
-    skos:definition "The provision identity that a provision version is a version of. Versions of one provision share this identity, and their operating periods are kept apart by their legal effect events."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
 gmeow:versionJurisdiction
     a logic:ObjectProperty ;
     logic:domain gmeow:ProvisionVersion ;
@@ -3058,13 +3049,16 @@ gmeow:LegalEffectEvent logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:LegalEffectEvent ; logic:closureKey "https://blackcatinformatics.ca/gmeow/effectKind" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:ProvisionVersion logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:versionOf ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Norm ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:versionOf ; logic:allValuesFrom gmeow:Norm ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:versionOf ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:versionJurisdiction ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Place ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:versionJurisdiction ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:versionBeganBy ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:LegalEffectEvent ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:versionBeganBy ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:versionEndedBy ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:versionSource ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:CitationAct ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ProvisionVersion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/versionOf" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:TransitionRule logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:transitionEvent ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:LegalEffectEvent ] ,
