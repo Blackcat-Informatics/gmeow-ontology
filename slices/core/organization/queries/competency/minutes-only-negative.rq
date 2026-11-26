@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A provenance link to minutes alone creates nothing. The audit minutes are linked only
+# by gmeow:wasDerivedFrom; no membership, no bearer edge to the minutes and no
+# membership for the person they name follow. This ASK MUST return false.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX exa: <https://blackcatinformatics.ca/gmeow/examples/organization/appointment/>
+ASK {
+    {
+        ?membership gmeow:fillsPost exa:auditSeat
+    } UNION {
+        ?membership gmeow:membershipMember exa:erin
+    } UNION {
+        ?quality gmeow:bearer exa:auditMinutes
+    } UNION {
+        exa:erin gmeow:memberOf ?organization
+    }
+}

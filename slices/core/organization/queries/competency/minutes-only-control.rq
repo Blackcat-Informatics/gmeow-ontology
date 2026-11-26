@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Control for minutes-only-negative.rq: the provenance link to the audit minutes is
+# present in the fixture, so the negative ASK is not vacuous. This ASK MUST return true.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX exa: <https://blackcatinformatics.ca/gmeow/examples/organization/appointment/>
+ASK { ?note gmeow:wasDerivedFrom exa:auditMinutes }

@@ -288,3 +288,31 @@ ot:shapeNoCrossWorldPlace a logic:ResultShape ;
     logic:shapeCardinality logic:RowsCount ;
     logic:shapeRowCount 0 ;
     logic:declaresColumn [ logic:columnVariable "place" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+# --- Inherence: a quality and its bearer, and the discriminating negative case.
+test:cqQualityBearer a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/quality-bearer.rq" ;
+    gmeow:cqDataFile "examples/blood-pressure.ttl" ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape test:shapeQualityBearer ;
+    gmeow:cqRationale "Each persistent quality inheres in exactly one bearer, a person from the entities slice: the systolic and diastolic pressure are both borne by the patient." ;
+    gmeow:cqExpectRow test:rowQualityBearerSys, test:rowQualityBearerDia .
+
+test:shapeQualityBearer a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "quality" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "bearer" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+test:rowQualityBearerSys a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "quality" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/observations/bp/sysBP> ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "bearer" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/observations/bp/patientP> ] .
+
+test:rowQualityBearerDia a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "quality" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/observations/bp/diaBP> ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "bearer" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/observations/bp/patientP> ] .
+
+test:cqQualityBearerNegative a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/quality-bearer-negative.rq" ;
+    gmeow:cqDataFile "examples/blood-pressure.ttl" ;
+    gmeow:cqRationale "Observing a quality does not make the reading a bearer, the quality a bearer of the reading, or the observing practitioner the bearer of the quality; only gmeow:bearer states inherence." ;
+    gmeow:cqExpectAsk false .

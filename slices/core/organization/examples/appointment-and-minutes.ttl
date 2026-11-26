@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: an appointment, the membership it began and the minutes that evidence
+# it. The appointment is a historical event, the membership is a separate relator scoped
+# to an interval, and the minutes are a document linked by provenance. After the
+# resignation the interval is closed and the seat is vacant, while the appointment and
+# the minutes still exist and the membership still depends historically on the
+# appointment. The audit seat shows the negative case: minutes linked only by
+# provenance create no membership, no bearer and no occupancy.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/organization/appointment/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:acme a gmeow:Organization ; gmeow:name "Acme Robotics Inc."@x-gmeow-english .
+ex:dana a gmeow:Person ; gmeow:name "Dana Reyes"@x-gmeow-english .
+ex:erin a gmeow:Person ; gmeow:name "Erin Walsh"@x-gmeow-english .
+
+ex:boardSeat a gmeow:Post ; gmeow:postIn ex:acme .
+ex:auditSeat a gmeow:Post ; gmeow:postIn ex:acme .
+
+ex:appointmentType a gmeow:EventType .
+
+ex:appointment a gmeow:Event ;
+    gmeow:eventType ex:appointmentType ;
+    gmeow:eventTime "2020-03-01"^^xsd:date .
+
+ex:resignation a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeResignation ;
+    gmeow:eventTime "2024-06-30"^^xsd:date .
+
+ex:boardMinutes a gmeow:Document .
+
+ex:danaInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2020-03-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime   "2024-06-30T00:00:00Z"^^xsd:dateTime .
+
+ex:danaSeat a gmeow:Membership ;
+    gmeow:membershipMember       ex:dana ;
+    gmeow:membershipOrganization ex:acme ;
+    gmeow:fillsPost              ex:boardSeat ;
+    gmeow:duringInterval         ex:danaInterval ;
+    gmeow:wasDerivedFrom         ex:boardMinutes ;
+    logic:historicallyDependsOn  ex:appointment .
+
+ex:resignation logic:historicallyDependsOn ex:danaSeat .
+
+# --- Negative case: minutes linked only by provenance.
+ex:auditMinutes a gmeow:Document .
+ex:auditNote a gmeow:Document ; gmeow:wasDerivedFrom ex:auditMinutes .

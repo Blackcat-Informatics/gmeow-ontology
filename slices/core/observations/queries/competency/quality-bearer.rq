@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Which entity does each persistent quality inhere in? The bearer is named by
+# gmeow:bearer and is a person from the entities slice; the dated readings of the
+# quality are not part of the answer.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?quality ?bearer
+WHERE {
+    ?quality a gmeow:Quality ;
+        gmeow:bearer ?bearer .
+    ?bearer a gmeow:Person .
+}

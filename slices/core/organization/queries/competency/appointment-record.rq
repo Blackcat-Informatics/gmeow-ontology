@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The appointment is a historical event the membership depends on, the membership is a
+# separate interval-scoped relator that has ended, and the minutes evidence the record.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+SELECT ?appointment ?membership ?minutes
+WHERE {
+    ?membership a gmeow:Membership ;
+        logic:historicallyDependsOn ?appointment ;
+        gmeow:wasDerivedFrom ?minutes ;
+        gmeow:duringInterval ?interval .
+    ?appointment a gmeow:Event .
+    ?minutes a gmeow:Document .
+    ?interval gmeow:endedAtTime ?ended .
+}

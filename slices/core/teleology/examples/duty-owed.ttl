@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a duty owed to another party. The borrower's duty to return a book
+# is a gmeow:Commitment with three distinct roles: the bearer (gmeow:committedAgent,
+# the borrower), the beneficiary the duty depends on externally (gmeow:commitmentBeneficiary,
+# the lender) and the agreement it is founded on (gmeow:foundedOn, the loan). The
+# guarantor is a party to the loan agreement but is neither bearer nor beneficiary of
+# this duty, and the agreement is a relator, not a party.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/teleology/duty/> .
+
+ex:borrower  a gmeow:Person ; gmeow:name "Borrower"@x-gmeow-english .
+ex:lender    a gmeow:Person ; gmeow:name "Lender"@x-gmeow-english .
+ex:guarantor a gmeow:Person ; gmeow:name "Guarantor"@x-gmeow-english .
+
+ex:loanAgreement a gmeow:Contract ;
+    gmeow:hasParty ex:borrower , ex:lender , ex:guarantor .
+
+ex:bookReturned a gmeow:Goal .
+
+ex:returnDuty a gmeow:Commitment ;
+    gmeow:committedAgent        ex:borrower ;
+    gmeow:commitmentBeneficiary ex:lender ;
+    gmeow:intentionGoal         ex:bookReturned ;
+    gmeow:foundedOn             ex:loanAgreement .

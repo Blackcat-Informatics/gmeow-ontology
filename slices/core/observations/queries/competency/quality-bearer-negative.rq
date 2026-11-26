@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Inherence is not observation. A dated reading is linked to its quality by
+# gmeow:observationOf and to the practitioner by gmeow:vantage. None of those links
+# makes a reading a bearer, a quality the bearer of a reading, or the practitioner the
+# bearer of the quality. This ASK MUST return false.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?reading gmeow:observationOf ?quality .
+    {
+        ?reading gmeow:bearer ?anything
+    } UNION {
+        ?quality gmeow:bearer ?reading
+    } UNION {
+        ?reading gmeow:vantage ?observer .
+        ?quality gmeow:bearer ?observer
+    }
+}

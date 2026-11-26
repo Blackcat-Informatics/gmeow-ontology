@@ -31,3 +31,31 @@ ex:rowIntention a gmeow:ExpectedRow ;
 
 ex:rowCommitment a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mode" ; gmeow:cellValueIri gmeow:Commitment ] .
+
+# --- External dependence: a duty's bearer, beneficiary and founding agreement.
+ex:cqDutyParties a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/duty-parties.rq" ;
+    gmeow:cqDataFile "examples/duty-owed.ttl" ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:shapeDutyParties ;
+    gmeow:cqRationale "A duty owed to another party keeps three roles apart: the borrower bears it, the lender is the party it depends on externally, and the loan agreement is what it is founded on." ;
+    gmeow:cqExpectRow ex:rowDutyParties .
+
+ex:shapeDutyParties a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "duty" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "bearer" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "beneficiary" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "agreement" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ex:rowDutyParties a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "duty" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/teleology/duty/returnDuty> ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "bearer" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/teleology/duty/borrower> ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "beneficiary" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/teleology/duty/lender> ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "agreement" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/teleology/duty/loanAgreement> ] .
+
+ex:cqDutyPartiesNegative a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/duty-parties-negative.rq" ;
+    gmeow:cqDataFile "examples/duty-owed.ttl" ;
+    gmeow:cqRationale "Being a party to the founding agreement, or being the agreement itself, does not make the guarantor or the agreement the duty's bearer or beneficiary." ;
+    gmeow:cqExpectAsk false .
