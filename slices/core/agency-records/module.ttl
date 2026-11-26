@@ -92,7 +92,7 @@ gmeow:eventTypeIntentionSatisfied
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     rdfs:label "intention satisfied"@x-gmeow-english ;
-    skos:definition "An intention ended because its goal was judged met. The judgment belongs to a separate GoalEvaluation rather than the event kind."@x-gmeow-english ;
+    skos:definition "A source reports that an intention ended because its goal was met. A separately recorded GoalEvaluation carries the judgment when the source provides one. The event kind does not itself assert that judgment."@x-gmeow-english ;
     gmeow:useWhen "Use to classify a source-recorded intention satisfied event."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring an enactment or goal verdict from eventTypeIntentionSatisfied alone."@x-gmeow-english ;
     gmeow:howToUse "Attach eventTypeIntentionSatisfied through eventType and retain the affected attempt or intention with its explicit context links."@x-gmeow-english ;
@@ -114,7 +114,7 @@ gmeow:eventTypeIntentionSuperseded
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     rdfs:label "intention superseded"@x-gmeow-english ;
-    skos:definition "An intention was replaced by another intention, identified separately by supersededBy. Replacement is not evidence of either goal’s satisfaction."@x-gmeow-english ;
+    skos:definition "A source reports that another intention replaced this intention. The replacement is retained as a resolved supersededBy link or an unresolved supersedingIntentionId. Replacement does not establish satisfaction of either goal."@x-gmeow-english ;
     gmeow:useWhen "Use to classify a source-recorded intention superseded event."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring an enactment or goal verdict from eventTypeIntentionSuperseded alone."@x-gmeow-english ;
     gmeow:howToUse "Attach eventTypeIntentionSuperseded through eventType and retain the affected attempt or intention with its explicit context links."@x-gmeow-english ;
@@ -970,34 +970,51 @@ gmeow:IntentionSupersessionTargetConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Intention supersession target constraint"@x-gmeow-english ;
-    skos:definition "A supersession retains the replacement intention through supersededBy on the old intention, without inferring goal satisfaction."@x-gmeow-english ;
+    skos:definition "A supersession retains a typed replacement intention through supersededBy, or a supplied successor identifier when no replacement link is recorded. It does not infer goal satisfaction."@x-gmeow-english ;
     gmeow:useWhen "Use to enforce the source-evidence obligation of eventTypeIntentionSuperseded."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid satisfying IntentionSupersessionTargetConstraint by fabricating missing source data."@x-gmeow-english ;
     gmeow:howToUse "Retain the actual eventTypeIntentionSuperseded bindings expressed by this canonical formula."@x-gmeow-english ;
     skos:example "gmeow:IntentionSupersessionTargetConstraint logic:formalizes gmeow:eventTypeIntentionSuperseded ."@x-gmeow-english ;
     logic:formalizes gmeow:eventTypeIntentionSuperseded ;
-    logic:message "A supersession retains the replacement intention through supersededBy on the old intention, without inferring goal satisfaction." ;
+    logic:message "A supersession retains a typed replacement intention through supersededBy, or a supplied successor identifier when no replacement link is recorded. It does not infer goal satisfaction." ;
     logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "intention" ] ;
         logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeIntentionSuperseded ] ],
                 [ a logic:Formula ; logic:relation gmeow:intentionTransitionOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "intention" ] ] ] ;
-            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "replacement" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:supersededBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "intention" ], [ logic:termIndex 1 ; logic:termVariable "replacement" ] ],
-                [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "replacement" ], [ logic:termIndex 1 ; logic:termIri gmeow:Intention ] ] ] ] ] ] .
+            logic:consequent [ a logic:Formula ; logic:or
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "replacement" ] ;
+                    logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:supersededBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "intention" ], [ logic:termIndex 1 ; logic:termVariable "replacement" ] ],
+                        [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "replacement" ], [ logic:termIndex 1 ; logic:termIri gmeow:Intention ] ] ] ],
+                [ a logic:Formula ; logic:and [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "claimed" ] ;
+                    logic:exists [ a logic:Formula ; logic:relation gmeow:supersededBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "intention" ], [ logic:termIndex 1 ; logic:termVariable "claimed" ] ] ] ],
+                        [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "identifier" ] ;
+                    logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:supersedingIntentionId ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "identifier" ] ],
+                        [ a logic:Formula ; logic:relation logic:termIsLiteral ; logic:argument [ logic:termIndex 0 ; logic:termVariable "identifier" ] ],
+                        [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "identifier" ], [ logic:termIndex 1 ; logic:termLiteral "\\S" ] ] ] ] ] ] ] ] .
 
 gmeow:SatisfiedIntentionEvaluationConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Satisfied intention evaluation constraint"@x-gmeow-english ;
-    skos:definition "An intention-satisfied event retains its separate GoalEvaluation judgment; an attempt stop value is not that verdict."@x-gmeow-english ;
+    skos:definition "An intention-satisfied event retains its separate GoalEvaluation when recorded or at least one cited condition with a source key and reference. Cited evidence and attempt stops do not assert a judgment."@x-gmeow-english ;
     gmeow:useWhen "Use to enforce the source-evidence obligation of eventTypeIntentionSatisfied."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid satisfying SatisfiedIntentionEvaluationConstraint by fabricating missing source data."@x-gmeow-english ;
     gmeow:howToUse "Retain the actual eventTypeIntentionSatisfied bindings expressed by this canonical formula."@x-gmeow-english ;
     skos:example "gmeow:SatisfiedIntentionEvaluationConstraint logic:formalizes gmeow:eventTypeIntentionSatisfied ."@x-gmeow-english ;
     logic:formalizes gmeow:eventTypeIntentionSatisfied ;
-    logic:message "An intention-satisfied event retains its separate GoalEvaluation judgment; an attempt stop value is not that verdict." ;
+    logic:message "An intention-satisfied event retains its separate GoalEvaluation when recorded or at least one cited condition with a source key and reference. Cited evidence and attempt stops do not assert a judgment." ;
     logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
         logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeIntentionSatisfied ] ] ;
-            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "evaluation" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:agencyGoalEvaluation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "evaluation" ] ] ] ] ] .
+            logic:consequent [ a logic:Formula ; logic:or
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "evaluation" ] ;
+                    logic:exists [ a logic:Formula ; logic:relation gmeow:agencyGoalEvaluation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "evaluation" ] ] ],
+                [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "evidence" ], [ logic:termIndex 1 ; logic:termVariable "key" ], [ logic:termIndex 2 ; logic:termVariable "ref" ] ;
+                    logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:hasConditionEvidence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "evidence" ] ],
+                        [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "evidence" ], [ logic:termIndex 1 ; logic:termIri gmeow:ConditionEvidence ] ],
+                        [ a logic:Formula ; logic:relation gmeow:conditionEvidenceKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "evidence" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ],
+                        [ a logic:Formula ; logic:relation gmeow:evidenceReference ; logic:argument [ logic:termIndex 0 ; logic:termVariable "evidence" ], [ logic:termIndex 1 ; logic:termVariable "ref" ] ],
+                        [ a logic:Formula ; logic:relation logic:termIsLiteral ; logic:argument [ logic:termIndex 0 ; logic:termVariable "key" ] ],
+                        [ a logic:Formula ; logic:relation logic:termIsLiteral ; logic:argument [ logic:termIndex 0 ; logic:termVariable "ref" ] ] ] ] ] ] ] .
 
 gmeow:ReadAfterWriteEvidenceConstraint
     a logic:Constraint ;
@@ -1521,6 +1538,9 @@ gmeow:supersedingIntentionId
     skos:example "ex:record gmeow:supersedingIntentionId \"source-value\"^^xsd:token ."@x-gmeow-english ;
     logic:domain gmeow:Event ;
     logic:range xsd:token .
+
+gmeow:Event logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:supersedingIntentionId ; logic:allValuesFrom xsd:token ] .
 
 gmeow:expectedTransitionId
     a logic:DatatypeProperty ;

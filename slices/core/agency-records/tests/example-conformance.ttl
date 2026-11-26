@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/agency-records/tests/> .
+
+ex:ecIntentionTransitionSourceEvidence a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/intention-transition-evidence.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The source reports an unresolved successor and a different intention's satisfaction with a keyed citation but no judgment." .
+
+ex:ecSupersessionRejectsUntypedReplacement a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/supersession-untyped-replacement.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:IntentionSupersessionTargetConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "An unresolved identifier cannot excuse a recorded replacement that is not typed as an intention." .
+
+ex:ecSatisfactionRequiresCompleteCitation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/satisfaction-incomplete-evidence.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:SatisfiedIntentionEvaluationConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A claimed satisfaction without an evaluation needs a complete citation. A condition key alone is not cited evidence." .

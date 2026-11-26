@@ -49,6 +49,11 @@ matching verifier on the evaluation; choosing an easy condition cannot evade
 the others. A conclusive positive judgment has both `logic:Satisfied` and
 `logic:GoalEvaluationCompleted`. Neither axis follows from an attempt stop.
 
+An intention status report may cite `ConditionEvidence` with the source key and
+reference without recording a goal judgment. That path preserves the source's
+report and citations. It does not produce a `GoalEvaluation` or satisfy the
+evidence laws of a completed positive evaluation.
+
 The kind-specific integrity formulas require actual derivation sources through
 the domain-free `wasDerivedFrom`, used when the evaluation genuinely derives
 from that evidence. Each exact derivation statement has a native RDF 1.2 citation

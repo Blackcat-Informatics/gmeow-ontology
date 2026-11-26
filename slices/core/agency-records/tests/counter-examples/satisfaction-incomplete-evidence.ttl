@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/agency-records/transitions/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:writer a gmeow:Agent .
+ex:goal a gmeow:Goal .
+ex:intention a gmeow:Intention ;
+    gmeow:intentBearer ex:writer ;
+    gmeow:intentionGoal ex:goal .
+
+ex:reportedSatisfaction a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeIntentionSatisfied ;
+    gmeow:intentionTransitionOf ex:intention ;
+    gmeow:eventTime "2026-01-08T15:00:00Z"^^xsd:dateTime ;
+    gmeow:hasConditionEvidence ex:citation .
+ex:citation a gmeow:ConditionEvidence ;
+    gmeow:conditionEvidenceKey "archive accessible" .

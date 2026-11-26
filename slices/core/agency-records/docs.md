@@ -49,10 +49,14 @@ resolves, and no outcome of a writer's compare-and-swap check is implied.
 goal or tenure, as written. It declares no domain and is not the `nextReviewAt`
 of that goal or tenure.
 
-A satisfied transition links its separate judgment with `agencyGoalEvaluation`.
-Supersession keeps the old intention and names the replacement through existing
-`supersededBy`. No status selects a privileged global interpretation or erases an
-older claim (Principles 9 and 10).
+A satisfied transition links a separately recorded judgment with
+`agencyGoalEvaluation`. If the source records citations but no judgment, retain
+its keyed `ConditionEvidence` instead. Neither a citation nor a status marker
+creates a verdict. For supersession, retain a typed replacement via
+`supersededBy` when the source resolves it. With no replacement link, a supplied
+`supersedingIntentionId` retains the unresolved reference. An identifier does not
+make a malformed replacement link valid. No status selects a privileged global
+interpretation or erases an older claim (Principles 9 and 10).
 
 `CommitmentStatus` describes an intention held as a commitment to oneself: active,
 renewed or released. It is distinct from the existing social `Commitment`, whose

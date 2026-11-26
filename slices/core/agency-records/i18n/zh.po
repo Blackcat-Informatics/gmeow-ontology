@@ -182,8 +182,8 @@ msgid "intention satisfied"
 msgstr "意图满足"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSatisfied|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An intention ended because its goal was judged met. The judgment belongs to a separate GoalEvaluation rather than the event kind."
-msgstr "意图因目标被判断达成而结束。该判断属于独立 GoalEvaluation，而非事件种类本身。"
+msgid "A source reports that an intention ended because its goal was met. A separately recorded GoalEvaluation carries the judgment when the source provides one. The event kind does not itself assert that judgment."
+msgstr "来源报告某个意图因目标已达成而结束。来源提供单独的 GoalEvaluation 时，由该记录承载判断。事件类型本身不作出这一判断。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSatisfied|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to classify a source-recorded intention satisfied event."
@@ -230,8 +230,8 @@ msgid "intention superseded"
 msgstr "意图被取代"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSuperseded|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An intention was replaced by another intention, identified separately by supersededBy. Replacement is not evidence of either goal’s satisfaction."
-msgstr "某意图被另一个意图取代，替代者由 supersededBy 独立标识。替代不证明任一目标满足。"
+msgid "A source reports that another intention replaced this intention. The replacement is retained as a resolved supersededBy link or an unresolved supersedingIntentionId. Replacement does not establish satisfaction of either goal."
+msgstr "来源报告另一个意图取代了该意图。替代关系以已解析的 supersededBy 链接或未解析的 supersedingIntentionId 保留。取代关系不证明任一目标已达成。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSuperseded|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to classify a source-recorded intention superseded event."
@@ -1686,8 +1686,8 @@ msgid "Intention supersession target constraint"
 msgstr "意图取代目标约束"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSupersessionTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A supersession retains the replacement intention through supersededBy on the old intention, without inferring goal satisfaction."
-msgstr "取代通过旧意图上的 supersededBy 保留替代意图，而不推断目标满足。"
+msgid "A supersession retains a typed replacement intention through supersededBy, or a supplied successor identifier when no replacement link is recorded. It does not infer goal satisfaction."
+msgstr "取代关系通过 supersededBy 保留具有意图类型的替代节点；当未记录替代链接时，保留来源提供的后继意图标识符。它不推断目标已达成。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSupersessionTargetConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to enforce the source-evidence obligation of eventTypeIntentionSuperseded."
@@ -1710,8 +1710,8 @@ msgid "Satisfied intention evaluation constraint"
 msgstr "意图满足评估约束"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/SatisfiedIntentionEvaluationConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An intention-satisfied event retains its separate GoalEvaluation judgment; an attempt stop value is not that verdict."
-msgstr "意图满足事件保留独立 GoalEvaluation 判断；尝试停止方式不是该判定。"
+msgid "An intention-satisfied event retains its separate GoalEvaluation when recorded or at least one cited condition with a source key and reference. Cited evidence and attempt stops do not assert a judgment."
+msgstr "意图满足事件保留来源记录的单独 GoalEvaluation；否则至少保留一项引用的条件及其来源键和引用。证据引用和尝试停止都不作出判断。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/SatisfiedIntentionEvaluationConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to enforce the source-evidence obligation of eventTypeIntentionSatisfied."
@@ -7933,7 +7933,7 @@ msgstr "预期转换标识符"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/expectedTransitionId|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The identifier of the status event that an intention transition expected to follow, kept as written, so that the writer can make a compare-and-swap check. It asserts no resolved link and no outcome of that check."
-msgstr "意图转换预期随后出现的状态事件的标识符，按原样保留，以便写入方进行比较并交换检查。它不断言已解析的链接，也不断言该检查的结果。"
+msgstr "意图转换预期接续的先前状态事件的标识符，按原样保留，供写入方进行比较并交换检查。它不断言已解析的链接，也不断言该检查的结果。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/expectedTransitionId|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a status event records the identifier of the transition its writer expected to precede it."

@@ -182,8 +182,8 @@ msgid "intention satisfied"
 msgstr "intention satisfaite"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSatisfied|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An intention ended because its goal was judged met. The judgment belongs to a separate GoalEvaluation rather than the event kind."
-msgstr "Une intention a pris fin parce que son but a été jugé atteint. Le jugement relève d’une GoalEvaluation distincte, pas du type d’événement."
+msgid "A source reports that an intention ended because its goal was met. A separately recorded GoalEvaluation carries the judgment when the source provides one. The event kind does not itself assert that judgment."
+msgstr "Une source indique qu’une intention a pris fin parce que son objectif était atteint. Une GoalEvaluation distincte conserve le jugement lorsque la source le fournit. Le type d’événement n’affirme pas ce jugement."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSatisfied|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to classify a source-recorded intention satisfied event."
@@ -230,8 +230,8 @@ msgid "intention superseded"
 msgstr "intention remplacée"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSuperseded|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An intention was replaced by another intention, identified separately by supersededBy. Replacement is not evidence of either goal’s satisfaction."
-msgstr "Une intention a été remplacée par une autre, identifiée séparément par supersededBy. Le remplacement ne prouve la satisfaction d’aucun des buts."
+msgid "A source reports that another intention replaced this intention. The replacement is retained as a resolved supersededBy link or an unresolved supersedingIntentionId. Replacement does not establish satisfaction of either goal."
+msgstr "Une source indique qu’une autre intention a remplacé cette intention. Le remplacement est conservé sous forme d’un lien résolu supersededBy ou d’un identifiant non résolu supersedingIntentionId. Le remplacement n’établit pas la satisfaction de l’un ou l’autre objectif."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSuperseded|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to classify a source-recorded intention superseded event."
@@ -1686,8 +1686,8 @@ msgid "Intention supersession target constraint"
 msgstr "Contrainte de remplacement d’intention"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSupersessionTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A supersession retains the replacement intention through supersededBy on the old intention, without inferring goal satisfaction."
-msgstr "Un remplacement conserve l’intention remplaçante par supersededBy sur l’ancienne, sans déduire la satisfaction du but."
+msgid "A supersession retains a typed replacement intention through supersededBy, or a supplied successor identifier when no replacement link is recorded. It does not infer goal satisfaction."
+msgstr "Un remplacement conserve une intention de remplacement typée par supersededBy, ou un identifiant de successeur fourni quand aucun lien de remplacement n’est consigné. Il ne permet pas de déduire la satisfaction du but."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSupersessionTargetConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to enforce the source-evidence obligation of eventTypeIntentionSuperseded."
@@ -1710,8 +1710,8 @@ msgid "Satisfied intention evaluation constraint"
 msgstr "Contrainte d’évaluation d’intention satisfaite"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/SatisfiedIntentionEvaluationConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An intention-satisfied event retains its separate GoalEvaluation judgment; an attempt stop value is not that verdict."
-msgstr "Un événement d’intention satisfaite conserve son jugement GoalEvaluation distinct ; une valeur d’arrêt de tentative n’est pas ce verdict."
+msgid "An intention-satisfied event retains its separate GoalEvaluation when recorded or at least one cited condition with a source key and reference. Cited evidence and attempt stops do not assert a judgment."
+msgstr "Un événement d’intention satisfaite conserve sa GoalEvaluation distincte si elle est consignée, ou au moins une condition citée avec une clé et une référence issues de la source. Les preuves citées et les arrêts de tentative n’affirment aucun jugement."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/SatisfiedIntentionEvaluationConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to enforce the source-evidence obligation of eventTypeIntentionSatisfied."
@@ -7933,7 +7933,7 @@ msgstr "identifiant de la transition attendue"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/expectedTransitionId|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The identifier of the status event that an intention transition expected to follow, kept as written, so that the writer can make a compare-and-swap check. It asserts no resolved link and no outcome of that check."
-msgstr "L’identifiant de l’événement de statut qu’une transition d’intention s’attendait à voir suivre, conservé tel qu’écrit, afin que le rédacteur puisse faire une vérification par comparaison et échange. Il n’affirme aucun lien résolu ni résultat de cette vérification."
+msgstr "L’identifiant de l’événement de statut auquel une transition d’intention s’attendait à succéder, conservé tel qu’écrit pour que le rédacteur puisse effectuer une vérification par comparaison et échange. Il n’affirme ni lien résolu ni résultat de cette vérification."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/expectedTransitionId|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a status event records the identifier of the transition its writer expected to precede it."
