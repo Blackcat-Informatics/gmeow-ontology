@@ -408,7 +408,11 @@ pub fn validate_active_work_ceiling(
     let order = crate::scheduler::ReadyOrder::from_environment()?;
     let registry = crate::registry::registry_for(profile);
     let spec = spec_for_scope(full_spec(), scope, &registry)?;
-    order.validate(&spec.stages.into_iter().map(|stage| stage.id).collect())
+    let graph = spec.validate()?;
+    let stages = crate::loader::bind(&spec, &graph, &registry)?;
+    order
+        .active_work_admission(stages.iter().map(|stage| stage.as_ref()))
+        .map(drop)
 }
 
 /// Run the FULL dogfooded build single-pass and either write every produced

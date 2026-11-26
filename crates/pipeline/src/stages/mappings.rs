@@ -1265,6 +1265,9 @@ impl Stage for MappingsStage {
     fn id(&self) -> &str {
         "stage-mappings"
     }
+    fn memory_budget_bytes(&self) -> Option<u64> {
+        Some(8_365_936_640)
+    }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
     }

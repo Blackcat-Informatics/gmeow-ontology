@@ -72,7 +72,7 @@ ex:budget-enrich a gmeow:StageBudget ;
     gmeow:budgetMaxSteps 1000 ;
     gmeow:budgetMaxAnswers 50 ;
     gmeow:budgetMaxInputBytes 1048576 ;
-    gmeow:budgetMaxMemoryBytes 2147483648 .
+    gmeow:budgetMaxMemoryBytes "2147483648"^^xsd:nonNegativeInteger .
 
 # The admission gate decides whether the candidate may be committed. Its verdict
 # authorizes the receipt writer, but it passes it NO bytes.

@@ -464,15 +464,18 @@ sizes and declared graph. These controls change execution order while leaving
 action keys and published identities intact.
 
 Set `GMEOW_PIPELINE_ACTIVE_WORK_BYTES` to a positive byte count to limit the
-sum of estimates for stages in flight. This setting requires memory order and
+sum of memory reservations for stages in flight. This setting requires memory order and
 a calibration file covering exactly the selected DAG. A stage's charge is
-the greater of its transient and published byte estimates. The scheduler
-rejects a profile containing a stage that cannot fit on its own, and keeps
+the largest of its transient estimate, published estimate, and authored
+memory budget when declared. The loader checks the RDF budget against the
+Rust stage. A calibration file cannot lower an authored reservation. The
+scheduler rejects a profile containing a stage that cannot fit on its own, and keeps
 each admitted charge through stage publication, including snapshot hashing.
 Sync validates an explicit ceiling even when it reuses a current manifest.
 An estimate profile can be at most 1 MiB.
-The ceiling covers estimated stage work. Resident carriers and allocator
-slack also contribute to whole-process RSS.
+The ceiling controls admission. It does not stop a running stage at its
+reservation or attribute process-wide RSS to one stage. Resident carriers
+and allocator slack also contribute to whole-process RSS.
 
 On glibc Linux, the scheduler also requests allocator reclamation once after each
 stage's publication and the carrier releases that completion caused, before the next

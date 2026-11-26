@@ -36,6 +36,11 @@ pub(crate) struct MemorySchedule {
     ceiling: Option<NonZeroU64>,
 }
 
+pub(crate) struct ActiveWorkAdmission {
+    pub(super) remaining: u64,
+    pub(super) charges: BTreeMap<String, u64>,
+}
+
 pub(super) struct StageEstimate {
     transient_bytes: u64,
     published_bytes: u64,
@@ -156,39 +161,46 @@ impl ReadyOrder {
         }
     }
 
-    pub(super) fn active_work_admission(&self) -> Option<(u64, &BTreeMap<String, StageEstimate>)> {
+    /// Bind the estimate roster to the selected stages before any dispatch.
+    /// For a capped run, the bound budget is a floor on each reservation.
+    pub(crate) fn active_work_admission<'a>(
+        &self,
+        stages: impl Iterator<Item = &'a dyn Stage>,
+    ) -> gmeow_errors::Result<Option<ActiveWorkAdmission>> {
         let Self::Memory(Some(schedule)) = self else {
-            return None;
+            return Ok(None);
         };
-        schedule
-            .ceiling
-            .map(|ceiling| (ceiling.get(), &schedule.estimates))
-    }
-
-    pub(crate) fn validate(&self, selected: &BTreeSet<String>) -> gmeow_errors::Result<()> {
-        let Self::Memory(Some(schedule)) = self else {
-            return Ok(());
-        };
-        let stages: BTreeSet<_> = schedule.estimates.keys().cloned().collect();
-        if &stages != selected {
+        let budgets: BTreeMap<_, _> = stages
+            .map(|stage| (stage.id(), stage.memory_budget_bytes()))
+            .collect();
+        let selected: BTreeSet<_> = budgets.keys().copied().collect();
+        let estimated: BTreeSet<_> = schedule.estimates.keys().map(String::as_str).collect();
+        if estimated != selected {
             return Err(invalid_order(format!(
                 "memory estimates must cover the selected DAG. Missing: {:?}. Unexpected: {:?}",
-                selected.difference(&stages).collect::<Vec<_>>(),
-                stages.difference(selected).collect::<Vec<_>>()
+                selected.difference(&estimated).collect::<Vec<_>>(),
+                estimated.difference(&selected).collect::<Vec<_>>()
             )));
         }
-        if let Some(ceiling) = schedule.ceiling
-            && let Some((stage, estimate)) = schedule
-                .estimates
-                .iter()
-                .find(|(_, estimate)| estimate.active_work_bytes() > ceiling.get())
-        {
-            return Err(invalid_order(format!(
-                "{stage} requires {} estimated active-work bytes, above the ceiling of {ceiling} bytes",
-                estimate.active_work_bytes(),
-            )));
+        let Some(ceiling) = schedule.ceiling else {
+            return Ok(None);
+        };
+        let mut charges = BTreeMap::new();
+        for (stage, estimate) in &schedule.estimates {
+            let measured = estimate.active_work_bytes();
+            let authored = budgets[stage.as_str()];
+            let charge = authored.map_or(measured, |budget| measured.max(budget));
+            if charge > ceiling.get() {
+                return Err(invalid_order(format!(
+                    "{stage} requires {charge} reserved active-work bytes (estimate {measured}, authored budget {authored:?}), above the ceiling of {ceiling} bytes"
+                )));
+            }
+            charges.insert(stage.clone(), charge);
         }
-        Ok(())
+        Ok(Some(ActiveWorkAdmission {
+            remaining: ceiling.get(),
+            charges,
+        }))
     }
 }
 
