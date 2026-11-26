@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Party to the founding agreement is not bearer or beneficiary. The guarantor is a party
+# of the agreement the duty is founded on, and the agreement itself is a relator; neither
+# is the duty's bearer nor its beneficiary. This ASK MUST return false.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX exd: <https://blackcatinformatics.ca/gmeow/examples/teleology/duty/>
+ASK {
+    VALUES ?other { exd:guarantor exd:loanAgreement }
+    exd:returnDuty (gmeow:committedAgent|gmeow:commitmentBeneficiary) ?other .
+}

@@ -24342,3 +24342,35 @@ msgstr "闭包叶节点具有一个已完成的分段，不包含应用二进制
 msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|http://www.w3.org/2004/02/skos/core#example"
 msgid "A reasoned document preserves a caller graph named graph/reasoning inside the isolated closure while its outer aggregate binds the required closure address."
 msgstr "经推理的文档在隔离闭包中保留调用者命名为 graph/reasoning 的图，同时其外层聚合绑定必需的闭包地址。"
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOnTransitivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "historical dependence transitivity"
+msgstr "历史依赖的传递性"
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOnTransitivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that historical dependence is transitive: dependence on an antecedent that itself depends historically on a further antecedent is dependence on that further antecedent."
+msgstr "声明历史依赖具有传递性：如果所依赖的先行者本身又历史依赖于另一个先行者，那么也依赖于后一个先行者。"
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "historically depends on"
+msgstr "历史依赖于"
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a concrete individual to a concrete individual whose having come to be at or before its own beginning it requires: the dependent could not have come to be, as it did, unless the other had. The dependence is rigid and past-directed: once it holds it holds at every later time, so it survives the end of the individual depended on and the end of the dependent — a membership that has ended still depends historically on the appointment that began it. Transitive: what a dependent requires of its history, its own dependents inherit. Deliberately not functional (an individual has many antecedents), and not asserted asymmetric or irreflexive, because an instantaneous founding event coincides with the beginning of what it founds. It entails nothing about the present: the antecedent need not still exist and the dependent need not still hold. Neither provenance, evidence, derivation, temporal order nor statistical dependence supplies it, and it supplies none of them. The counterpart of gufo:historicallyDependsOn, with the modal and permanent reading made explicit."
+msgstr "将一个具体个体关联到另一个具体个体：前者要求后者至迟在前者开始时已经产生，否则前者不可能以其实际方式产生。该依赖是刚性的且指向过去：一旦成立，在之后的每一时刻都成立，因此在被依赖个体终止之后以及依赖者终止之后依然成立——一项已结束的成员资格仍然历史依赖于开启它的任命。具有传递性：依赖者对其历史的要求，其自身的依赖者也继承。刻意不设为函数性，也不声明为非对称或非自反，因为瞬时的奠基事件与其所奠基之物的开始相重合。它不蕴含任何关于当下的结论：先行者可以不再存在，依赖者可以不再成立。来源证据、溯源、派生、时间顺序与统计依赖都不能提供它，它也不提供这些。对应 gufo:historicallyDependsOn，并明确其模态性与永久性的读法。"
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:membership logic:historicallyDependsOn ex:appointment ."
+msgstr "ex:membership logic:historicallyDependsOn ex:appointment ."
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an individual, in particular an event or a relator, could not have come to be without an earlier individual having come to be, and that fact must outlive both of them — an appointment that began a membership, an ancestor of a person, an event that enabled a later one."
+msgstr "当某个个体（尤其是事件或关系体）若无更早个体的产生便不可能产生，且这一事实必须在二者之后继续成立时使用——开启成员资格的任命、某人的祖先、使后一事件成为可能的事件。"
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for a source that merely evidences a record (use provenance), for temporal order alone (use the Allen relations), for a present bearer or a present party (use the bearer and relator properties), and for statistical dependence between facts (use a logic:DependencyModel)."
+msgstr "不要用于仅为记录提供证据的来源（用溯源）、仅有时间顺序的情形（用 Allen 关系）、当下的承载者或当下的当事方（用承载者与关系体属性），以及事实之间的统计依赖（用 logic:DependencyModel）。"
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert it from the dependent individual to each individual it requires; read transitivity as the closure. It adds no membership, bearer or occupancy: a consumer reads the present state from the interval-scoped relators and the dependence from this relation."
+msgstr "从依赖个体指向它所要求的每个个体来断言；将传递性理解为闭包。它不增加成员资格、承载者或占据：使用者从受区间限定的关系体读取当下状态，从该关系读取依赖。"

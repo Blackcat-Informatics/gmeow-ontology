@@ -28,7 +28,7 @@ gmeow:mapsetLogicGufo a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/logic-gufo" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Complete gUFO-class coverage from canonical logic: terms plus the audited strict-parthood and mediation relation seams. The five temporary-situation reifiers are explicitly related to the logic:Fluent replacement pattern and marked Unsupported; no target class disappears silently." ;
+    gmeow:setComment "Complete gUFO-class coverage from canonical logic: terms plus the audited strict-parthood, mediation and dependence relation seams. The five temporary-situation reifiers are explicitly related to the logic:Fluent replacement pattern and marked Unsupported; no target class disappears silently." ;
     gmeow:setTrailer "# gUFO is a generated ValidationOnly projection. These links document its complete class surface and warranted relation seams; the vendored transition snapshot does not outrank logic: as canon." .
 
 gmeow:mapsetLogicBfo a gmeow:MappingSet ;
@@ -714,6 +714,52 @@ logic:mediates skos:closeMatch gufo:mediates {|
     gmeow:comment "Both predicates connect a relator to the relata it existentially depends on; the validation-only rung preserves logic:'s stronger relator-mediation discipline outside the gUFO view." ;
     logic:sourceEndpoint logic:mediates ;
     logic:targetEndpoint gufo:mediates ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+# The three gUFO dependence relations. Each cell holds in the unspecified standpoint:
+# the alignment cell form carries no standpoint index, so no cell claims gUFO's
+# commitments as GMEOW's own. Ontological dependence is kept apart from stochastic
+# dependence, which logic:DependencyModel expresses and no cell here carries.
+
+gmeow:bearer skos:broadMatch gufo:inheresIn {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "gmeow:bearer is the functional inherence edge from a persistent gmeow:Quality to the one entity it belongs to; it is narrower than gufo:inheresIn, whose domain is every aspect. Inherence is rigid: the bearer never changes while the quality exists." ;
+    logic:sourceEndpoint gmeow:bearer ;
+    logic:targetEndpoint gufo:inheresIn ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    gmeow:lossyDrop "Bearers of other aspect kinds ride their own branch properties and are not carried by this link; gUFO's asymmetry and irreflexivity of inherence are not emitted for gmeow:bearer; the identity of a quality across dated observations has no gUFO counterpart." ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+gmeow:commitmentBeneficiary skos:broadMatch gufo:externallyDependsOn {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "A commitment exists only as owed toward its beneficiary, which is a distinct agent from the committed agent, so the commitment depends on the beneficiary externally to its bearer. The founding agreement is related by gmeow:foundedOn and is not an external dependence target." ;
+    logic:sourceEndpoint gmeow:commitmentBeneficiary ;
+    logic:targetEndpoint gufo:externallyDependsOn ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    gmeow:lossyDrop "gUFO types the domain of external dependence as gufo:ExtrinsicMode, which is disjoint from gufo:Relator, while gmeow:Commitment is a logic:Relator mediating both parties; the generated gUFO view does not emit the edge, because it would make every commitment inconsistent there. Mereological externality beyond identity distinctness of the parties is not carried." ;
+    logic:preservationKind logic:Unsupported
+|} .
+
+logic:historicallyDependsOn skos:closeMatch gufo:historicallyDependsOn {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Both relations are transitive dependence of a concrete individual on an earlier one; the logic: relation makes the modal and permanent reading explicit and is never entailed by provenance or temporal order." ;
+    logic:sourceEndpoint logic:historicallyDependsOn ;
+    logic:targetEndpoint gufo:historicallyDependsOn ;
     logic:morphismClass logic:AffineCorrespondence ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly

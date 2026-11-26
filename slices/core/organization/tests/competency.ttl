@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for the organization slice, executed by the native
+# Rust slice-test harness (crates/slicetest) in the asserted lane. They cover historical
+# dependence: an appointment event, the membership interval it began and the minutes
+# that evidence it, plus a negative case for minutes linked only by provenance.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/organization/tests/> .
+@prefix exa:   <https://blackcatinformatics.ca/gmeow/examples/organization/appointment/> .
+
+ex:cqAppointmentRecord a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/organization/queries/competency/appointment-record.rq" ;
+    gmeow:cqDataFile "examples/appointment-and-minutes.ttl" ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:shapeAppointmentRecord ;
+    gmeow:cqRationale "After the resignation the appointment event, the closed membership that depends historically on it and the minutes that evidence it all still exist as three distinct things." ;
+    gmeow:cqExpectRow ex:rowAppointmentRecord .
+
+ex:shapeAppointmentRecord a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn [ logic:columnVariable "appointment" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "membership" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ],
+        [ logic:columnVariable "minutes" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] .
+
+ex:rowAppointmentRecord a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "appointment" ; gmeow:cellValueIri exa:appointment ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "membership" ; gmeow:cellValueIri exa:danaSeat ],
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "minutes" ; gmeow:cellValueIri exa:boardMinutes ] .
+
+ex:cqSeatOccupiedAfterResignation a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/organization/queries/competency/seat-occupied-after-resignation.rq" ;
+    gmeow:cqDataFile "examples/appointment-and-minutes.ttl" ;
+    gmeow:cqRationale "Historical dependence on the appointment does not keep the seat occupied: the membership interval is closed, so no membership currently fills the board seat." ;
+    gmeow:cqExpectAsk false .
+
+ex:cqMinutesOnlyNegative a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/organization/queries/competency/minutes-only-negative.rq" ;
+    gmeow:cqDataFile "examples/appointment-and-minutes.ttl" ;
+    gmeow:cqRationale "A provenance link to minutes alone creates no membership, makes the minutes no bearer and establishes no occupancy of the seat." ;
+    gmeow:cqExpectAsk false .
+
+ex:cqMinutesOnlyControl a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/organization/queries/competency/minutes-only-control.rq" ;
+    gmeow:cqDataFile "examples/appointment-and-minutes.ttl" ;
+    gmeow:cqRationale "The provenance link the negative case relies on is present in the fixture, so the negative answer is not vacuous." ;
+    gmeow:cqExpectAsk true .

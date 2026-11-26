@@ -101,7 +101,7 @@ domain publication alignments retain their by-reference meaning (Principles 4, 5
 
 The shipped grounding surface is split by semantic owner:
 
-- `logic:` carries 140 core correspondences for gUFO, BFO, OBO/RO, SUMO,
+- `logic:` carries 143 core correspondences for gUFO, BFO, OBO/RO, SUMO,
   OWL/RDFS, and SHACL Core/AF in
   [`grounding-bridges.ttl`](../slices/grounding/logic/mappings/grounding-bridges.ttl),
   plus 25 commitment-shifting DUL, IAO, OBI, PATO, YAMATO, and OpenCyc rows in
