@@ -2818,11 +2818,11 @@ fn registry_json_selection(root: &Path, alias: &str) -> ProductionSelection {
         root,
         "Cargo.lock",
         &format!(
-            "version=4\n[[package]]\nname='purrdf-lex'\nversion='5.0.0'\nsource='{source}'\nchecksum='{}'\n",
+            "version=4\n[[package]]\nname='purrdf-lex'\nversion='5.0.1'\nsource='{source}'\nchecksum='{}'\n",
             "a".repeat(64)
         ),
     );
-    selected.units[1].package = format!("{source}#purrdf-lex@5.0.0");
+    selected.units[1].package = format!("{source}#purrdf-lex@5.0.1");
     selected
 }
 
@@ -2844,10 +2844,10 @@ fn reviewed_registry_json_macros_require_the_exact_declared_locked_selected_owne
         let first = InputInventory::collect(root.path(), &selected).unwrap();
         assert!(first.files.contains_key("crate/src/label.txt"));
         let mut wrong = selected.clone();
-        wrong.units[1].package = wrong.units[1].package.replace("@5.0.0", "@5.0.1");
+        wrong.units[1].package = wrong.units[1].package.replace("@5.0.1", "@5.0.2");
         assert!(InputInventory::collect(root.path(), &wrong).is_err());
         let lock = std::fs::read_to_string(root.path().join("Cargo.lock")).unwrap();
-        let unreviewed = lock.replace("version='5.0.0'", "version='5.0.1'");
+        let unreviewed = lock.replace("version='5.0.1'", "version='5.0.2'");
         write(root.path(), "Cargo.lock", &unreviewed);
         assert!(InputInventory::collect(root.path(), &wrong).is_err());
         for invalid in [
@@ -2910,7 +2910,7 @@ fn native_registry_json_macro_must_be_the_substrates_delegated_leaf() {
     );
     let source = "registry+https://github.com/rust-lang/crates.io-index";
     let lock = format!(
-        "[[package]]\nname='purrdf'\nversion='5.0.0'\nsource='{source}'\nchecksum='{}'\n[[package]]\nname='purrdf-lex'\nversion='5.0.0'\nsource='{source}'\nchecksum='{}'\n",
+        "[[package]]\nname='purrdf'\nversion='5.0.1'\nsource='{source}'\nchecksum='{}'\n[[package]]\nname='purrdf-lex'\nversion='5.0.1'\nsource='{source}'\nchecksum='{}'\n",
         "a".repeat(64),
         "b".repeat(64)
     );

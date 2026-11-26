@@ -177,6 +177,20 @@ fn parses_stamp_and_prose() {
         parse_prose_purrdf_version("projected by the Rust **purrdf 0.12.0 engine").as_deref(),
         Some("0.12.0")
     );
+    assert_eq!(
+        parse_prose_purrdf_version("purrdf `datacite-4.6` and purrdf `codec-4.6.0`"),
+        None,
+        "codec identifiers do not assert a PurRDF release"
+    );
+    assert_eq!(
+        parse_prose_purrdf_version("PurRDF `5.0.1.*`. PurRDF `5.0.1.`."),
+        None,
+        "punctuation inside a code span is part of the version"
+    );
+    assert_eq!(
+        parse_prose_purrdf_version("purrdf `datacite-4.6` ships in **PurRDF** `5.0.1`.").as_deref(),
+        Some("5.0.1")
+    );
 }
 
 #[test]

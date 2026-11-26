@@ -3,7 +3,7 @@
 
 //! Package proof for the two syntax-only JSON macros in the pinned substrate.
 //! The source-input capability requires a verified package owner. The registry
-//! path admits the reviewed `purrdf-lex` 5.0.0 macro protocol.
+//! path admits the reviewed `purrdf-lex` 5.0.1 macro protocol.
 
 use crate::{Result, UnitSelection, checked_path, fail};
 use std::collections::{BTreeMap, BTreeSet};
@@ -21,7 +21,7 @@ fn document(workspace: &Path, relative: &str) -> Result<toml::Value> {
 }
 
 pub(crate) const REGISTRY: &str = "registry+https://github.com/rust-lang/crates.io-index";
-const REVIEWED_REGISTRY_VERSION: &str = "5.0.0";
+const REVIEWED_REGISTRY_VERSION: &str = "5.0.1";
 
 /// Exact resolved package owner; the lock checksum identifies registry bytes.
 #[derive(Clone, Debug, PartialEq, Eq)]
