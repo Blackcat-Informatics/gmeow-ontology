@@ -8,6 +8,13 @@ The story-building properties describe a consumer's attributed records. Existing
 position and provenance terms carry their meaning; no new story identity or
 universal plot structure is introduced (Principles 4, 9 and 17).
 
+A proposal is a `StoryCandidate` with explicit clustered records and distinctive
+terms. The proposal statement has a named RDF 1.2 reifier linked to the proposing
+`ClaimToken` by `putForwardByClaim`. Attach the cited event to that token with
+`storyDiscoveryEvidence`. Evidence can come from an earlier discovery and does
+not mean the event produced the proposal claim. Neither the evidence link nor
+the cluster entails acceptance.
+
 Acceptance belongs to a person, not to the generator that proposed a candidate.
 The asserted-link law follows exact lowered statement subject, predicate and
 object components to that person's attribution. A separate reifier-guarded law
