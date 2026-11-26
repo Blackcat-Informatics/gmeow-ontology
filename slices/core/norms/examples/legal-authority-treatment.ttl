@@ -72,26 +72,20 @@ ex:factOralTraditions a gmeow:Condition ;
 
 # --- Pinpoint sources -----------------------------------------------------------------------
 ex:selVavilov10 a gmeow:Selector ;
-    gmeow:selectorLocator "para. 10" ;
-    gmeow:selectorTextQuote "The analysis begins with a presumption that reasonableness is the applicable standard in all cases." .
+    gmeow:selectorLocator "para. 10" .
 ex:selVavilov65 a gmeow:Selector ;
-    gmeow:selectorLocator "para. 65" ;
-    gmeow:selectorTextQuote "We would cease to recognize jurisdictional questions as a distinct category attracting correctness review." .
+    gmeow:selectorLocator "para. 65" .
 ex:selVavilov65Report a gmeow:Selector ;
-    gmeow:selectorLocator "para. 65" ;
-    gmeow:selectorTextQuote "The majority in Dunsmuir held that it was \"without question\" (para. 50) that the correctness standard must be applied in reviewing jurisdictional questions" .
+    gmeow:selectorLocator "para. 65" .
 ex:selVavilov63 a gmeow:Selector ;
-    gmeow:selectorLocator "para. 63" ;
-    gmeow:selectorTextQuote "the rule of law requires that the correctness standard be applied in order to resolve questions regarding the jurisdictional boundaries between two or more administrative bodies" .
+    gmeow:selectorLocator "para. 63" .
 ex:selVavilov200 a gmeow:Selector ;
-    gmeow:selectorLocator "para. 200" ;
-    gmeow:selectorTextQuote "We support the majority’s decision to eliminate the vexing contextual factors analysis from the standard of review framework and to abolish the shibboleth category of “true questions of jurisdiction”." .
+    gmeow:selectorLocator "para. 200" .
 ex:selDunsmuir50 a gmeow:Selector ; gmeow:selectorLocator "para. 50" .
 ex:selDunsmuir61 a gmeow:Selector ; gmeow:selectorLocator "para. 61" .
 ex:selGitanyow a gmeow:Selector ;
     gmeow:selectorLocator "section 3.0, Fundamental Gitanyow Principles, item 4" ;
-    gmeow:selectorPage "5" ;
-    gmeow:selectorTextQuote "The Gitanyow Ayookxw is the supreme law of the Gitanyow Nation and for the Gitanyow People and is the foundation for the relationships we live by and uphold;" .
+    gmeow:selectorPage "5" .
 ex:selSection35 a gmeow:Selector ;
     gmeow:selectorLocator "section 35(1)" ;
     gmeow:selectorTextQuote "The existing aboriginal and treaty rights of the aboriginal peoples of Canada are hereby recognized and affirmed." .
