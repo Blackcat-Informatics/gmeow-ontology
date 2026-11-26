@@ -8,7 +8,7 @@
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX ex: <https://blackcatinformatics.ca/gmeow/examples/norms/>
 
-SELECT ?reading WHERE {
+SELECT DISTINCT ?reading WHERE {
     ?reading a gmeow:AuthorityClaim ;
         gmeow:authoritySource ?source .
     ?source gmeow:citedEntity ex:dunsmuirDecision .
