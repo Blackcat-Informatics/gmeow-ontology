@@ -487,11 +487,12 @@ fn scope_from_node(
 // --------------------------------------------------------------------------- //
 
 /// The set of `logic:` predicate-local names that carry reasoning-contract /
-/// preset / closure *meta-configuration*.  When such a predicate's
-/// subject is a `logic:ReasoningContract` / `logic:ReasoningPreset` /
-/// `logic:ClosureEntry` node, the triple is contract configuration consumed by
-/// [`extract_contracts`] — NOT a domain fact — and must NOT leak into `prog.axioms`
-/// (where it would pollute the Datalog / N3 / ledger projections).
+/// preset / closure *meta-configuration*.  The closure-entry predicates (`closureKey`,
+/// `closureValue`, `closureIndividual`) are configuration on a closure entry; every other
+/// predicate listed is configuration on a `logic:ReasoningContract` / `logic:ReasoningPreset`.
+/// A row so held is consumed by [`extract_contracts`] — NOT a domain fact — and must NOT leak
+/// into `prog.axioms` (where it would pollute the Datalog / N3 / ledger projections).
+/// The same predicate on a node of the other role is a domain axiom.
 fn is_facet_config_predicate(prop_local: &str) -> bool {
     FACET_PROPERTIES.contains(&prop_local)
         || matches!(
@@ -951,7 +952,7 @@ fn extract_axioms(
     let mut axioms: Vec<AxiomEmission> = Vec::new();
 
     // Meta-config subjects (contracts / presets / closure entries): facet-config
-    // triples on these are contract configuration, not domain facts.
+    // triples on these, in their own role, are contract configuration, not domain facts.
     let config_subjects = collect_contract_config_subjects(store);
     // Presentation syntax belongs to the typed declaration catalog. It must not
     // additionally assert its signed sentences or configuration as global facts.

@@ -835,6 +835,27 @@ fn contract_config_roles_do_not_collide_across_closure_entries() {
     );
 }
 
+/// INVARIANT: a closure entry owned by a preset is configuration even when it is untyped, so its
+/// key and value rows do not leak into the domain axiom set.
+#[test]
+fn untyped_closure_entry_of_a_preset_does_not_leak() {
+    let (prog, _) = parse(
+        "ex:Preset a logic:ReasoningPreset ;
+            logic:closureEntry ex:Entry .
+         ex:Entry logic:closureKey ex:pred ;
+            logic:closureValue logic:ClosedWorldClosure .
+         logic:ClosedWorldClosure a logic:ClosureValue .",
+    );
+    assert!(
+        !prog
+            .axioms
+            .iter()
+            .any(|a| a.predicate.ends_with("closureKey") || a.predicate.ends_with("closureValue")),
+        "an untyped closure entry of a preset must not leak; got: {:?}",
+        prog.axioms
+    );
+}
+
 // ── Malformed ClosureEntry hard-fail ───────────────────────────────────
 
 #[test]

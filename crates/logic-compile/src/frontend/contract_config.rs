@@ -15,7 +15,7 @@ pub(super) struct ContractConfigSubjects {
     /// facet predicates, `logic:closureEntry` and `logic:complexityClass`.
     owners: HashSet<String>,
     /// Closure entries: subjects typed `logic:ClosureEntry`, and every object of
-    /// `logic:closureEntry` on a `logic:ReasoningContract` whether or not it is typed. They
+    /// `logic:closureEntry` on an owner whether or not it is typed. They
     /// own `logic:closureKey`, `logic:closureValue` and `logic:closureIndividual`.
     entries: HashSet<String>,
 }
@@ -45,24 +45,24 @@ impl ContractConfigSubjects {
 /// Collect the IRIs / blank-node ids of every contract / preset owner and of every closure
 /// entry, each in its own role (see [`ContractConfigSubjects`]).
 ///
-/// An object of `logic:closureEntry` on a `logic:ReasoningContract` is a closure entry
-/// whether or not it is typed `logic:ClosureEntry`.
+/// An object of `logic:closureEntry` on a contract or preset is a closure entry whether or not
+/// it is typed `logic:ClosureEntry`.
 pub(super) fn collect_contract_config_subjects(store: &RdfDataset) -> ContractConfigSubjects {
     let mut subjects = ContractConfigSubjects::default();
-    for class_local in ["ReasoningContract", "ReasoningPreset", "ClosureEntry"] {
-        let class_term = Node::iri(logic_iri(class_local));
-        let role = if class_local == "ClosureEntry" {
-            &mut subjects.entries
-        } else {
-            &mut subjects.owners
-        };
-        for subj in subjects_of_structural_class(store, &class_term) {
-            role.insert(subject_str(&subj));
-        }
+    let mut owners: Vec<Subject> = Vec::new();
+    for class_local in ["ReasoningContract", "ReasoningPreset"] {
+        owners.extend(subjects_of_structural_class(
+            store,
+            &Node::iri(logic_iri(class_local)),
+        ));
     }
-    for contract in subjects_of_structural_class(store, &Node::iri(logic_iri("ReasoningContract")))
-    {
-        for entry in objects(store, &contract, &nn(&logic_iri("closureEntry"))) {
+    for entry in subjects_of_structural_class(store, &Node::iri(logic_iri("ClosureEntry"))) {
+        subjects.entries.insert(subject_str(&entry));
+    }
+    let closure_entry = nn(&logic_iri("closureEntry"));
+    for owner in &owners {
+        subjects.owners.insert(subject_str(owner));
+        for entry in objects(store, owner, &closure_entry) {
             if let Some(entry) = term_as_subject(&entry) {
                 subjects.entries.insert(subject_str(&entry));
             }
