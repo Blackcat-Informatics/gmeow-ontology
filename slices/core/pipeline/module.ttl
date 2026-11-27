@@ -4198,9 +4198,28 @@ gmeow:budgetMaxMemoryBytes
     rdfs:label "budget max memory bytes"@x-gmeow-english ;
     rdfs:domain gmeow:StageBudget ;
     rdfs:range xsd:nonNegativeInteger ;
-    skos:definition "The maximum resident memory, in bytes, a stage's execution may occupy before it is stopped — an xsd:nonNegativeInteger peak-residency ceiling, the per-stage analogue of the whole-dataset gmeow:serializationBufferResource peak the build DAG guards. An unset value means unbounded. It caps peak resident memory, distinct from gmeow:budgetMaxInputBytes, which caps accepted input size, not runtime residency."@x-gmeow-english ;
-    skos:example "gmeow:budget-enrich gmeow:budgetMaxMemoryBytes 2147483648 ."@x-gmeow-english ;
+    skos:definition "The declared upper bound in bytes on the resident memory of one stage execution. Use it to reserve memory at admission. Detect a runtime breach only with memory observations attributable to that stage. An unset value declares no stage-specific bound. Unlike gmeow:budgetMaxInputBytes, this bound describes runtime residency rather than accepted input size."@x-gmeow-english ;
+    skos:example "gmeow:budget-enrich gmeow:budgetMaxMemoryBytes \"2147483648\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:stage-mappings gmeow:hasStageBudget gmeow:budget-pipeline-mappings .
+gmeow:stage-reason gmeow:hasStageBudget gmeow:budget-pipeline-reason .
+
+gmeow:budget-pipeline-mappings
+    a gmeow:StageBudget ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Mappings stage memory budget"@x-gmeow-english ;
+    skos:definition "The declared memory budget used to reserve work for the mappings stage under an active work ceiling."@x-gmeow-english ;
+    gmeow:budgetMaxMemoryBytes "8365936640"^^xsd:nonNegativeInteger ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:budget-pipeline-reason
+    a gmeow:StageBudget ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Reasoning stage memory budget"@x-gmeow-english ;
+    skos:definition "The declared memory budget used to reserve work for the reasoning stage under an active work ceiling."@x-gmeow-english ;
+    gmeow:budgetMaxMemoryBytes "10126553088"^^xsd:nonNegativeInteger ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 # ── (5) Run receipts — content-addressed, topologically ordered ────────────── #
 

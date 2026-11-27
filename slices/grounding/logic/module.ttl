@@ -3101,6 +3101,29 @@ logic:hasHolonicPosition
     skos:definition "The derived marker that an entity occupies at least one logic:HolonicPosition within a holarchy. Never asserted by hand; it is entailed by the foundation lowering, settling in stratum 1 the moment any logic:positionEntity reifier names the entity. It is the negation-as-failure target that arms the logic:HolonicLevelIncoherence rule (a profiled holon occupying NO position is incoherent), and the positive companion to logic:multiplyPositioned (which fires when an entity occupies SEVERAL distinct positions). It tracks compositional positioning only and is orthogonal to the HiLog logic:orderedType instantiation tower — the two axes never feed one another."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:historicallyDependsOn
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "historically depends on"@x-gmeow-english ;
+    skos:definition "Relates a concrete individual to a concrete individual whose having come to be at or before its own beginning it requires: the dependent could not have come to be, as it did, unless the other had. The dependence is rigid and past-directed: once it holds it holds at every later time, so it survives the end of the individual depended on and the end of the dependent — a membership that has ended still depends historically on the appointment that began it. Transitive: what a dependent requires of its history, its own dependents inherit. Deliberately not functional (an individual has many antecedents), and not asserted asymmetric or irreflexive, because an instantaneous founding event coincides with the beginning of what it founds. It entails nothing about the present: the antecedent need not still exist and the dependent need not still hold. Neither provenance, evidence, derivation, temporal order nor statistical dependence supplies it, and it supplies none of them. The counterpart of gufo:historicallyDependsOn, with the modal and permanent reading made explicit."@x-gmeow-english ;
+    skos:example "ex:membership logic:historicallyDependsOn ex:appointment ."@x-gmeow-english ;
+    gmeow:useWhen "Use when an individual, in particular an event or a relator, could not have come to be without an earlier individual having come to be, and that fact must outlive both of them — an appointment that began a membership, an ancestor of a person, an event that enabled a later one."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for a source that merely evidences a record (use provenance), for temporal order alone (use the Allen relations), for a present bearer or a present party (use the bearer and relator properties), and for statistical dependence between facts (use a logic:DependencyModel)."@x-gmeow-english ;
+    gmeow:howToUse "Assert it from the dependent individual to each individual it requires; read transitivity as the closure. It adds no membership, bearer or occupancy: a consumer reads the present state from the interval-scoped relators and the dependence from this relation."@x-gmeow-english ;
+    logic:domain logic:ConcreteIndividual ;
+    logic:range logic:ConcreteIndividual .
+
+logic:historicallyDependsOnTransitivity
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "historical dependence transitivity"@x-gmeow-english ;
+    skos:definition "Asserts that historical dependence is transitive: dependence on an antecedent that itself depends historically on a further antecedent is dependence on that further antecedent."@x-gmeow-english ;
+    logic:characterizes logic:historicallyDependsOn ;
+    logic:characteristicSort logic:transitiveProperty ;
+    logic:formalizes logic:historicallyDependsOn .
+
 logic:holonicLevel
     a logic:DatatypeProperty ;
     rdfs:domain logic:HolonicPosition ;

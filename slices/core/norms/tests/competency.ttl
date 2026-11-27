@@ -57,6 +57,7 @@ ex:cqLegalReviewFlags a gmeow:CompetencyQuestion ;
     gmeow:cqDataFile "examples/legal-authority-treatment.ttl" ;
     gmeow:cqRationale "A later decision flags one earlier reading only through an explicit proposition dependency. The reading of the earlier decision on jurisdictional questions is flagged; no citation, no later claim and no other reading is." ;
     gmeow:cqResultShape ex:cqLegalReadingShape ;
+    gmeow:cqExactRows true ;
     gmeow:cqExpectRow ex:rowFlagJurisdiction .
 
 ex:cqLegalUnflaggedReadings a gmeow:CompetencyQuestion ;
@@ -64,6 +65,7 @@ ex:cqLegalUnflaggedReadings a gmeow:CompetencyQuestion ;
     gmeow:cqDataFile "examples/legal-authority-treatment.ttl" ;
     gmeow:cqRationale "The later decision cites the earlier decision at two paragraphs, yet only the revised proposition's reading is flagged. The reading on the jurisdictional boundaries between administrative bodies is cited, restated and left unflagged, so a citation alone neither erases an earlier decision nor reverses every result that cited it." ;
     gmeow:cqResultShape ex:cqLegalReadingShape ;
+    gmeow:cqExactRows true ;
     gmeow:cqExpectRow ex:rowUnflaggedBoundaries .
 
 ex:cqLegalReadingShape a logic:ResultShape ;
@@ -80,6 +82,7 @@ ex:cqLegalBindingByOrder a gmeow:CompetencyQuestion ;
     gmeow:cqDataFile "examples/legal-authority-treatment.ttl" ;
     gmeow:cqRationale "Binding force is a claim in one legal order. The flagged earlier reading keeps its binding record, the Gitanyow statement of its own supremacy binds in its own order, and the concurring claim and the unresolved section 35 claim are not returned, so no source supplies force it does not state." ;
     gmeow:cqResultShape ex:cqLegalBindingShape ;
+    gmeow:cqExactRows true ;
     gmeow:cqExpectRow ex:rowBindPresumption , ex:rowBindNoCategory , ex:rowBindJurisdiction , ex:rowBindBoundaries , ex:rowBindAyookxw .
 
 ex:cqLegalBindingShape a logic:ResultShape ;
@@ -109,6 +112,7 @@ ex:cqLegalCorrespondence a gmeow:CompetencyQuestion ;
     gmeow:cqDataFile "examples/legal-authority-treatment.ttl" ;
     gmeow:cqRationale "The only link between the Gitanyow order and the Canadian order is a correspondence attributed to the Gitanyow Nation and scoped to its own preamble; neither order's interpretation is established by the other's source." ;
     gmeow:cqResultShape ex:cqLegalCorrespondenceShape ;
+    gmeow:cqExactRows true ;
     gmeow:cqExpectRow ex:rowCorrespondence .
 
 ex:cqLegalCorrespondenceShape a logic:ResultShape ;

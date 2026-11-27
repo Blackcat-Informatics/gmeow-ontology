@@ -343,6 +343,54 @@ lossy, exactly as the standpoint-modality view (below) is a projection of finer 
 This is the Ithkuil discipline applied to systems theory: the loose word "holon" is decomposed into
 the position, the path, the reduction theory, and the profile that the word silently conflates.
 
+## Inherence, external dependence and historical dependence
+
+gUFO separates three dependence relations that surface vocabularies collapse. Each has a native
+home, a signature, time and modal conditions, and an outward correspondence in
+[`grounding-bridges.ttl`](../mappings/grounding-bridges.ttl). Ontological dependence is a crisp,
+modal fact about what an individual requires in order to exist or to have come to be. It is never
+the graded joint distribution a `logic:DependencyModel` expresses, and neither entails the other.
+
+| Relation | Native home | Decision | Signature | Characteristics authored |
+|---|---|---|---|---|
+| Inherence | `gmeow:bearer` (observations) | Reused; no generic primitive | `gmeow:Quality` to `gmeow:Entity` | Functional |
+| External dependence | `gmeow:commitmentBeneficiary` (teleology) | Reused; no primitive | `gmeow:Commitment` to `gmeow:Agent` | None beyond the existing party-distinctness axiom |
+| Historical dependence | `logic:historicallyDependsOn` | New primitive | `logic:ConcreteIndividual` to `logic:ConcreteIndividual` | Transitive |
+
+**Inherence.** A persistent quality exists only in its bearer, and the bearer never changes while
+the quality exists, so the relation is functional and rigid. A generic inherence predicate is
+deliberately absent: each aspect kind names its bearer with its own branch property, and the gUFO
+view is generated from the cell. Inherence is not transitive (a bearer's bearer does not bear the
+quality). It is also irreflexive and asymmetric, which the branch property does not additionally
+carry. A dated observation, its value and the observer are all related to a quality without any of
+them becoming its bearer.
+
+**External dependence.** A commitment is a relator that mediates the committed agent, the
+beneficiaries and the goal. The committed agent is the bearer of the duty, the beneficiary is the
+external individual the duty depends on, and the founding agreement is related by `gmeow:foundedOn`
+and is neither. External dependence here is not functional (several beneficiaries), not transitive
+(a beneficiary's own duties are not this duty's dependencies), and irreflexive at the level of party
+identity through the distinctness of bearer and beneficiary. A party to the founding agreement that
+is neither bearer nor beneficiary is not depended on. `gmeow:foundedOn` keeps its agreement-specific
+range. The gUFO edge is not emitted, because the gUFO domain is disjoint from the relator type that
+a commitment has; the correspondence is judged unsupported and states that loss.
+
+**Historical dependence.** No existing term distinguishes dependence on one's history from
+provenance, derivation, temporal order or parthood, so `logic:historicallyDependsOn` is a primitive.
+It is permanent: once it holds it holds at every later time, so a membership that ended by
+resignation still depends historically on the appointment that began it. In the resignation
+example, the appointment event and its minutes are separate from the closed membership interval.
+It is transitive, not functional, and not asserted asymmetric or irreflexive, because an
+instantaneous founding event coincides with the beginning of what it founds.
+It entails no present state: no membership, no bearer and no occupied seat follows from it, and none
+follows from a provenance link to the minutes of the appointment. The present state comes from the
+interval-scoped relator.
+
+**Correspondence judgments.** The inherence cell matches the broader gUFO relation for validation
+only. The external-dependence cell is unsupported for the reason above. The historical-dependence
+cell is a validation-only close match. Each cell holds in the unspecified standpoint, because the
+alignment cell form carries no standpoint index.
+
 ## Factored claim modality
 
 The earlier model gave a claim a single five-valued standpoint-modality (`unequivocal`,

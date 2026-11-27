@@ -144,3 +144,20 @@ ntest:rowSampledEpistemicAffects0 a gmeow:ExpectedRow ;
 ntest:rowSampledEpistemicAffects1 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "state" ; gmeow:cellValueIri gmeow:emotionSelfCorrection ],
         [ a gmeow:ExpectedCell ; gmeow:cellVar "position" ; gmeow:cellValueIri case:beat5 ] .
+
+ex:cqStoryDiscoveryEvidence a gmeow:CompetencyQuestion ;
+    gmeow:cqDataFile "examples/story-building.ttl" ;
+    gmeow:cqQuery """
+        PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX scene: <https://example.org/story-building/>
+        ASK WHERE {
+            ?proposal rdf:reifies <<( scene:foundCluster rdf:type gmeow:StoryCandidate )>> ;
+                gmeow:putForwardByClaim ?claim .
+            ?claim a gmeow:ClaimToken ; gmeow:storyDiscoveryEvidence scene:discovery .
+            scene:discovery a gmeow:Event .
+            FILTER NOT EXISTS { scene:foundCluster gmeow:acceptedAsStory ?story . }
+        }
+    """ ;
+    gmeow:cqRationale "The proposing claim identifies its discovery event without recording an acceptance of the candidate." ;
+    gmeow:cqExpectAsk true .

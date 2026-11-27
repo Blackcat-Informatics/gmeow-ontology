@@ -10,7 +10,7 @@
 //! Preparation reuse is not a coverage certificate or permission to erase scope: admission
 //! and execution of each selected context remain obligations of the consuming operation.
 
-use std::collections::{BTreeSet, VecDeque};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt::Write as _;
 use std::sync::{Arc, Mutex, OnceLock};
 
@@ -40,6 +40,9 @@ pub(crate) struct PreparedProgram {
     /// Each compiler-produced rule identity, with the indices into the program's
     /// formulas of the authored formulas it was clausified from.
     pub(crate) formula_rules: std::collections::BTreeMap<String, std::collections::BTreeSet<usize>>,
+    /// Exact source owner of each selected denial rule, available only to live proof execution.
+    #[serde(skip)]
+    pub(crate) denial_owners: BTreeMap<String, String>,
     /// Formula indices whose selected lowering left a preservation boundary.
     #[serde(skip)]
     pub(crate) incomplete_formulas: BTreeSet<usize>,
@@ -149,6 +152,7 @@ impl PreparedProgram {
             existential_rules: self.existential_rules.clone(),
             preservation: self.preservation.clone(),
             formula_rules: self.formula_rules.clone(),
+            denial_owners: self.denial_owners.clone(),
             incomplete_formulas: self.incomplete_formulas.clone(),
             joint: Mutex::new(None),
             reasoning_rules: OnceLock::new(),
@@ -163,6 +167,10 @@ impl PreparedProgram {
         profile: SourceAdmissionProfile,
         selected: Option<gmeow_logic_compile::source_inventory::SelectedProgramView<'_, '_>>,
     ) -> gmeow_errors::Result<Self> {
+        let source_proof = matches!(
+            profile,
+            SourceAdmissionProfile::SelectedSourceProofV1 { .. }
+        );
         let (admission, lowering, mut rules) = if let Some(view) = selected {
             (
                 crate::native_semantics::ProgramAdmission::capture_selected(
@@ -183,6 +191,40 @@ impl PreparedProgram {
             )
         };
         rules.extend(lowering.rules);
+        let mut denial_owners = BTreeMap::new();
+        if let Some(view) = selected.filter(|_| source_proof)
+            && let mut denials = view.forbidden_patterns().peekable()
+            && denials.peek().is_some()
+        {
+            let mut rule_ids: BTreeSet<_> =
+                rules.iter().map(|rule| rule.rule_iri.clone()).collect();
+            rule_ids.extend(
+                lowering
+                    .existential_rules
+                    .iter()
+                    .map(|rule| rule.rule_iri.clone()),
+            );
+            rule_ids.extend(
+                crate::reason::dl::structured_dl_rules()
+                    .into_iter()
+                    .map(|rule| rule.rule_iri),
+            );
+            for (_, constraint) in denials {
+                // Unsupported denials remain source boundaries in NativeSourceAdmission.
+                if let Ok(rule) = crate::reason::lower_forbidden_pattern(constraint) {
+                    if !rule_ids.insert(rule.rule_iri.clone()) {
+                        return Err(gmeow_errors::Diag::of_kind(crate::error::Lower {
+                            detail: format!(
+                                "forbidden pattern {} shares proof rule identity {} with a selected rule",
+                                constraint.iri, rule.rule_iri
+                            ),
+                        }));
+                    }
+                    denial_owners.insert(rule.rule_iri.clone(), constraint.iri.clone());
+                    rules.push(rule);
+                }
+            }
+        }
         Ok(Self {
             identity,
             admission,
@@ -190,6 +232,7 @@ impl PreparedProgram {
             existential_rules: lowering.existential_rules,
             preservation: lowering.preservation,
             formula_rules: lowering.formula_rules,
+            denial_owners,
             incomplete_formulas: if selected.is_some() {
                 lowering.incomplete_formulas
             } else {
@@ -233,6 +276,24 @@ impl PreparedProgram {
         let input_facts = facts.values().map(Vec::len).sum::<usize>();
         let trace_large_input = input_facts >= 100_000;
         self.admission.admit()?;
+        // RDF existential definitions arrive after compiler rule preparation.
+        // Their execution identities must remain distinct from denial owners.
+        if !self.denial_owners.is_empty()
+            && let Some((source, owner)) = sources.rules.iter().find_map(|source| {
+                self.denial_owners
+                    .get(&source.rule.rule_iri)
+                    .map(|owner| (source, owner))
+            })
+        {
+            return Err(crate::reason::source_existentials::refusal(
+                &crate::provenance::term_display(&source.source),
+                &source.world,
+                format!(
+                    "rule identity {} belongs to selected forbidden pattern {owner}",
+                    source.rule.rule_iri
+                ),
+            ));
+        }
         let key = crate::physical::metadata_identity(
             "gmeow-schema-source-domain-selection-v2",
             &(
@@ -438,7 +499,7 @@ pub(crate) fn prepare_program_under(
     program: &LogicProgram,
     profile: SourceAdmissionProfile,
 ) -> gmeow_errors::Result<Arc<PreparedProgram>> {
-    if matches!(profile, SourceAdmissionProfile::ResolvedTheoryV1 { .. }) {
+    if !matches!(profile, SourceAdmissionProfile::WorldLocalTemplatesV1) {
         return Err(gmeow_errors::Diag::of_kind(crate::error::Lower {
             detail: "resolved theory preparation requires the compiler-issued program view".into(),
         }));
@@ -449,19 +510,25 @@ pub(crate) fn prepare_program_under(
 pub(crate) fn prepare_selected_program(
     inventory: &gmeow_logic_compile::source_inventory::SourceInventory<'_>,
     selection: &gmeow_logic_compile::source_inventory::ResolvedTheorySelection,
+    profile: SourceAdmissionProfile,
 ) -> gmeow_errors::Result<Arc<PreparedProgram>> {
     let view = selection.program_view(inventory)?;
-    prepare_program_view(
-        inventory.theory().program(),
-        selected_profile(selection),
-        Some(view),
-    )
+    prepare_program_view(inventory.theory().program(), profile, Some(view))
 }
 
 pub(crate) fn selected_profile(
     selection: &gmeow_logic_compile::source_inventory::ResolvedTheorySelection,
 ) -> SourceAdmissionProfile {
     SourceAdmissionProfile::ResolvedTheoryV1 {
+        theory: selection.request().clone(),
+        execution_identity: selection.observation().identity.clone(),
+    }
+}
+
+pub(crate) fn selected_source_proof_profile(
+    selection: &gmeow_logic_compile::source_inventory::ResolvedTheorySelection,
+) -> SourceAdmissionProfile {
+    SourceAdmissionProfile::SelectedSourceProofV1 {
         theory: selection.request().clone(),
         execution_identity: selection.observation().identity.clone(),
     }
@@ -515,7 +582,8 @@ pub(crate) fn preparation_identity(
     // and so keeps the identity it has always had.
     match profile {
         SourceAdmissionProfile::WorldLocalTemplatesV1 => {}
-        SourceAdmissionProfile::ResolvedTheoryV1 { .. } => {
+        SourceAdmissionProfile::ResolvedTheoryV1 { .. }
+        | SourceAdmissionProfile::SelectedSourceProofV1 { .. } => {
             ciborium::ser::into_writer(profile, &mut digest)
                 .map_err(|error| unidentified(&error))?;
         }

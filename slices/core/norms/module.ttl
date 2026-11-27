@@ -2747,35 +2747,35 @@ gmeow:correspondenceScope
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:useWhen "Use to bound what a correspondence is claimed to cover."@x-gmeow-english .
 
-# Cardinalities. An authority claim has one order, one force, at most one opinion role and one
-# issue, and expresses at least one proposition; a dependency and a correspondence name each
+# Required paths pair value restrictions with class-scoped closure. Upper bounds remain
+# independent. An authority claim has one order, one force, at most one opinion role and one
+# issue, and names at least one proposition. A dependency and a correspondence name each
 # endpoint exactly once.
 gmeow:AuthorityClaim logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:expresses ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Proposition ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:authorityOrder ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:NormativeSystem ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:expresses ; logic:allValuesFrom gmeow:Proposition ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityOrder ; logic:allValuesFrom gmeow:NormativeSystem ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:authorityOrder ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:authorityForce ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:AuthorityForce ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:authorityForce ; logic:allValuesFrom gmeow:AuthorityForce ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:authorityForce ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:opinionRole ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:authorityIssue ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:authorityIssue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:wasAssociatedWith ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Agent ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:wasAssociatedWith ; logic:allValuesFrom gmeow:Agent ] .
 
 gmeow:PropositionDependency logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:dependencyReading ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:AuthorityClaim ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dependencyReading ; logic:allValuesFrom gmeow:AuthorityClaim ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dependencyReading ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:dependencyProposition ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Proposition ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dependencyProposition ; logic:allValuesFrom gmeow:Proposition ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dependencyProposition ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:dependencyTreatment ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:AuthorityClaim ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dependencyTreatment ; logic:allValuesFrom gmeow:AuthorityClaim ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dependencyTreatment ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:AuthorityCorrespondence logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:correspondenceFrom ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:AuthorityClaim ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:correspondenceFrom ; logic:allValuesFrom gmeow:AuthorityClaim ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:correspondenceFrom ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:correspondenceTo ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:AuthorityClaim ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:correspondenceTo ; logic:allValuesFrom gmeow:AuthorityClaim ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:correspondenceTo ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:correspondenceScope ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Condition ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:wasAssociatedWith ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Agent ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:correspondenceScope ; logic:allValuesFrom gmeow:Condition ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:wasAssociatedWith ; logic:allValuesFrom gmeow:Agent ] .
 
 # The issue text admits plain, language-tagged and directional text.
 gmeow:AuthorityClaim logic:subClassOf
@@ -2839,7 +2839,7 @@ logic:dnbForall a logic:Formula ;
     logic:forall logic:dnbImpl .
 logic:dnbImpl a logic:Formula ; logic:antecedent logic:dnbGuard ; logic:consequent logic:dnbNot .
 logic:dnbGuard a logic:Formula ; logic:and logic:dnbG1 , logic:dnbG2 .
-logic:dnbG1 a logic:Formula ; logic:relation logic:directType ;
+logic:dnbG1 a logic:Formula ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AuthorityClaim ] .
 logic:dnbG2 a logic:Formula ; logic:relation gmeow:opinionRole ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:opinionRoleDissenting ] .
@@ -2847,7 +2847,46 @@ logic:dnbNot a logic:Formula ; logic:not logic:dnbAtom .
 logic:dnbAtom a logic:Formula ; logic:relation gmeow:authorityForce ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:authorityForceBinding ] .
 
+[ a logic:ClosureEntry ; logic:onClass gmeow:AuthorityClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/expresses" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AuthorityClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/authorityOrder" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AuthorityClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/authorityForce" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:AuthorityClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/authorityIssue" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AuthorityClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAssociatedWith" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:PropositionDependency ; logic:closureKey "https://blackcatinformatics.ca/gmeow/dependencyReading" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:PropositionDependency ; logic:closureKey "https://blackcatinformatics.ca/gmeow/dependencyProposition" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:PropositionDependency ; logic:closureKey "https://blackcatinformatics.ca/gmeow/dependencyTreatment" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AuthorityCorrespondence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/correspondenceFrom" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AuthorityCorrespondence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/correspondenceTo" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AuthorityCorrespondence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/correspondenceScope" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AuthorityCorrespondence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAssociatedWith" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# A citation may omit its selector in ordinary use, but not as an authority source.
+gmeow:AuthoritySourcePinpointConstraint
+    a logic:Constraint ;
+    rdfs:label "Authority source pinpoint constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every authority source citation has a selector with a populated pinpoint."@x-gmeow-english ;
+    logic:formalizes gmeow:authoritySource ;
+    logic:message "An authority source must cite a populated pinpoint selector." ;
+    logic:integrity [
+        a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "source" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:AuthorityClaim ] ],
+                [ a logic:Formula ; logic:relation gmeow:authoritySource ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "source" ] ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termVariable "pin" ] ;
+                logic:exists [ a logic:Formula ; logic:and
+                    [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ], [ logic:termIndex 1 ; logic:termIri gmeow:CitationAct ] ],
+                    [ a logic:Formula ; logic:relation gmeow:viaSelector ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ], [ logic:termIndex 1 ; logic:termVariable "selector" ] ],
+                    [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termIri gmeow:Selector ] ],
+                    [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation gmeow:selectorLocator ; logic:argument [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termVariable "pin" ] ],
+                        [ a logic:Formula ; logic:relation gmeow:selectorPage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termVariable "pin" ] ],
+                        [ a logic:Formula ; logic:relation gmeow:selectorTextPosition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termVariable "pin" ] ],
+                        [ a logic:Formula ; logic:relation gmeow:selectorTextQuote ; logic:argument [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termVariable "pin" ] ] ],
+                    [ a logic:Formula ; logic:relation logic:termIsLiteral ; logic:argument [ logic:termIndex 0 ; logic:termVariable "pin" ] ],
+                    [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "pin" ], [ logic:termIndex 1 ; logic:termLiteral "\\S" ] ] ] ] ] ] .
 
 # =========================================================================== #
 # Provision versions, legal effect events and transition rules                 #

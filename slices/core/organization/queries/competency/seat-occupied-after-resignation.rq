@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# After the resignation no membership with an open interval fills the seat, although the
+# appointment and its record still exist. This ASK MUST return false.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?membership gmeow:fillsPost <https://blackcatinformatics.ca/gmeow/examples/organization/appointment/boardSeat> ;
+        gmeow:duringInterval ?interval .
+    FILTER NOT EXISTS { ?interval gmeow:endedAtTime ?ended }
+}

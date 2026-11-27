@@ -32,6 +32,10 @@ impl Stage for FrontierStage {
         &self.0.consumes
     }
 
+    fn memory_budget_bytes(&self) -> Option<u64> {
+        self.0.memory_budget_bytes
+    }
+
     fn capabilities(&self) -> &[String] {
         &self.0.capabilities
     }
@@ -152,15 +156,17 @@ fn calibration_serializes_dispatch_with_the_full_worker_pool() {
     );
 }
 
-/// Admission refuses an oversized stage and queues combined work that exceeds
-/// the ceiling. Delaying dispatch preserves products and receipts.
+/// An authored reservation prevents an understated estimate from admitting
+/// both heavy stages. Delaying dispatch preserves products and receipts.
 #[test]
 fn active_work_ceiling_queues_heavy_work_while_a_lighter_stage_runs() {
     let directory = tempfile::tempdir().expect("synthetic admission root");
+    let mut authored = spec("a-heavy", &[]);
+    authored.memory_budget_bytes = Some(6);
     let pipeline = PipelineSpec {
         id: "admission-fixture".into(),
         stages: vec![
-            spec("a-heavy", &[]),
+            authored,
             spec("b-heavy", &[]),
             spec("c-light", &[]),
             spec("sink", &["a-heavy", "b-heavy", "c-light"]),
@@ -169,8 +175,8 @@ fn active_work_ceiling_queues_heavy_work_while_a_lighter_stage_runs() {
     let order = |ceiling| {
         ReadyOrder::from_estimate_json(
             br#"{
-                "a-heavy":{"transient_bytes":6,"published_bytes":0},
-                "b-heavy":{"transient_bytes":1,"published_bytes":6},
+                "a-heavy":{"transient_bytes":2,"published_bytes":0},
+                "b-heavy":{"transient_bytes":1,"published_bytes":4},
                 "c-light":{"transient_bytes":3,"published_bytes":0},
                 "sink":{"transient_bytes":0,"published_bytes":0}
             }"#,
@@ -182,7 +188,7 @@ fn active_work_ceiling_queues_heavy_work_while_a_lighter_stage_runs() {
         .expect_err("an oversized stage is refused");
     assert!(
         refusal.message().contains(
-            "a-heavy requires 6 estimated active-work bytes, above the ceiling of 5 bytes"
+            "a-heavy requires 6 reserved active-work bytes (estimate 2, authored budget Some(6)), above the ceiling of 5 bytes"
         )
     );
 
@@ -199,8 +205,8 @@ fn active_work_ceiling_queues_heavy_work_while_a_lighter_stage_runs() {
     assert_eq!(
         boundaries[0..2],
         [
-            ("c-light", MemoryEvent::Dispatch),
             ("a-heavy", MemoryEvent::Dispatch),
+            ("c-light", MemoryEvent::Dispatch),
         ]
     );
     let completed = boundaries

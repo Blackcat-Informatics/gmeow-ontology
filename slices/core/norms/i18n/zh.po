@@ -1257,6 +1257,78 @@ msgctxt "https://blackcatinformatics.ca/gmeow/DissentNotBindingConstraint|http:/
 msgid "A closed-world integrity constraint: an authority claim whose opinion role is dissenting does not carry binding force."
 msgstr "封闭世界完整性约束：意见角色为异议的权威主张不带有约束效力。"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/sccCanada|https://blackcatinformatics.ca/gmeow/name"
+msgid "Supreme Court of Canada"
+msgstr "加拿大最高法院"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/reviewingCourts|https://blackcatinformatics.ca/gmeow/name"
+msgid "Courts reviewing the merits of an administrative decision"
+msgstr "审查行政决定实体问题的法院"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/justiceCanada|https://blackcatinformatics.ca/gmeow/name"
+msgid "Department of Justice Canada, publisher of the consolidated Constitution Acts"
+msgstr "加拿大司法部，《宪法法》汇编的发布机构"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/gitanyowNation|https://blackcatinformatics.ca/gmeow/name"
+msgid "Gitanyow Nation"
+msgstr "吉塔尼约民族"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/canadianLegalOrder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Canadian legal order"
+msgstr "加拿大法律秩序"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/gitanyowAyookxw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Gitanyow Ayookxw"
+msgstr "Gitanyow Ayookxw（吉塔尼约法律）"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/vavilovDecision|https://blackcatinformatics.ca/gmeow/bibliographicCitation"
+msgid "Canada (Minister of Citizenship and Immigration) v. Vavilov, 2019 SCC 65, [2019] 4 S.C.R. 653"
+msgstr "加拿大（公民及移民部长）诉瓦维洛夫，2019 SCC 65，[2019] 4 S.C.R. 653"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/dunsmuirDecision|https://blackcatinformatics.ca/gmeow/bibliographicCitation"
+msgid "Dunsmuir v. New Brunswick, [2008] 1 S.C.R. 190, 2008 SCC 9"
+msgstr "邓斯缪尔诉新不伦瑞克省，[2008] 1 S.C.R. 190，2008 SCC 9"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/constitutionAct1982|https://blackcatinformatics.ca/gmeow/bibliographicCitation"
+msgid "Constitution Act, 1982, section 35(1)"
+msgstr "《1982年宪法法》第35(1)款"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/gitanyowConstitution|https://blackcatinformatics.ca/gmeow/bibliographicCitation"
+msgid "The Gitanyow Ayookxw: The Constitution of the Gitanyow Nation"
+msgstr "《Gitanyow Ayookxw：吉塔尼约民族宪法》"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/propJurisdictionalCorrectness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Correctness review applies to jurisdictional questions"
+msgstr "管辖权问题适用正确性审查标准"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/propNoJurisdictionalCategory|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Jurisdictional questions are not a distinct category attracting correctness review"
+msgstr "管辖权问题不再构成适用正确性审查标准的独立类别"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/propBoundariesCorrectness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Correctness review applies to questions about the jurisdictional boundaries between administrative bodies"
+msgstr "行政机关之间的管辖权界限问题适用正确性审查标准"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/propPresumptionReasonableness|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "The standard of review begins from a presumption of reasonableness"
+msgstr "审查标准的确定以合理性推定为起点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/propAyookxwSupreme|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "The Gitanyow Ayookxw is the supreme law of the Gitanyow Nation and for the Gitanyow People"
+msgstr "Gitanyow Ayookxw 是吉塔尼约民族及其人民的最高法律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/examples/norms/propSection35|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "The existing aboriginal and treaty rights of the aboriginal peoples of Canada are recognized and affirmed"
+msgstr "加拿大原住民族现有的原住民权利和条约权利得到承认和确认"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthoritySourcePinpointConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Authority source pinpoint constraint"
+msgstr "权威来源精确定位约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthoritySourcePinpointConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every authority source citation has a selector with a populated pinpoint."
+msgstr "闭世界完整性约束：每条权威来源引文都必须包含提供具体位置的选择器。"
+
 msgctxt "https://blackcatinformatics.ca/gmeow/effectEnactment|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "enactment"
 msgstr "颁布"

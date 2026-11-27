@@ -42,7 +42,8 @@ ex:vavilovDecision a gmeow:Document ;
     gmeow:bibliographicCitation "Canada (Minister of Citizenship and Immigration) v. Vavilov, 2019 SCC 65, [2019] 4 S.C.R. 653"@x-gmeow-english ;
     gmeow:sourceLocation "https://decisions.scc-csc.ca/scc-csc/scc-csc/en/item/18078/index.do" .
 ex:dunsmuirDecision a gmeow:Document ;
-    gmeow:bibliographicCitation "Dunsmuir v. New Brunswick, [2008] 1 S.C.R. 190, 2008 SCC 9"@x-gmeow-english .
+    gmeow:bibliographicCitation "Dunsmuir v. New Brunswick, [2008] 1 S.C.R. 190, 2008 SCC 9"@x-gmeow-english ;
+    gmeow:sourceLocation "https://decisions.scc-csc.ca/scc-csc/scc-csc/en/item/2408/index.do" .
 ex:constitutionAct1982 a gmeow:Document ;
     gmeow:bibliographicCitation "Constitution Act, 1982, section 35(1)"@x-gmeow-english ;
     gmeow:sourceLocation "https://laws-lois.justice.gc.ca/eng/Const/FullText.html" .
@@ -72,26 +73,21 @@ ex:factOralTraditions a gmeow:Condition ;
 
 # --- Pinpoint sources -----------------------------------------------------------------------
 ex:selVavilov10 a gmeow:Selector ;
-    gmeow:selectorLocator "para. 10" ;
-    gmeow:selectorTextQuote "The analysis begins with a presumption that reasonableness is the applicable standard in all cases." .
+    gmeow:selectorLocator "para. 10" .
 ex:selVavilov65 a gmeow:Selector ;
     gmeow:selectorLocator "para. 65" ;
     gmeow:selectorTextQuote "We would cease to recognize jurisdictional questions as a distinct category attracting correctness review." .
 ex:selVavilov65Report a gmeow:Selector ;
-    gmeow:selectorLocator "para. 65" ;
-    gmeow:selectorTextQuote "The majority in Dunsmuir held that it was \"without question\" (para. 50) that the correctness standard must be applied in reviewing jurisdictional questions" .
+    gmeow:selectorLocator "para. 65" .
 ex:selVavilov63 a gmeow:Selector ;
-    gmeow:selectorLocator "para. 63" ;
-    gmeow:selectorTextQuote "the rule of law requires that the correctness standard be applied in order to resolve questions regarding the jurisdictional boundaries between two or more administrative bodies" .
+    gmeow:selectorLocator "para. 63" .
 ex:selVavilov200 a gmeow:Selector ;
-    gmeow:selectorLocator "para. 200" ;
-    gmeow:selectorTextQuote "We support the majority’s decision to eliminate the vexing contextual factors analysis from the standard of review framework and to abolish the shibboleth category of “true questions of jurisdiction”." .
+    gmeow:selectorLocator "para. 200" .
 ex:selDunsmuir50 a gmeow:Selector ; gmeow:selectorLocator "para. 50" .
 ex:selDunsmuir61 a gmeow:Selector ; gmeow:selectorLocator "para. 61" .
 ex:selGitanyow a gmeow:Selector ;
     gmeow:selectorLocator "section 3.0, Fundamental Gitanyow Principles, item 4" ;
-    gmeow:selectorPage "5" ;
-    gmeow:selectorTextQuote "The Gitanyow Ayookxw is the supreme law of the Gitanyow Nation and for the Gitanyow People and is the foundation for the relationships we live by and uphold;" .
+    gmeow:selectorPage "5" .
 ex:selSection35 a gmeow:Selector ;
     gmeow:selectorLocator "section 35(1)" ;
     gmeow:selectorTextQuote "The existing aboriginal and treaty rights of the aboriginal peoples of Canada are hereby recognized and affirmed." .
@@ -133,6 +129,11 @@ ex:vavilovCitesDunsmuir50 a gmeow:CitationAct ;
 ex:vavilovCitesDunsmuir61 a gmeow:CitationAct ;
     gmeow:citingEntity ex:vavilovDecision ; gmeow:citedEntity ex:dunsmuirDecision ;
     gmeow:citationIntent gmeow:intentSupports ; gmeow:viaSelector ex:selDunsmuir61 .
+# A synthetic overview supplies an ordinary whole-work citation, not authority evidence.
+ex:fixtureOverview a gmeow:Document .
+ex:overviewWholeWorkReference a gmeow:CitationAct ;
+    gmeow:citingEntity ex:fixtureOverview ; gmeow:citedEntity ex:dunsmuirDecision ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource .
 
 # --- Authority claims: the revised review framework -----------------------------------------
 ex:claimVavilovPresumption a gmeow:AuthorityClaim ;

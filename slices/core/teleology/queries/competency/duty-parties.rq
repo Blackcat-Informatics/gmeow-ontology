@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# For a duty owed to another party, the three distinct roles: the bearer (the committed
+# agent), the beneficiary (the agent the duty depends on externally) and the founding
+# agreement (gmeow:foundedOn).
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?duty ?bearer ?beneficiary ?agreement
+WHERE {
+    ?duty a gmeow:Commitment ;
+        gmeow:committedAgent ?bearer ;
+        gmeow:commitmentBeneficiary ?beneficiary ;
+        gmeow:foundedOn ?agreement .
+}

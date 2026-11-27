@@ -735,6 +735,9 @@ impl Stage for ReasonStage {
     fn id(&self) -> &str {
         "stage-reason"
     }
+    fn memory_budget_bytes(&self) -> Option<u64> {
+        Some(10_126_553_088)
+    }
     fn output_family(&self) -> crate::node::OutputFamily {
         crate::node::OutputFamily::Generated
     }

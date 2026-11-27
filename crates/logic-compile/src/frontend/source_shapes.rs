@@ -1817,39 +1817,31 @@ pub fn derive_validation_shapes(
     // `rdf:type`-path property shape that leaks into the schema projections. The IRI-pinned
     // and UNPINNED forms keep their procedural projection only.
     let forbidden_ty = Node::iri(logic_iri("ForbiddenPatternConstraint"));
-    let p_sugar_onclass = nn(&logic_iri("onClass"));
-    let p_forbidden_pred = nn(&logic_iri("forbiddenPredicate"));
-    let p_forbidden_value = nn(&logic_iri("forbiddenValue"));
     for record in subjects_of_structural_class(store, &forbidden_ty) {
-        let Some(Node::Iri(class_iri)) = value(store, &record, &p_sugar_onclass) else {
+        let Ok(ForbiddenPattern {
+            class,
+            predicate,
+            pin: Some(pin @ ShapeValue::Literal(_)),
+        }) = forbidden_pattern_fields(store, owner_source(store, &record), &mut BTreeSet::new())
+        else {
+            // The canonical constraint reader reports malformed fields.
             continue;
         };
         // Only an authoring-namespace class owns a derived shape (the same dogfooding
         // boundary every other family enforces).
-        if !is_authoring_ns(&class_iri) {
+        if !is_authoring_ns(&class) {
             continue;
         }
-        let Some(Node::Iri(on)) = value(store, &record, &p_forbidden_pred) else {
-            continue;
-        };
-        let sv = match value(store, &record, &p_forbidden_value) {
-            Some(Node::Lit(literal)) => ShapeValue::Literal(literal),
-            // IRI-pinned, unpinned, or malformed — no per-value SHACL-Core form here; the
-            // record's canonical logic:Constraint expansion carries it procedurally.
-            _ => continue,
-        };
         let pc = PropertyConstraintIr::new(
-            &on,
+            &predicate,
             None,
             None,
             None,
             vec![ConstraintComponent::Not(Box::new(
-                ConstraintComponent::HasValue(sv),
+                ConstraintComponent::HasValue(pin),
             ))],
         )?;
-        entry_for(&mut acc, ShapeTarget::Class(class_iri))
-            .2
-            .push(pc);
+        entry_for(&mut acc, ShapeTarget::Class(class)).2.push(pc);
     }
 
     // ── FAMILY 8 — value-range records (Class(C) target) ───────────────────────────────────
@@ -1875,7 +1867,7 @@ pub fn derive_validation_shapes(
     let p_min_excl = nn(&logic_iri("minExclusiveBound"));
     let p_max_excl = nn(&logic_iri("maxExclusiveBound"));
     for record in subjects_of_structural_class(store, &range_ty) {
-        let Some(Node::Iri(class_iri)) = value(store, &record, &p_sugar_onclass) else {
+        let Some(Node::Iri(class_iri)) = value(store, &record, &p_logic_onclass) else {
             continue;
         };
         if !is_authoring_ns(&class_iri) {

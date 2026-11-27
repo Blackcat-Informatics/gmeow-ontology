@@ -214,11 +214,16 @@ fn gufo_catalog_covers_every_imported_class_without_silent_drop() {
         "every stock gUFO class must be represented in the grounding catalog"
     );
     let relation_targets: BTreeSet<String> = targets.difference(&imported).cloned().collect();
-    let expected_relation_targets =
-        BTreeSet::from([format!("{GUFO}isProperPartOf"), format!("{GUFO}mediates")]);
+    let expected_relation_targets = BTreeSet::from([
+        format!("{GUFO}isProperPartOf"),
+        format!("{GUFO}mediates"),
+        format!("{GUFO}inheresIn"),
+        format!("{GUFO}externallyDependsOn"),
+        format!("{GUFO}historicallyDependsOn"),
+    ]);
     assert_eq!(
         relation_targets, expected_relation_targets,
-        "the gUFO relation surface must contain only the two audited high-confidence bridges"
+        "the gUFO relation surface must contain only the audited parthood, mediation and dependence bridges"
     );
 
     let unsupported_targets: BTreeSet<String> = rows
@@ -228,6 +233,7 @@ fn gufo_catalog_covers_every_imported_class_without_silent_drop() {
         .collect();
     let expected_unsupported: BTreeSet<String> = [
         "IntrinsicMode",
+        "externallyDependsOn",
         "QualityValueAttributionSituation",
         "TemporaryConstitutionSituation",
         "TemporaryInstantiationSituation",

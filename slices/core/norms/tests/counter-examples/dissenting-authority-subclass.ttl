@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/norms/tests/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:body a gmeow:Organization .
+ex:order a gmeow:NormativeSystem .
+ex:proposition a gmeow:Proposition .
+ex:work a gmeow:Document .
+
+ex:ScopedAuthorityClaim rdfs:subClassOf gmeow:AuthorityClaim .
+ex:claim a ex:ScopedAuthorityClaim ;
+    gmeow:opinionRole gmeow:opinionRoleDissenting ;
+    gmeow:expresses ex:proposition ;
+    gmeow:authorityOrder ex:order ;
+    gmeow:authorityForum ex:body ;
+    gmeow:wasAssociatedWith ex:body ;
+    gmeow:authorityForce gmeow:authorityForceBinding ;
+    gmeow:authorityIssue "Scope of the review" ;
+    gmeow:authoritySource ex:citation ;
+    gmeow:eventTime "2026-01-08"^^xsd:date .
+ex:citation a gmeow:CitationAct ;
+    gmeow:citingEntity ex:claim ;
+    gmeow:citedEntity ex:work ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:viaSelector ex:selector .
+ex:selector a gmeow:Selector ; gmeow:selectorLocator "para. 12" .

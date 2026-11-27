@@ -2005,6 +2005,118 @@ msgctxt "https://blackcatinformatics.ca/gmeow/acceptedAsStory|http://www.w3.org/
 msgid "ex:candidate gmeow:acceptedAsStory ex:story ."
 msgstr "ex:candidate gmeow:acceptedAsStory ex:story ."
 
+msgctxt "https://blackcatinformatics.ca/gmeow/storyDiscoveryEvidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "story discovery evidence"
+msgstr "preuve de la découverte à l’origine d’un récit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyDiscoveryEvidence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a story proposal claim to the discovery event it cites as evidence for the proposed cluster."
+msgstr "Relie une assertion proposant un récit à l’événement de découverte qu’elle cite comme preuve à l’appui du regroupement proposé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyDiscoveryEvidence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a claim that puts forward a story candidate explicitly cites a discovery event as evidence."
+msgstr "Utiliser lorsqu’une assertion proposant un récit cite explicitement un événement de découverte comme preuve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyDiscoveryEvidence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid for the event that merely produced the claim, for a person's acceptance of the candidate, or for a verdict that the evidence is sufficient."
+msgstr "Ne pas utiliser pour l’événement qui a seulement produit l’assertion, pour l’acceptation du récit possible par une personne ni pour un verdict sur la suffisance des preuves."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyDiscoveryEvidence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the proposing gmeow:ClaimToken to the actual gmeow:Event the claim cites. Identify the candidate through the proposal statement reifier and gmeow:putForwardByClaim."
+msgstr "Relier le gmeow:ClaimToken qui formule la proposition au gmeow:Event effectivement cité. Identifier le récit possible par le réificateur de l’énoncé de proposition et gmeow:putForwardByClaim."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyDiscoveryEvidence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The link records the claim's cited evidence. It does not assert that the event produced the claim or that anyone accepted the candidate."
+msgstr "Ce lien consigne la preuve citée par l’assertion. Il n’affirme pas que l’événement a produit l’assertion ni que quelqu’un a accepté le récit possible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyDiscoveryEvidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:proposalClaim gmeow:storyDiscoveryEvidence ex:discovery ."
+msgstr "ex:proposalClaim gmeow:storyDiscoveryEvidence ex:discovery ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryCandidate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Story Candidate"
+msgstr "Proposition de récit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryCandidate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A cluster of records offered for a person's decision as a possible story. The claim that proposes it identifies the discovery event as evidence. It is a proposal only: neither an accepted story nor a preferred grouping."
+msgstr "Un ensemble d’enregistrements soumis à la décision d’une personne comme récit possible. L’affirmation qui le propose identifie l’événement de découverte comme preuve. Il n’est qu’une proposition : ni récit accepté, ni regroupement privilégié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryCandidate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a cluster of existing records that a storytelling process offers a person as a possible story, retaining the proposing claim."
+msgstr "À utiliser pour un ensemble d’enregistrements existants qu’un processus narratif propose à une personne comme récit possible, en conservant l’affirmation qui le propose."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryCandidate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for a story itself, for a cluster a person has already accepted, or for a generated grouping presented as settled."
+msgstr "À éviter pour un récit lui-même, pour un ensemble qu’une personne a déjà accepté, ou pour un regroupement généré présenté comme établi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryCandidate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the records with gmeow:storyCandidateRecord and distinctive vocabulary with gmeow:storyCandidateTerm. Give the proposal statement a named RDF reifier, link it to the proposing gmeow:ClaimToken with gmeow:putForwardByClaim, and record the discovery event on that token with gmeow:storyDiscoveryEvidence."
+msgstr "Relier les enregistrements par gmeow:storyCandidateRecord et le vocabulaire distinctif par gmeow:storyCandidateTerm. Donner à l’énoncé de proposition un réificateur RDF nommé, le relier au gmeow:ClaimToken qui formule la proposition par gmeow:putForwardByClaim, puis indiquer sur ce jeton l’événement de découverte par gmeow:storyDiscoveryEvidence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryCandidate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A generated display name, when one exists, is attached separately and is not a term of this class. Acceptance remains a claim made by the accepting person, recorded with gmeow:acceptedAsStory; the candidate asserts neither acceptance nor completed gathering."
+msgstr "Un nom d’affichage généré, lorsqu’il existe, est rattaché séparément et n’est pas un terme de cette classe. L’acceptation reste une affirmation faite par la personne qui accepte, enregistrée par gmeow:acceptedAsStory ; la proposition n’affirme ni acceptation ni rassemblement achevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryCandidate|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:proposal a gmeow:StoryCandidate ; gmeow:storyCandidateRecord ex:letter1 ; gmeow:storyCandidateTerm \"lighthouse\"^^xsd:token ."
+msgstr "ex:proposal a gmeow:StoryCandidate ; gmeow:storyCandidateRecord ex:letter1 ; gmeow:storyCandidateTerm \"phare\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "story candidate record"
+msgstr "enregistrement de proposition de récit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a story candidate to a record in its cluster. The record can seed gathering once someone accepts the candidate; membership neither accepts the candidate nor makes the record a story member."
+msgstr "Relie une proposition de récit à un enregistrement de son ensemble. L’enregistrement peut amorcer le rassemblement une fois que quelqu’un accepte la proposition ; l’appartenance n’accepte pas la proposition et ne fait pas de l’enregistrement un membre du récit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain each record that a candidate's proposal clusters, with the record's actual identity."
+msgstr "À utiliser pour conserver chaque enregistrement regroupé par la proposition, avec son identité réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for records selected into an accepted story (use gmeow:hasPart on the story) and for inferring acceptance from membership."
+msgstr "À éviter pour les enregistrements retenus dans un récit accepté (utiliser gmeow:hasPart sur le récit) et pour déduire une acceptation de l’appartenance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write one statement per clustered record and keep each record identity exactly as supplied, including blank nodes or triple terms."
+msgstr "Écrire une déclaration par enregistrement regroupé et conserver chaque identité d’enregistrement exactement comme fournie, y compris les nœuds anonymes ou les termes triplets."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The statements name the records the proposal clusters. They do not certify that the cluster is complete or that its records share a story."
+msgstr "Les déclarations nomment les enregistrements regroupés par la proposition. Elles ne certifient ni que l’ensemble est complet, ni que ses enregistrements appartiennent à un même récit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:proposal gmeow:storyCandidateRecord ex:letter1 ."
+msgstr "ex:proposal gmeow:storyCandidateRecord ex:letter1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateTerm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "story candidate term"
+msgstr "terme de proposition de récit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateTerm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A distinctive vocabulary term of a story candidate's record cluster, retained as a token. It marks what sets the cluster apart; it is not a title, a display name or an accepted story name."
+msgstr "Un terme de vocabulaire distinctif de l’ensemble d’enregistrements d’une proposition de récit, conservé comme jeton. Il marque ce qui distingue l’ensemble ; ce n’est ni un titre, ni un nom d’affichage, ni le nom d’un récit accepté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateTerm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a distinctive term that the proposal found across the cluster's records."
+msgstr "À utiliser pour conserver un terme distinctif que la proposition a trouvé dans les enregistrements de l’ensemble."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateTerm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for a title, a generated display name or a word common to the records at large."
+msgstr "À éviter pour un titre, un nom d’affichage généré ou un mot commun à l’ensemble des enregistrements."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateTerm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep each supplied term as an xsd:token with its supplied lexical form, one term per statement."
+msgstr "Conserver chaque terme fourni comme xsd:token avec sa forme lexicale fournie, un terme par déclaration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateTerm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several terms may coexist. The set is neither a preferred nor a complete vocabulary of the cluster."
+msgstr "Plusieurs termes peuvent coexister. L’ensemble n’est ni un vocabulaire privilégié ni un vocabulaire complet de l’ensemble."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyCandidateTerm|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:proposal gmeow:storyCandidateTerm \"lighthouse\"^^xsd:token ."
+msgstr "ex:proposal gmeow:storyCandidateTerm \"phare\"^^xsd:token ."
+
 msgctxt "https://blackcatinformatics.ca/gmeow/storyFocus|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "story focus"
 msgstr "centre du récit"

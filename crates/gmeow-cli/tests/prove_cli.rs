@@ -2271,6 +2271,84 @@ ex:Opposition logic:disjointWith ex:Dst .
     }
 }
 
+/// A selected positive denial refutes the theory with both asserted premises.
+/// An excluded owner and an unasserted quote each leave the theory consistent.
+/// The authored owner can also name a resource reserved for native assertions.
+#[test]
+fn selected_forbidden_pattern_refutes_only_on_asserted_matching_premises() {
+    let body = r#"
+ex:Chosen a logic:Module .
+ex:Other a logic:Module .
+logic:assert a logic:ForbiddenPatternConstraint ;
+    logic:onClass ex:Guard ; logic:forbiddenPredicate ex:edge ;
+    logic:forbiddenValue ex:blocked ; logic:formalizes ex:Guard ;
+    logic:inModule ex:Chosen .
+ex:a a ex:Guard ; ex:edge ex:permitted .
+ex:quote rdf:reifies <<( ex:a ex:edge ex:blocked )>> .
+"#;
+    let asserted = format!("{body}\nex:a ex:edge ex:blocked .");
+    for (module, source, verdict, disposition) in [
+        ("Chosen", asserted.as_str(), "inconsistent", "Accounted"),
+        ("Chosen", body, "consistent", "Accounted"),
+        (
+            "Other",
+            asserted.as_str(),
+            "consistent",
+            "OutsideRequestedTheory",
+        ),
+    ] {
+        let root = format!("https://example.org/prove/{module}");
+        let (report, _) = prove_json("forbidden.ttl", source, &["--module", &root]);
+        assert_eq!(report["verdict"], verdict, "{report:#}");
+        let units = report["native_admission"]["units"]
+            .as_array()
+            .expect("source units");
+        let owner = units
+            .iter()
+            .find(|unit| {
+                unit["kind"] == "Owner"
+                    && unit["anchor"]
+                        .as_str()
+                        .is_some_and(|anchor| anchor.contains("/assert"))
+            })
+            .expect("compiler owner of the denial");
+        assert!(!owner["disposition"][disposition].is_null(), "{owner:#}");
+        if verdict == "inconsistent" {
+            let witness = report["refutations"]
+                .as_array()
+                .expect("witnesses")
+                .iter()
+                .find(|row| {
+                    row["engine"] == "native"
+                        && row["law"] == "https://blackcatinformatics.ca/logic/assert"
+                })
+                .expect("witness attributed to the selected owner");
+            let premises = witness["premises"]
+                .as_array()
+                .expect("positive join premises");
+            assert_eq!(premises.len(), 2, "{witness:#}");
+            assert!(
+                premises.iter().any(|row| {
+                    row[1] == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+                        && row[2]
+                            .as_str()
+                            .is_some_and(|object| object.contains("/Guard"))
+                }),
+                "{witness:#}"
+            );
+            assert!(
+                premises.iter().any(|row| {
+                    row[1] == "https://example.org/prove/edge"
+                        && row[2]
+                            .as_str()
+                            .is_some_and(|object| object.contains("/blocked"))
+                }),
+                "{witness:#}"
+            );
+        }
+    }
+}
+
 /// A consequent that conjoins a unary atom with an atom of arity three is one
 /// dependency the native engine executes: the run is decided, not an execution
 /// failure, and no drop names the formula.

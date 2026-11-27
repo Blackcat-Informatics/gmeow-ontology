@@ -33,6 +33,7 @@ mod source_admission;
 pub use claims::{
     ClaimIngress, ReadClaim, UnreadClaim, UnreadReason, prepare_selected_theory_input,
 };
+pub(crate) use source_admission::lower_forbidden_pattern;
 pub use source_admission::{
     NativeSourceAdmission, NativeSourceDisposition, NativeSourceDrop, NonEntailmentSourceBoundary,
     SelectedNonEntailment, SelectedNonEntailmentDisposition, SelectedNonEntailmentObligation,
@@ -617,6 +618,12 @@ pub struct SelectedProgram {
 }
 
 impl SelectedProgram {
+    /// Recover the authored owner of a denial rule from this exact native preparation.
+    #[must_use]
+    pub fn authored_denial_owner(&self, rule: &str) -> Option<&str> {
+        self.prepared.denial_owners.get(rule).map(String::as_str)
+    }
+
     /// The constructs the lowering could not carry, each named exactly once. A completed
     /// run folds these into its preservation claim; a refused run reports the same set.
     #[must_use]
@@ -660,6 +667,33 @@ pub fn prepare_selected_theory(
     inventory: &gmeow_logic_compile::source_inventory::SourceInventory<'_>,
     ingress: &ClaimIngress,
 ) -> gmeow_errors::Result<SelectedProgram> {
+    prepare_selected_with_profile(
+        inventory,
+        ingress,
+        crate::program_analysis::selected_profile(ingress.resolved_selection()),
+    )
+}
+
+/// Prepare the selected theory's classical source-proof rules and their provenance.
+///
+/// # Errors
+/// Refuses source mismatches and native lowering failures.
+pub fn prepare_selected_source_proof(
+    inventory: &gmeow_logic_compile::source_inventory::SourceInventory<'_>,
+    ingress: &ClaimIngress,
+) -> gmeow_errors::Result<SelectedProgram> {
+    prepare_selected_with_profile(
+        inventory,
+        ingress,
+        crate::program_analysis::selected_source_proof_profile(ingress.resolved_selection()),
+    )
+}
+
+fn prepare_selected_with_profile(
+    inventory: &gmeow_logic_compile::source_inventory::SourceInventory<'_>,
+    ingress: &ClaimIngress,
+    profile: crate::native_semantics::SourceAdmissionProfile,
+) -> gmeow_errors::Result<SelectedProgram> {
     let theory = inventory.theory();
     let selection = ingress.resolved_selection();
     let view = selection.program_view(inventory)?;
@@ -674,7 +708,8 @@ pub fn prepare_selected_theory(
             authored.entry(index).or_default().insert(iri.to_owned());
         }
     }
-    let prepared = crate::program_analysis::prepare_selected_program(inventory, selection)?;
+    let prepared =
+        crate::program_analysis::prepare_selected_program(inventory, selection, profile)?;
     Ok(SelectedProgram {
         prepared,
         selection: selection.clone(),

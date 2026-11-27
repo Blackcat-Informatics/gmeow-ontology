@@ -12,6 +12,21 @@
 ex:person a gmeow:Person .
 ex:otherPerson a gmeow:Person .
 ex:agent a gmeow:Agent .
+ex:foundCluster a gmeow:StoryCandidate ;
+    gmeow:storyCandidateRecord ex:eventRecord, ex:unselectedRecord ;
+    gmeow:storyCandidateTerm "crossing"^^xsd:token .
+ex:proposalStatement rdf:reifies <<( ex:foundCluster rdf:type gmeow:StoryCandidate )>> ;
+    gmeow:putForwardByClaim ex:proposalClaim .
+ex:proposalContext a gmeow:Standpoint .
+ex:proposalClaim a gmeow:ClaimToken ;
+    gmeow:wasAssociatedWith ex:agent ;
+    gmeow:accordingTo ex:proposalContext ;
+    gmeow:eventTime "2026-01-03T09:45:00Z"^^xsd:dateTime ;
+    logic:occurrentBoundary logic:Closed ;
+    gmeow:storyDiscoveryEvidence ex:discovery .
+ex:discovery a gmeow:Event ;
+    gmeow:eventTime "2026-01-03T09:30:00Z"^^xsd:dateTime .
+
 ex:candidate a gmeow:InformationObject ;
     gmeow:acceptedAsStory ex:story, ex:otherStory .
 ex:acceptance rdf:reifies <<( ex:candidate gmeow:acceptedAsStory ex:story )>> ;

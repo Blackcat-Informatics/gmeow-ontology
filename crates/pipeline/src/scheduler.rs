@@ -698,7 +698,9 @@ pub fn run_without(
         }
     }
     let declared_level_frontier = last_consumer_levels(graph, &by_id);
-    ctx.ready_order.validate(&executed)?;
+    let mut active_work = ctx
+        .ready_order
+        .active_work_admission(executed.iter().map(|id| by_id[id.as_str()].as_ref()))?;
     let depth = if matches!(ctx.ready_order, ReadyOrder::Memory(_)) {
         ready_order::critical_depth(graph, &dependents)
     } else {
@@ -824,11 +826,10 @@ pub fn run_without(
             }));
         }
     }
-    let mut active_work = ready_order.active_work_admission();
-    if let Some((ceiling, _)) = active_work {
+    if let Some(admission) = &active_work {
         tracing::info!(
             target: crate::memory_record::TARGET,
-            active_work_ceiling_bytes = ceiling,
+            active_work_ceiling_bytes = admission.remaining,
             "scheduler active-work ceiling"
         );
     }
@@ -857,8 +858,8 @@ pub fn run_without(
                         .resources()
                         .iter()
                         .all(|resource| !active_resources.contains(resource))
-                        && active_work.as_ref().is_none_or(|(remaining, estimates)| {
-                            estimates[stage_id.as_str()].active_work_bytes() <= *remaining
+                        && active_work.as_ref().is_none_or(|admission| {
+                            admission.charges[stage_id.as_str()] <= admission.remaining
                         })
                 });
                 let next = match ready_order {
@@ -960,8 +961,8 @@ pub fn run_without(
                 ));
                 let tx = tx.clone();
                 let progress = progress.clone();
-                if let Some((remaining, estimates)) = &mut active_work {
-                    *remaining -= estimates[stage_id.as_str()].active_work_bytes();
+                if let Some(admission) = &mut active_work {
+                    admission.remaining -= admission.charges[stage_id.as_str()];
                 }
                 active += 1;
                 // The worker reports its edges whether the stage returns, fails or
@@ -1170,8 +1171,8 @@ pub fn run_without(
                 Err(error) => Err(error),
             };
             active -= 1;
-            if let Some((remaining, estimates)) = &mut active_work {
-                *remaining += estimates[stage_id.as_str()].active_work_bytes();
+            if let Some(admission) = &mut active_work {
+                admission.remaining += admission.charges[stage_id.as_str()];
             }
             for resource in resources {
                 active_resources.remove(&resource);

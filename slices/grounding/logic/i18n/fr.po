@@ -24342,3 +24342,35 @@ msgstr "La feuille de clôture possède un segment terminé et aucune charge uti
 msgctxt "https://blackcatinformatics.ca/logic/resultClosureBlob|http://www.w3.org/2004/02/skos/core#example"
 msgid "A reasoned document preserves a caller graph named graph/reasoning inside the isolated closure while its outer aggregate binds the required closure address."
 msgstr "Un document raisonné conserve un graphe fourni par l’appelant nommé graph/reasoning dans la clôture isolée, tandis que son agrégat externe lie l’adresse obligatoire de cette clôture."
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOnTransitivity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "historical dependence transitivity"
+msgstr "transitivité de la dépendance historique"
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOnTransitivity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that historical dependence is transitive: dependence on an antecedent that itself depends historically on a further antecedent is dependence on that further antecedent."
+msgstr "Affirme la transitivité de la dépendance historique : dépendre d’un antécédent qui dépend lui-même historiquement d’un autre antécédent, c’est dépendre de cet autre antécédent."
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "historically depends on"
+msgstr "dépend historiquement de"
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a concrete individual to a concrete individual whose having come to be at or before its own beginning it requires: the dependent could not have come to be, as it did, unless the other had. The dependence is rigid and past-directed: once it holds it holds at every later time, so it survives the end of the individual depended on and the end of the dependent — a membership that has ended still depends historically on the appointment that began it. Transitive: what a dependent requires of its history, its own dependents inherit. Deliberately not functional (an individual has many antecedents), and not asserted asymmetric or irreflexive, because an instantaneous founding event coincides with the beginning of what it founds. It entails nothing about the present: the antecedent need not still exist and the dependent need not still hold. Neither provenance, evidence, derivation, temporal order nor statistical dependence supplies it, and it supplies none of them. The counterpart of gufo:historicallyDependsOn, with the modal and permanent reading made explicit."
+msgstr "Relie un individu concret à un individu concret dont l’advenue, antérieure ou simultanée à son propre début, est requise : le dépendant n’aurait pu advenir, tel qu’il est advenu, sans que l’autre ne soit advenu. La dépendance est rigide et tournée vers le passé : une fois acquise, elle vaut à tout instant ultérieur, et survit donc à la fin de l’individu dont on dépend et à celle du dépendant — une adhésion terminée dépend toujours historiquement de la nomination qui l’a commencée. Transitive : ce qu’un dépendant exige de son histoire, ses propres dépendants en héritent. Délibérément non fonctionnelle (un individu a de nombreux antécédents) et non déclarée asymétrique ni irréflexive, car un événement fondateur instantané coïncide avec le début de ce qu’il fonde. Elle n’entraîne rien sur le présent : l’antécédent peut ne plus exister et le dépendant peut ne plus tenir. Ni la provenance, ni les preuves, ni la dérivation, ni l’ordre temporel, ni la dépendance statistique ne la fournissent, et elle n’en fournit aucune. Le pendant de gufo:historicallyDependsOn, avec la lecture modale et permanente rendue explicite."
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:membership logic:historicallyDependsOn ex:appointment ."
+msgstr "ex:membership logic:historicallyDependsOn ex:appointment ."
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an individual, in particular an event or a relator, could not have come to be without an earlier individual having come to be, and that fact must outlive both of them — an appointment that began a membership, an ancestor of a person, an event that enabled a later one."
+msgstr "Utiliser lorsqu’un individu, en particulier un événement ou un relateur, n’aurait pu advenir sans qu’un individu antérieur ne soit advenu, et que ce fait doit leur survivre à tous deux — une nomination qui a commencé une adhésion, un ancêtre d’une personne, un événement qui en a rendu possible un autre."
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for a source that merely evidences a record (use provenance), for temporal order alone (use the Allen relations), for a present bearer or a present party (use the bearer and relator properties), and for statistical dependence between facts (use a logic:DependencyModel)."
+msgstr "Éviter pour une source qui ne fait qu’attester un enregistrement (utiliser la provenance), pour le seul ordre temporel (utiliser les relations d’Allen), pour un porteur ou une partie présents (utiliser les propriétés de porteur et de relateur) et pour une dépendance statistique entre faits (utiliser un logic:DependencyModel)."
+
+msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert it from the dependent individual to each individual it requires; read transitivity as the closure. It adds no membership, bearer or occupancy: a consumer reads the present state from the interval-scoped relators and the dependence from this relation."
+msgstr "Affirmer depuis l’individu dépendant vers chaque individu qu’il requiert ; lire la transitivité comme la fermeture. Elle n’ajoute ni adhésion, ni porteur, ni occupation : un consommateur lit l’état présent dans les relateurs bornés par un intervalle et la dépendance dans cette relation."

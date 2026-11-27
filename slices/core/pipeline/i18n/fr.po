@@ -1424,3 +1424,27 @@ msgstr "Déclarer explicitement cette valeur, admettre sa concordance avec le re
 #: tests/structural.ttl
 msgid "Output scope selection must follow the same authored pipeline's family declarations and complete producer closure. A generated root keeps its required runtime projection producer, while an independent runtime exporter remains outside the committed scope. Exact native family admission and explicit closed-world requirements prevent an absent or false declaration from silently dropping work."
 msgstr "La sélection de portée de sortie doit suivre les déclarations de famille et la fermeture complète des producteurs du même pipeline rédigé. Une racine générée conserve le producteur de projection d’exécution dont elle a besoin, tandis qu’un exportateur d’exécution indépendant reste hors de la portée committed. L’admission exacte des familles natives et les exigences explicites de monde clos empêchent qu’une déclaration absente ou fausse supprime silencieusement du travail."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budget-pipeline-mappings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mappings stage memory budget"
+msgstr "Budget mémoire de l’étape de mise en correspondance"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budget-pipeline-mappings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared memory budget used to reserve work for the mappings stage under an active work ceiling."
+msgstr "Le budget mémoire déclaré qui sert à réserver des ressources pour l’étape de mise en correspondance sous un plafond de travail actif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budget-pipeline-reason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reasoning stage memory budget"
+msgstr "Budget mémoire de l’étape de raisonnement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budget-pipeline-reason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared memory budget used to reserve work for the reasoning stage under an active work ceiling."
+msgstr "Le budget mémoire déclaré qui sert à réserver des ressources pour l’étape de raisonnement sous un plafond de travail actif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetMaxMemoryBytes|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:budget-enrich gmeow:budgetMaxMemoryBytes \"2147483648\"^^xsd:nonNegativeInteger ."
+msgstr "Exemple de déclaration : `gmeow:budget-enrich gmeow:budgetMaxMemoryBytes \"2147483648\"^^xsd:nonNegativeInteger .`"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetMaxMemoryBytes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared upper bound in bytes on the resident memory of one stage execution. Use it to reserve memory at admission. Detect a runtime breach only with memory observations attributable to that stage. An unset value declares no stage-specific bound. Unlike gmeow:budgetMaxInputBytes, this bound describes runtime residency rather than accepted input size."
+msgstr "La borne supérieure déclarée, en octets, de la mémoire résidente d’une exécution d’étape. L’utiliser pour réserver la mémoire à l’admission. Ne détecter un dépassement à l’exécution qu’à partir d’observations de mémoire attribuables à cette étape. En l’absence de valeur, aucune borne propre à l’étape n’est déclarée. Contrairement à gmeow:budgetMaxInputBytes, cette borne décrit la mémoire résidente à l’exécution plutôt que la taille des entrées acceptées."

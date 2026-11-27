@@ -567,6 +567,7 @@ ASK {
     gmeow:BindingAuthoritySourceConstraint logic:triggerValue gmeow:authorityForceBinding ; logic:requires gmeow:authoritySource .
     gmeow:BindingAuthorityForumConstraint logic:triggerValue gmeow:authorityForceBinding ; logic:requires gmeow:authorityForum .
     gmeow:PersuasiveAuthoritySourceConstraint logic:triggerValue gmeow:authorityForcePersuasive ; logic:requires gmeow:authoritySource .
+    gmeow:AuthoritySourcePinpointConstraint a logic:Constraint ; logic:formalizes gmeow:authoritySource .
     gmeow:DissentNotBindingConstraint a logic:Constraint ; logic:formalizes gmeow:AuthorityClaim .
 }""" ;
     gmeow:saRationale "A binding authority claim MUST need a pinpoint source and a forum, a persuasive claim a pinpoint source, and a dissenting opinion role MUST NOT carry binding force, so a citation alone cannot supply a binding holding." .
