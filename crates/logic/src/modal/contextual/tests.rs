@@ -454,6 +454,86 @@ fn public_budget_stop_is_typed_and_cannot_become_neither() {
     assert!(assessment.inferences.is_empty() && assessment.anchors.is_empty());
 }
 
+/// The four non-positive readings a consumer must keep apart for one named query
+/// under one contract. Silence in an open context is `undetermined` and incomplete;
+/// explicit negation is `opposed` from an attributed counter-claim; an unfinished
+/// search is `budget-exhausted` and `undetermined`; certified non-entailment is
+/// `neither` with `complete-for-fragment`, which only a declared evidence closure
+/// warrants. The completeness claim names the admitted fragment and is bound to the
+/// selected formula, context and evidence basis, so it cannot transfer to the open
+/// context that differs from the closed one only in its declared closure.
+#[test]
+fn consumer_separates_silence_negation_unfinished_search_and_certified_non_entailment() {
+    let requests = r#"
+ex:absentFormula a logic:Formula ; logic:relation ex:absent ;
+  logic:argument [ logic:termIndex 0 ; logic:termIri ex:item ],
+                 [ logic:termIndex 1 ; logic:termIri ex:value ] .
+ex:certified a logic:ContextualEvaluationRequest ;
+  logic:queryFormula ex:absentFormula ; logic:queryContext ex:c .
+ex:silent a logic:ContextualEvaluationRequest ;
+  logic:queryFormula ex:absentFormula ; logic:queryContext ex:open .
+ex:negated a logic:ContextualEvaluationRequest ;
+  logic:queryFormula ex:formula ; logic:queryContext ex:rival .
+"#;
+    let dataset = parse(&format!("{SOURCE}\n{QUERY}\n{requests}"));
+    let assess = |request: &str, budget: Option<u64>| {
+        evaluate_request(&dataset, &format!("urn:example:{request}"), budget, None)
+            .unwrap()
+            .result
+    };
+    let axes =
+        |result: &ReasoningResult| (result.evaluation, result.completeness, result.information);
+
+    let certified = assess("certified", None);
+    assert_eq!(
+        axes(&certified),
+        (
+            EvaluationStatus::Completed,
+            CompletenessStatus::CompleteForFragment,
+            InformationState::Neither,
+        )
+    );
+    assert_eq!(
+        certified.provenance.certified_fragment.as_deref(),
+        Some(FRAGMENT)
+    );
+
+    let silent = assess("silent", None);
+    assert_eq!(
+        axes(&silent),
+        (
+            EvaluationStatus::Completed,
+            CompletenessStatus::Incomplete,
+            InformationState::Undetermined,
+        )
+    );
+    assert_ne!(
+        silent.provenance.contract_hash, certified.provenance.contract_hash,
+        "a completeness claim is bound to its selected context and does not transfer"
+    );
+
+    let negated = assess("negated", None);
+    assert_eq!(
+        axes(&negated),
+        (
+            EvaluationStatus::Completed,
+            CompletenessStatus::CompleteForFragment,
+            InformationState::Opposed,
+        )
+    );
+    assert!(negated.provenance.counterproof.is_some() && negated.provenance.proof.is_none());
+
+    let unfinished = assess("certified", Some(0));
+    assert_eq!(
+        axes(&unfinished),
+        (
+            EvaluationStatus::BudgetExhausted,
+            CompletenessStatus::Incomplete,
+            InformationState::Undetermined,
+        )
+    );
+}
+
 #[test]
 fn native_reasoning_evaluates_requests_without_asserting_their_propositions() {
     let dataset = parse(&format!("{SOURCE}\n{QUERY}"));

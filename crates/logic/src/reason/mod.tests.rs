@@ -1837,6 +1837,105 @@ fn reason_all_budgeted_partial_closure_is_deterministic() {
     assert_eq!(a.provenance.consumed_budget.consumed, 7);
 }
 
+// ── A finite world index bounds iteration over worlds, not witness generation ──────
+
+/// One world holding a single qualified minimum-cardinality restriction on `x`.
+/// With `filler_class` a plain class the witness model is finite; with the
+/// restriction itself as the filler class every witness needs a fresh witness.
+fn one_world_witness_definition(filler_class: &str) -> std::sync::Arc<purrdf::RdfDataset> {
+    const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+    const RESTRICTION: &str = "urn:strata:restriction";
+    let definition = |predicate: &str, object: RdfTerm| {
+        RdfQuad::new(RdfTerm::iri(RESTRICTION), predicate, object)
+    };
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in [
+        definition(
+            &format!("{LOGIC}onProperty"),
+            RdfTerm::iri("urn:strata:next"),
+        ),
+        definition(&format!("{LOGIC}onClass"), RdfTerm::iri(filler_class)),
+        definition(
+            &format!("{LOGIC}minQualifiedCardinality"),
+            RdfTerm::Literal(purrdf::RdfLiteral::typed(
+                "1",
+                "http://www.w3.org/2001/XMLSchema#integer",
+            )),
+        ),
+        RdfQuad::new(RdfTerm::iri(X), TYPE, RdfTerm::iri(RESTRICTION)),
+    ] {
+        builder.push_owned_quad(&quad).unwrap();
+    }
+    builder
+        .freeze()
+        .expect("valid one-world witness definition")
+}
+
+/// The context-strata decidability boundary through the native forward entry point:
+/// completeness comes from a certified terminating chase or a reached fixpoint, never
+/// from the number of worlds. Both datasets hold exactly one world. The finite case
+/// reports `complete-for-fragment` under a native-admitted termination certificate.
+/// The self-generating case is refused without a budget (it never loops and never
+/// claims completeness) and, under a budget, reports the witnesses it committed and
+/// where it stopped, as `budget-exhausted` / `incomplete` / `undetermined`.
+#[test]
+fn one_world_unbounded_witness_generation_is_never_complete_for_fragment() {
+    let domains = || crate::reason::SelectedDomains::new([]).unwrap();
+    let finite = one_world_witness_definition("urn:strata:Filler");
+    let decided = reason_all(
+        prepare_reasoning_input(finite.as_ref()).unwrap(),
+        &domains(),
+    )
+    .expect("a certified finite witness chase decides");
+    assert_eq!(decided.evaluation, EvaluationStatus::Completed);
+    assert_eq!(
+        decided.completeness,
+        CompletenessStatus::CompleteForFragment
+    );
+    let execution = decided.native_execution().unwrap();
+    assert!(!execution.chase_certificates.is_empty());
+    assert!(
+        execution
+            .chase_certificates
+            .iter()
+            .all(|certificate| certificate.admission.admits_native())
+    );
+
+    let unbounded = one_world_witness_definition("urn:strata:restriction");
+    assert!(
+        reason_all(
+            prepare_reasoning_input(unbounded.as_ref()).unwrap(),
+            &domains()
+        )
+        .is_err(),
+        "an uncertified generating chase without a budget is refused, not run or completed"
+    );
+    const ALLOWANCE: u64 = 12;
+    let cut = reason_all_budgeted(
+        prepare_reasoning_input(unbounded.as_ref()).unwrap(),
+        &domains(),
+        &Budget {
+            max_answers: None,
+            max_steps: Some(ALLOWANCE),
+        },
+    )
+    .expect("a budgeted generating chase reports its prefix");
+    assert_eq!(cut.evaluation, EvaluationStatus::BudgetExhausted);
+    assert_eq!(cut.completeness, CompletenessStatus::Incomplete);
+    assert_eq!(cut.information, InformationState::Undetermined);
+    assert_eq!(cut.provenance.consumed_budget.consumed, ALLOWANCE);
+    assert_eq!(
+        cut.provenance.consumed_budget.limit,
+        Some(crate::result::BudgetLimit::Inference)
+    );
+    assert!(
+        !cut.native_execution()
+            .unwrap()
+            .witness_derivations
+            .is_empty()
+    );
+}
+
 #[test]
 fn dl_consequences_cannot_spend_past_the_ordinary_allowance() {
     let store = dataset(vec![quad(

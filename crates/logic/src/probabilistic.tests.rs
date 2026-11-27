@@ -259,20 +259,37 @@ fn too_many_independent_facts_is_rejected() {
     );
 }
 
-// ── Cut is rejected under the probabilistic profile ───────────────────────
+// ── Only the positive binary Horn fragment is admitted ────────────────────
 
+/// A complete-for-fragment marginal is issued only for the program the weighted
+/// model counter actually evaluates. Cut, default negation, a builtin and a
+/// non-binary atom are refused before enumeration; none is dropped from a rule body
+/// while the result still claims an exact, complete answer. (Dropping the negated
+/// literal below would report `P(p(a, b)) = 0.5` where the program entails `0`.)
 #[test]
-fn cut_is_rejected() {
+fn literals_outside_positive_binary_horn_are_refused_not_dropped() {
     let store = WorldStore::new().unwrap();
-    let src = format!(
-        ":- prefix(ex, '{BASE}').\n\
-             :- probability_model(full_independence).\n\
-             ex:p(X, Y) :- ex:q(X, Y), !.\n\
-             ?- ex:p(ex:a, Y).\n"
-    );
-    let prog = parse_query_program(&src).unwrap();
-    let err = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap_err();
-    assert!(err.message().contains("cut"), "unexpected error: {err}");
+    for (rule, refusal) in [
+        ("ex:p(X, Y) :- ex:q(X, Y), !.", "cut"),
+        ("ex:p(X, Y) :- ex:q(X, Y), \\+ ex:r(X, Y).", "negates"),
+        ("ex:p(X, N) :- ex:q(X, M), N is M + 1.", "builtin"),
+        ("ex:p(X, Y) :- ex:q(X, Y, X).", "arity 3"),
+    ] {
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+                 :- probability_model(full_independence).\n\
+                 :- probability(ex:q(ex:a, ex:b), 0.5).\n\
+                 ex:r(ex:a, ex:b).\n\
+                 {rule}\n\
+                 ?- ex:p(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let err = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap_err();
+        assert!(
+            err.message().contains(refusal),
+            "{rule}: unexpected error: {err}"
+        );
+    }
 }
 
 // ── Malformed joint table: probabilities must sum to one ──────────────────
