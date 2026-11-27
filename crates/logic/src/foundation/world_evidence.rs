@@ -19,7 +19,7 @@
 //!   `logic:ClosureEntry` in `w2` that closes the world for `T` over the individual
 //!   `x`.  Absence of a typing alone is never evidence.
 
-use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::collections::{BTreeMap, BTreeSet};
 
 use super::{FoundationQuad, LOGIC_NS, RDF_TYPE, strip_angle_opt};
 
@@ -39,11 +39,11 @@ pub(super) struct WorldEvidence {
     typings: BTreeSet<Typing>,
     /// `(world, individual)` pairs that exist: the individual is a subject of a quad
     /// that is not its own non-membership assertion.
-    existing: HashSet<(String, String)>,
+    existing: BTreeSet<(String, String)>,
     /// Explicit `(world, individual, type)` non-membership assertions.
-    non_members: HashSet<Typing>,
+    non_members: BTreeSet<Typing>,
     /// `(world, individual, type)` triples a closed-world `logic:ClosureEntry` covers.
-    closed: HashSet<Typing>,
+    closed: BTreeSet<Typing>,
     /// Typed accessibility records: source world to the worlds accessible from it.
     accessible: BTreeMap<String, BTreeSet<String>>,
 }
@@ -61,7 +61,7 @@ impl WorldEvidence {
     /// Index `quads` (the union of every materialized world).
     pub(super) fn new(quads: &[FoundationQuad]) -> Self {
         let not_instance_of = format!("{LOGIC_NS}notInstanceOf");
-        let admissible: HashSet<String> = ADMISSIBLE_ACCESSIBILITY
+        let admissible: BTreeSet<String> = ADMISSIBLE_ACCESSIBILITY
             .iter()
             .map(|local| format!("{LOGIC_NS}{local}"))
             .collect();

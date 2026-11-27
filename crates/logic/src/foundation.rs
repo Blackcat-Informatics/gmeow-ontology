@@ -2312,14 +2312,14 @@ fn strip_angle(n3: &str) -> &str {
 #[derive(Debug, Default)]
 struct RigidityDeclarations {
     /// Types rigid for every instance by stereotype.
-    rigid_types: HashSet<String>,
+    rigid_types: BTreeSet<String>,
     /// Type to the individuals a `logic:rigidlyAppliesTo` record makes permanent.
-    permanent: HashMap<String, HashSet<String>>,
+    permanent: BTreeMap<String, BTreeSet<String>>,
 }
 
 impl RigidityDeclarations {
     fn new(quads: &[FoundationQuad]) -> Self {
-        let rigid_objs: HashSet<String> = RIGID_SORTALS
+        let rigid_objs: BTreeSet<String> = RIGID_SORTALS
             .iter()
             .map(|m| n3(&format!("{LOGIC_NS}{m}")))
             .collect();
@@ -2377,7 +2377,7 @@ fn cross_world_rigidity_violations(
     let evidence = WorldEvidence::new(quads);
 
     // First witnessing (lexicographically smallest) source world wins — dedup on (x, T, w2).
-    let mut seen: HashSet<(&str, &str, &str)> = HashSet::new();
+    let mut seen: BTreeSet<(&str, &str, &str)> = BTreeSet::new();
     let mut out: Vec<FoundationQuad> = Vec::new();
     for (w1, inst, type_iri) in evidence.typings() {
         if !rigidity.is_rigid(type_iri, inst) {
@@ -2438,17 +2438,17 @@ fn anti_rigid_type_iris(
     quads: &[FoundationQuad],
     rigidity: &RigidityDeclarations,
     evidence: &WorldEvidence,
-) -> HashSet<String> {
-    let anti_objs: HashSet<String> = ANTI_RIGID_SORTALS
+) -> BTreeSet<String> {
+    let anti_objs: BTreeSet<String> = ANTI_RIGID_SORTALS
         .iter()
         .map(|m| n3(&format!("{LOGIC_NS}{m}")))
         .collect();
-    let semi_rigid: HashSet<&str> = evidence
+    let semi_rigid: BTreeSet<&str> = evidence
         .typings()
         .filter(|(_, inst, type_iri)| rigidity.is_permanent(type_iri, inst))
         .map(|(_, _, type_iri)| type_iri.as_str())
         .collect();
-    let mut anti = HashSet::new();
+    let mut anti = BTreeSet::new();
     for q in quads {
         if q.predicate == RDF_TYPE
             && anti_objs.contains(&q.object)
