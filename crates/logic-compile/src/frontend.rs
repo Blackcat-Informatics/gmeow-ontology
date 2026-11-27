@@ -71,6 +71,7 @@ mod collections;
 pub(crate) use collections::collection_origins;
 use collections::lift_list_statement;
 
+mod constraint_support;
 mod emission;
 use emission::{AxiomEmission, EmissionTrace, OwnerEmission, capture_owner, finish_owners};
 pub use emission::{
@@ -3054,13 +3055,15 @@ fn extract_constraints(
     diagnostics: &mut Vec<Diagnostic>,
     malformed_formulas: &BTreeMap<String, usize>,
     lowerings: &mut Vec<OwnerLowering>,
+    retain_record_support: bool,
 ) -> Vec<OwnerEmission<ConstraintIr>> {
     let store = reader.dataset();
     let constraint_ty = Node::iri(logic_iri("Constraint"));
     let mut constraints = Vec::new();
     for subj in subjects_of_structural_class(store, &constraint_ty) {
-        if let Some(emitted) = capture_owner(
-            owner_source(store, &subj),
+        let source = owner_source(store, &subj);
+        if let Some(mut emitted) = capture_owner(
+            source,
             OwnerFamily::Constraint,
             diagnostics,
             lowerings,
@@ -3085,6 +3088,10 @@ fn extract_constraints(
                 })
             },
         ) {
+            if retain_record_support {
+                emitted.record_support =
+                    constraint_support::authored_constraint(store, source, reader.consumed_rows());
+            }
             constraints.push(emitted);
         }
     }
@@ -3127,6 +3134,7 @@ fn extract_constraints_from_source(
         &mut diagnostics,
         &malformed_formulas,
         &mut lowerings,
+        false,
     );
     constraints.extend(extract_sugar_constraints(
         store,
@@ -4630,7 +4638,8 @@ pub fn parse_logic_dataset(
     // Ordinary callers retain the mapping-free canonicalization path. Source-aware
     // callers use PreparedLogicSource and share the same extraction boundary below.
     let canon = canonicalize_blank_nodes(dataset)?;
-    compile_canonical_source(canon.as_ref(), source_iri)
+    let store = canon.as_ref();
+    compile_program_from_source(store, &StructuralSourceGraph::new(store), source_iri)
 }
 
 fn require_nonempty_source(dataset: &RdfDataset) -> Result<(), Diag> {
@@ -4645,12 +4654,12 @@ fn require_nonempty_source(dataset: &RdfDataset) -> Result<(), Diag> {
     Ok(())
 }
 
-fn compile_canonical_source(
+fn compile_program_from_source(
     store: &RdfDataset,
+    source_graph: &StructuralSourceGraph,
     source_iri: Option<String>,
 ) -> Result<(LogicProgram, Vec<Diagnostic>), Diag> {
-    let (program, diagnostics, _) =
-        compile_source_graph(store, &StructuralSourceGraph::new(store), source_iri)?;
+    let (program, diagnostics, _) = compile_source_graph(store, source_graph, source_iri, false)?;
     Ok((program, diagnostics))
 }
 
@@ -4663,6 +4672,7 @@ fn compile_source_graph(
     store: &RdfDataset,
     source_graph: &StructuralSourceGraph,
     source_iri: Option<String>,
+    retain_authored_constraint_support: bool,
 ) -> Result<(LogicProgram, Vec<Diagnostic>, EmissionTrace), Diag> {
     let mut diagnostics = source_graph.ownership_diagnostics(store);
     let mut owner_lowerings = emission::excluded_owners(source_graph);
@@ -4763,6 +4773,7 @@ fn compile_source_graph(
         &mut diagnostics,
         &malformed_formulas,
         &mut owner_lowerings,
+        retain_authored_constraint_support,
     );
     constraints.extend(extract_sugar_constraints(
         store,

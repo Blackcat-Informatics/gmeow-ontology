@@ -69,6 +69,7 @@ fn every_semantic_owner_reuses_reconstruction_without_becoming_an_assertion() {
         &mut diagnostics,
         &extracted.malformed,
         &mut lowerings,
+        false,
     )
     .into_iter()
     .map(|emission| emission.value)

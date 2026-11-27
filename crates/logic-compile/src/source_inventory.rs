@@ -475,7 +475,9 @@ impl<'source> SourceInventory<'source> {
             && matches!(lowering.disposition, OwnerDisposition::Emitted { .. })
             && lowering.record_support.iter().any(|binding| {
                 let quad = binding.canonical;
-                matches!(dataset.resolve(quad.o), TermRef::Iri(MARKER))
+                quad.s == lowering.source.term
+                    && quad.g == lowering.source.graph
+                    && matches!(dataset.resolve(quad.o), TermRef::Iri(MARKER))
                     && matches!(dataset.resolve(quad.p), TermRef::Iri(predicate)
                         if crate::graphutil::is_structural_type_predicate(predicate, MARKER))
             })
