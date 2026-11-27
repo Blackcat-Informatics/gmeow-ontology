@@ -593,6 +593,7 @@ pub struct TheorySelection {
 enum TheoryComposition {
     TopLevelOnly,
     ComposedModules { roots: BTreeSet<ModuleIri> },
+    CompleteSource,
 }
 
 /// An absolute module identifier, independent of its declaration in a source.
@@ -636,6 +637,23 @@ impl TheorySelection {
         }
     }
 
+    /// Request the top-level theory and every module declared by the selected
+    /// source. This request does not admit context transport or undeclared modules.
+    #[must_use]
+    pub const fn complete_source() -> Self {
+        Self {
+            composition: TheoryComposition::CompleteSource,
+        }
+    }
+
+    pub(crate) const fn includes_all_modules(&self) -> bool {
+        matches!(self.composition, TheoryComposition::CompleteSource)
+    }
+
+    pub(crate) const fn allows_module_exclusions(&self) -> bool {
+        matches!(self.composition, TheoryComposition::ComposedModules { .. })
+    }
+
     /// Request one composed theory with top-level obligations and explicit roots.
     ///
     /// # Errors
@@ -655,15 +673,16 @@ impl TheorySelection {
         })
     }
 
+    /// Whether the resolver must interpret native module coordinates.
     #[must_use]
     pub fn is_composed(&self) -> bool {
-        matches!(self.composition, TheoryComposition::ComposedModules { .. })
+        !matches!(self.composition, TheoryComposition::TopLevelOnly)
     }
 
     /// Explicit roots, in deterministic IRI order; imports require source resolution.
     pub fn module_roots(&self) -> impl Iterator<Item = &ModuleIri> {
         match &self.composition {
-            TheoryComposition::TopLevelOnly => None,
+            TheoryComposition::TopLevelOnly | TheoryComposition::CompleteSource => None,
             TheoryComposition::ComposedModules { roots } => Some(roots),
         }
         .into_iter()
@@ -674,17 +693,13 @@ impl TheorySelection {
     /// source resolution can discharge an exact native module coordinate.
     #[must_use]
     pub fn membership(&self, scope: &ContextualScope) -> ScopeMembership {
-        match &self.composition {
-            TheoryComposition::TopLevelOnly | TheoryComposition::ComposedModules { .. } => {
-                let coordinates = scope.context_coordinates();
-                if coordinates.is_empty() {
-                    ScopeMembership::InTheory {
-                        evidence: scope.evidence_coordinates(),
-                    }
-                } else {
-                    ScopeMembership::UntranslatedContext { coordinates }
-                }
+        let coordinates = scope.context_coordinates();
+        if coordinates.is_empty() {
+            ScopeMembership::InTheory {
+                evidence: scope.evidence_coordinates(),
             }
+        } else {
+            ScopeMembership::UntranslatedContext { coordinates }
         }
     }
 }
