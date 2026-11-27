@@ -142,7 +142,7 @@ contract, not any other artifact's identity or admission evidence.
 | `logic:ApprovalBindingFault` | the value individual (one of four) | the record that exhibits it |
 | `logic:DeadlineConsumption` | equal (bounded resource, enactment, attributed clock, consumption reading) tuple | the deadline itself |
 | `logic:ActionableFrontier` | equal (enactment, classifying standpoint, saturation witness) triple | the label set, which is derived |
-| `logic:FrontierLabel` | the value individual; each is a total function of the axis tuple, and carries the tuple witness that produced it | the reading the record gives of it |
+| `logic:FrontierLabel` | the value individual; each is a total function of the axis tuple, and carries the tuple witness that produced it | its interpretation in consuming systems |
 | `logic:SkipReason` | the value individual | the step that carries it |
 | `logic:OperationOutcome` | the value individual (one of six) | the evidence payload it carries |
 | `logic:ContextAssembly` | equal (served enactment/step, inclusion roster digest, exclusion roster digest, assembly budget) tuple | the decision that followed it |
@@ -337,7 +337,7 @@ straight to running would let a stale gate verdict authorize execution.
 | `ApprovalDischarged` · `ApprovalExpired` · `ApprovalViolated` · `ApprovalCancelled` · `ApprovalReleased` | — (quiescent) |
 
 The load-bearing omission is `ApprovalDetached → ApprovalCancelled`. Once the antecedent has been
-satisfied — the exact dispatch intent exists, its digest matches, the dispatch window is open — the
+satisfied — the exact dispatch intent exists, its digest matches, the approval validity window is open — the
 debtor's unilateral withdrawal is a **violation**, not a cancellation. `ApprovalReleased` remains
 admitted from `Detached` because the creditor may always waive what is owed to it. That asymmetry is
 what turns "the approval must bind the exact intent" from a comparison someone remembers to write
@@ -451,8 +451,8 @@ A certificate for combined coordination must address the **product** of the five
 membership axes as well as each axis, because a tuple can be individually live on
 each coordinate and jointly stuck — a
 step at `StepWaiting` whose approval is at `ApprovalExpired` has an admitted successor on each axis
-and no admissible joint move. Checking only per-axis liveness would prove nothing about the system
-as it is actually presented.
+and no admissible joint move. Checking only per-axis liveness would prove nothing about the joint system, which is what an
+enactment actually presents.
 
 ## The ⊑ₖ knowledge order
 

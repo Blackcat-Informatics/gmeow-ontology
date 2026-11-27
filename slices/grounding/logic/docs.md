@@ -121,7 +121,7 @@ A document that mixes classes states each boundary in [Evidence boundaries](#evi
 | [`design/LOGIC-AGENTIC-MODALITY.md`](./design/LOGIC-AGENTIC-MODALITY.md) | modal composition | exercised bounded case for the finite ground modal fragment and the finite temporal interpretation (`crates/logic/src/modal`); design-only commitment for norms, intentions, protocols and scheduler adoption — see [Agentic modality](#agentic-modality) | the attributed evaluation context, the finite ground modal fragment over typed accessibility, the information coordinates, `gmeow logic evaluate`, the finite journal temporal operators, and the norm, intention and protocol commitments |
 | [`design/LOGIC-TRANSACTION.md`](./design/LOGIC-TRANSACTION.md) | state change | exercised bounded case (`crates/logic/src/transaction.rs`, `conformance/logic/cases/transaction`), including `logic:SerializationAnomaly` non-serializable-schedule findings | Transaction Logic — path semantics, serial conjunction, updates as supersession, the state-change facet |
 | [`design/LOGIC-TELEOLOGY.md`](./design/LOGIC-TELEOLOGY.md) | goal/action layer | exercised bounded case (`crates/logic/src/teleology.rs`, `conformance/logic/cases/teleology`); the goal kinds are evaluated by this module's own interpreters, not the finite-journal temporal evaluator | goals, intentional modes, structured goal expressions, reified goal evaluation, action schemas, goal decomposition and conflict; the intention → plan → action → transaction-path chain |
-| [`design/LOGIC-ENACTMENT.md`](./design/LOGIC-ENACTMENT.md) | charter | exercised bounded case for the integrity laws, the observed-not-derived guard and means–end refinement; design-only commitment for transition-law execution, liveness certificates and knowledge-order monotonicity — see [Enactment](#enactment) | the general prescription → enactment → commitment kernel over the existing `logic:Plan`: immutable versioned prescriptions, immutable journalled enactments, checkpoints and continuation kinds, the seven orthogonal lifecycle axes with their transition and liveness laws, the ⊑ₖ knowledge order over external-effect commitment, hierarchical refinement methods and the declared decidable search fragment, and the reuse ledger |
+| [`design/LOGIC-ENACTMENT.md`](./design/LOGIC-ENACTMENT.md) | charter | exercised bounded case for the integrity laws, the observed-not-derived guard and means–end refinement; design-only commitment for transition-law execution, liveness certificates, knowledge-order monotonicity and refinement depth — see [Enactment](#enactment) | the general prescription → enactment → commitment kernel over the existing `logic:Plan`: immutable versioned prescriptions, immutable journalled enactments, checkpoints and continuation kinds, the seven orthogonal lifecycle axes with their transition and liveness laws, the ⊑ₖ knowledge order over external-effect commitment, hierarchical refinement methods and the declared decidable search fragment, and the reuse ledger |
 | [`WORK-ORCHESTRATION.md`](../../core/work-orchestration/design/WORK-ORCHESTRATION.md) | binding charter (core slice, not this one) | exercised bounded case (that slice's `tests` and `conformance/logic/cases/enactment`); governed by the same enactment boundary | the domain binding of the kernel above — durable work clusters: the continuing-cluster thesis, guidance versioning, context assembly, recurrence non-identity, the decision-support bindings, and the review projection with its Principle-17 preservation judgment |
 | [`design/LOGIC-SESSION.md`](./design/LOGIC-SESSION.md) | operational façade | exercised bounded case (`crates/logic/tests/reasoning_session_*.rs`) — see [Session checkpoints](#session-checkpoints) | the stateful `ReasoningSession`: the seven-axis identity, the two delta anchors, the hash-linked journal, content-addressed checkpoints with replay restore, the six-way operation outcome, paged world-source composition, semver governance |
 | [`design/LOGIC-COGNITION.md`](./design/LOGIC-COGNITION.md) | cognitive assessment | exercised bounded case (`conformance/logic/cases/cognition`) | the multidimensional cognitive-assessment construct — factored dimensions of reasoning quality, reliability, calibration, and metacognitive posture; reasoning quality over the inference modes; reliability over the typed reasoning result |
@@ -156,9 +156,9 @@ compile-logic stages, and the `gmeow correspondence` commands.
   SectionLaw and PutGet evidence over declared seeds
   (`crates/pipeline/src/correspondence_law.rs`), and atomic-path recovery runs against an explicit empty
   initial state. PutPut is discharged for no correspondence. The `lang:` bridge declares GetPut discharged
-  for its identity, section and grammar rungs under a syntactic-reachability condition
+  for its mnemomorphic (exact) rungs under a syntactic-reachability condition
   (`crates/lang-bridge/src/registry.rs`, `plain_text.rs`, `grammar.rs`, `conllu.rs`), and carries it as
-  `ObligationUnknown` for the mnemomorphic rung; the mapping program does not execute GetPut. A composite
+  `ObligationUnknown` for its lossy-lens fallbacks; the mapping program does not execute GetPut. A composite
   path without an authored complete recovery case stays `ObligationUnknown`.
 - **Composition.** The four quantitative axes execute as authored `logic:Formula` rules on the native
   engine (`crates/logic/src/correspondence_exec/axes.rs`). The Composition gate checks the rung join
@@ -235,9 +235,10 @@ generation, the head and the deltas. Head equality shows that the same sequence 
 was reproduced and does not hash the closure; closure agreement after restore is exercised by
 `ac5_committed_delta_is_refused_after_restart` in `crates/logic/tests/reasoning_session_crash_replay.rs`,
 `crates/logic/tests/reasoning_session_restore_rejection.rs` exercises the corrupt-checkpoint refusals, the
-identity-mismatch refusal on each identity axis, and the replay-head-divergence refusal. No test in that
-suite exercises the refusal of a replayed delta whose outcome is not `Applied`, or the `EngineFailure`
-refusals of re-materialization and delta application in `facade.rs`. The
+identity-mismatch refusal on six of the seven identity axes (the engine-descriptor axis is fixed per build and
+is folded only by an in-crate fold test), and the replay-head-divergence refusal. No test in that suite
+exercises the refusal of a replayed delta whose outcome is not `Applied`, or the `EngineFailure` refusals of
+re-materialization and of committed-delta reconstruction in `facade.rs`. The
 [session document](./design/LOGIC-SESSION.md#content-addressed-checkpoints) owns the contract.
 
 ### Query surface

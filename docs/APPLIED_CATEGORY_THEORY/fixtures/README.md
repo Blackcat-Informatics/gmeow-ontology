@@ -46,7 +46,7 @@ tooling. Their evidence domains are distinct:
   `lower_included` and `upper_included` flags. `crates/logic-compile/src/openehr_opt.walker_tests.rs`
   lifts every walked constraint to a validation shape and recovers it unchanged.
   `crates/logic-compile/src/opt_lift.tests.rs` shows that a constructed half-open `[0, 1000)` mm[Hg]
-  interval projects to `sh:minInclusive` + `sh:maxExclusive` (never `sh:maxInclusive`) and that every
+  interval projects to `sh:minInclusive` + `sh:maxExclusive` and that every
   inclusivity combination round-trips. No test asserts the interval read from the vendored OPT, and none
   validates a value equal to the upper bound against the projected shape.
 - **Process projection and witnessed recovery** — the optimized `stage-compile-logic` producer
