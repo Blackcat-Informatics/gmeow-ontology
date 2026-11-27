@@ -87,26 +87,164 @@ is a generated lossy projection of `logic:`, not its ground.
 
 ## The design set
 
-The design is split by genre into documents under [`design/`](./design/), so it can be
-implemented against rather than only read:
+The design is split by genre into the 21 documents under [`design/`](./design/), so it can be
+implemented against rather than only read. Every document in that directory is owned by this slice and
+appears in the table below. Charters outside the directory are linked peers or consumers, not members
+of the set:
 
-| Document | Genre | Realized state | Contents |
+- [`docs/GROUNDING.md`](../../../docs/GROUNDING.md) binds this slice to its co-foundational peers.
+- [`docs/APPLIED_CATEGORY_THEORY/`](../../../docs/APPLIED_CATEGORY_THEORY/) holds the cited rationale and
+  the openEHR worked cases for the correspondence calculus; the calculus document governs where they differ.
+- [`WORK-ORCHESTRATION.md`](../../core/work-orchestration/design/WORK-ORCHESTRATION.md) is the domain
+  binding of the enactment kernel, owned by the work-orchestration slice. Every `gmeow:`-typed edge lives
+  there, because `logic:` takes no axiom edge into `gmeow:`.
+
+The evidence column classifies what backs each document's promises, never the document as a whole:
+
+- **design-only commitment** — the contract is stated; no source or test executes it.
+- **source inspection** — an implementation exists in the named source; no test or corpus case executes
+  the whole contract.
+- **exercised bounded case** — tests, conformance cases or committed fixtures execute the contract over a
+  named finite domain. Agreement on that domain is not a law over every input.
+- **complete proof** — an exhaustive check or checked derivation covers the whole declared domain.
+
+A document that mixes classes states each boundary in [Evidence boundaries](#evidence-boundaries).
+
+| Document | Genre | Evidence | Contents |
 | --- | --- | --- | --- |
-| [`design/LOGIC.md`](./design/LOGIC.md) | manifesto | realized | vision, doctrine, lineage |
-| [`design/LOGIC-FOUNDATION.md`](./design/LOGIC-FOUNDATION.md) | charter | realized (a few named engine-selection strategies not yet engine-backed) | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the descriptive graph-box roles |
-| [`design/LOGIC-CONTRACT.md`](./design/LOGIC-CONTRACT.md) | configuration | realized | the reasoning contract — the orthogonal facets a reasoning request selects; named profiles as presets; the compatibility matrix |
-| [`design/LOGIC-IR.md`](./design/LOGIC-IR.md) | intermediate representation | realized (`crates/logic-compile`) | the typed, full first-order IR every source compiles into and every projection out of; the per-lowering preservation judgment |
-| [`design/LOGIC-SEMANTICS.md`](./design/LOGIC-SEMANTICS.md) | formal semantics | realized | the unified core, triple-term/assertion rules, the reasoning result, modality, the typed context algebra, decidability |
-| [`design/LOGIC-TRANSACTION.md`](./design/LOGIC-TRANSACTION.md) | state change | realized (incl. `logic:SerializationAnomaly` non-serializable-schedule findings) | Transaction Logic — path semantics, serial conjunction, updates as supersession, the state-change facet |
-| [`design/LOGIC-TELEOLOGY.md`](./design/LOGIC-TELEOLOGY.md) | goal/action layer | realized (`crates/logic/src/teleology`) | goals, intentional modes, structured goal expressions, reified goal evaluation, action schemas, goal decomposition and conflict; the intention → plan → action → transaction-path chain |
-| [`design/LOGIC-ENACTMENT.md`](./design/LOGIC-ENACTMENT.md) | charter | **design-only** — the charter is normative; the vocabulary it governs is authored in [`module.ttl`](./module.ttl) against it | the general prescription → enactment → commitment kernel over the existing `logic:Plan`: immutable versioned prescriptions, immutable journalled enactments, checkpoints and continuation kinds, the seven orthogonal lifecycle axes with their transition and liveness laws, the ⊑ₖ knowledge order over external-effect commitment, hierarchical refinement methods and the declared decidable search fragment, and the reuse ledger |
-| `slices/core/work-orchestration/design/WORK-ORCHESTRATION.md` | binding charter (core slice, not this one) | **design-only** — the charter is normative; the vocabulary it governs is authored in that slice's `module.ttl` against it | the domain binding of the kernel above — durable work clusters: the continuing-cluster thesis, guidance versioning, context assembly, recurrence non-identity, the decision-support bindings, and the operator review projection with its Principle-17 preservation judgment. Every `gmeow:`-typed edge lives there, because `logic:` takes no axiom edge into `gmeow:` |
-| [`design/LOGIC-COGNITION.md`](./design/LOGIC-COGNITION.md) | cognitive assessment | realized | the multidimensional cognitive-assessment construct — factored dimensions of reasoning quality, reliability, calibration, and metacognitive posture; reasoning quality over the inference modes; reliability over the typed reasoning result |
-| [`design/LOGIC-RUNTIME.md`](./design/LOGIC-RUNTIME.md) | runtime | realized | solver architecture, the materialization–resolution seam, graph versioning, generated artifacts |
-| [`design/LOGIC-CONFORMANCE.md`](./design/LOGIC-CONFORMANCE.md) | contract | realized (`conformance/logic/cases/*`, `generated/logic/projection-report.ttl`) | the conformance corpus and the loss-ledger preservation contract |
-| [`design/LOGIC-SHACL-AF.md`](./design/LOGIC-SHACL-AF.md) | computation surface | realized (`crates/logic-compile/src/projections/shacl_af.rs`) | derivation/aggregation (map/reduce) authored as canonical `logic:` rules and projected to a SHACL-AF `sh:SPARQLRule` surface — computation added to the canon and emitted, never bolted onto SHACL; the projectable fragment, the declared exit loss, and the placement/purity rule |
-| [`design/LOGIC-RDFQUERY.md`](./design/LOGIC-RDFQUERY.md) | query surface | **design-only** — self-declared "design, P15-gated, language not committed"; no parser or grammar is authored yet | RDFQuery framed as a front-end that parses into `logic:` (which already projects out to SPARQL/SHACL/N3/OWL), not a stack bolted onto SPARQL; P15-gated, language not committed, with the named first consumer |
-| [`design/LOGIC-REFERENCES.md`](./design/LOGIC-REFERENCES.md) | appendix | realized (`metadata/references.ttl`) | external standards, theory, and engines cited — staged for the `metadata/references.ttl` ledger |
+| [`design/LOGIC.md`](./design/LOGIC.md) | manifesto | design-only commitment; the claims it makes are evidenced by the documents it indexes | vision, doctrine, lineage, the document index |
+| [`design/LOGIC-FOUNDATION.md`](./design/LOGIC-FOUNDATION.md) | charter | exercised bounded case (`conformance/logic/cases/foundation`); a few named engine-selection strategies are not engine-backed | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the descriptive graph-box roles |
+| [`design/LOGIC-CONTRACT.md`](./design/LOGIC-CONTRACT.md) | configuration | complete proof over the rule-participating facet cross-product (the exhaustive oracle sweep and rule-coverage guard in `crates/logic-compile/src/compat.tests.rs`); a facet no compatibility rule reads is not swept | the reasoning contract — the orthogonal facets a reasoning request selects; named profiles as presets; the compatibility matrix |
+| [`design/LOGIC-IR.md`](./design/LOGIC-IR.md) | intermediate representation | exercised bounded case (`crates/logic-compile`) | the typed, full first-order IR every source compiles into and every projection out of; the per-lowering preservation judgment |
+| [`design/LOGIC-CORRESPONDENCE.md`](./design/LOGIC-CORRESPONDENCE.md) | correspondence calculus | exercised bounded case for the atomic lens, the finite presentation merge and the quantitative composition axes; design-only commitment for the remaining composition axes and typed openEHR execution — see [Correspondence calculus](#correspondence-calculus) | cross-ontology alignment as the ninth IR node kind: the ordered law-spine, mnemomorphism and recovery cases, the four independent law domains, the separated axes, composition and finite merge, the generated lowerings, the openEHR worked subsumption |
+| [`design/LOGIC-SEMANTICS.md`](./design/LOGIC-SEMANTICS.md) | formal semantics | exercised bounded case (the conformance corpus under `conformance/logic/cases`) | the unified core, triple-term/assertion rules, the reasoning result, modality, the typed context algebra, decidability |
+| [`design/LOGIC-AGENTIC-MODALITY.md`](./design/LOGIC-AGENTIC-MODALITY.md) | modal composition | exercised bounded case for the finite ground modal fragment and the finite temporal interpretation (`crates/logic/src/modal`); design-only commitment for norms, intentions, protocols and scheduler adoption — see [Agentic modality](#agentic-modality) | the attributed evaluation context, the finite ground modal fragment over typed accessibility, the information coordinates, `gmeow logic evaluate`, the finite journal temporal operators, and the norm, intention and protocol commitments |
+| [`design/LOGIC-TRANSACTION.md`](./design/LOGIC-TRANSACTION.md) | state change | exercised bounded case (`crates/logic/src/transaction.rs`, `conformance/logic/cases/transaction`), including `logic:SerializationAnomaly` non-serializable-schedule findings | Transaction Logic — path semantics, serial conjunction, updates as supersession, the state-change facet |
+| [`design/LOGIC-TELEOLOGY.md`](./design/LOGIC-TELEOLOGY.md) | goal/action layer | exercised bounded case (`crates/logic/src/teleology.rs`, `conformance/logic/cases/teleology`); the goal kinds are evaluated by this module's own interpreters, not the finite-journal temporal evaluator | goals, intentional modes, structured goal expressions, reified goal evaluation, action schemas, goal decomposition and conflict; the intention → plan → action → transaction-path chain |
+| [`design/LOGIC-ENACTMENT.md`](./design/LOGIC-ENACTMENT.md) | charter | exercised bounded case for the integrity laws, the observed-not-derived guard and means–end refinement; design-only commitment for transition-law execution, liveness certificates, knowledge-order monotonicity and refinement depth — see [Enactment](#enactment) | the general prescription → enactment → commitment kernel over the existing `logic:Plan`: immutable versioned prescriptions, immutable journalled enactments, checkpoints and continuation kinds, the seven orthogonal lifecycle axes with their transition and liveness laws, the ⊑ₖ knowledge order over external-effect commitment, hierarchical refinement methods and the declared decidable search fragment, and the reuse ledger |
+| [`WORK-ORCHESTRATION.md`](../../core/work-orchestration/design/WORK-ORCHESTRATION.md) | binding charter (core slice, not this one) | exercised bounded case (that slice's `tests` and `conformance/logic/cases/enactment`); governed by the same enactment boundary | the domain binding of the kernel above — durable work clusters: the continuing-cluster thesis, guidance versioning, context assembly, recurrence non-identity, the decision-support bindings, and the review projection with its Principle-17 preservation judgment |
+| [`design/LOGIC-SESSION.md`](./design/LOGIC-SESSION.md) | operational façade | exercised bounded case (`crates/logic/tests/reasoning_session_*.rs`) — see [Session checkpoints](#session-checkpoints) | the stateful `ReasoningSession`: the seven-axis identity, the two delta anchors, the hash-linked journal, content-addressed checkpoints with replay restore, the six-way operation outcome, paged world-source composition, semver governance |
+| [`design/LOGIC-COGNITION.md`](./design/LOGIC-COGNITION.md) | cognitive assessment | exercised bounded case (`conformance/logic/cases/cognition`) | the multidimensional cognitive-assessment construct — factored dimensions of reasoning quality, reliability, calibration, and metacognitive posture; reasoning quality over the inference modes; reliability over the typed reasoning result |
+| [`design/LOGIC-RUNTIME.md`](./design/LOGIC-RUNTIME.md) | runtime | exercised bounded case (`crates/logic/src/physical`, `crates/logic/src/runtime`) | solver architecture, the materialization–resolution seam, graph versioning, generated artifacts |
+| [`design/LOGIC-PERFORMANCE.md`](./design/LOGIC-PERFORMANCE.md) | performance doctrine | source inspection; the document's perf ledger records each non-incremental, refused or demoted fragment, and wall-clock timings are advisory, never a gate | the deterministic-performance contract, data-shape and join doctrines, demand transformation, the incremental algebra, the chase-termination ladder, deterministic parallelism, provenance cost bounds, the measurement regime |
+| [`design/LOGIC-CONFORMANCE.md`](./design/LOGIC-CONFORMANCE.md) | contract | exercised bounded case (`conformance/logic/cases/*`, `generated/logic/projection-report.ttl`) | the conformance corpus and the loss-ledger preservation contract |
+| [`design/LOGIC-VALIDATION.md`](./design/LOGIC-VALIDATION.md) | shape surface | exercised bounded case (`crates/logic-compile/src/projections/shapes.rs` with its SHACL and ShEx tests, `conformance/logic/cases/validation`) | closed-world data-shape validation authored as canonical `logic:` validation shapes and projected to SHACL Core and ShEx, never hand-authored on the surface; the integrity peer of the SHACL-AF derivation projection |
+| [`design/LOGIC-SHACL-AF.md`](./design/LOGIC-SHACL-AF.md) | computation surface | exercised bounded case (`crates/logic-compile/src/projections/shacl_af.rs`) | derivation/aggregation (map/reduce) authored as canonical `logic:` rules and projected to a SHACL-AF `sh:SPARQLRule` surface — computation added to the canon and emitted, never bolted onto SHACL; the projectable fragment, the declared exit loss, and the placement/purity rule |
+| [`design/LOGIC-PATHS.md`](./design/LOGIC-PATHS.md) | traversal | exercised bounded case (`crates/logic-compile/src/projections/paths.rs`, [`examples/predicate-paths.ttl`](./examples/predicate-paths.ttl)); the predicate wildcard is emit-only because no query surface parses it | named and parametric predicate paths — `logic:PathShape`, the predicate wildcard and bounded `{n,m}` depth that SPARQL §9 lacks, by-name parametric invocation, and the property-path and Datalog projections with their declared exit loss; the pattern substrate of the correspondence `get` and `put` legs |
+| [`design/LOGIC-RDFQUERY.md`](./design/LOGIC-RDFQUERY.md) | query surface | design-only commitment — no grammar, parser, vocabulary term or test exists; the language is not committed | RDFQuery framed as a front-end that parses into `logic:` (which already projects out to SPARQL/SHACL/N3/OWL), not a stack bolted onto SPARQL; gated on its named first consumer (Principle 15) |
+| [`design/LOGIC-META-SEMANTICS.md`](./design/LOGIC-META-SEMANTICS.md) | meta-semantics | design-only commitment for the thesis; each axis it catalogs is evidenced by the document named in its row | the projection doctrine turned inward: the orthogonal canonical axes against the simplified surfaces generated from them, and the outward lattice of prior formalisms |
+| [`design/LOGIC-REFERENCES.md`](./design/LOGIC-REFERENCES.md) | appendix | source inspection (`metadata/references.ttl`) | external standards, theory, and engines cited — staged for the `metadata/references.ttl` ledger |
+
+## Evidence boundaries
+
+Each statement is a fact about what executes. A promise whose evidence is weaker than its prose is
+stated here with its boundary, and the document that owns the contract is linked rather than restated.
+
+### Correspondence calculus
+
+The calculus document is the canonical owner. Its consumers are the grounding bridge mappings
+([`mappings/grounding-bridges.ttl`](./mappings/grounding-bridges.ttl)), the pipeline mapping and
+compile-logic stages, and the `gmeow correspondence` commands.
+
+- **Law domains.** GetPut, PutGet, PutPut and source recovery with the required complement are four laws
+  on four input domains ([law domains](./design/LOGIC-CORRESPONDENCE.md#independent-law-domains-and-evidence)).
+  The native atomic property lens executes all four: GetPut against a nonempty prior source, PutGet on
+  independently edited views, PutPut on successive independent edits, and recovery from the augmented
+  view with its residual complement under the `EmptyWithComplement` policy (exercised bounded case:
+  `crates/logic/src/correspondence_exec/atomic_lens/tests.rs` and
+  `atomic_lens/composition/tests.rs`). The production correspondence program discharges only bounded
+  SectionLaw and PutGet evidence over declared seeds
+  (`crates/pipeline/src/correspondence_law.rs`), and atomic-path recovery runs against an explicit empty
+  initial state. PutPut is discharged for no correspondence. The `lang:` bridge declares GetPut discharged
+  for its mnemomorphic (exact) rungs under a syntactic-reachability condition
+  (`crates/lang-bridge/src/registry.rs`, `plain_text.rs`, `grammar.rs`, `conllu.rs`), and carries it as
+  `ObligationUnknown` for its lossy-lens fallbacks; the mapping program does not execute GetPut. A composite
+  path without an authored complete recovery case stays `ObligationUnknown`.
+- **Composition.** The four quantitative axes execute as authored `logic:Formula` rules on the native
+  engine (`crates/logic/src/correspondence_exec/axes.rs`). The Composition gate checks the rung join
+  and the per-law premise bound (`crates/logic-compile/src/projections/correspondence_gates.rs`) and
+  certifies no optic type. No rule executes determinacy, preservation polarity, loss and
+  unsupported-construct composition, or effect and complement composition; the calculus states them as
+  composition-rule obligations, and they are design-only commitments.
+- **Finite presentation merge.** `CheckedPushout`
+  (`crates/logic/src/correspondence_exec/presentation/pushout.rs`, exercised by
+  `presentation/tests.rs`) checks the supplied square, its injections and the factorization over finite
+  standpoint-indexed presentations, and the compile stage emits `generated/logic/presentation-merges.json`
+  from authored merge declarations. The result is an exercised bounded case in the declared presentation
+  category. It is not a rewrite certificate, claims nothing for pushouts of arbitrary theories, and is independent
+  of the openEHR evidence: no openEHR fixture executes a merge, and no merge test reads one.
+- **openEHR.** The openEHR evidence has separate bounds. The conformance case
+  `conformance/logic/cases/correspondence/openehr-bloodpressure-section-retraction` recovers the three
+  declared source edges of one query class. The reconstruction test
+  `crates/logic-compile/tests/openehr_bloodpressure_roundtrip.rs` rebuilds the committed fixture source
+  from the RM slice and its complement with a dedicated JSON reader; it is SectionLaw evidence with a
+  source-replacing initial state and executes no typed source/view/complement correspondence. The OPT
+  reader is exercised on the vendored `Blutdruck.opt` and `TestAllDatatypes.opt`
+  (`crates/logic-compile/src/openehr_opt.walker_tests.rs`), and the half-open interval projection is
+  exercised on a constructed interval (`crates/logic-compile/src/opt_lift.tests.rs`). The external
+  validator observation is a standalone lane the gate does not run, and holds for the two committed
+  compositions, the template and the validator version. The `rchops21` process fixture is projected and
+  recovered by the compile stage under an explicit loop bound, and `gmeow correspondence project-plan`
+  and `recover-plan` expose the same paths over caller-owned RDF. Typed execution of both cases with
+  edited views, nonempty prior state and independent GetPut, PutGet, PutPut and SectionLaw domains is not
+  implemented, and no fixture authorizes store replacement or unrestricted composition or fusion.
+
+### Enactment
+
+The enactment charter is normative, and GMEOW describes enactments without performing them. Three
+portions execute:
+
+- **Integrity laws.** The authored enactment constraints compile to violation-emitting rules and run on
+  the production verification path (`crates/logic/src/reason/enactment.rs`,
+  `crates/logic/tests/enactment_gate.rs`, `conformance/logic/cases/enactment`). Each finding names the
+  law it breaks.
+- **Observed-not-derived guard.** A derivation that types a subject as an effect attempt or receipt, or
+  stamps derivation provenance on one, is a hard failure (`reject_banned_heads` in the same module).
+- **Means–end refinement.** Eleven authored rules run under a budgeted session and return the typed
+  operation outcome (`crates/logic/src/reason/enactment/refine.rs`). The method-cycle refusal under the
+  acyclic fragment, ordered-carrier validation, the four rejection kinds, pins and budget-cut
+  incompleteness are exercised in `refine.tests.rs`.
+
+Four portions are design-only commitments. The transition formulas of the seven axes are not encoded:
+[`examples/axis-transition-laws.ttl`](./examples/axis-transition-laws.ttl) names the positions of axes 1–4
+and 7 without the admitted moves; axis 5 is a monotonicity law and axis 6 a minting-and-supersession law,
+and neither is encoded there. No liveness certificate is computed, so deadlock-freedom,
+reachability and no-orphan-intent are vocabulary. No constraint enforces the monotonicity of
+`logic:effectKnowledge` under the ⊑ₖ order. Refinement does not read the declared maximum depth of
+`logic:FragmentBoundedDepth`; the step budget bounds the search.
+
+### Agentic modality
+
+The evaluation context, the finite ground modal fragment over typed accessibility, the four information
+states, `gmeow logic evaluate` and the finite temporal operators over a committed journal, including the
+append monitor, are exercised in `crates/logic/src/modal` (contextual, composite, journal and monitor
+tests). The norm, intention and protocol commitments have no vocabulary and no executor: step norms and
+contrary-to-duty activation, intent composition and revision, choreography role projection, and
+Hohfeldian powers are design-only commitments. The achievement, maintenance, avoidance and deadline goals
+are evaluated by `crates/logic/src/teleology.rs` and do not use the finite temporal evaluator the
+document requires of them. The production scheduler does not evaluate readiness through the modal
+kernel.
+
+### Session checkpoints
+
+A checkpoint stores the seven-axis identity, the authorized EDB generation, the journal head and the
+ordered committed deltas, and no circuit state. Restore re-materializes the base closure with `open`,
+replays the stored deltas through the ordinary apply path and refuses unless every delta applies and the
+replayed head equals the recorded head. The content address covers the identity's descriptor hash, the
+generation, the head and the deltas. Head equality shows that the same sequence of accepted transitions
+was reproduced and does not hash the closure; closure agreement after restore is exercised by
+`ac5_committed_delta_is_refused_after_restart` in `crates/logic/tests/reasoning_session_crash_replay.rs`,
+`crates/logic/tests/reasoning_session_restore_rejection.rs` exercises the corrupt-checkpoint refusals, the
+identity-mismatch refusal on six of the seven identity axes (the engine-descriptor axis is fixed per build and
+is folded only by an in-crate fold test), and the replay-head-divergence refusal. No test in that suite
+exercises the refusal of a replayed delta whose outcome is not `Applied`, or the `EngineFailure` refusals of
+re-materialization and of committed-delta reconstruction in `facade.rs`. The
+[session document](./design/LOGIC-SESSION.md#content-addressed-checkpoints) owns the contract.
+
+### Query surface
+
+RDFQuery is a design-only commitment. The grammar is not committed and no consumer is wired. Until a
+query surface parses it, the predicate wildcard of a named path is emit-only.
 
 ## What it commits to
 

@@ -271,17 +271,14 @@ shape SystolicMeasurement:
 ```
 
 The **half-open boundary** (`upper_included = false`) is a first-class flag in the lowering, not
-an off-by-one approximation. This is exercised for real: the native reader
-`crates/shacl/src/openehr_opt.rs` reads the systolic/diastolic `C_DV_QUANTITY` `magnitude` block
-straight out of the vendored `Blutdruck.opt` (`[0, 1000)` mm[Hg], `lower_included=true`,
-`upper_included=false`) and lowers it — `lower_included → sh:minInclusive`,
-`upper_included=false → sh:maxExclusive` (never `sh:maxInclusive`). The test
-`crates/shacl/tests/bloodpressure_halfopen.rs` drives that reader end-to-end and asserts the
-produced shape rejects `value == 1000`; flipping the OPT's `upper_included` to `true` fails the
-test. This is the sharp ADL-fidelity check (`take1.md` §13.4-Q2) on boundary inclusivity for the
-blood-pressure magnitude — the narrow slice of a general OPT→SHACL constraint lowering.
-(Scope note: only the magnitude-interval slice is lowered here; the general ADL2/OPT constraint
-lowering across the CKM is a separate roadmap capability.) `logic:` full-FOL strictly exceeds the
+an off-by-one approximation. The reader `crates/logic-compile/src/openehr_opt.rs` reads each
+`C_DV_QUANTITY` `magnitude` interval and its inclusivity flags from the template, and the lowering maps
+`lower_included → sh:minInclusive` and `upper_included=false → sh:maxExclusive` (never
+`sh:maxInclusive`). `crates/logic-compile/src/opt_lift.tests.rs` exercises that mapping on a constructed
+`[0, 1000)` mm[Hg] interval and on every inclusivity combination, and
+`crates/logic-compile/src/openehr_opt.walker_tests.rs` round-trips every constraint read from the
+vendored `Blutdruck.opt`. No test checks the interval read from the vendored template or validates
+`value == 1000` against the projected shape. `logic:` full-FOL strictly exceeds the
 ADL constraint here (it can also state cross-field constraints ADL cannot, e.g. systolic >
 diastolic) — the "augment" beyond subsumption.
 
