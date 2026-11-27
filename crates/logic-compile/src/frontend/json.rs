@@ -63,6 +63,10 @@ impl ToJson for AdmittedSemanticUnit {
             Self::Rule { index } => {
                 Object::new().with("Rule", Object::new().with("index", index.to_json()))
             }
+            Self::ForbiddenPattern { index } => Object::new().with(
+                "ForbiddenPattern",
+                Object::new().with("index", index.to_json()),
+            ),
             Self::PropertyCharacteristic(characteristic) => {
                 Object::new().with("PropertyCharacteristic", characteristic.to_json())
             }
