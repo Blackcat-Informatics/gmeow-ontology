@@ -11,6 +11,8 @@ fn complete_native_publication_keeps_proof_attribution_and_refusals() {
         br#"
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex: <https://example.org/> .
+ex:Theory a logic:Module ; logic:imports ex:Support .
+ex:Support a logic:Module .
 ex:ban a logic:ForbiddenPatternConstraint ;
     logic:onClass ex:Guard ; logic:forbiddenPredicate ex:edge ;
     logic:formalizes ex:Guard .
@@ -32,6 +34,15 @@ ex:b a logic:TermCarrier ; logic:termIndex 1 ; logic:termIri ex:itemB .
     let bytes = PreparedCanonProof::encode(&inventory, 32_768).expect("native artifact encodes");
     let mut decoded =
         PreparedCanonProof::decode(&bytes, bytes.len()).expect("native artifact reads");
+
+    let mut observed = serde_json::to_value(&decoded.binding().selection)
+        .expect("the decoded selection remains portable");
+    assert_eq!(observed["imports"][0]["carrier"], "statement");
+    observed["imports"][0]["carrier"] = serde_json::Value::String("unknown".into());
+    assert!(
+        serde_json::from_value::<TheorySelectionObservation>(observed).is_err(),
+        "an unrecognized import carrier must not decode"
+    );
 
     assert_eq!(
         decoded.binding().selection.source_digest,

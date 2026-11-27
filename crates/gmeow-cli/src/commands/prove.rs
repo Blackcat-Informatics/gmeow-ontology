@@ -2283,7 +2283,7 @@ fn render_theory_selection(selection: &TheorySelectionObservation) {
             "theory-import {} {} {}",
             edge.source.as_str(),
             edge.target.as_str(),
-            edge.carrier
+            edge.carrier.as_str()
         );
     }
 }

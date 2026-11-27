@@ -32,7 +32,7 @@ pub use view::{SelectedProgramView, SelectedSourceView, TheoryUnitSelection};
 pub struct ModuleImportObservation {
     pub source: ModuleIri,
     pub target: ModuleIri,
-    pub carrier: String,
+    pub carrier: SourceCarrier,
     pub documents: BTreeSet<String>,
 }
 
@@ -321,24 +321,25 @@ impl SourceInventory<'_> {
                 imports.push(ModuleImportObservation {
                     source: available[&module].0.clone(),
                     target,
-                    carrier: match edge.carrier {
-                        SourceCarrier::Statement => "statement",
-                        SourceCarrier::Annotation => "annotation",
-                        SourceCarrier::Reifier => "reifier",
-                    }
-                    .to_owned(),
+                    carrier: edge.carrier,
                     documents,
                 });
                 pending.insert(edge.target);
             }
         }
         imports.sort_by(|left, right| {
-            (&left.source, &left.target, &left.carrier, &left.documents).cmp(&(
-                &right.source,
-                &right.target,
-                &right.carrier,
-                &right.documents,
-            ))
+            (
+                &left.source,
+                &left.target,
+                left.carrier.as_str(),
+                &left.documents,
+            )
+                .cmp(&(
+                    &right.source,
+                    &right.target,
+                    right.carrier.as_str(),
+                    &right.documents,
+                ))
         });
         let index = index::SelectionIndex::new(
             self,

@@ -8,7 +8,7 @@ use serde::ser::SerializeSeq;
 
 use crate::frontend::{
     AxiomSource, CollectionField, CollectionRole, CompiledTheory, FormulaDisposition,
-    OwnerDisposition, OwnerFamily, SourceCarrier, SourceOwnerRole, SourceStatementBinding,
+    OwnerDisposition, OwnerFamily, SourceOwnerRole, SourceStatementBinding,
 };
 use purrdf::RdfDataset;
 
@@ -62,14 +62,6 @@ enum Origin {
     },
 }
 
-fn carrier_name(carrier: SourceCarrier) -> &'static str {
-    match carrier {
-        SourceCarrier::Statement => "statement",
-        SourceCarrier::Annotation => "annotation",
-        SourceCarrier::Reifier => "reifier",
-    }
-}
-
 impl Serialize for Origins<'_> {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut sequence = serializer.serialize_seq(Some(self.sources.len()))?;
@@ -89,7 +81,7 @@ impl Serialize for Origins<'_> {
                 },
                 AxiomSource::Collection { source, field } => Origin::Collection {
                     constructor: (
-                        carrier_name(source.constructor.carrier),
+                        source.constructor.carrier.as_str(),
                         quad_anchor(self.dataset, source.constructor.canonical),
                     ),
                     role: source.role,
@@ -97,7 +89,7 @@ impl Serialize for Origins<'_> {
                 },
                 AxiomSource::RewrittenField { source, owner } => Origin::RewrittenField {
                     source: (
-                        carrier_name(source.carrier),
+                        source.carrier.as_str(),
                         quad_anchor(self.dataset, source.canonical),
                     ),
                     owner: *owner,
@@ -146,7 +138,7 @@ impl Serialize for RecordSupport<'_> {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut sequence = serializer.serialize_seq(Some(self.bindings.len()))?;
         for binding in self.bindings {
-            let carrier = carrier_name(binding.carrier);
+            let carrier = binding.carrier.as_str();
             sequence.serialize_element(&(carrier, quad_anchor(self.dataset, binding.canonical)))?;
         }
         sequence.end()
