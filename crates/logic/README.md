@@ -22,8 +22,7 @@ entailment queries, governed materialization and proof provenance.
 ## What this crate is
 
 `gmeow-logic` is the Rust `logic:` engine — the production engine
-that backs world construction, entailment queries, and provenance capture. It
-supersedes the earlier Python reference oracle, which has been retired.
+that backs world construction, entailment queries, and provenance capture.
 
 The runtime includes a **world-indexed storage layer**, typed IR lowering,
 semi-naive positive evaluation, stratified and non-monotone solvers, and a
@@ -196,33 +195,41 @@ derive `?C logic:violation <label>` facts for:
 
 Positive cross-world rigidity cannot be expressed as an in-world Datalog rule because the chase
 is world-local. It is evaluated by a bounded closure pass over the finite materialized world set,
-emitting `logic:rigidityViolation` quads in the world where rigidity persistence fails. The
-anti-rigidity witness policy (`witness-obligation` / `witness-required` / `schema-only`) is a
-companion pass that emits `logic:dischargeObligation` / `logic:witnessRequiredViolation` per the
-declared policy without ever suppressing a violation.
+emitting `logic:rigidityViolation` quads in the world where rigidity persistence fails: a world
+admitted from the typing world by typed accessibility records, each asserted in the graph of its
+subject (`w logic:epistemicallyPossible w'` in `w`, or a chain of
+`w1 logic:temporallySucceeds w`, `w2 logic:temporallySucceeds w1`, ...,
+`w' logic:temporallySucceeds wn` records, each asserted in its own subject's graph), in which the
+individual still exists and carries admissible evidence of the loss — an
+explicit `logic:notInstanceOf` assertion or a closed-world closure of its `rdf:type` statements that
+a `logic:ReasoningContract` of that world declares. An absence of a typing is evidence only where
+no asserted type of the individual reaches the type through `logic:subClassOf` triples asserted in
+that world. `Kind`, `SubKind` and `Category` are rigid by
+stereotype; a `logic:rigidlyAppliesTo` record holds one instance of any other type, and is refused
+on a type with an anti-rigid stereotype. The anti-rigidity witness policy (`witness-obligation` /
+`witness-required` / `schema-only`) is a companion pass that emits `logic:dischargeObligation` /
+`logic:witnessRequiredViolation` for every instance of a `Role`, `Phase`, `RoleMixin` or
+`PhaseMixin` type per the declared policy without ever suppressing a violation; the witness is
+discharged only by the same admissible evidence, and a semi-rigid `Mixin` owes none.
 
 ### Native Rust evaluator
 
 The lowering is **evaluated natively in Rust** by `crates/logic/src/foundation.rs` (entry point:
-the `gmeow_logic.foundation(nquads, policy)` PyO3 binding). The in-world discipline rules, the
-cross-world rigidity closure, and the anti-rigidity witness passes all run inside that evaluator,
-which emits fully-provenanced quads (reifiers + derivation IDs via the shared `provenance` recipe).
+`gmeow_logic::foundation::evaluate(&WorldStore, AntiRigidityPolicy)`). The in-world discipline
+rules, the cross-world rigidity closure, and the anti-rigidity witness passes all run inside that
+evaluator, which emits fully-provenanced quads (reifiers + derivation IDs via the shared
+`provenance` recipe).
 
-The earlier Python oracle (`src/gmeow_tools/logic_foundation.py`) has been **retired** — there is
-no Python emitter and no fallback (no-optionality doctrine: a missing `gmeow_logic` extension is a
-hard failure, not a degraded path). Golden-fixture parity is preserved by construction: the
-`conformance/logic/cases/foundation/` corpus goldens are unchanged and now certify the Rust
-evaluator directly, with no oracle in the path.
+There is no Python emitter and no fallback (no-optionality doctrine: an invalid input or an
+ambiguous closure entry makes `evaluate` return an error, not a degraded result). The
+`conformance/logic/cases/foundation/` corpus goldens certify the Rust evaluator directly.
 
 ### Stratified NAF
 
 The discipline rules need stratified NAF to express absence (a class with no stereotype, a sortal
 with no rigid ancestor); the native evaluator partitions the rule set into strata and chases each
 to fixpoint before the next. Foundation lowering is gated on `"foundation_lowering": true` in
-`profile.json`; cases that do not opt in add zero quads. (For non-foundation programs that declare
-stratifiable negation, the Python `materialize_program()` path retains its own `enable_naf`
-stratified chase; programs the stratified oracle cannot compute fall through to a lossy positive
-materialization with the loss recorded.)
+`profile.json`; cases that do not opt in add zero quads.
 
 ---
 
@@ -284,7 +291,7 @@ The corpus lives under `conformance/logic/cases/profiles/probabilistic-*`.
 
 ---
 
-## Oracle-parity discipline
+## World-isolation discipline
 
 - **A world is a named graph.** Every insert targets a specific named graph IRI;
   every query is scoped to a single named graph. No cross-world union queries
@@ -293,7 +300,7 @@ The corpus lives under `conformance/logic/cases/profiles/probabilistic-*`.
 - **World-indexed only.** The public API exposes only `insert_quad(world, s, p, o)`
   and `quads_in_world(world)`. There is deliberately no dataset-union method.
 - **Same conformance corpus.** The unit tests validate isolation semantics
-  that both the retired Python oracle and this crate satisfy identically.
+  that this crate satisfies.
 
 ---
 

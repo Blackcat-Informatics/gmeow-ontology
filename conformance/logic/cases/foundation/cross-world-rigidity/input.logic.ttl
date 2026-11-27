@@ -2,30 +2,34 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 #
 # Conformance case: foundation/cross-world-rigidity
-# AC: foundation lowering — cross-world rigidity + anti-rigidity witness policy
-#     (issue #503, Tasks 3 and 4).
+# AC: foundation lowering — cross-world rigidity + anti-rigidity witness policy.
 #
 # Positive cross-world rigidity is the fourth OntoUML discipline; it quantifies
 # over PAIRS of worlds and so CANNOT be an in-world Datalog rule (the chase is
 # world-local). It is evaluated by bounded closure over the finite materialized
 # world set and folded back in as logic:rigidityViolation. The lint cannot express
-# this — it is a Task-3-only capability.
+# this.
 #
 # Worlds:
 #   * ex:worldA — the schema world (the rigid Kind ex:Person, the anti-rigid Role
 #     ex:Employee) plus instance typings: ex:alice and ex:bob are rigid Persons,
-#     ex:carol is an Employee.
-#   * ex:worldB — ex:alice still EXISTS (subject of ex:livesIn ex:Berlin) but is
-#     NOT typed ex:Person; ex:bob IS re-typed ex:Person.
+#     ex:carol is an Employee. A typed accessibility record
+#     (ex:worldA logic:epistemicallyPossible ex:worldB) lets the judgment cross
+#     from ex:worldA into ex:worldB.
+#   * ex:worldB — ex:alice still EXISTS (subject of ex:livesIn ex:Berlin) and is
+#     NOT typed ex:Person, with an explicit logic:notInstanceOf assertion for her;
+#     ex:bob IS re-typed ex:Person.
 #
 # Expected discipline facts:
-#   * ex:alice logic:rigidityViolation ex:Person  IN ex:worldB — rigid type fails
-#     to persist into a world the instance still inhabits (the headline Task-3 fact).
+#   * ex:alice logic:rigidityViolation ex:Person  IN ex:worldB — the rigid type fails
+#     to persist into an accessible world the instance still inhabits, with
+#     admissible evidence of the loss. A world that merely mentioned ex:alice, or
+#     that no accessibility record reaches, would yield no violation.
 #   * ex:bob   — typed ex:Person in BOTH worlds → NO rigidity violation (the clean
 #     rigid control).
 #   * ex:carol logic:dischargeObligation ex:Employee IN ex:worldA — the anti-rigid
 #     Role instantiation raises a standing witness obligation under the profile's
-#     "witness-obligation" policy (the Task-4 demonstration).
+#     "witness-obligation" policy.
 # Plus the type-level lint over the schema: the anti-rigid Role ex:Employee trips
 # logic:FreeRole + logic:MixIden (a Role with no rigid ancestor / zero Kind
 # ancestors) — the FULL lint set, faithfully reproduced.

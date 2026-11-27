@@ -693,11 +693,23 @@ are context-relativized — `holds(c, type(x, T))` rather than bare `type(x, T)`
 operators are the **standard translation** of modal logic into first-order logic over an explicit,
 *typed* accessibility relation:
 
-- **Rigidity.** `logic:rigidlyAppliesTo(T)` lowers to the integrity constraint *for every individual
-  `x` and every pair of worlds `w`, `w'` in which `x` exists, if `x` is a `T` in `w` then `x` is a
-  `T` in `w'`*. A `Kind` is rigid; a `Role`/`Phase` is anti-rigid — the same constraint *negated*.
-  The solver needs no native ◻ operator: the compiler emits a universally quantified, world-indexed
-  rule evaluated by closure/counting over the world set.
+- **Rigidity.** `logic:rigidlyAppliesTo(T, x)` records that `T` necessarily classifies the
+  individual `x`. It lowers to the integrity constraint *for every pair of worlds `w`, `w'` in which
+  `x` exists and `w'` is admitted from `w` by typed accessibility records (a direct epistemic
+  record, or a chain of temporal succession records, see the admissible-evidence section), if `x`
+  is a `T` in `w` then `x` is a `T` in `w'`*. Rigidity is a property of each typing, and the type
+  definitions state how a type's instances distribute over it: `logic:RigidType` applies necessarily to each instance,
+  `logic:AntiRigidType` applies contingently to **every** instance, and `logic:SemiRigidType` is
+  permanent for **some** instances and contingent for others. The stereotype fixes the distribution
+  where its definition does. `Kind`, `SubKind` and `Category` are rigid types, so every instance is
+  held. `Role`, `Phase`, `RoleMixin` and `PhaseMixin` are anti-rigid types — the same constraint
+  *negated* — so every instance owes the anti-rigidity witness, and a `logic:rigidlyAppliesTo`
+  record on one of them contradicts its definition and is refused. `Mixin` is the semi-rigid
+  stereotype: the data decides it, so an instance with a `logic:rigidlyAppliesTo` record is held
+  and the others are contingent. A `Mixin` with one permanently typed instance and one contingently
+  typed instance is therefore semi-rigid, holds only the permanent typing across worlds and owes no
+  witness. The solver needs no native ◻ operator: the compiler emits a universally quantified,
+  world-indexed rule evaluated by closure/counting over the world set.
 - **Boundedness.** Because the world set is the *finite, materialized* contextual index — not the
   unbounded space of all logically possible worlds — evaluation is bounded universal quantification,
   not full modal theorem proving.
@@ -732,7 +744,7 @@ counter-world has been materialized. A policy must be chosen:
 
 | Policy | Meaning | Tradeoff |
 |---|---|---|
-| Witness-required | anti-rigid instantiation is invalid unless a counter-world exists | strict but heavy |
+| Witness-required | anti-rigid instantiation is invalid unless an accessible counter-world admissibly evidences the loss | strict but heavy |
 | Witness-obligation | the solver emits an obligation to construct or cite such a world | practical |
 | Schema-only anti-rigidity | anti-rigidity constrains the type hierarchy, not each token instance | closest to a structural check |
 | Context-dependent | finite-context reasoning uses obligation; generative reasoning may construct witnesses | most flexible |
@@ -745,10 +757,65 @@ counter-world has been materialized. A policy must be chosen:
 
 The three policy values are enforced by a dedicated anti-rigidity pass: `witness-obligation` (default,
 emits a discharge obligation), `schema-only` (emits nothing at the instance level), and
-`witness-required` (emits a witness-required violation absent a materialized counter-world). The policy
-governs **only** the obligation/witness facet; the `logic:violation` and rigidity-violation findings
-are computed by separate passes and are identical across all three policy values (the non-suppression
-invariant).
+`witness-required` (emits a witness-required violation absent an admissible counter-world). The
+policy governs **only** the obligation/witness facet; the `logic:violation` and rigidity-violation
+findings are computed by separate passes and are identical across all three policy values (the
+non-suppression invariant). The obligation applies only to a type with an anti-rigid stereotype; a
+semi-rigid `Mixin` owes no witness.
+
+### Admissible evidence for a cross-world judgment
+
+A cross-world judgment — a `logic:rigidityViolation`, or the discharge of an anti-rigidity witness —
+binds the same individual `x` and the same type `T` in both worlds, and a counter-world cannot be
+conjured from the absence of data. It rests on four things:
+
+1. **A permitted world.** `w'` is judged from `w` only along typed accessibility records, each
+   asserted in the graph of its own subject: `w logic:epistemicallyPossible w'` asserted in `w`, or
+   a chain of records `w1 logic:temporallySucceeds w`, `w2 logic:temporallySucceeds w1`, ...,
+   `w' logic:temporallySucceeds wn`, each asserted in its own subject's graph. The evaluator reads a
+   temporal record from its object to its subject: the later state names its predecessor, temporal
+   succession is a strict order, so a later state is reached from an earlier one at any number of
+   steps, and never the reverse. A cycle of temporal records, including a state that succeeds
+   itself, is malformed evidence and is refused rather than judged. An epistemic record does not
+   chain: it admits only the world it names. A record asserted in any other
+   graph (a doxastic context reporting the record, for example), the bare `logic:accessibleFrom`
+   superproperty, the doxastic, deontic, counterfactual and standpoint relations, and the absence
+   of any record license nothing. The kernel defines no world-to-world context transport, so a
+   direct epistemic record and a chain of temporal records are the only ways a world is permitted;
+   an inaccessible world neither fires a violation nor discharges a witness.
+2. **Continued existence.** `x` is the subject of a statement in `w'` other than its own
+   non-membership assertion. A world that never mentions `x` says nothing about it.
+3. **Negative membership.** `x` is not a `T` in `w'`, that is, no asserted typing of `x` in `w'`
+   is `T` or a subclass of `T` under the `logic:subClassOf` triples asserted in `w'`, and that is
+   evidenced: an explicit
+   `x logic:notInstanceOf T` assertion in `w'`, or a closed-world closure of the type statements of
+   `x` in `w'`. A world that both types `x` a `T` and asserts the non-membership evidences no loss.
+   Absence of a typing in a materialized graph is never negative evidence by itself: open world is
+   the default.
+4. **The selected contract.** A closure is admissible only when the contract of `w'` permits it: a
+   `logic:ReasoningContract` asserted in `w'` declares, through `logic:closureEntry`, an entry
+   asserted in `w'` with `logic:closureKey rdf:type`, `logic:closureIndividual x` and
+   `logic:closureValue logic:ClosedWorldClosure`. The key is the exact predicate it closes, as for
+   every closure entry, and the individual scope closes it only for statements about `x`, so the
+   absence of `x a T` in `w'` is then evidence for every type `T` that no asserted type of `x` in
+   `w'` reaches through the `logic:subClassOf` triples asserted in `w'`. An entry over another
+   individual or another predicate, an open-world value, an entry no contract of `w'` declares and an entry
+   authored in another world do not apply. An individual-scoped entry with several distinct keys,
+   values or individuals, an entry missing its key or value, and two entries of one world that
+   assign different values to the type statements of one individual are refused. A compiled
+   reasoning contract binds each key for the whole contract, so the compiler refuses an
+   individual-scoped entry in a contract source rather than widening it.
+
+The worked case is a board's minutes that identify Alice as a board member, modelled as a
+`gmeow:Membership` (organization) with its role (`gmeow:hasRole`), founded on the bylaws
+(agreements), according to the minutes' standpoint (standpoint), held over a term interval whose
+start instant the minutes record (`gmeow:duringInterval`, `gmeow:hasStartInstant`; temporal), in a
+record attributed to the secretary (provenance). An address register that mentions Alice and says
+nothing about her role leaves the witness obligation open, because it gives no evidence that she
+lost the role. A later record that is accessible from the minutes, shows Alice still present and
+carries either the explicit non-membership or the contract's closure discharges the obligation; it
+is attributed to its own author and records the end instant of the term (`gmeow:hasEndInstant`)
+without rewriting the minutes, which keep their attribution and the start of the term.
 
 ## Worlds, Modality, and Counterfactuals — a typed context algebra
 
