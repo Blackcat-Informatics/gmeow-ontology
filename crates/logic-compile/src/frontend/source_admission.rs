@@ -1023,13 +1023,7 @@ impl<'a> AdmissionBuilder<'a> {
                 .any(|source| source.class_definition().is_some())
                 && sources.iter().all(|source| {
                     let documents = self.axiom_source_documents(source);
-                    if !documents.is_empty() && !self.documents_selected(&documents) {
-                        return true;
-                    }
-                    matches!(source, AxiomSource::Statement { .. })
-                        || source
-                            .class_definition()
-                            .is_some_and(|node| self.certified_classes.contains(&node))
+                    self.class_axiom_source_admitted(source, &documents)
                 })
             {
                 self.push(
@@ -1051,7 +1045,7 @@ impl<'a> AdmissionBuilder<'a> {
                     documents,
                     blocked(
                         "UNSUPPORTED_CLASS_EXPRESSION",
-                        "class-expression lowering is not yet certified for the classical external profile",
+                        self.class_axiom_blocker_reason(sources),
                     ),
                 );
             } else if let Some(axiom) = self.theory.program().axioms.get(index) {
@@ -1069,6 +1063,41 @@ impl<'a> AdmissionBuilder<'a> {
                 );
             }
         }
+    }
+
+    fn class_axiom_source_admitted(
+        &self,
+        source: &AxiomSource,
+        documents: &BTreeSet<String>,
+    ) -> bool {
+        (!documents.is_empty() && !self.documents_selected(documents))
+            || matches!(source, AxiomSource::Statement { .. })
+            || source
+                .class_definition()
+                .is_some_and(|node| self.certified_classes.contains(&node))
+    }
+
+    fn class_axiom_blocker_reason(&self, sources: &[AxiomSource]) -> String {
+        let dataset = self.theory.source().dataset();
+        let contributors: Vec<_> = sources
+            .iter()
+            .filter_map(|source| {
+                let documents = self.axiom_source_documents(source);
+                if self.class_axiom_source_admitted(source, &documents) {
+                    return None;
+                }
+                let anchor = node_anchor(dataset, source.source_node());
+                let class = source
+                    .class_definition()
+                    .map(|node| node_anchor(dataset, node));
+                Some((anchor, class, documents))
+            })
+            .collect();
+        let encoded = purrdf_lex::json::record::to_vec(&contributors);
+        let detail = std::str::from_utf8(&encoded).expect("native JSON is UTF-8");
+        format!(
+            "class-expression lowering is not yet certified for the classical external profile. Contributing sources {detail}"
+        )
     }
 
     fn record_diagnostics(&mut self) {
