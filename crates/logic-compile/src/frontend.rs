@@ -845,12 +845,23 @@ fn aggregation_from_node(
 /// `logic:ReasoningContract`, `logic:ReasoningPreset`, OR `logic:ClosureEntry`.
 /// These are the meta-configuration nodes whose facet-config triples must be kept
 /// out of the domain axiom set.
+///
+/// An object of `logic:closureEntry` on a `logic:ReasoningContract` is configuration
+/// whether or not it is typed `logic:ClosureEntry`.
 fn collect_contract_config_subjects(store: &RdfDataset) -> HashSet<String> {
     let mut subjects: HashSet<String> = HashSet::new();
     for class_local in ["ReasoningContract", "ReasoningPreset", "ClosureEntry"] {
         let class_term = Node::iri(logic_iri(class_local));
         for subj in subjects_of_structural_class(store, &class_term) {
             subjects.insert(subject_str(&subj));
+        }
+    }
+    for contract in subjects_of_structural_class(store, &Node::iri(logic_iri("ReasoningContract")))
+    {
+        for entry in objects(store, &contract, &nn(&logic_iri("closureEntry"))) {
+            if let Some(entry) = term_as_subject(&entry) {
+                subjects.insert(subject_str(&entry));
+            }
         }
     }
     subjects
