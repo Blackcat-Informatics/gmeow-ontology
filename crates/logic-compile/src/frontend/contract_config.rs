@@ -13,11 +13,11 @@ use super::*;
 pub(super) struct ContractConfigSubjects {
     /// Subjects typed `logic:ReasoningContract` or `logic:ReasoningPreset`: the owners of the
     /// facet predicates, `logic:closureEntry` and `logic:complexityClass`.
-    owners: HashSet<String>,
+    owners: BTreeSet<String>,
     /// Closure entries: subjects typed `logic:ClosureEntry`, and every object of
     /// `logic:closureEntry` on an owner whether or not it is typed. They
     /// own `logic:closureKey`, `logic:closureValue` and `logic:closureIndividual`.
-    entries: HashSet<String>,
+    entries: BTreeSet<String>,
 }
 
 impl ContractConfigSubjects {

@@ -1119,6 +1119,25 @@ fn temporal_succession_carries_a_rigid_typing_forward() {
     );
 }
 
+/// INVARIANT: temporal succession is a strict order, so a cycle of `logic:temporallySucceeds`
+/// records is refused rather than judged: no state of the cycle may judge another in the
+/// reverse direction.
+#[test]
+fn cyclic_temporal_succession_is_refused() {
+    let a = format!("{BOARD}/a");
+    let b = format!("{BOARD}/b");
+    let c = format!("{BOARD}/c");
+    let nq = succession_record(&b, &a, &b)
+        + &succession_record(&c, &b, &c)
+        + &succession_record(&a, &c, &a);
+    let refusal = evaluate(&store_from(&nq), AntiRigidityPolicy::WitnessObligation)
+        .expect_err("a temporal cycle must be refused, not judged");
+    assert!(
+        refusal.to_string().contains("form a cycle"),
+        "the refusal must name the cycle; got: {refusal}"
+    );
+}
+
 /// INVARIANT: a later state reached by temporal succession can witness an anti-rigid
 /// typing of the earlier state, and an earlier state never witnesses a later typing.
 #[test]
@@ -1147,12 +1166,10 @@ fn temporal_succession_discharges_a_witness_with_a_later_loss() {
 }
 
 /// INVARIANT: temporal succession is walked transitively, so every later state is reached
-/// from an earlier one at any number of steps, and a cycle or self-loop of records
-/// terminates.  In a three-state chain the loss of the role is evidenced only in the last
-/// state; it discharges the witness of the earliest state's typing although the middle
-/// state, which says nothing of Alice, lies between them.  With the chain closed into a
-/// cycle and the earliest state succeeding itself, the same loss still discharges, and
-/// without loss evidence nothing discharges.
+/// from an earlier one at any number of steps.  In a three-state chain the loss of the role
+/// is evidenced only in the last state; it discharges the witness of the earliest state's
+/// typing although the middle state, which says nothing of Alice, lies between them.  A
+/// cycle of succession records is refused instead (see `cyclic_temporal_succession_is_refused`).
 #[test]
 fn temporal_succession_reaches_every_later_state() {
     let minutes = format!("{BOARD}/minutes");
@@ -1169,18 +1186,6 @@ fn temporal_succession_reaches_every_later_state() {
     assert!(
         !board_violation_open(&(chain.clone() + &later_loss_of_role(&loss))),
         "a loss two succession steps after the typing discharges its witness"
-    );
-
-    let cyclic = chain
-        + &succession_record(&minutes, &later, &minutes)
-        + &succession_record(&minutes, &minutes, &minutes);
-    assert!(
-        !board_violation_open(&(cyclic.clone() + &later_loss_of_role(&loss))),
-        "a cycle of succession records still reaches the later loss"
-    );
-    assert!(
-        board_violation_open(&(cyclic + &later_loss_of_role(""))),
-        "the states of a cycle witness no loss without evidence"
     );
 }
 

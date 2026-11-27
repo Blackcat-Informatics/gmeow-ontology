@@ -964,7 +964,7 @@ fn derive_some_values_from_uses_class_membership_under_approximation() {
 
 #[test]
 fn derive_class_scoped_closed_all_values_from_requires_the_path() {
-    let ds = shape_dataset_with_logic(
+    let ds = shape_dataset(
         "g:Doc a owl:Class . \
          g:Article a owl:Class ; rdfs:subClassOf \
          [ a owl:Restriction ; owl:onProperty g:cites ; owl:allValuesFrom g:Doc ] . \
@@ -993,7 +993,7 @@ fn derive_class_scoped_closed_all_values_from_requires_the_path() {
 /// required path, while the same property and restriction derive their shapes as usual.
 #[test]
 fn individual_scoped_closure_entries_do_not_widen_to_property_or_class() {
-    let ds = shape_dataset_with_logic(
+    let ds = shape_dataset(
         "g:Doc a owl:Class . \
          g:cites a owl:ObjectProperty ; rdfs:range g:Doc . \
          g:Article a owl:Class ; rdfs:subClassOf \
@@ -1060,7 +1060,7 @@ fn derive_all_values_from_emits_bare_class_not_wrapped() {
 fn derive_rdfs_domain_targets_subjects_of_with_node_class() {
     // domain/range are open-world by default (inference axioms); a shape is derived only for a
     // property opted IN via a `logic:ClosedWorldClosure` closure entry.
-    let ds = shape_dataset_with_logic(
+    let ds = shape_dataset(
         "g:Doc a owl:Class . g:cites a owl:ObjectProperty ; rdfs:domain g:Doc .\n\
          [] a logic:ClosureEntry ; logic:closureKey g:cites ; logic:closureValue logic:ClosedWorldClosure .",
     );
@@ -1102,7 +1102,7 @@ fn derive_rdfs_domain_range_is_open_world_by_default_without_optin() {
 fn derive_rdfs_range_targets_objects_of_class_and_datatype() {
     // A class range → sh:class node component on an ObjectsOf shape. domain/range are open-world
     // by default; opt the property IN with a `logic:ClosedWorldClosure` closure entry.
-    let class_ds = shape_dataset_with_logic(
+    let class_ds = shape_dataset(
         "g:Doc a owl:Class . g:cites a owl:ObjectProperty ; rdfs:range g:Doc .\n\
          [] a logic:ClosureEntry ; logic:closureKey g:cites ; logic:closureValue logic:ClosedWorldClosure .",
     );
@@ -1120,7 +1120,7 @@ fn derive_rdfs_range_targets_objects_of_class_and_datatype() {
         class_shape.node_components
     );
     // An xsd:integer range → sh:datatype node component.
-    let dt_ds = shape_dataset_with_logic(
+    let dt_ds = shape_dataset(
         "g:blockNumber a owl:DatatypeProperty ; rdfs:range xsd:integer .\n\
          [] a logic:ClosureEntry ; logic:closureKey g:blockNumber ; logic:closureValue logic:ClosedWorldClosure .",
     );
@@ -1147,7 +1147,7 @@ fn derive_rdfs_resource_range_domain_is_vacuous_no_class_component() {
     // the derivation must emit NO node/class component for it.
     // Opt the property IN to closed-world domain/range reading so a shape IS derived and the
     // "no vacuous rdfs:Resource class component" assertion below stays falsifiable.
-    let range_ds = shape_dataset_with_logic(
+    let range_ds = shape_dataset(
         "g:usesTerm a owl:ObjectProperty ; rdfs:range rdfs:Resource .\n\
          [] a logic:ClosureEntry ; logic:closureKey g:usesTerm ; logic:closureValue logic:ClosedWorldClosure .",
     );
@@ -1166,7 +1166,7 @@ fn derive_rdfs_resource_range_domain_is_vacuous_no_class_component() {
         );
     }
     // Same for a domain of rdfs:Resource.
-    let domain_ds = shape_dataset_with_logic(
+    let domain_ds = shape_dataset(
         "g:usesTerm a owl:ObjectProperty ; rdfs:domain rdfs:Resource .\n\
          [] a logic:ClosureEntry ; logic:closureKey g:usesTerm ; logic:closureValue logic:ClosedWorldClosure .",
     );
@@ -1894,7 +1894,7 @@ fn derive_qualified_cardinality_emits_plain_class_when_a_closed_range_backs_it()
     // qualified cardinality when a genuine universal backs it: here a closed-world-opted-in
     // `rdfs:range g:mediates g:C`. Then both the plain class (the universal) and the qualified
     // value shape (the count) are present, and the round trip stays equivalent.
-    let ds = shape_dataset_with_logic(
+    let ds = shape_dataset(
         "g:C a owl:Class . \
          g:mediates a owl:ObjectProperty ; rdfs:range g:C . \
          g:K a owl:Class ; rdfs:subClassOf \
@@ -2159,7 +2159,7 @@ fn derive_domain_and_functional_merge_into_one_subjects_of_shape() {
     // SAME property must fold into ONE SubjectsOf(P) shape carrying both the node Class and the
     // maxCount-1 property. (The functional maxCount derives regardless; the domain node-class
     // needs the ClosedWorldClosure opt-in since domain is open-world by default.)
-    let ds = shape_dataset_with_logic(
+    let ds = shape_dataset(
         "g:Doc a owl:Class . \
          g:isbn rdfs:domain g:Doc .\n\
          [] a logic:PropertyCharacteristicAssertion ; \
@@ -2198,23 +2198,10 @@ fn derive_domain_and_functional_merge_into_one_subjects_of_shape() {
 
 // ── R3: the per-property / per-class closed-world-reading opt-out (closure selector) ──────
 
-/// Parse a fragment that also declares the `logic:` prefix, for the closure-entry opt-out tests.
-fn shape_dataset_with_logic(ttl: &str) -> std::sync::Arc<RdfDataset> {
-    let full = format!(
-        "@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
-         @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n\
-         @prefix owl:   <http://www.w3.org/2002/07/owl#> .\n\
-         @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n\
-         @prefix g:     <https://blackcatinformatics.ca/gmeow/> .\n\
-         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n{ttl}"
-    );
-    parse_dataset(full.as_bytes(), "text/turtle", None).expect("parse dataset ok")
-}
-
 #[test]
 fn derive_default_is_derive_all_without_any_closure_annotation() {
     // MAXIMAL UTILITY: with NO closure annotation, every eligible axiom derives a shape.
-    let ds = shape_dataset_with_logic(
+    let ds = shape_dataset(
         "g:Doc a owl:Class . \
          g:Article a owl:Class ; rdfs:subClassOf \
          [ a owl:Restriction ; owl:onProperty g:cites ; owl:someValuesFrom g:Doc ] .",
@@ -2230,7 +2217,7 @@ fn derive_default_is_derive_all_without_any_closure_annotation() {
 fn derive_property_optout_suppresses_that_property_shape() {
     // A closure entry keyed by the PROPERTY IRI with logic:OpenWorldClosure marks the property
     // genuinely open-world-only, so no closed-world shape is derived for it.
-    let ds = shape_dataset_with_logic(
+    let ds = shape_dataset(
         "g:Doc a owl:Class . \
          g:Article a owl:Class ; rdfs:subClassOf \
          [ a owl:Restriction ; owl:onProperty g:cites ; owl:someValuesFrom g:Doc ] . \
@@ -2247,7 +2234,7 @@ fn derive_property_optout_suppresses_that_property_shape() {
 #[test]
 fn derive_class_optout_suppresses_the_whole_class_shape() {
     // A closure entry keyed by the CLASS IRI opts the entire class out of the closed-world reading.
-    let ds = shape_dataset_with_logic(
+    let ds = shape_dataset(
         "g:Doc a owl:Class . \
          g:Article a owl:Class ; rdfs:subClassOf \
          [ a owl:Restriction ; owl:onProperty g:cites ; owl:someValuesFrom g:Doc ] . \
@@ -2265,7 +2252,7 @@ fn derive_class_optout_suppresses_the_whole_class_shape() {
 fn derive_closed_world_closure_entry_does_not_suppress() {
     // Only OpenWorldClosure is an opt-out; a ClosedWorldClosure entry (the default reading made
     // explicit) leaves derivation on — the shape is still produced.
-    let ds = shape_dataset_with_logic(
+    let ds = shape_dataset(
         "g:Doc a owl:Class . \
          g:Article a owl:Class ; rdfs:subClassOf \
          [ a owl:Restriction ; owl:onProperty g:cites ; owl:someValuesFrom g:Doc ] . \
@@ -2295,7 +2282,7 @@ fn derive_class_scoped_closed_entry_derives_no_global_domain_range_shape() {
          [] a logic:ClosureEntry ; logic:onClass g:Article ; \
             logic:closureKey \"https://blackcatinformatics.ca/gmeow/cites\" ; \
             logic:closureValue logic:ClosedWorldClosure .";
-    let ds = shape_dataset_with_logic(source);
+    let ds = shape_dataset(source);
     let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
     let article = shapes
         .iter()
@@ -2323,7 +2310,7 @@ fn derive_class_scoped_closed_entry_derives_no_global_domain_range_shape() {
     ] {
         let selected = source.replace("\"https://blackcatinformatics.ca/gmeow/cites\"", key);
         assert_eq!(
-            derive_validation_shapes(&shape_dataset_with_logic(&selected)).unwrap(),
+            derive_validation_shapes(&shape_dataset(&selected)).unwrap(),
             shapes
         );
     }
@@ -2337,7 +2324,7 @@ fn derive_class_scoped_closed_entry_derives_no_global_domain_range_shape() {
             "logic:closureKey \"https://blackcatinformatics.ca/gmeow/cites\" ;",
             &field,
         );
-        let error = derive_validation_shapes(&shape_dataset_with_logic(&selected)).unwrap_err();
+        let error = derive_validation_shapes(&shape_dataset(&selected)).unwrap_err();
         assert!(error.message().contains("closureKey"), "{key:?}: {error}");
     }
 }
@@ -2347,7 +2334,7 @@ fn derive_property_global_closed_entry_is_unaffected_by_a_class_scoped_sibling()
     // The two entry scopes coexist without cross-talk: a property-GLOBAL entry (no logic:onClass)
     // still derives its domain/range shapes, while the class-scoped sibling on another property
     // derives none.
-    let ds = shape_dataset_with_logic(
+    let ds = shape_dataset(
         "g:Doc a owl:Class . \
          g:refs a owl:ObjectProperty ; rdfs:range g:Doc . \
          [] a logic:ClosureEntry ; logic:closureKey g:refs ; \
@@ -2382,7 +2369,7 @@ fn derive_class_scoped_open_entry_does_not_suppress_globally() {
     // The symmetric discrimination for the opt-out polarity: an OpenWorldClosure entry carrying
     // logic:onClass is class-scoped and must NOT sweep its key into the property-global opt-out
     // set — the closed-world reading of the property's restrictions on OTHER classes stays on.
-    let ds = shape_dataset_with_logic(
+    let ds = shape_dataset(
         "g:Doc a owl:Class . \
          g:Article a owl:Class ; rdfs:subClassOf \
          [ a owl:Restriction ; owl:onProperty g:cites ; owl:someValuesFrom g:Doc ] . \

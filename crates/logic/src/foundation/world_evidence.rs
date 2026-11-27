@@ -88,7 +88,8 @@ impl WorldEvidence {
     /// Refuses an individual-scoped closure entry of a world's contract that has
     /// several distinct keys, values or individuals, that lacks its key or value, or
     /// that assigns a value conflicting with another entry of the same world for the
-    /// same individual's `rdf:type` statements.
+    /// same individual's `rdf:type` statements.  Refuses cyclic `logic:temporallySucceeds`
+    /// records.
     pub(super) fn new(quads: &[FoundationQuad]) -> gmeow_errors::Result<Self> {
         let not_instance_of = format!("{LOGIC_NS}notInstanceOf");
         let epistemic = format!("{LOGIC_NS}epistemicallyPossible");
@@ -197,6 +198,7 @@ impl WorldEvidence {
                 )));
             }
         }
+        ensure_acyclic(&evidence.successors)?;
         evidence.entailed = entail_supertypes(&evidence.typings, &supers);
         let closed_world = format!("{LOGIC_NS}ClosedWorldClosure");
         evidence.closed = membership_closure
@@ -212,24 +214,36 @@ impl WorldEvidence {
         self.typings.iter()
     }
 
-    /// The worlds reachable from `world` along admissible typed accessibility records.
-    /// An epistemic record is followed directly.  A chain of temporal records is walked
-    /// transitively, on demand with a visited set so a cycle terminates.  The world itself
-    /// is never among them: succession is a strict order.
+    /// The worlds reachable from `world` along admissible typed accessibility records: the
+    /// epistemic records `world` asserts first, then the temporal successors, reached by
+    /// walking succession transitively.  Each world is yielded once.  The walk is lazy, so a
+    /// judgment that stops at its first witness does not expand the rest of the history.
+    /// Succession is acyclic (see `ensure_acyclic`), so `world` is never yielded for itself;
+    /// an epistemic record naming `world` is excluded.
     pub(super) fn accessible_from<'a>(&'a self, world: &str) -> impl Iterator<Item = &'a String> {
-        let mut reached: BTreeSet<&'a String> =
-            self.epistemic.get(world).into_iter().flatten().collect();
-        let mut later: BTreeSet<&'a String> = BTreeSet::new();
+        let direct: Vec<&'a String> = self
+            .epistemic
+            .get(world)
+            .into_iter()
+            .flatten()
+            .filter(|reached| reached.as_str() != world)
+            .collect();
+        let mut yielded: BTreeSet<&'a String> = direct.iter().copied().collect();
+        let mut expanded: BTreeSet<&'a String> = BTreeSet::new();
         let mut pending: Vec<&'a String> =
             self.successors.get(world).into_iter().flatten().collect();
-        while let Some(next) = pending.pop() {
-            if later.insert(next) {
-                pending.extend(self.successors.get(next).into_iter().flatten());
+        let temporal = std::iter::from_fn(move || {
+            while let Some(next) = pending.pop() {
+                if expanded.insert(next) {
+                    pending.extend(self.successors.get(next).into_iter().flatten());
+                }
+                if yielded.insert(next) {
+                    return Some(next);
+                }
             }
-        }
-        reached.extend(later);
-        reached.retain(|reached_world| reached_world.as_str() != world);
-        reached.into_iter()
+            None
+        });
+        direct.into_iter().chain(temporal)
     }
 
     /// Whether `individual` demonstrably existed in `world` without being a `type_iri`:
@@ -268,6 +282,54 @@ fn entail_supertypes(
         }
     }
     entailed
+}
+
+/// Refuse cyclic temporal succession, including a state that succeeds itself.  Succession is a
+/// strict order, so a cycle would let an earlier state judge a later one in both directions.
+///
+/// # Errors
+///
+/// Names a state on a cycle of `logic:temporallySucceeds` records.
+fn ensure_acyclic(successors: &BTreeMap<String, BTreeSet<String>>) -> gmeow_errors::Result<()> {
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    enum Mark {
+        /// On the current depth-first path.
+        Open,
+        /// Fully explored: no cycle is reachable from it.
+        Done,
+    }
+    /// A frame either enters a state or leaves it once all of its successors are explored.
+    #[derive(Clone, Copy)]
+    enum Step {
+        Enter,
+        Leave,
+    }
+    let mut marks: BTreeMap<&str, Mark> = BTreeMap::new();
+    for root in successors.keys() {
+        let mut stack: Vec<(&str, Step)> = vec![(root.as_str(), Step::Enter)];
+        while let Some((state, step)) = stack.pop() {
+            if let Step::Leave = step {
+                marks.insert(state, Mark::Done);
+                continue;
+            }
+            match marks.get(state) {
+                Some(Mark::Done) => continue,
+                Some(Mark::Open) => {
+                    return Err(foundation_err(format!(
+                        "temporal succession records form a cycle through <{state}>; \
+                         logic:temporallySucceeds is a strict order"
+                    )));
+                }
+                None => {}
+            }
+            marks.insert(state, Mark::Open);
+            stack.push((state, Step::Leave));
+            for next in successors.get(state).into_iter().flatten() {
+                stack.push((next.as_str(), Step::Enter));
+            }
+        }
+    }
+    Ok(())
 }
 
 /// The one value of a closure-entry field; several distinct values are ambiguous, the

@@ -2407,7 +2407,7 @@ fn cross_world_rigidity_violations(
             continue;
         }
         for w2 in evidence.accessible_from(w1) {
-            if w2 == w1 || !evidence.lost_in(w2, inst, type_iri) {
+            if !evidence.lost_in(w2, inst, type_iri) {
                 continue;
             }
             if !seen.insert((inst, type_iri, w2)) {
@@ -2480,7 +2480,7 @@ fn anti_rigidity_obligations(
         if policy == AntiRigidityPolicy::WitnessRequired {
             let discharged = evidence
                 .accessible_from(typing_world)
-                .any(|w2| w2 != typing_world && evidence.lost_in(w2, inst, type_iri));
+                .any(|w2| evidence.lost_in(w2, inst, type_iri));
             if discharged {
                 continue;
             }
@@ -3129,7 +3129,8 @@ fn relatum_distinctness_pass(
 /// variable, any provenance recipe failure (e.g. an RDF-star term), a
 /// `logic:rigidlyAppliesTo` record on a type with an anti-rigid stereotype, or an
 /// individual-scoped closure entry of a world's contract that is ambiguous, incomplete
-/// or in conflict with another entry of that world.
+/// or in conflict with another entry of that world, or a cycle of `logic:temporallySucceeds`
+/// records (succession is a strict order, including a state that succeeds itself).
 pub fn evaluate(
     store: &WorldStore,
     policy: AntiRigidityPolicy,

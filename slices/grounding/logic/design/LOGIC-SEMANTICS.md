@@ -775,8 +775,9 @@ conjured from the absence of data. It rests on four things:
    `w' logic:temporallySucceeds wn`, each asserted in its own subject's graph. The evaluator reads a
    temporal record from its object to its subject: the later state names its predecessor, temporal
    succession is a strict order, so a later state is reached from an earlier one at any number of
-   steps, and never the reverse. An epistemic record does not chain: it admits only the world it
-   names. A record asserted in any other
+   steps, and never the reverse. A cycle of temporal records, including a state that succeeds
+   itself, is malformed evidence and is refused rather than judged. An epistemic record does not
+   chain: it admits only the world it names. A record asserted in any other
    graph (a doxastic context reporting the record, for example), the bare `logic:accessibleFrom`
    superproperty, the doxastic, deontic, counterfactual and standpoint relations, and the absence
    of any record license nothing. The kernel defines no world-to-world context transport, so a
