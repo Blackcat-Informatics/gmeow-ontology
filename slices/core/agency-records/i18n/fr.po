@@ -182,8 +182,8 @@ msgid "intention satisfied"
 msgstr "intention satisfaite"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSatisfied|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An intention ended because its goal was judged met. The judgment belongs to a separate GoalEvaluation rather than the event kind."
-msgstr "Une intention a pris fin parce que son but a été jugé atteint. Le jugement relève d’une GoalEvaluation distincte, pas du type d’événement."
+msgid "A source reports that an intention ended because its goal was met. A separately recorded GoalEvaluation carries the judgment when the source provides one. The event kind does not itself assert that judgment."
+msgstr "Une source indique qu’une intention a pris fin parce que son objectif était atteint. Une GoalEvaluation distincte conserve le jugement lorsque la source le fournit. Le type d’événement n’affirme pas ce jugement."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSatisfied|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to classify a source-recorded intention satisfied event."
@@ -230,8 +230,8 @@ msgid "intention superseded"
 msgstr "intention remplacée"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSuperseded|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An intention was replaced by another intention, identified separately by supersededBy. Replacement is not evidence of either goal’s satisfaction."
-msgstr "Une intention a été remplacée par une autre, identifiée séparément par supersededBy. Le remplacement ne prouve la satisfaction d’aucun des buts."
+msgid "A source reports that another intention replaced this intention. The replacement is retained as a resolved supersededBy link or an unresolved supersedingIntentionId. Replacement does not establish satisfaction of either goal."
+msgstr "Une source indique qu’une autre intention a remplacé cette intention. Le remplacement est conservé sous forme d’un lien résolu supersededBy ou d’un identifiant non résolu supersedingIntentionId. Le remplacement n’établit pas la satisfaction de l’un ou l’autre objectif."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeIntentionSuperseded|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to classify a source-recorded intention superseded event."
@@ -1686,8 +1686,8 @@ msgid "Intention supersession target constraint"
 msgstr "Contrainte de remplacement d’intention"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSupersessionTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A supersession retains the replacement intention through supersededBy on the old intention, without inferring goal satisfaction."
-msgstr "Un remplacement conserve l’intention remplaçante par supersededBy sur l’ancienne, sans déduire la satisfaction du but."
+msgid "A supersession retains a typed replacement intention through supersededBy, or a supplied successor identifier when no replacement link is recorded. It does not infer goal satisfaction."
+msgstr "Un remplacement conserve une intention de remplacement typée par supersededBy, ou un identifiant de successeur fourni quand aucun lien de remplacement n’est consigné. Il ne permet pas de déduire la satisfaction du but."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSupersessionTargetConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to enforce the source-evidence obligation of eventTypeIntentionSuperseded."
@@ -1710,8 +1710,8 @@ msgid "Satisfied intention evaluation constraint"
 msgstr "Contrainte d’évaluation d’intention satisfaite"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/SatisfiedIntentionEvaluationConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An intention-satisfied event retains its separate GoalEvaluation judgment; an attempt stop value is not that verdict."
-msgstr "Un événement d’intention satisfaite conserve son jugement GoalEvaluation distinct ; une valeur d’arrêt de tentative n’est pas ce verdict."
+msgid "An intention-satisfied event retains its separate GoalEvaluation when recorded or at least one cited condition with a nonblank source key and reference. Cited evidence and attempt stops do not assert a judgment."
+msgstr "Un événement d’intention satisfaite conserve sa GoalEvaluation distincte si elle est consignée, ou au moins une condition citée avec une clé et une référence non vides issues de la source. Les preuves citées et les arrêts de tentative n’affirment aucun jugement."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/SatisfiedIntentionEvaluationConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to enforce the source-evidence obligation of eventTypeIntentionSatisfied."
@@ -7874,3 +7874,183 @@ msgstr "Aucun moteur d’inférence, appel de modèle, propriété de sortie, ve
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeAgentReasoningTrace|http://www.w3.org/2004/02/skos/core#example"
 msgid "A source retains its reasoning-entry category: ex:entryEvent gmeow:eventType gmeow:eventTypeAgentReasoningTrace ."
 msgstr "Une source conserve sa catégorie d’entrée de raisonnement : ex:entryEvent gmeow:eventType gmeow:eventTypeAgentReasoningTrace ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptionNextReviewAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "adoption next review at"
+msgstr "prochain réexamen de l’adoption à"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptionNextReviewAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The next review instant that an adoption wrote on a goal or tenure, kept as written. It is the adoption’s recorded copy, not a review time of that goal or tenure, and a scheduled review does not assert that a review occurred."
+msgstr "L’instant du prochain réexamen qu’une adoption a inscrit sur un but ou une période de maintien, conservé tel qu’écrit. C’est la copie enregistrée de l’adoption, non un moment de réexamen de ce but ou de cette période ; un réexamen planifié n’affirme pas qu’il a eu lieu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptionNextReviewAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies the next review time that an adoption recorded."
+msgstr "Utiliser lorsque la source fournit explicitement l’heure du prochain réexamen qu’une adoption a enregistrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptionNextReviewAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading it as nextReviewAt of the goal or tenure carrying it, or inventing missing precision or timezone."
+msgstr "Éviter de le lire comme nextReviewAt du but ou de la période qui le porte, ou d’inventer une précision ou un fuseau horaire manquants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptionNextReviewAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied xsd:dateTime with its adoption context and attribution; assert nextReviewAt separately on the intention when the source states it."
+msgstr "Conserver le xsd:dateTime fourni avec son contexte d’adoption et son attribution ; affirmer nextReviewAt séparément sur l’intention lorsque la source l’indique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptionNextReviewAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No domain is declared, so the property does not classify the goal or tenure carrying it."
+msgstr "Aucun domaine n’est déclaré ; la propriété ne classe donc pas le but ou la période qui la porte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptionNextReviewAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:adoptionNextReviewAt \"2030-05-01T09:00:00Z\"^^xsd:dateTime ."
+msgstr "ex:record gmeow:adoptionNextReviewAt \"2030-05-01T09:00:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersedingIntentionId|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "superseding intention identifier"
+msgstr "identifiant de l’intention remplaçante"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersedingIntentionId|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The identifier of the successor intention that an intention status event names, kept as written. It asserts no resolved link; supersededBy is the resolved link for a successor that resolves."
+msgstr "L’identifiant de l’intention remplaçante que nomme un événement de statut d’intention, conservé tel qu’écrit. Il n’affirme aucun lien résolu ; supersededBy est le lien résolu pour une remplaçante qui se résout."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersedingIntentionId|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a status event names its successor intention by an identifier the store does not resolve."
+msgstr "Utiliser lorsqu’un événement de statut nomme son intention remplaçante par un identifiant que le dépôt ne résout pas."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersedingIntentionId|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the identifier as a node, normalizing it, or asserting supersededBy from it alone."
+msgstr "Éviter de traiter l’identifiant comme un nœud, de le normaliser ou d’affirmer supersededBy à partir de lui seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersedingIntentionId|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:token identifier on the status event and add supersededBy separately only when the successor resolves to a node."
+msgstr "Conserver l’identifiant xsd:token fourni sur l’événement de statut et n’ajouter supersededBy séparément que lorsque la remplaçante se résout en un nœud."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersedingIntentionId|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:supersedingIntentionId \"source-value\"^^xsd:token ."
+msgstr "ex:record gmeow:supersedingIntentionId \"source-value\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedTransitionId|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expected transition identifier"
+msgstr "identifiant de la transition attendue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedTransitionId|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The identifier of the status event that an intention transition expected to follow, kept as written, so that the writer can make a compare-and-swap check. It asserts no resolved link and no outcome of that check."
+msgstr "L’identifiant de l’événement de statut auquel une transition d’intention s’attendait à succéder, conservé tel qu’écrit pour que le rédacteur puisse effectuer une vérification par comparaison et échange. Il n’affirme ni lien résolu ni résultat de cette vérification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedTransitionId|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a status event records the identifier of the transition its writer expected to precede it."
+msgstr "Utiliser lorsqu’un événement de statut enregistre l’identifiant de la transition que son rédacteur s’attendait à le précéder."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedTransitionId|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the identifier as a node, normalizing it, or inferring that the expected transition occurred."
+msgstr "Éviter de traiter l’identifiant comme un nœud, de le normaliser ou d’en déduire que la transition attendue a eu lieu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedTransitionId|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:token identifier on the status event that carries the expectation."
+msgstr "Conserver l’identifiant xsd:token fourni sur l’événement de statut qui porte l’attente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedTransitionId|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:expectedTransitionId \"source-value\"^^xsd:token ."
+msgstr "ex:record gmeow:expectedTransitionId \"source-value\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionEvidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Condition Evidence"
+msgstr "Preuve de condition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionEvidence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The evidence cited for one satisfaction condition of an intention status event. It states no verdict that the condition held, and it is neither a GoalEvaluation nor a ConditionVerifier, which says how a condition is checked."
+msgstr "La preuve citée pour une condition de satisfaction d’un événement de statut d’intention. Elle n’énonce aucun verdict selon lequel la condition était remplie, et n’est ni une GoalEvaluation ni un ConditionVerifier, qui indique comment une condition est vérifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionEvidence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a status event cites evidence for a condition and the source holds no per-condition verdict or goal evaluation."
+msgstr "Utiliser lorsqu’un événement de statut cite une preuve pour une condition et que la source ne détient aucun verdict par condition ni évaluation de but."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionEvidence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it to assert that a condition was satisfied, or in place of a GoalEvaluation where the source holds one."
+msgstr "Éviter de l’utiliser pour affirmer qu’une condition était satisfaite, ou à la place d’une GoalEvaluation lorsque la source en détient une."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionEvidence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link it from the status event with hasConditionEvidence, name the condition with conditionEvidenceKey and keep each cited reference verbatim with evidenceReference."
+msgstr "La relier depuis l’événement de statut avec hasConditionEvidence, nommer la condition avec conditionEvidenceKey et conserver chaque référence citée telle quelle avec evidenceReference."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionEvidence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A cited reference is an opaque source-supplied identifier, not a node, and not a genealogical derivation; evidenceReference carries it without resolving it."
+msgstr "Une référence citée est un identifiant opaque fourni par la source, non un nœud, et non une dérivation généalogique ; evidenceReference la porte sans la résoudre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionEvidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:evidence a gmeow:ConditionEvidence ."
+msgstr "ex:evidence a gmeow:ConditionEvidence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionEvidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has condition evidence"
+msgstr "a pour preuve de condition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionEvidence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a status event to each ConditionEvidence record it cites. The relation asserts no verdict that a condition held."
+msgstr "Relie un événement de statut à chaque enregistrement ConditionEvidence qu’il cite. La relation n’affirme aucun verdict selon lequel une condition était remplie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionEvidence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies the evidence it cites for a condition of this status event."
+msgstr "Utiliser lorsque la source fournit explicitement la preuve qu’elle cite pour une condition de cet événement de statut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionEvidence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing evidence records or inferring that a condition held from the relation alone."
+msgstr "Éviter d’inventer des enregistrements de preuve ou de déduire qu’une condition était remplie à partir de la seule relation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionEvidence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual ConditionEvidence supplied by the source, one per condition, and retain attribution."
+msgstr "Référencer la ConditionEvidence réelle fournie par la source, une par condition, et conserver l’attribution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionEvidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:hasConditionEvidence ex:target ."
+msgstr "ex:record gmeow:hasConditionEvidence ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionEvidenceKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "condition evidence key"
+msgstr "clé de preuve de condition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionEvidenceKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact condition key that a ConditionEvidence answers, retained with its lexical form and datatype."
+msgstr "La clé de condition exacte à laquelle répond une ConditionEvidence, conservée avec sa forme lexicale et son type de données."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionEvidenceKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source names the condition that the cited evidence answers."
+msgstr "Utiliser lorsque la source nomme la condition à laquelle répond la preuve citée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionEvidenceKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid normalizing or retyping the key, or reading a matching key as proof that the condition held."
+msgstr "Éviter de normaliser la clé ou de changer son type, ou de lire une clé correspondante comme preuve que la condition était remplie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionEvidenceKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:string or xsd:token key on the ConditionEvidence. A join to a verifierKey or conditionKey compares the complete literal, including datatype."
+msgstr "Conserver la clé xsd:string ou xsd:token fournie sur la ConditionEvidence. Une jointure avec un verifierKey ou un conditionKey compare le littéral complet, type de données compris."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionEvidenceKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. A string \"a\" and a token \"a\" do not join by value; a reader must not normalize or retype either side."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Ces déclarations n’installent aucun vérificateur lexical de token. Une chaîne \"a\" et un token \"a\" ne se joignent pas par valeur ; un lecteur ne doit normaliser ni changer le type d’aucun des deux côtés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionEvidenceKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:conditionEvidenceKey \"source-value\" ."
+msgstr "ex:record gmeow:conditionEvidenceKey \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseBlocked|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "pause through blocking"
+msgstr "pause par blocage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseBlocked|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The continuation phase paused because pursuit cannot proceed until an external condition the agent does not control is met. The evidence is the source record’s own statement of that condition; the pause does not assert that the condition was met, close the holding tenure or imply an enactment state."
+msgstr "La phase de continuation a été suspendue parce que la poursuite ne peut se poursuivre tant qu’une condition externe que l’agent ne maîtrise pas n’est pas remplie. La preuve est l’énoncé de cette condition dans l’enregistrement source lui-même ; la pause n’affirme pas que la condition a été remplie, ne clôt pas la période de maintien et n’implique pas un état de réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseBlocked|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports pause through blocking."
+msgstr "Utiliser lorsque la source signale explicitement une pause par blocage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseBlocked|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving pauseBlocked solely from silence, missing timestamps or another status axis, or treating the external condition as met."
+msgstr "Éviter de déduire pauseBlocked du seul silence, d’horodatages manquants ou d’un autre axe de statut, ou de traiter la condition externe comme remplie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseBlocked|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach pauseBlocked through pauseCause, preserving the source attribution and time context."
+msgstr "Rattacher pauseBlocked par pauseCause, en préservant l’attribution de la source et le contexte temporel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pauseBlocked|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:pauseCause gmeow:pauseBlocked ."
+msgstr "ex:record gmeow:pauseCause gmeow:pauseBlocked ."
