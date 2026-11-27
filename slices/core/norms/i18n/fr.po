@@ -1512,3 +1512,19 @@ msgstr "ex:claim gmeow:interpretsVersion ex:sectionVersion ."
 msgctxt "https://blackcatinformatics.ca/gmeow/interpretsVersion|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to tie an interpretation to the exact provision version it reads, so that the amendment or repeal that ended the version can be found from the interpretation."
 msgstr "Utiliser pour relier une interprétation à la version exacte de la disposition qu'elle lit, afin de retrouver, à partir de l'interprétation, la modification ou l'abrogation qui a mis fin à la version."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VersionSourcePinpointConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Version source pinpoint constraint"
+msgstr "Contrainte de localisation précise de la source d'une version"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VersionSourcePinpointConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every version source citation has a selector with a populated pinpoint."
+msgstr "Contrainte d'intégrité en monde clos : chaque citation de source d'une version comporte un sélecteur dont la localisation précise est renseignée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionSourcePinpointConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Transition source pinpoint constraint"
+msgstr "Contrainte de localisation précise de la source d'une règle de transition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionSourcePinpointConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every transition source citation has a selector with a populated pinpoint."
+msgstr "Contrainte d'intégrité en monde clos : chaque citation de source d'une règle de transition comporte un sélecteur dont la localisation précise est renseignée."

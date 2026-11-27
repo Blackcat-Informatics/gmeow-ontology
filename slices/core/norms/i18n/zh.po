@@ -1379,7 +1379,7 @@ msgstr "开始或终止某条款版本效力的事件，包括其颁布、施行
 
 msgctxt "https://blackcatinformatics.ca/gmeow/LegalEffectEvent|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to record the legal act that began or ended a provision version, with its gmeow:effectKind and, where the source supplies it, its gmeow:eventTime."
-msgstr "用于记录开始或终止某条款版本的法律行为，并在来源提供时记录其 gmeow:effectKind 与 gmeow:eventTime。"
+msgstr "用于记录开始或终止某条款版本的法律行为，并记录其 gmeow:effectKind；若来源提供日期，还应记录其 gmeow:eventTime。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/effectKind|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "effect kind"
@@ -1512,3 +1512,19 @@ msgstr "ex:claim gmeow:interpretsVersion ex:sectionVersion ."
 msgctxt "https://blackcatinformatics.ca/gmeow/interpretsVersion|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to tie an interpretation to the exact provision version it reads, so that the amendment or repeal that ended the version can be found from the interpretation."
 msgstr "用于将解释与其所阅读的确切条款版本相联系，以便从该解释找到终止该版本的修正或废止。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VersionSourcePinpointConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Version source pinpoint constraint"
+msgstr "条款版本来源精确定位约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VersionSourcePinpointConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every version source citation has a selector with a populated pinpoint."
+msgstr "封闭世界完整性约束：每个条款版本来源引文都有一个带已填写精确定位的选择器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionSourcePinpointConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Transition source pinpoint constraint"
+msgstr "过渡规则来源精确定位约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionSourcePinpointConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every transition source citation has a selector with a populated pinpoint."
+msgstr "封闭世界完整性约束：每个过渡规则来源引文都有一个带已填写精确定位的选择器。"

@@ -426,6 +426,9 @@ The fixture `examples/provision-applicability.ttl` is synthetic. Its act, sectio
 transition and interpretations are invented to exercise these queries, and they state no law of any
 jurisdiction.
 
+The fixture `examples/provision-repeal.ttl` is synthetic. It holds one provision repealed with no
+replacement version. The claim-affected query reports that repeal with its current column unbound.
+
 ## Literal language and direction
 
 The natural-language fields `gmeow:conditionText` admit

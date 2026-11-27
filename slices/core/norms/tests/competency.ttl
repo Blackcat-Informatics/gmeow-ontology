@@ -341,6 +341,27 @@ ex:cqProvisionClaimAffected a gmeow:CompetencyQuestion ;
     gmeow:cqExactRows true ;
     gmeow:cqExpectRow ex:rowClaimAffected .
 
+ex:cqProvisionRepealWithoutReplacement a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/norms/queries/competency/provision-claim-affected-by-change.rq" ;
+    gmeow:cqDataFile "examples/provision-repeal.ttl" ;
+    gmeow:cqRationale "An interpretation of a version that a repeal ended is reported with that repeal, and its current column is unbound because no version of the provision is in force." ;
+    gmeow:cqResultShape ex:cqRepealWithoutReplacementShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:rowRepealWithoutReplacement .
+
+ex:cqRepealWithoutReplacementShape a logic:ResultShape ;
+    logic:shapeCardinality logic:RowsExact ;
+    logic:declaresColumn
+        [ logic:columnVariable "claim" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "version" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "event" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "current" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingOptional ] .
+
+ex:rowRepealWithoutReplacement a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exp:claimRepealed ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueIri exp:verRepealed ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "event" ; gmeow:cellValueIri exp:evRepeal ] .
+
 ex:cqClaimAffectedShape a logic:ResultShape ;
     logic:shapeCardinality logic:RowsExact ;
     logic:declaresColumn

@@ -3090,25 +3090,91 @@ gmeow:LegalEffectEvent logic:subClassOf
 gmeow:ProvisionVersion logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:versionOf ; logic:allValuesFrom gmeow:Norm ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:versionOf ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:versionJurisdiction ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Place ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:versionJurisdiction ; logic:allValuesFrom gmeow:Place ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:versionJurisdiction ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:versionBeganBy ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:LegalEffectEvent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:versionBeganBy ; logic:allValuesFrom gmeow:LegalEffectEvent ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:versionBeganBy ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:versionEndedBy ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:versionSource ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:CitationAct ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:versionSource ; logic:allValuesFrom gmeow:CitationAct ] .
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:ProvisionVersion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/versionOf" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:TransitionRule logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:transitionEvent ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:LegalEffectEvent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:transitionEvent ; logic:allValuesFrom gmeow:LegalEffectEvent ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:transitionEvent ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:savesVersion ; logic:allValuesFrom gmeow:ProvisionVersion ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:savesVersion ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:savedMatter ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Event ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:transitionSource ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:CitationAct ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:savedMatter ; logic:allValuesFrom gmeow:Event ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:transitionSource ; logic:allValuesFrom gmeow:CitationAct ] .
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:TransitionRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/savesVersion" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:ApplicabilityEvaluation logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:evaluatedMatter ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Event ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:evaluatedMatter ; logic:allValuesFrom gmeow:Event ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:evaluatedMatter ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+
+# Required paths of provision versions, transition rules and applicability evaluations pair each
+# value restriction with a class-scoped closure entry.
+[ a logic:ClosureEntry ; logic:onClass gmeow:ProvisionVersion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/versionJurisdiction" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ProvisionVersion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/versionBeganBy" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ProvisionVersion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/versionSource" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TransitionRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/transitionEvent" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TransitionRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/savedMatter" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TransitionRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/transitionSource" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ApplicabilityEvaluation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/evaluatedMatter" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# A provision version and a transition rule each cite their source with a selector that has a
+# populated pinpoint, as an authority claim does.
+gmeow:VersionSourcePinpointConstraint
+    a logic:Constraint ;
+    rdfs:label "Version source pinpoint constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every version source citation has a selector with a populated pinpoint."@x-gmeow-english ;
+    logic:formalizes gmeow:versionSource ;
+    logic:message "A provision version source must cite a populated pinpoint selector." ;
+    logic:integrity [
+        a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "source" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ProvisionVersion ] ],
+                [ a logic:Formula ; logic:relation gmeow:versionSource ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "source" ] ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termVariable "pin" ] ;
+                logic:exists [ a logic:Formula ; logic:and
+                    [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ], [ logic:termIndex 1 ; logic:termIri gmeow:CitationAct ] ],
+                    [ a logic:Formula ; logic:relation gmeow:viaSelector ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ], [ logic:termIndex 1 ; logic:termVariable "selector" ] ],
+                    [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termIri gmeow:Selector ] ],
+                    [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation gmeow:selectorLocator ; logic:argument [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termVariable "pin" ] ],
+                        [ a logic:Formula ; logic:relation gmeow:selectorPage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termVariable "pin" ] ],
+                        [ a logic:Formula ; logic:relation gmeow:selectorTextPosition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termVariable "pin" ] ],
+                        [ a logic:Formula ; logic:relation gmeow:selectorTextQuote ; logic:argument [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termVariable "pin" ] ] ],
+                    [ a logic:Formula ; logic:relation logic:termIsLiteral ; logic:argument [ logic:termIndex 0 ; logic:termVariable "pin" ] ],
+                    [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "pin" ], [ logic:termIndex 1 ; logic:termLiteral "\\S" ] ] ] ] ] ] .
+
+gmeow:TransitionSourcePinpointConstraint
+    a logic:Constraint ;
+    rdfs:label "Transition source pinpoint constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every transition source citation has a selector with a populated pinpoint."@x-gmeow-english ;
+    logic:formalizes gmeow:transitionSource ;
+    logic:message "A transition source must cite a populated pinpoint selector." ;
+    logic:integrity [
+        a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "source" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:TransitionRule ] ],
+                [ a logic:Formula ; logic:relation gmeow:transitionSource ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "source" ] ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termVariable "pin" ] ;
+                logic:exists [ a logic:Formula ; logic:and
+                    [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ], [ logic:termIndex 1 ; logic:termIri gmeow:CitationAct ] ],
+                    [ a logic:Formula ; logic:relation gmeow:viaSelector ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ], [ logic:termIndex 1 ; logic:termVariable "selector" ] ],
+                    [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termIri gmeow:Selector ] ],
+                    [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation gmeow:selectorLocator ; logic:argument [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termVariable "pin" ] ],
+                        [ a logic:Formula ; logic:relation gmeow:selectorPage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termVariable "pin" ] ],
+                        [ a logic:Formula ; logic:relation gmeow:selectorTextPosition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termVariable "pin" ] ],
+                        [ a logic:Formula ; logic:relation gmeow:selectorTextQuote ; logic:argument [ logic:termIndex 0 ; logic:termVariable "selector" ], [ logic:termIndex 1 ; logic:termVariable "pin" ] ] ],
+                    [ a logic:Formula ; logic:relation logic:termIsLiteral ; logic:argument [ logic:termIndex 0 ; logic:termVariable "pin" ] ],
+                    [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "pin" ], [ logic:termIndex 1 ; logic:termLiteral "\\S" ] ] ] ] ] ] .
