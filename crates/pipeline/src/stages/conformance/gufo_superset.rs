@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Source-local observations for the canonical logic ⊇ gUFO product contract.
-//! Imports, module declarations and the worked example retain separate identities.
+//! The vendored import, each module that declares a native counterpart and the
+//! worked example retain separate identities.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
@@ -19,6 +20,14 @@ pub(crate) const CHANNEL: &str = "pipeline/gufo-superset-import-observation.json
 pub(super) const GUFO_TTL: &str = "imports/gufo.ttl";
 pub(super) const MODULE_TTL: &str = "slices/grounding/logic/module.ttl";
 pub(super) const EXAMPLE_TTL: &str = "slices/grounding/logic/examples/criticism-fixes.ttl";
+/// Modules that declare the native terms the gUFO grounding catalog names as sources.
+/// A catalog source that no native module declares with the target's kind is measured as a
+/// validation-only match. The conformance check refuses a catalog source that no module declares.
+pub(super) const NATIVE_TTL: [&str; 3] = [
+    MODULE_TTL,
+    "slices/core/observations/module.ttl",
+    "slices/core/teleology/module.ttl",
+];
 
 /// The term-kind and exact terminal surface needed by the product assertions.
 /// Consumers inspect these observations; they never parse them into a dataset.
@@ -50,14 +59,17 @@ pub(super) struct SourceObservation {
 }
 
 pub(super) fn input_files(root: &Path) -> Vec<PathBuf> {
-    [GUFO_TTL, MODULE_TTL, EXAMPLE_TTL]
-        .into_iter()
+    std::iter::once(GUFO_TTL)
+        .chain(NATIVE_TTL)
+        .chain([EXAMPLE_TTL])
         .map(|path| root.join(path))
         .collect()
 }
 
+/// The worked example shares the grounding-source native parse; the import and the
+/// native modules are recorded together by [`record`].
 pub(super) fn observe(path: &str, dataset: &RdfDataset) -> Option<SourceObservation> {
-    matches!(path, MODULE_TTL | EXAMPLE_TTL).then(|| summarize(path, dataset))
+    (path == EXAMPLE_TTL).then(|| summarize(path, dataset))
 }
 
 fn summarize(path: &str, dataset: &RdfDataset) -> SourceObservation {
@@ -71,6 +83,8 @@ fn summarize(path: &str, dataset: &RdfDataset) -> SourceObservation {
         "https://blackcatinformatics.ca/logic/instanceOf",
         "https://blackcatinformatics.ca/logic/orderedType",
         "https://blackcatinformatics.ca/logic/invokesBuiltin",
+        "https://blackcatinformatics.ca/logic/characterizes",
+        "https://blackcatinformatics.ca/logic/characteristicSort",
         "https://blackcatinformatics.ca/gmeow/examples/logic/validFrom",
         "https://blackcatinformatics.ca/gmeow/examples/logic/validTo",
     ];
@@ -108,17 +122,25 @@ pub(super) fn record(
         StoreLimits::default(),
     )
     .map_err(|error| fail(error.to_string()))?;
-    let result = super::execution::cached_native_inputs(
-        &store,
-        "gufo-superset-import-v1",
-        vec![ActionInput::Raw {
-            logical_path: GUFO_TTL.to_owned(),
-            file_kind: FileKind::File,
-            executable: false,
-            digest: catalog.document_digest(GUFO_TTL)?.to_owned(),
-        }],
-        || Ok(summarize(GUFO_TTL, catalog.document(GUFO_TTL)?)),
-    )?;
+    let paths: Vec<&str> = std::iter::once(GUFO_TTL).chain(NATIVE_TTL).collect();
+    let inputs = paths
+        .iter()
+        .map(|path| {
+            Ok(ActionInput::Raw {
+                logical_path: (*path).to_owned(),
+                file_kind: FileKind::File,
+                executable: false,
+                digest: catalog.document_digest(path)?.to_owned(),
+            })
+        })
+        .collect::<gmeow_errors::Result<Vec<_>>>()?;
+    let result: BTreeMap<String, SourceObservation> =
+        super::execution::cached_native_inputs(&store, "gufo-superset-import-v2", inputs, || {
+            paths
+                .iter()
+                .map(|path| Ok(((*path).to_owned(), summarize(path, catalog.document(path)?))))
+                .collect::<gmeow_errors::Result<BTreeMap<_, _>>>()
+        })?;
     artifacts.insert(
         CHANNEL.to_owned(),
         purrdf_lex::json::record::to_vec(&result),

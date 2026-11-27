@@ -47,6 +47,8 @@ pub struct Cell {
     pub morphism_kind: Option<String>,
     /// Original preservation coordinate.
     pub preservation: Option<String>,
+    /// Original stated projection loss, from gmeow:lossyDrop, when the correspondence states one.
+    pub loss: Option<String>,
     /// Optional checked confidence, preserving its numeric RDF literal identity.
     pub confidence: Option<gmeow_logic_compile::ir::UnitInterval>,
     /// Whether the extracted envelope is a grounding correspondence.

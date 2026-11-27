@@ -31,6 +31,7 @@ mod gmn_migration;
 mod gmn_pack;
 mod gmn_signatures;
 mod gmn_vectors;
+mod gufo_floor;
 mod gufo_superset;
 mod language_catalog;
 mod logic_module_contracts;
