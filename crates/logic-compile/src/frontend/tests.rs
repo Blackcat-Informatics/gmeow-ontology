@@ -800,6 +800,41 @@ fn contract_facet_config_does_not_leak_into_domain_axioms() {
     );
 }
 
+/// INVARIANT: a term that is configuration in one role is not skipped where it appears in
+/// another role. A closure entry is configuration only for the closure-entry predicates and a
+/// contract only for the facet predicates, so a facet-predicate row whose subject is merely
+/// a closure entry stays a domain axiom, while the same row on the contract still does not leak.
+#[test]
+fn contract_config_roles_do_not_collide_across_closure_entries() {
+    let (prog, _) = parse(
+        "ex:Contract a logic:ReasoningContract ;
+            logic:defaultClosure logic:OpenWorldClosure ;
+            logic:closureEntry ex:Entry .
+         ex:Entry a logic:ClosureEntry ;
+            logic:closureKey ex:pred ;
+            logic:closureValue logic:ClosedWorldClosure ;
+            logic:defaultClosure logic:OpenWorldClosure .
+         logic:OpenWorldClosure a logic:ClosureValue .
+         logic:ClosedWorldClosure a logic:ClosureValue .",
+    );
+    let default_closure_of = |suffix: &str| {
+        prog.axioms
+            .iter()
+            .any(|a| a.subject.ends_with(suffix) && a.predicate.ends_with("defaultClosure"))
+    };
+    assert!(
+        default_closure_of("/Entry"),
+        "a facet-predicate row on a node that is only a closure entry is not contract \
+         configuration; got: {:?}",
+        prog.axioms
+    );
+    assert!(
+        !default_closure_of("/Contract"),
+        "the facet predicate on the contract itself must not leak; got: {:?}",
+        prog.axioms
+    );
+}
+
 // ── Malformed ClosureEntry hard-fail ───────────────────────────────────
 
 #[test]
