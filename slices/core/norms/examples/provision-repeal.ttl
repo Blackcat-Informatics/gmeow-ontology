@@ -9,6 +9,8 @@
 # keeps its ending event, and no version of the provision is in force, so the current column of
 # the claim-affected question is unbound.
 
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/norms/provision/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 ex:jurisdiction a gmeow:Place .
