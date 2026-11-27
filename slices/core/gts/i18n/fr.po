@@ -1376,3 +1376,11 @@ msgstr "schéma de charge utile — admission des preuves du canon"
 msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaCanonProofAdmission|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The JSON record of admission and refusal for the complete canon proof source."
 msgstr "Le relevé JSON des admissions et des refus pour l’ensemble de la source de preuves du canon."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaPreparedNativeCanon|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "payload schema — prepared native canon"
+msgstr "schéma de charge utile — canon natif préparé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaPreparedNativeCanon|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The native lowering of the original canon and its source attribution and refusal evidence, encoded as CBOR. Reading this payload does not authorize proof execution."
+msgstr "La traduction du canon d’origine en représentation native, avec l’attribution aux sources et les éléments justifiant les refus, encodée en CBOR. La lecture de cette charge utile n’autorise pas l’exécution d’une preuve."

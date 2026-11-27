@@ -27,16 +27,18 @@ mod view;
 pub use view::{SelectedProgramView, SelectedSourceView, TheoryUnitSelection};
 
 /// Portable evidence of an actual admitted module-import edge.
-#[derive(Debug, Clone, serde::Serialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ModuleImportObservation {
     pub source: ModuleIri,
     pub target: ModuleIri,
-    pub carrier: &'static str,
+    pub carrier: String,
     pub documents: BTreeSet<String>,
 }
 
 /// A resolved request is observable data; decoding it cannot restore authority.
-#[derive(Debug, Clone, serde::Serialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct TheorySelectionObservation {
     pub request: TheorySelection,
     pub includes_top_level: bool,
@@ -48,6 +50,36 @@ pub struct TheorySelectionObservation {
     pub document_selection_digest: String,
     pub effective_masks_digest: String,
     pub identity: String,
+}
+
+impl TheorySelectionObservation {
+    /// Verify the portable evidence seal without issuing a live selection.
+    ///
+    /// # Errors
+    /// Refuses a record whose selected source fields do not match its identity.
+    pub fn verify_identity(&self) -> gmeow_errors::Result<()> {
+        let mut unsigned = self.clone();
+        unsigned.identity.clear();
+        if unsigned.compute_identity()? != self.identity {
+            return Err(selection_error(
+                "FOREIGN_THEORY_SELECTION",
+                "portable selection fields do not match their recorded identity",
+            ));
+        }
+        Ok(())
+    }
+
+    fn compute_identity(&self) -> gmeow_errors::Result<String> {
+        let mut hasher = purrdf_hash::blake3::Hasher::new();
+        hasher.update(THEORY_SELECTION_DOMAIN.as_bytes());
+        serde_json::to_writer(&mut hasher, self).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Frontend::caused_by(
+                "cannot encode the resolved module selection identity".into(),
+                error,
+            ))
+        })?;
+        Ok(purrdf_hash::hex::encode(hasher.finalize().as_bytes()))
+    }
 }
 
 #[derive(Debug)]
@@ -293,17 +325,18 @@ impl SourceInventory<'_> {
                         SourceCarrier::Statement => "statement",
                         SourceCarrier::Annotation => "annotation",
                         SourceCarrier::Reifier => "reifier",
-                    },
+                    }
+                    .to_owned(),
                     documents,
                 });
                 pending.insert(edge.target);
             }
         }
         imports.sort_by(|left, right| {
-            (&left.source, &left.target, left.carrier, &left.documents).cmp(&(
+            (&left.source, &left.target, &left.carrier, &left.documents).cmp(&(
                 &right.source,
                 &right.target,
-                right.carrier,
+                &right.carrier,
                 &right.documents,
             ))
         });
@@ -349,15 +382,7 @@ impl SourceInventory<'_> {
             identity: String::new(),
             effective_masks_digest: purrdf_hash::hex::encode(mask_hasher.finalize().as_bytes()),
         };
-        let mut hasher = purrdf_hash::blake3::Hasher::new();
-        hasher.update(THEORY_SELECTION_DOMAIN.as_bytes());
-        serde_json::to_writer(&mut hasher, &observation).map_err(|error| {
-            gmeow_errors::Diag::of_kind(crate::error::Frontend::caused_by(
-                "cannot encode the resolved module selection identity".into(),
-                error,
-            ))
-        })?;
-        observation.identity = purrdf_hash::hex::encode(hasher.finalize().as_bytes());
+        observation.identity = observation.compute_identity()?;
         Ok(ResolvedTheorySelection(Arc::new(ResolvedSelectionData {
             source: theory.source().identity(),
             modules,

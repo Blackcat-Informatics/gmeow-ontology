@@ -1078,6 +1078,11 @@ pub enum LogicCommands {
         #[arg(long = "mode", value_parser = dev_logic::mode_parser())]
         mode: Option<String>,
     },
+    /// Inspect the prepared native canon in a produced bundle without executing it.
+    PreparedCanon {
+        /// Path to the produced GTS bundle.
+        bundle: PathBuf,
+    },
 }
 
 /// `gmeow-dev i18n` subcommands.
@@ -1559,6 +1564,7 @@ pub fn run() -> i32 {
                 json,
             ),
             LogicCommands::Compile { check, mode } => dev_logic::compile(check, mode.as_deref()),
+            LogicCommands::PreparedCanon { bundle } => dev_logic::prepared_canon(&bundle),
         },
         Commands::I18n(I18nArgs { command }) => match command {
             I18nCommands::Extract {

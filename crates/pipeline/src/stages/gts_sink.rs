@@ -196,7 +196,7 @@ impl Stage for GtsSinkStage {
         // v14: report the production sink's allocation phases, structural counts, and
         // RSS observations while retaining the keyed pass-one receipt. Telemetry is
         // report-only and does not enter artifact identity.
-        "gts_sink.v20-separate-reasoning-inputs"
+        "gts_sink.v21-prepared-native-canon"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // The terminal gts ARCHIVE writer: serialize THIS run's carrier

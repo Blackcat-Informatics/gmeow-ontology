@@ -842,3 +842,11 @@ msgstr "载荷模式——规范证明准入"
 msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaCanonProofAdmission|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The JSON record of admission and refusal for the complete canon proof source."
 msgstr "完整规范证明源的准入与拒绝记录，采用 JSON 格式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaPreparedNativeCanon|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "payload schema — prepared native canon"
+msgstr "载荷模式——预备原生规范"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaPreparedNativeCanon|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The native lowering of the original canon and its source attribution and refusal evidence, encoded as CBOR. Reading this payload does not authorize proof execution."
+msgstr "以 CBOR 编码的原始规范的原生降级表示，以及其来源归属和拒绝证据。读取此载荷并不授权执行证明。"

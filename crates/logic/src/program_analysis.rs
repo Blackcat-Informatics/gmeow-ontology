@@ -169,7 +169,7 @@ impl PreparedProgram {
     ) -> gmeow_errors::Result<Self> {
         let source_proof = matches!(
             profile,
-            SourceAdmissionProfile::SelectedSourceProofV1 { .. }
+            SourceAdmissionProfile::SelectedSourceProofV2 { .. }
         );
         let (admission, lowering, mut rules) = if let Some(view) = selected {
             (
@@ -526,11 +526,13 @@ pub(crate) fn selected_profile(
 }
 
 pub(crate) fn selected_source_proof_profile(
+    inventory: &gmeow_logic_compile::source_inventory::SourceInventory<'_>,
     selection: &gmeow_logic_compile::source_inventory::ResolvedTheorySelection,
 ) -> SourceAdmissionProfile {
-    SourceAdmissionProfile::SelectedSourceProofV1 {
+    SourceAdmissionProfile::SelectedSourceProofV2 {
         theory: selection.request().clone(),
         execution_identity: selection.observation().identity.clone(),
+        compiler_trace: inventory.compiler_trace_digest().to_owned(),
     }
 }
 
@@ -583,7 +585,7 @@ pub(crate) fn preparation_identity(
     match profile {
         SourceAdmissionProfile::WorldLocalTemplatesV1 => {}
         SourceAdmissionProfile::ResolvedTheoryV1 { .. }
-        | SourceAdmissionProfile::SelectedSourceProofV1 { .. } => {
+        | SourceAdmissionProfile::SelectedSourceProofV2 { .. } => {
             ciborium::ser::into_writer(profile, &mut digest)
                 .map_err(|error| unidentified(&error))?;
         }
