@@ -18317,11 +18317,10 @@ logic:coverObjectIndividuationFunctionalComplexArg
 # Definitional axioms for the deception / standpoint / falsehood family.
 # Four object-level full-FOL logic:Formula definitions, each logic:formalizes-linked
 # to the gmeow: prose it encodes and paired with a reviewed logic:FormalizationCandidate
-# (harvest back-link + drift-checked source hash). Each formula exceeds the monotone
-# Horn+NAF fragment (nested existential, biconditional, strong negation), so it is
-# realized ONLY in the OWL / full-FOL projection and disclosed in the loss ledger — the
-# native StratifiedNAF chase does NOT enforce it (RiskProjectionOnly, mirroring the
-# foundational class coverings). The intent-never-entailed guardrail is unaffected: none of these
+# (harvest back-link + drift-checked source hash). Ordinary materialization does not
+# enforce these nested existential, biconditional or strong-negation conclusions.
+# The selected native source proof checks the licensed-falsehood law as a positive
+# denial. The intent-never-entailed guardrail is unaffected: none of these
 # formulas is a productive rule and none carries gmeow:deceptiveIntentClaim, so
 # logic:IntentNotFromDeceptionObligation's Arm A (no rule head) stays discharged.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -18611,9 +18610,8 @@ logic:btiTruthArgV
 # Each harvests its axiom from exactly one prose field (logic:candidateSourceField) of the
 # gmeow: term it formalizes; logic:candidateSourceHash is the sha256 of that field's
 # @x-gmeow-english lexical text, so a later prose edit surfaces as drift under make verify.
-# All four are realized in the OWL / full-FOL projection only (RiskProjectionOnly,
-# SoundUnderApproximation) and disclosed in the loss ledger — the native monotone chase does
-# not enforce a nested-existential, biconditional, or strong-negation head.
+# Projection behavior describes the downcast. The licensed-falsehood exclusion
+# also participates in selected native refutation, so its risk reaches the core.
 
 logic:cqDeceptionDivergenceHolds
     a logic:NamedIndividual ;
@@ -18684,13 +18682,13 @@ logic:cqLicensedFalsehoodDeceptionRejected
     a logic:NamedIndividual ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "licensed falsehood classified as deception is rejected"@x-gmeow-english ;
-    skos:definition "The negative countermodel the licensed-falsehood safety partition must respect: classifying a socially-licensed non-truth-asserting projection (a novel, a satire) as deception is rejected — the audience understands the non-asserting frame. HONEST SCOPE: the exclusion is realized in the OWL / full-FOL projection (strong negation in the head); the native monotone chase does not enforce it, disclosed in the loss ledger."@x-gmeow-english .
+    skos:definition "The countermodel for classifying a socially licensed projection that makes no truth assertion as deception. The selected native source proof reports a contradiction when an event is asserted as deception and its projected claim carries licensed falsehood. Ordinary materialization does not derive a negative classification."@x-gmeow-english .
 logic:candidateLicensedFalsehoodNotDeception
     a logic:NamedIndividual ,
         logic:FormalizationCandidate ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "licensed falsehood is not deception"@x-gmeow-english ;
-    skos:definition "The necessary-condition formalization candidate governing logic:licensedFalsehoodNotDeception: a gmeow:Event whose projected standpoint is gmeow:veridicalityLicensedFalsehood is excluded from gmeow:eventTypeDeception — the fiction/satire/sarcasm safety property that separates harmless non-truth-asserting frames from deception. Realized in the OWL / full-FOL projection (strong negation), non-monotone, disclosed in the loss ledger — NOT natively enforced. Harvested from gmeow:veridicalityLicensedFalsehood's skos:definition. Accepted through review with a positive case (logic:cqLicensedFalsehoodSafeHolds) and a negative countermodel (logic:cqLicensedFalsehoodDeceptionRejected)."@x-gmeow-english ;
+    skos:definition "The formalization candidate for logic:licensedFalsehoodNotDeception. An event whose projected claim carries gmeow:veridicalityLicensedFalsehood cannot have gmeow:eventTypeDeception as its event type. The selected native source proof checks this necessary condition as a denial and reports the joined premises of a contradiction. Ordinary materialization does not derive a negative classification."@x-gmeow-english ;
     logic:candidateSourceHash "885472a556e60956181fc7f7e512fbee34b63d02349fb8ca1388f2736fdf6589"^^gmeow:sha256Digest ;
     logic:candidateExtractionProvenance "hand-harvested from gmeow:veridicalityLicensedFalsehood's skos:definition, which states the licensed-falsehood safety property separates fiction/satire/sarcasm from deception (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"@x-gmeow-english ;
     logic:candidateScope "necessary condition: a licensed-falsehood projected claim ⇒ ¬ gmeow:eventTypeDeception"@x-gmeow-english ;
@@ -18701,7 +18699,7 @@ logic:candidateLicensedFalsehoodNotDeception
     logic:candidatePositiveCase logic:cqLicensedFalsehoodSafeHolds ;
     logic:candidateNegativeCase logic:cqLicensedFalsehoodDeceptionRejected ;
     logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
-    logic:candidateSemanticRisk logic:RiskProjectionOnly ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
     logic:candidateFormalizes gmeow:veridicalityLicensedFalsehood ;
     logic:candidateSourceField logic:ProseFieldDefinition .
 

@@ -11,7 +11,8 @@ mod accounting;
 mod forbidden_pattern;
 mod governance;
 
-pub(crate) use forbidden_pattern::lower_forbidden_pattern;
+use forbidden_pattern::lower_forbidden_pattern;
+pub(crate) use forbidden_pattern::selected_denials;
 
 use std::collections::BTreeSet;
 
@@ -859,7 +860,7 @@ fn classify_selected(
 fn unread_formula_evidence() -> Disposition {
     Disposition::blocked(
         FORMULA_EVIDENCE_BOUNDARY,
-        "source provenance requires an accounted original formula and complete native lowering",
+        "source formula evidence requires an accounted original formula and complete native lowering",
     )
 }
 
@@ -907,13 +908,13 @@ fn account_formula_evidence(
         for &ordinal in origins {
             let Some(&is_accounted) = accounted.get(ordinal) else {
                 return Err(reason_err(
-                    "selected formula provenance has no original formula occurrence".into(),
+                    "selected formula evidence has no original formula occurrence".into(),
                 ));
             };
             if is_accounted {
                 let id = inventory.formula_obligation_id(ordinal).ok_or_else(|| {
                     reason_err(
-                        "accounted formula provenance has no original obligation identity".into(),
+                        "accounted formula evidence has no original obligation identity".into(),
                     )
                 })?;
                 formula_origins.push(id);
@@ -1195,18 +1196,14 @@ pub fn reason_admitted_theory_within(
         ));
     };
     reachability.validate_preparation(&selected.prepared)?;
-    for (_, constraint) in admission
-        .selection
-        .program_view(admission.inventory)?
-        .forbidden_patterns()
-    {
-        if let Ok(rule) = lower_forbidden_pattern(constraint)
-            && (!selected.prepared.rules.contains(&rule)
-                || selected.authored_denial_owner(&rule.rule_iri) != Some(constraint.iri.as_str()))
+    let view = admission.selection.program_view(admission.inventory)?;
+    for denial in selected_denials(view, theory.source().dataset()) {
+        if !selected.prepared.rules.contains(&denial.rule)
+            || selected.authored_denial_owner(&denial.rule.rule_iri) != Some(denial.owner.as_str())
         {
             return Err(reason_err(format!(
                 "selected proof preparation omitted the exact rule for {}",
-                constraint.iri
+                denial.owner
             )));
         }
     }

@@ -60,6 +60,7 @@ struct ModuleFormulaTarget {
 pub(super) struct FormulaEvidenceBinding {
     pub(super) origins: Vec<usize>,
     pub(super) independent_owner: bool,
+    formalization_owner: Option<SyntaxOwner>,
 }
 
 /// Invocation-local masks retain original IR indices and lowering occurrences.
@@ -579,6 +580,7 @@ impl SelectionIndex {
         // reachability to its otherwise compatible siblings or descendants.
         index.propagate();
         index.bind_formula_evidence(inventory, formula_provenance);
+        index.bind_formula_formalizations(inventory);
         index.lowering_masks(inventory);
         index.stream_masks(inventory);
         index
@@ -913,10 +915,77 @@ impl SelectionIndex {
                     FormulaEvidenceBinding {
                         origins: origins.into_iter().collect(),
                         independent_owner,
+                        formalization_owner: None,
                     },
                 ))
             })
             .collect();
+    }
+
+    /// A direct formalization link describes its own emitted formula, not
+    /// the formula's target as an assertion or a new executable owner.
+    fn bind_formula_formalizations(&mut self, inventory: &SourceInventory<'_>) {
+        let theory = inventory.theory();
+        let source = theory.source();
+        let dataset = source.dataset();
+        let emitted = theory
+            .formula_lowerings()
+            .iter()
+            .enumerate()
+            .filter(|(_, lowering)| {
+                lowering.source.graph.is_none()
+                    && !self
+                        .active
+                        .contains(&owner(lowering.source, SyntaxFamily::Owner))
+                    && matches!(
+                        lowering.disposition,
+                        FormulaDisposition::Formula(_) | FormulaDisposition::Axiom(_)
+                    )
+            })
+            .flat_map(|(ordinal, lowering)| {
+                source
+                    .source_graph()
+                    .outgoing(lowering.source)
+                    .iter()
+                    .map(move |edge| (ordinal, edge))
+            });
+        for (ordinal, edge) in emitted {
+            if edge.carrier != SourceCarrier::Statement
+                || edge.predicate.iri(dataset) != "https://blackcatinformatics.ca/logic/formalizes"
+                || !matches!(dataset.resolve(edge.target), TermRef::Iri(_))
+            {
+                continue;
+            }
+            let SourcePredicate::Stored(predicate) = edge.predicate else {
+                continue;
+            };
+            let binding = SourceStatementBinding {
+                canonical: QuadIds {
+                    s: edge.source.term,
+                    p: predicate,
+                    o: edge.target,
+                    g: None,
+                },
+                carrier: edge.carrier,
+            };
+            if !inventory.statement_selected(binding.canonical, binding.carrier)
+                || self.syntax.rows.contains_key(&binding)
+                || inventory
+                    .correspondence_record_owners(binding)
+                    .next()
+                    .is_some()
+            {
+                continue;
+            }
+            self.formula_evidence.insert(
+                binding,
+                FormulaEvidenceBinding {
+                    origins: vec![ordinal],
+                    independent_owner: false,
+                    formalization_owner: Some(owner(edge.source, SyntaxFamily::Formula)),
+                },
+            );
+        }
     }
 
     fn is_formula_evidence_only(&self, binding: SourceStatementBinding) -> bool {
@@ -1220,6 +1289,13 @@ impl SelectionIndex {
         }
         if let Some(owners) = self.selection_metadata.get(&binding) {
             return self.combine(owners.iter().copied());
+        }
+        if let Some(unit) = self
+            .formula_evidence
+            .get(&binding)
+            .and_then(|evidence| evidence.formalization_owner)
+        {
+            return self.owner_membership(unit);
         }
         if let Some(ordinal) = inventory.forbidden_pattern_owner(binding) {
             let lowering = &inventory.theory().owner_lowerings()[ordinal];
