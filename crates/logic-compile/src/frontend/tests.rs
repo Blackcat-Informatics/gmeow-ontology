@@ -2898,6 +2898,46 @@ fn derive_class_scoped_closed_all_values_from_requires_the_path() {
     );
 }
 
+/// INVARIANT: an individual-scoped closure entry does not widen to the property or the class.
+/// Contract-owned entries that close `g:cites` for one resource, one with and one without
+/// `logic:onClass`, derive no closed-world range opt-in for the property and no class-wide
+/// required path, while the same property and restriction derive their shapes as usual.
+#[test]
+fn individual_scoped_closure_entries_do_not_widen_to_property_or_class() {
+    let ds = shape_dataset_with_logic(
+        "g:Doc a owl:Class . \
+         g:cites a owl:ObjectProperty ; rdfs:range g:Doc . \
+         g:Article a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:cites ; owl:allValuesFrom g:Doc ] . \
+         g:contract a logic:ReasoningContract ; \
+            logic:closureEntry g:propertyEntry , g:classEntry . \
+         g:propertyEntry a logic:ClosureEntry ; logic:closureIndividual g:article1 ; \
+            logic:closureKey g:cites ; logic:closureValue logic:ClosedWorldClosure . \
+         g:classEntry a logic:ClosureEntry ; logic:onClass g:Article ; \
+            logic:closureIndividual g:article1 ; \
+            logic:closureKey g:cites ; logic:closureValue logic:ClosedWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        !shapes.iter().any(|shape| matches!(
+            &shape.target,
+            ShapeTarget::SubjectsOf(path) | ShapeTarget::ObjectsOf(path) if path.ends_with("cites")
+        )),
+        "an individual-scoped entry must not opt the property into a closed-world range/domain \
+         reading: {:?}",
+        shapes.iter().map(|shape| &shape.target).collect::<Vec<_>>()
+    );
+    let cites = shapes
+        .iter()
+        .flat_map(|shape| &shape.properties)
+        .find(|property| property.path.ends_with("cites"))
+        .expect("the open-world allValuesFrom still projects a cites property shape");
+    assert_eq!(
+        cites.min_count, None,
+        "an individual-scoped entry must not make the path required for the whole class"
+    );
+}
+
 #[test]
 fn derive_all_values_from_emits_bare_class_not_wrapped() {
     // owl:allValuesFrom is UNIVERSAL: every value is a g:Doc → a bare sh:class on the path,
