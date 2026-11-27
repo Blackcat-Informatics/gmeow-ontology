@@ -197,11 +197,14 @@ Positive cross-world rigidity cannot be expressed as an in-world Datalog rule be
 is world-local. It is evaluated by a bounded closure pass over the finite materialized world set,
 emitting `logic:rigidityViolation` quads in the world where rigidity persistence fails: a world
 admitted from the typing world by typed accessibility records, each asserted in the graph of its
-subject (`w logic:epistemicallyPossible w'` in `w`, or a chain of later states'
-`w' logic:temporallySucceeds w` records, each in its own subject's graph), in which the
+subject (`w logic:epistemicallyPossible w'` in `w`, or a chain of
+`w1 logic:temporallySucceeds w`, `w2 logic:temporallySucceeds w1`, ...,
+`w' logic:temporallySucceeds wn` records, each asserted in its own subject's graph), in which the
 individual still exists and carries admissible evidence of the loss — an
 explicit `logic:notInstanceOf` assertion or a closed-world closure of its `rdf:type` statements that
-a `logic:ReasoningContract` of that world declares. `Kind`, `SubKind` and `Category` are rigid by
+a `logic:ReasoningContract` of that world declares. An absence of a typing is evidence only where
+no asserted type of the individual reaches the type through `logic:subClassOf` triples asserted in
+that world. `Kind`, `SubKind` and `Category` are rigid by
 stereotype; a `logic:rigidlyAppliesTo` record holds one instance of any other type, and is refused
 on a type with an anti-rigid stereotype. The anti-rigidity witness policy (`witness-obligation` /
 `witness-required` / `schema-only`) is a companion pass that emits `logic:dischargeObligation` /

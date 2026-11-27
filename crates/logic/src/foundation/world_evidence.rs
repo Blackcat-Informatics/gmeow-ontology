@@ -8,12 +8,13 @@
 //! indexes the materialized quads once and answers the three questions such a
 //! judgment needs:
 //!
-//! * **Accessibility.**  `w2` is judged from `w1` only along a typed accessibility
-//!   record asserted in the graph of the record's subject: `w1
-//!   logic:epistemicallyPossible w2` asserted in `w1`, or `w2 logic:temporallySucceeds
-//!   w1` asserted in `w2` (the later state names its predecessor, so every later state, at any
-//!   number of steps, is reached from the earlier one).  The epistemic record is not
-//!   transitive.  A record asserted in any other graph, the bare
+//! * **Accessibility.**  `w2` is judged from `w1` only along typed accessibility
+//!   records, each asserted in the graph of its own subject: `w1
+//!   logic:epistemicallyPossible w2` asserted in `w1`, or a chain of `w2
+//!   logic:temporallySucceeds w1` records, each asserted in its own subject's graph (the
+//!   later state names its predecessor, so every later state, at any number of steps, is
+//!   reached from the earlier one).  The epistemic record is not transitive.  A record
+//!   asserted in any other graph, the bare
 //!   `logic:accessibleFrom` superproperty and every other typed relation license
 //!   nothing.
 //! * **Existence.**  `x` is the subject of at least one quad in `w2` other than a
@@ -211,10 +212,10 @@ impl WorldEvidence {
         self.typings.iter()
     }
 
-    /// The worlds reachable from `world` along an admissible typed accessibility record.
-    /// An epistemic record is followed directly.  Temporal succession is followed
-    /// transitively, walking the direct records on demand with a visited set so a cycle
-    /// terminates.  The world itself is never among them: succession is a strict order.
+    /// The worlds reachable from `world` along admissible typed accessibility records.
+    /// An epistemic record is followed directly.  A chain of temporal records is walked
+    /// transitively, on demand with a visited set so a cycle terminates.  The world itself
+    /// is never among them: succession is a strict order.
     pub(super) fn accessible_from<'a>(&'a self, world: &str) -> impl Iterator<Item = &'a String> {
         let mut reached: BTreeSet<&'a String> =
             self.epistemic.get(world).into_iter().flatten().collect();

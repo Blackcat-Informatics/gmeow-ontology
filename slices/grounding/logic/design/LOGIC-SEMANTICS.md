@@ -695,9 +695,10 @@ operators are the **standard translation** of modal logic into first-order logic
 
 - **Rigidity.** `logic:rigidlyAppliesTo(T, x)` records that `T` necessarily classifies the
   individual `x`. It lowers to the integrity constraint *for every pair of worlds `w`, `w'` in which
-  `x` exists and `w'` is admitted from `w` by a typed accessibility record, if `x` is a `T` in `w`
-  then `x` is a `T` in `w'`*. Rigidity is a property of each typing, and the type definitions state
-  how a type's instances distribute over it: `logic:RigidType` applies necessarily to each instance,
+  `x` exists and `w'` is admitted from `w` by typed accessibility records (a direct epistemic
+  record, or a chain of temporal succession records, see the admissible-evidence section), if `x`
+  is a `T` in `w` then `x` is a `T` in `w'`*. Rigidity is a property of each typing, and the type
+  definitions state how a type's instances distribute over it: `logic:RigidType` applies necessarily to each instance,
   `logic:AntiRigidType` applies contingently to **every** instance, and `logic:SemiRigidType` is
   permanent for **some** instances and contingent for others. The stereotype fixes the distribution
   where its definition does. `Kind`, `SubKind` and `Category` are rigid types, so every instance is
