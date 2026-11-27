@@ -769,10 +769,10 @@ binds the same individual `x` and the same type `T` in both worlds, and a counte
 conjured from the absence of data. It rests on four things:
 
 1. **A permitted world.** `w'` is judged from `w` only along a typed accessibility record asserted
-   in the graph of its own subject, the way the modal kernel keys a record by its asserting
-   context: `w logic:epistemicallyPossible w'` asserted in `w`, or `w' logic:temporallySucceeds w`
-   asserted in `w'`. Temporal succession runs forward: the later state names its predecessor, and a
-   later state is reached from the earlier one, never the reverse. A record asserted in any other
+   in the graph of its own subject: `w logic:epistemicallyPossible w'` asserted in `w`, or
+   `w' logic:temporallySucceeds w` asserted in `w'`. The evaluator reads a temporal record from its
+   object to its subject: the later state names its predecessor, and a later state is reached from
+   the earlier one, never the reverse. A record asserted in any other
    graph (a doxastic context reporting the record, for example), the bare `logic:accessibleFrom`
    superproperty, the doxastic, deontic, counterfactual and standpoint relations, and the absence
    of any record license nothing. The kernel defines no world-to-world context transport, so these
@@ -780,7 +780,9 @@ conjured from the absence of data. It rests on four things:
    violation nor discharges a witness.
 2. **Continued existence.** `x` is the subject of a statement in `w'` other than its own
    non-membership assertion. A world that never mentions `x` says nothing about it.
-3. **Negative membership.** `x` is not typed `T` in `w'`, and that is evidenced: an explicit
+3. **Negative membership.** `x` is not a `T` in `w'`, that is, no asserted typing of `x` in `w'`
+   is `T` or a subclass of `T` under the `logic:subClassOf` triples asserted in `w'`, and that is
+   evidenced: an explicit
    `x logic:notInstanceOf T` assertion in `w'`, or a closed-world closure of the type statements of
    `x` in `w'`. A world that both types `x` a `T` and asserts the non-membership evidences no loss.
    Absence of a typing in a materialized graph is never negative evidence by itself: open world is

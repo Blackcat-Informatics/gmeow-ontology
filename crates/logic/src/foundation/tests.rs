@@ -961,6 +961,59 @@ fn loss_evidence_without_a_positive_statement_of_existence_is_inadmissible() {
     }
 }
 
+/// INVARIANT: membership inherited through a `logic:subClassOf` supertype asserted in the
+/// judged world is membership there.  Alice's subclass typings in the later world, with
+/// that world's own closure of her types, neither report her as having lost the rigid
+/// supertype (no rigidity violation) nor discharge the witness of the anti-rigid
+/// supertype as if she were absent from it.  Each result rests on evidence asserted in
+/// the later world alone: with the subclass triples removed the same evidence reports the
+/// loss and discharges the witness.
+#[test]
+fn membership_inherited_through_a_subclass_is_membership_in_the_judged_world() {
+    let minutes = format!("{BOARD}/minutes");
+    let later = format!("{BOARD}/later");
+    let alice = format!("{BOARD}/alice");
+    let person = format!("{BOARD}/Person");
+    let adult = format!("{BOARD}/Adult");
+    let officer = format!("{BOARD}/Officer");
+    let sub_class_of = format!("{LOGIC}subClassOf");
+    let base = board_minutes()
+        + &accessible(&minutes, &later)
+        + &nq_line(&person, RDF_TYPE_P, &format!("{LOGIC}Kind"), &minutes)
+        + &nq_line(&alice, RDF_TYPE_P, &person, &minutes)
+        + &later_loss_of_role("")
+        + &closed_membership_of_alice(&later)
+        + &nq_line(&alice, RDF_TYPE_P, &adult, &later)
+        + &nq_line(&alice, RDF_TYPE_P, &officer, &later);
+
+    assert_eq!(
+        rigidity_violations(&base, AntiRigidityPolicy::WitnessObligation),
+        vec![(later.clone(), alice.clone(), format!("<{person}>"))],
+        "without a subclass triple Alice's Adult typing does not make her a Person"
+    );
+    assert!(
+        !board_violation_open(&base),
+        "without a subclass triple Alice's Officer typing does not keep her a BoardMember"
+    );
+
+    let inherited = base
+        + &nq_line(&adult, &sub_class_of, &person, &later)
+        + &nq_line(
+            &officer,
+            &sub_class_of,
+            &format!("{BOARD}/BoardMember"),
+            &later,
+        );
+    assert!(
+        rigidity_violations(&inherited, AntiRigidityPolicy::WitnessObligation).is_empty(),
+        "a typing through a subclass asserted in the judged world is a Person there"
+    );
+    assert!(
+        board_violation_open(&inherited),
+        "a world where Alice is still a BoardMember through a subclass discharges no witness"
+    );
+}
+
 /// INVARIANT: an individual-scoped closure entry selects one key and one value; an entry
 /// missing either is refused rather than read as a partial closure.
 #[test]

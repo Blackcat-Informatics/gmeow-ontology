@@ -211,13 +211,14 @@ discharged only by the same admissible evidence, and a semi-rigid `Mixin` owes n
 ### Native Rust evaluator
 
 The lowering is **evaluated natively in Rust** by `crates/logic/src/foundation.rs` (entry point:
-the `gmeow_logic.foundation(nquads, policy)` PyO3 binding). The in-world discipline rules, the
-cross-world rigidity closure, and the anti-rigidity witness passes all run inside that evaluator,
-which emits fully-provenanced quads (reifiers + derivation IDs via the shared `provenance` recipe).
+`gmeow_logic::foundation::evaluate(&WorldStore, AntiRigidityPolicy)`). The in-world discipline
+rules, the cross-world rigidity closure, and the anti-rigidity witness passes all run inside that
+evaluator, which emits fully-provenanced quads (reifiers + derivation IDs via the shared
+`provenance` recipe).
 
-There is no Python emitter and no fallback (no-optionality doctrine: a missing `gmeow_logic`
-extension is a hard failure, not a degraded path). The `conformance/logic/cases/foundation/`
-corpus goldens certify the Rust evaluator directly.
+There is no Python emitter and no fallback (no-optionality doctrine: an invalid input or an
+ambiguous closure entry makes `evaluate` return an error, not a degraded result). The
+`conformance/logic/cases/foundation/` corpus goldens certify the Rust evaluator directly.
 
 ### Stratified NAF
 

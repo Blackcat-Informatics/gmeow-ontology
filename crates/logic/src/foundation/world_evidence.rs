@@ -17,7 +17,9 @@
 //!   nothing.
 //! * **Existence.**  `x` is the subject of at least one quad in `w2` other than a
 //!   non-membership assertion about `x` itself.
-//! * **Loss.**  `x` is not typed `T` in `w2`, and the absence is backed by evidence:
+//! * **Loss.**  `x` is not a `T` in `w2`, where `x`'s types are its asserted `rdf:type`
+//!   values closed upward under the `logic:subClassOf` triples asserted in `w2` (the
+//!   subclass predicate the foundation chase reads), and the absence is backed by evidence:
 //!   an explicit `x logic:notInstanceOf T` assertion in `w2`, or a closed-world
 //!   closure of `x`'s `rdf:type` statements that a `logic:ReasoningContract` asserted
 //!   in `w2` declares through `logic:closureEntry`.  Absence of a typing alone is
@@ -35,6 +37,9 @@ pub(super) type Typing = (String, String, String);
 pub(super) struct WorldEvidence {
     /// Every `(world, individual, type)` with an IRI-typed `rdf:type` quad.
     typings: BTreeSet<Typing>,
+    /// Every `(world, individual, type)` a world entails: the asserted typings closed upward
+    /// under the `logic:subClassOf` triples asserted in the same world.
+    entailed: BTreeSet<Typing>,
     /// `(world, individual)` pairs that exist: the individual is a subject of a quad
     /// that is not its own non-membership assertion.
     existing: BTreeSet<(String, String)>,
@@ -88,7 +93,9 @@ impl WorldEvidence {
         let mut evidence = Self::default();
         let mut contracts: BTreeSet<(&str, &str)> = BTreeSet::new();
         let mut ownership: Vec<(&str, &str, &str)> = Vec::new();
+        let sub_class_of = format!("{LOGIC_NS}subClassOf");
         let mut entries: BTreeMap<(&str, &str), ClosureEntryFacts> = BTreeMap::new();
+        let mut supers: BTreeMap<(&str, &str), BTreeSet<&str>> = BTreeMap::new();
         for quad in quads {
             let object = strip_angle_opt(&quad.object);
             if quad.predicate == not_instance_of {
@@ -105,6 +112,12 @@ impl WorldEvidence {
                     .insert((quad.graph.clone(), quad.subject.clone()));
             }
             let Some(object) = object else { continue };
+            if quad.predicate == sub_class_of {
+                supers
+                    .entry((quad.graph.as_str(), quad.subject.as_str()))
+                    .or_default()
+                    .insert(object);
+            }
             if quad.predicate == RDF_TYPE {
                 evidence.typings.insert((
                     quad.graph.clone(),
@@ -179,6 +192,7 @@ impl WorldEvidence {
                 )));
             }
         }
+        evidence.entailed = entail_supertypes(&evidence.typings, &supers);
         let closed_world = format!("{LOGIC_NS}ClosedWorldClosure");
         evidence.closed = membership_closure
             .into_iter()
@@ -199,15 +213,41 @@ impl WorldEvidence {
     }
 
     /// Whether `individual` demonstrably existed in `world` without being a `type_iri`:
-    /// it is present, not typed, and its absence of the type is explicitly asserted or
+    /// it is present, not a member through any asserted typing or supertype entailed by the
+    /// world's subclass triples, and its absence of the type is explicitly asserted or
     /// closed-world covered.
     pub(super) fn lost_in(&self, world: &str, individual: &str, type_iri: &str) -> bool {
         let present = (world.to_owned(), individual.to_owned());
         let key = (world.to_owned(), individual.to_owned(), type_iri.to_owned());
         self.existing.contains(&present)
-            && !self.typings.contains(&key)
+            && !self.entailed.contains(&key)
             && (self.non_members.contains(&key) || self.closed.contains(&present))
     }
+}
+
+/// `typings` closed upward under the `logic:subClassOf` triples of the same world, as the
+/// foundation chase closes `subClassOfT`: a typing of a subclass entails the typing of
+/// every transitive superclass.  `supers` maps `(world, class)` to its asserted direct
+/// superclasses.
+fn entail_supertypes(
+    typings: &BTreeSet<Typing>,
+    supers: &BTreeMap<(&str, &str), BTreeSet<&str>>,
+) -> BTreeSet<Typing> {
+    let mut entailed = typings.clone();
+    let mut pending: Vec<Typing> = typings.iter().cloned().collect();
+    while let Some((world, individual, type_iri)) = pending.pop() {
+        for &parent in supers
+            .get(&(world.as_str(), type_iri.as_str()))
+            .into_iter()
+            .flatten()
+        {
+            let typing = (world.clone(), individual.clone(), parent.to_owned());
+            if entailed.insert(typing.clone()) {
+                pending.push(typing);
+            }
+        }
+    }
+    entailed
 }
 
 /// The one value of a closure-entry field; several distinct values are ambiguous, the
