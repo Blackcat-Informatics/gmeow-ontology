@@ -495,9 +495,24 @@ fn nq_line(subject: &str, predicate: &str, object: &str, graph: &str) -> String 
     format!("<{subject}> <{predicate}> <{object}> <{graph}> .\n")
 }
 
+/// A typed accessibility record `from epistemicallyPossible to`, asserted in `graph`.
+fn epistemic_record(from: &str, to: &str, graph: &str) -> String {
+    nq_line(from, &format!("{LOGIC}epistemicallyPossible"), to, graph)
+}
+
 /// A typed accessibility record `from epistemicallyPossible to`, asserted in `from`.
 fn accessible(from: &str, to: &str) -> String {
-    nq_line(from, &format!("{LOGIC}epistemicallyPossible"), to, from)
+    epistemic_record(from, to, from)
+}
+
+/// A temporal record `later temporallySucceeds earlier`, asserted in `graph`.
+fn succession_record(later: &str, earlier: &str, graph: &str) -> String {
+    nq_line(later, &format!("{LOGIC}temporallySucceeds"), earlier, graph)
+}
+
+/// An explicit `who logic:notInstanceOf type_iri` assertion in `world`.
+fn not_instance_of(who: &str, type_iri: &str, world: &str) -> String {
+    nq_line(who, &format!("{LOGIC}notInstanceOf"), type_iri, world)
 }
 
 /// Alice is a subject of the world, saying nothing about her board role.
@@ -510,36 +525,80 @@ fn alice_mentioned_in(world: &str) -> String {
     )
 }
 
-/// The minutes world: `BoardMember` is a `logic:Role`, Alice holds it, and a
-/// `gmeow:Membership` relator (organization) founded on the bylaws (agreements)
-/// records the period (temporal), the standpoint it is according to (standpoint) and
-/// who attributes it (provenance).
+/// The minutes world: `BoardMember` is a `logic:Role` and Alice holds it.  A
+/// `gmeow:Membership` relator (organization) binds her to the board with its director
+/// role, is founded on the bylaws (agreements) and held according to the minutes'
+/// standpoint (standpoint), and runs over a term that starts on its first instant
+/// (temporal).  The minutes record is attributed to the secretary (provenance).
 fn board_minutes() -> String {
     let minutes = format!("{BOARD}/minutes");
     let m1 = format!("{BOARD}/membership1");
+    let term = format!("{BOARD}/term1");
     let mut nq = String::new();
-    nq += &nq_line(
-        &format!("{BOARD}/BoardMember"),
-        RDF_TYPE_P,
-        &format!("{LOGIC}Role"),
-        &minutes,
-    );
-    nq += &nq_line(
-        &format!("{BOARD}/alice"),
-        RDF_TYPE_P,
-        &format!("{BOARD}/BoardMember"),
-        &minutes,
-    );
-    nq += &nq_line(&m1, RDF_TYPE_P, &format!("{GMEOW}Membership"), &minutes);
-    for (predicate, object) in [
-        ("membershipMember", format!("{BOARD}/alice")),
-        ("membershipOrganization", format!("{BOARD}/board")),
-        ("foundedOn", format!("{BOARD}/bylaws")),
-        ("validFrom", format!("{BOARD}/instant/2023-01-01")),
-        ("accordingTo", format!("{BOARD}/minutesStandpoint")),
-        ("wasAttributedTo", format!("{BOARD}/secretary")),
+    for (subject, predicate, object) in [
+        (
+            format!("{BOARD}/BoardMember"),
+            RDF_TYPE_P.to_owned(),
+            format!("{LOGIC}Role"),
+        ),
+        (
+            format!("{BOARD}/alice"),
+            RDF_TYPE_P.to_owned(),
+            format!("{BOARD}/BoardMember"),
+        ),
+        (
+            m1.clone(),
+            RDF_TYPE_P.to_owned(),
+            format!("{GMEOW}Membership"),
+        ),
+        (
+            m1.clone(),
+            format!("{GMEOW}membershipMember"),
+            format!("{BOARD}/alice"),
+        ),
+        (
+            m1.clone(),
+            format!("{GMEOW}membershipOrganization"),
+            format!("{BOARD}/board"),
+        ),
+        (
+            m1.clone(),
+            format!("{GMEOW}hasRole"),
+            format!("{BOARD}/directorRole"),
+        ),
+        (
+            format!("{BOARD}/directorRole"),
+            RDF_TYPE_P.to_owned(),
+            format!("{GMEOW}Role"),
+        ),
+        (
+            m1.clone(),
+            format!("{GMEOW}foundedOn"),
+            format!("{BOARD}/bylaws"),
+        ),
+        (
+            m1.clone(),
+            format!("{GMEOW}accordingTo"),
+            format!("{BOARD}/minutesStandpoint"),
+        ),
+        (m1.clone(), format!("{GMEOW}duringInterval"), term.clone()),
+        (
+            term.clone(),
+            RDF_TYPE_P.to_owned(),
+            format!("{GMEOW}TimeInterval"),
+        ),
+        (
+            term,
+            format!("{GMEOW}hasStartInstant"),
+            format!("{BOARD}/instant/2023-01-01"),
+        ),
+        (
+            minutes.clone(),
+            format!("{GMEOW}wasAttributedTo"),
+            format!("{BOARD}/secretary"),
+        ),
     ] {
-        nq += &nq_line(&m1, &format!("{GMEOW}{predicate}"), &object, &minutes);
+        nq += &nq_line(&subject, &predicate, &object, &minutes);
     }
     nq
 }
@@ -555,20 +614,20 @@ fn board_violation_open(nq: &str) -> bool {
     })
 }
 
-/// A later assertion that Alice no longer holds the role, with its own attribution
-/// and the end of the membership's period.
+/// The later record: Alice still lives on Elm Street, `evidence` speaks to her role,
+/// the membership's term ends, and the record is attributed to the clerk who made it.
 fn later_loss_of_role(evidence: &str) -> String {
     let later = format!("{BOARD}/later");
     let mut nq = alice_mentioned_in(&later);
     nq += evidence;
     nq += &nq_line(
-        &format!("{BOARD}/membership1"),
-        &format!("{GMEOW}validUntil"),
+        &format!("{BOARD}/term1"),
+        &format!("{GMEOW}hasEndInstant"),
         &format!("{BOARD}/instant/2025-01-01"),
         &later,
     );
     nq += &nq_line(
-        &format!("{BOARD}/membership1"),
+        &later,
         &format!("{GMEOW}wasAttributedTo"),
         &format!("{BOARD}/clerk"),
         &later,
@@ -576,8 +635,9 @@ fn later_loss_of_role(evidence: &str) -> String {
     nq
 }
 
-/// A closure entry with `value` for `key` over `individual`, authored in `world`.
-fn closure_entry(world: &str, key: &str, individual: &str, value: &str) -> String {
+/// A closure entry with `value` for `key` over `individual`, authored in `world` and
+/// not owned by any contract.
+fn unowned_closure_entry(world: &str, key: &str, individual: &str, value: &str) -> String {
     let entry = format!("{BOARD}/closure");
     let mut nq = nq_line(&entry, RDF_TYPE_P, &format!("{LOGIC}ClosureEntry"), world);
     nq += &nq_line(&entry, &format!("{LOGIC}closureKey"), key, world);
@@ -589,6 +649,41 @@ fn closure_entry(world: &str, key: &str, individual: &str, value: &str) -> Strin
         world,
     );
     nq
+}
+
+/// The same closure entry, declared by a reasoning contract asserted in `world`.
+fn closure_entry(world: &str, key: &str, individual: &str, value: &str) -> String {
+    let contract = format!("{BOARD}/contract");
+    nq_line(
+        &contract,
+        RDF_TYPE_P,
+        &format!("{LOGIC}ReasoningContract"),
+        world,
+    ) + &nq_line(
+        &contract,
+        &format!("{LOGIC}closureEntry"),
+        &format!("{BOARD}/closure"),
+        world,
+    ) + &unowned_closure_entry(world, key, individual, value)
+}
+
+/// A closed-world closure of Alice's `rdf:type` statements in `world`.
+fn closed_membership_of_alice(world: &str) -> String {
+    closure_entry(
+        world,
+        RDF_TYPE_P,
+        &format!("{BOARD}/alice"),
+        &format!("{LOGIC}ClosedWorldClosure"),
+    )
+}
+
+/// The rigidity violations of `nq`, as `(world, individual, type)`.
+fn rigidity_violations(nq: &str, policy: AntiRigidityPolicy) -> Vec<(String, String, String)> {
+    run(nq, policy)
+        .into_iter()
+        .filter(|q| q.predicate == format!("{LOGIC}rigidityViolation"))
+        .map(|q| (q.graph, q.subject, q.object))
+        .collect()
 }
 
 /// INVARIANT: a world that merely mentions an individual is not evidence that the
@@ -614,15 +709,14 @@ fn address_register_leaves_the_role_witness_open() {
 }
 
 /// INVARIANT: an accessible alternative that positively supports Alice's continued
-/// existence and her loss of the role discharges the witness requirement, and the
-/// later assertion keeps its own attribution and the period it closes.
+/// existence and her loss of the role discharges the witness requirement.  Each record
+/// keeps its own attribution, and the membership keeps both ends of its term.
 #[test]
 fn accessible_alternative_with_explicit_loss_discharges_the_witness() {
     let minutes = format!("{BOARD}/minutes");
     let later = format!("{BOARD}/later");
-    let loss = nq_line(
+    let loss = not_instance_of(
         &format!("{BOARD}/alice"),
-        &format!("{LOGIC}notInstanceOf"),
         &format!("{BOARD}/BoardMember"),
         &later,
     );
@@ -633,62 +727,87 @@ fn accessible_alternative_with_explicit_loss_discharges_the_witness() {
         "an explicit non-membership assertion over a living Alice discharges the witness"
     );
     let set = quad_set(&run(&nq, AntiRigidityPolicy::WitnessRequired));
-    for (predicate, object) in [
-        ("wasAttributedTo", "clerk"),
-        ("validUntil", "instant/2025-01-01"),
+    for (subject, predicate, object, world, why) in [
+        (
+            &later,
+            "wasAttributedTo",
+            "clerk",
+            &later,
+            "the later record keeps its attribution",
+        ),
+        (
+            &minutes,
+            "wasAttributedTo",
+            "secretary",
+            &minutes,
+            "the minutes keep theirs",
+        ),
+        (
+            &format!("{BOARD}/term1"),
+            "hasStartInstant",
+            "instant/2023-01-01",
+            &minutes,
+            "the membership keeps the start of its term",
+        ),
+        (
+            &format!("{BOARD}/term1"),
+            "hasEndInstant",
+            "instant/2025-01-01",
+            &later,
+            "the later record keeps the end of the term",
+        ),
     ] {
         assert!(
             set.contains(&(
-                format!("{BOARD}/membership1"),
+                subject.clone(),
                 format!("{GMEOW}{predicate}"),
                 format!("<{BOARD}/{object}>"),
-                later.clone(),
+                world.clone(),
             )),
-            "the later assertion must keep its {predicate}"
+            "{why}"
         );
     }
-    assert!(
-        set.contains(&(
-            format!("{BOARD}/membership1"),
-            format!("{GMEOW}wasAttributedTo"),
-            format!("<{BOARD}/secretary>"),
-            minutes,
-        )),
-        "the minutes keep their own attribution beside the later one"
-    );
 }
 
-/// INVARIANT: absence is negative evidence only under a closed-world closure for the
-/// type, the individual and the context.  A closure over another individual, an
-/// open-world closure, and a closure authored in another world do not apply.
+/// INVARIANT: absence is negative evidence only under a closed-world closure of the
+/// individual's `rdf:type` statements that the contract of the judged world declares.
+/// A closure over another individual or another key, an open-world value, an entry no
+/// contract owns, and an entry authored in another world do not apply.
 #[test]
 fn scoped_closed_world_closure_is_the_only_absence_evidence() {
     let minutes = format!("{BOARD}/minutes");
     let later = format!("{BOARD}/later");
     let closed = format!("{LOGIC}ClosedWorldClosure");
-    let open = format!("{LOGIC}OpenWorldClosure");
     let alice = format!("{BOARD}/alice");
-    let member = format!("{BOARD}/BoardMember");
     let base = board_minutes() + &accessible(&minutes, &later) + &later_loss_of_role("");
 
-    let applicable = base.clone() + &closure_entry(&later, &member, &alice, &closed);
     assert!(
-        !board_violation_open(&applicable),
-        "a closure scoped to Alice, BoardMember and the later world discharges"
+        !board_violation_open(&(base.clone() + &closed_membership_of_alice(&later))),
+        "a contract's closure of Alice's types in the later world discharges"
     );
     for (why, closure) in [
         (
             "another individual",
-            closure_entry(&later, &member, &format!("{BOARD}/bob"), &closed),
+            closure_entry(&later, RDF_TYPE_P, &format!("{BOARD}/bob"), &closed),
+        ),
+        (
+            "another key",
+            closure_entry(&later, &format!("{BOARD}/residesAt"), &alice, &closed),
         ),
         (
             "an open-world value",
-            closure_entry(&later, &member, &alice, &open),
+            closure_entry(
+                &later,
+                RDF_TYPE_P,
+                &alice,
+                &format!("{LOGIC}OpenWorldClosure"),
+            ),
         ),
         (
-            "another world",
-            closure_entry(&minutes, &member, &alice, &closed),
+            "an entry no contract owns",
+            unowned_closure_entry(&later, RDF_TYPE_P, &alice, &closed),
         ),
+        ("another world", closed_membership_of_alice(&minutes)),
     ] {
         assert!(
             board_violation_open(&(base.clone() + &closure)),
@@ -697,45 +816,175 @@ fn scoped_closed_world_closure_is_the_only_absence_evidence() {
     }
 }
 
-/// INVARIANT: a world with no typed accessibility record from the typing world is not
-/// judged: even complete loss evidence there neither discharges the witness nor
-/// fires a rigidity violation.
+/// INVARIANT: an individual-scoped closure entry selects one key, one value and one
+/// individual, and a world's entries for one individual agree; anything else is
+/// refused rather than read as a choice of one entry.
 #[test]
-fn inaccessible_world_neither_discharges_nor_violates() {
+fn ambiguous_individual_closure_is_refused() {
     let later = format!("{BOARD}/later");
-    let loss = nq_line(
+    let entry = format!("{BOARD}/closure");
+    let open = format!("{LOGIC}OpenWorldClosure");
+    let alice = format!("{BOARD}/alice");
+    let owned = closed_membership_of_alice(&later);
+    let second_contract = format!("{BOARD}/contract2");
+    for (why, extra) in [
+        (
+            "multiple distinct logic:closureKey",
+            nq_line(
+                &entry,
+                &format!("{LOGIC}closureKey"),
+                &format!("{BOARD}/p"),
+                &later,
+            ),
+        ),
+        (
+            "multiple distinct logic:closureIndividual",
+            nq_line(
+                &entry,
+                &format!("{LOGIC}closureIndividual"),
+                &format!("{BOARD}/bob"),
+                &later,
+            ),
+        ),
+        (
+            "conflicting closure values",
+            nq_line(
+                &second_contract,
+                RDF_TYPE_P,
+                &format!("{LOGIC}ReasoningContract"),
+                &later,
+            ) + &nq_line(
+                &second_contract,
+                &format!("{LOGIC}closureEntry"),
+                &format!("{BOARD}/closure2"),
+                &later,
+            ) + &nq_line(
+                &format!("{BOARD}/closure2"),
+                &format!("{LOGIC}closureKey"),
+                RDF_TYPE_P,
+                &later,
+            ) + &nq_line(
+                &format!("{BOARD}/closure2"),
+                &format!("{LOGIC}closureValue"),
+                &open,
+                &later,
+            ) + &nq_line(
+                &format!("{BOARD}/closure2"),
+                &format!("{LOGIC}closureIndividual"),
+                &alice,
+                &later,
+            ),
+        ),
+    ] {
+        let nq = board_minutes() + &later_loss_of_role("") + &owned + &extra;
+        let err = evaluate(&store_from(&nq), AntiRigidityPolicy::SchemaOnly)
+            .expect_err("an ambiguous individual closure must be refused under every policy");
+        assert!(
+            err.message().contains(why),
+            "the refusal must name {why}, got: {err}"
+        );
+    }
+}
+
+/// INVARIANT: only a typed accessibility record asserted in the graph of its subject
+/// admits a world.  With no record, or with the record asserted in a third (doxastic)
+/// graph, complete loss evidence neither discharges the witness nor fires a rigidity
+/// violation.
+#[test]
+fn unadmitted_accessibility_neither_discharges_nor_violates() {
+    let minutes = format!("{BOARD}/minutes");
+    let later = format!("{BOARD}/later");
+    let belief = format!("{BOARD}/belief");
+    let alice = format!("{BOARD}/alice");
+    let person = format!("{BOARD}/Person");
+    let evidence = board_minutes()
+        + &nq_line(&person, RDF_TYPE_P, &format!("{LOGIC}Kind"), &minutes)
+        + &nq_line(&alice, RDF_TYPE_P, &person, &minutes)
+        + &later_loss_of_role(
+            &(not_instance_of(&alice, &format!("{BOARD}/BoardMember"), &later)
+                + &not_instance_of(&alice, &person, &later)),
+        );
+    for (why, record) in [
+        ("no record", String::new()),
+        (
+            "an alethic record in a doxastic graph",
+            epistemic_record(&minutes, &later, &belief),
+        ),
+        (
+            "a temporal record in a doxastic graph",
+            succession_record(&later, &minutes, &belief),
+        ),
+    ] {
+        let nq = evidence.clone() + &record;
+        assert!(
+            board_violation_open(&nq),
+            "{why} must not discharge the witness"
+        );
+        assert!(
+            rigidity_violations(&nq, AntiRigidityPolicy::WitnessObligation).is_empty(),
+            "{why} must not fire a rigidity violation"
+        );
+    }
+}
+
+/// INVARIANT: `later temporallySucceeds earlier`, asserted in the later state, carries a
+/// rigid typing forward: a loss in the later state is a violation of a typing in the
+/// earlier one, and a typing in the later state is not judged against the earlier.
+#[test]
+fn temporal_succession_carries_a_rigid_typing_forward() {
+    let earlier = format!("{BOARD}/minutes");
+    let later = format!("{BOARD}/later");
+    let alice = format!("{BOARD}/alice");
+    let person = format!("{BOARD}/Person");
+    let kind = nq_line(&person, RDF_TYPE_P, &format!("{LOGIC}Kind"), &earlier);
+    let order = succession_record(&later, &earlier, &later);
+
+    let forward = kind.clone()
+        + &order
+        + &nq_line(&alice, RDF_TYPE_P, &person, &earlier)
+        + &alice_mentioned_in(&later)
+        + &not_instance_of(&alice, &person, &later);
+    assert_eq!(
+        rigidity_violations(&forward, AntiRigidityPolicy::WitnessObligation),
+        vec![(later.clone(), alice.clone(), format!("<{person}>"))],
+        "a loss in the later state must violate the earlier rigid typing"
+    );
+
+    let backward = kind
+        + &order
+        + &nq_line(&alice, RDF_TYPE_P, &person, &later)
+        + &alice_mentioned_in(&earlier)
+        + &not_instance_of(&alice, &person, &earlier);
+    assert!(
+        rigidity_violations(&backward, AntiRigidityPolicy::WitnessObligation).is_empty(),
+        "the earlier state is not reached from the later one"
+    );
+}
+
+/// INVARIANT: a later state reached by temporal succession can witness an anti-rigid
+/// typing of the earlier state, and an earlier state never witnesses a later typing.
+#[test]
+fn temporal_succession_discharges_a_witness_with_a_later_loss() {
+    let minutes = format!("{BOARD}/minutes");
+    let later = format!("{BOARD}/later");
+    let loss = not_instance_of(
         &format!("{BOARD}/alice"),
-        &format!("{LOGIC}notInstanceOf"),
         &format!("{BOARD}/BoardMember"),
         &later,
     );
-    let nq = board_minutes() + &later_loss_of_role(&loss);
+    let forward =
+        board_minutes() + &succession_record(&later, &minutes, &later) + &later_loss_of_role(&loss);
     assert!(
-        board_violation_open(&nq),
-        "an inaccessible alternative must not discharge the witness"
+        !board_violation_open(&forward),
+        "a later loss of the role discharges the witness of the earlier typing"
     );
 
-    let person = format!("{BOARD}/Person");
-    let rigid = nq_line(&person, RDF_TYPE_P, &format!("{LOGIC}Kind"), &later)
-        + &nq_line(
-            &format!("{BOARD}/alice"),
-            RDF_TYPE_P,
-            &person,
-            &format!("{BOARD}/minutes"),
-        )
-        + &nq_line(
-            &format!("{BOARD}/alice"),
-            &format!("{LOGIC}notInstanceOf"),
-            &person,
-            &later,
-        )
-        + &alice_mentioned_in(&later);
-    let quads = run(&rigid, AntiRigidityPolicy::WitnessObligation);
+    let backward = board_minutes()
+        + &succession_record(&minutes, &later, &minutes)
+        + &later_loss_of_role(&loss);
     assert!(
-        !quads
-            .iter()
-            .any(|q| q.predicate == format!("{LOGIC}rigidityViolation")),
-        "an inaccessible world must not fire a rigidity violation"
+        board_violation_open(&backward),
+        "a state that precedes the typing does not witness it"
     );
 }
 
@@ -751,62 +1000,108 @@ fn rigidity_findings_do_not_depend_on_the_witness_policy() {
         + &nq_line(&person, RDF_TYPE_P, &format!("{LOGIC}Kind"), &minutes)
         + &nq_line(&format!("{BOARD}/alice"), RDF_TYPE_P, &person, &minutes)
         + &later_loss_of_role("")
-        + &closure_entry(
-            &later,
-            &person,
-            &format!("{BOARD}/alice"),
-            &format!("{LOGIC}ClosedWorldClosure"),
-        );
-    let findings = |policy| {
-        run(&nq, policy)
-            .into_iter()
-            .filter(|q| q.predicate == format!("{LOGIC}rigidityViolation"))
-            .map(|q| (q.graph, q.subject, q.object))
-            .collect::<Vec<_>>()
-    };
-    let default = findings(AntiRigidityPolicy::WitnessObligation);
+        + &closed_membership_of_alice(&later);
+    let default = rigidity_violations(&nq, AntiRigidityPolicy::WitnessObligation);
     assert_eq!(
         default,
         vec![(later, format!("{BOARD}/alice"), format!("<{person}>"))],
         "Alice's rigid Person typing must be reported as lost in the later world"
     );
-    assert_eq!(default, findings(AntiRigidityPolicy::SchemaOnly));
-    assert_eq!(default, findings(AntiRigidityPolicy::WitnessRequired));
+    assert_eq!(
+        default,
+        rigidity_violations(&nq, AntiRigidityPolicy::SchemaOnly)
+    );
+    assert_eq!(
+        default,
+        rigidity_violations(&nq, AntiRigidityPolicy::WitnessRequired)
+    );
 }
 
-/// INVARIANT: anti-rigidity requires contingency for EVERY instance.  A type with one
-/// permanently typed and one contingently typed instance is semi-rigid: it owes no
-/// anti-rigidity witness, and only the permanent typing is held rigid across worlds.
+/// INVARIANT: each stereotype follows its native definition.  A rigid stereotype
+/// (Category, Kind, SubKind) holds every instance across worlds; an anti-rigid
+/// stereotype (Phase, PhaseMixin, Role, RoleMixin) owes a witness for every instance
+/// and refuses a `logic:rigidlyAppliesTo` record; the semi-rigid Mixin does neither.
 #[test]
-fn semi_rigid_type_owes_no_witness_and_holds_only_its_permanent_instance_rigid() {
+fn stereotypes_fix_rigidity_as_their_definitions_state() {
     let minutes = format!("{BOARD}/minutes");
     let later = format!("{BOARD}/later");
-    let board_member = format!("{BOARD}/BoardMember");
-    let dave = format!("{BOARD}/dave");
-    let mut contingent = board_minutes() + &nq_line(&dave, RDF_TYPE_P, &board_member, &minutes);
-    contingent += &accessible(&minutes, &later);
-    for who in [format!("{BOARD}/alice"), dave.clone()] {
-        contingent += &nq_line(
-            &who,
-            &format!("{BOARD}/residesAt"),
-            &format!("{BOARD}/elmStreet"),
-            &later,
+    let alice = format!("{BOARD}/alice");
+    let sort = format!("{BOARD}/Sort");
+    let typed = |stereotype: &str| {
+        nq_line(&sort, RDF_TYPE_P, &format!("{LOGIC}{stereotype}"), &minutes)
+            + &nq_line(&alice, RDF_TYPE_P, &sort, &minutes)
+            + &accessible(&minutes, &later)
+            + &alice_mentioned_in(&later)
+            + &not_instance_of(&alice, &sort, &later)
+    };
+    let obligations = |nq: &str| {
+        run(nq, AntiRigidityPolicy::WitnessObligation)
+            .into_iter()
+            .filter(|q| q.predicate == format!("{LOGIC}dischargeObligation"))
+            .count()
+    };
+    for rigid in ["Category", "Kind", "SubKind"] {
+        let nq = typed(rigid);
+        assert_eq!(
+            rigidity_violations(&nq, AntiRigidityPolicy::WitnessObligation),
+            vec![(later.clone(), alice.clone(), format!("<{sort}>"))],
+            "a {rigid} must hold its instance across worlds"
         );
-        contingent += &nq_line(
-            &who,
-            &format!("{LOGIC}notInstanceOf"),
-            &board_member,
-            &later,
+        assert_eq!(obligations(&nq), 0, "a {rigid} owes no witness");
+    }
+    for anti_rigid in ["Phase", "PhaseMixin", "Role", "RoleMixin"] {
+        let nq = typed(anti_rigid);
+        assert!(
+            rigidity_violations(&nq, AntiRigidityPolicy::WitnessObligation).is_empty(),
+            "a {anti_rigid} holds no instance across worlds"
+        );
+        assert_eq!(obligations(&nq), 1, "a {anti_rigid} owes a witness");
+        let permanent = nq + &nq_line(&sort, &format!("{LOGIC}rigidlyAppliesTo"), &alice, &minutes);
+        let err = evaluate(&store_from(&permanent), AntiRigidityPolicy::SchemaOnly)
+            .expect_err("a rigidlyAppliesTo record on an anti-rigid type must be refused");
+        assert!(
+            err.message().contains("anti-rigid stereotype") && err.message().contains(&sort),
+            "the refusal must name the contradicted type, got: {err}"
         );
     }
-    let semi_rigid = contingent.clone()
-        + &nq_line(
-            &board_member,
-            &format!("{LOGIC}rigidlyAppliesTo"),
-            &dave,
-            &minutes,
-        );
+    let mixin = typed("Mixin");
+    assert!(
+        rigidity_violations(&mixin, AntiRigidityPolicy::WitnessObligation).is_empty()
+            && obligations(&mixin) == 0,
+        "a Mixin with no permanent instance neither holds nor owes"
+    );
+}
 
+/// INVARIANT: anti-rigidity requires contingency for EVERY instance.  A Mixin type with
+/// one permanently typed and one contingently typed instance is semi-rigid: it owes no
+/// anti-rigidity witness, and only the permanent typing is held rigid across worlds,
+/// while a Role over the same two contingent instances owes a witness for each.
+#[test]
+fn semi_rigid_mixin_owes_no_witness_and_holds_only_its_permanent_instance() {
+    let minutes = format!("{BOARD}/minutes");
+    let later = format!("{BOARD}/later");
+    let director = format!("{BOARD}/Director");
+    let dave = format!("{BOARD}/dave");
+    let instances = [format!("{BOARD}/alice"), dave.clone()];
+    let world = |stereotype: &str| {
+        let mut nq = nq_line(
+            &director,
+            RDF_TYPE_P,
+            &format!("{LOGIC}{stereotype}"),
+            &minutes,
+        ) + &accessible(&minutes, &later);
+        for who in &instances {
+            nq += &nq_line(who, RDF_TYPE_P, &director, &minutes);
+            nq += &nq_line(
+                who,
+                &format!("{BOARD}/residesAt"),
+                &format!("{BOARD}/elmStreet"),
+                &later,
+            );
+            nq += &not_instance_of(who, &director, &later);
+        }
+        nq
+    };
     let obligations = |nq: &str| {
         run(nq, AntiRigidityPolicy::WitnessObligation)
             .into_iter()
@@ -814,24 +1109,26 @@ fn semi_rigid_type_owes_no_witness_and_holds_only_its_permanent_instance_rigid()
             .count()
     };
     assert_eq!(
-        obligations(&contingent),
+        obligations(&world("Role")),
         2,
         "a type contingent for every instance owes a witness for each"
     );
+
+    let semi_rigid = world("Mixin")
+        + &nq_line(
+            &director,
+            &format!("{LOGIC}rigidlyAppliesTo"),
+            &dave,
+            &minutes,
+        );
     assert_eq!(
         obligations(&semi_rigid),
         0,
-        "a type with a permanently typed instance is semi-rigid and owes no witness"
+        "a semi-rigid type owes no witness"
     );
-
-    let violations: Vec<String> = run(&semi_rigid, AntiRigidityPolicy::WitnessRequired)
-        .into_iter()
-        .filter(|q| q.predicate == format!("{LOGIC}rigidityViolation"))
-        .map(|q| q.subject)
-        .collect();
     assert_eq!(
-        violations,
-        vec![dave],
+        rigidity_violations(&semi_rigid, AntiRigidityPolicy::WitnessRequired),
+        vec![(later, dave, format!("<{director}>"))],
         "only the permanently typed instance must persist across worlds"
     );
 }
@@ -841,7 +1138,9 @@ fn semi_rigid_type_owes_no_witness_and_holds_only_its_permanent_instance_rigid()
 /// INVARIANT: a rigid typing is held across the worlds the typed accessibility
 /// records reach, and its loss there needs admissible evidence.  A bare mention of
 /// the individual is not a violation; an explicit non-membership assertion or a
-/// scoped closed-world closure is, and a persisting individual never is.
+/// contract's closed-world closure is, and a persisting individual never is.  A world
+/// that both types the individual and asserts its non-membership carries no
+/// admissible evidence of loss.
 #[test]
 fn cross_world_rigidity_fires_only_on_admissible_loss_evidence() {
     let base = "https://example.org/foundation/cross-world-rigidity";
@@ -875,22 +1174,26 @@ fn cross_world_rigidity_fires_only_on_admissible_loss_evidence() {
         !violated(&nq, &alice),
         "Alice merely existing in worldB, with no loss evidence, is not a violation"
     );
-    let asserted =
-        nq.clone() + &nq_line(&alice, &format!("{LOGIC}notInstanceOf"), &person, &world_b);
+    let asserted = nq.clone() + &not_instance_of(&alice, &person, &world_b);
     assert!(
         violated(&asserted, &alice),
         "an explicit non-membership assertion in worldB must give Alice a rigidityViolation"
     );
+    let contradictory = asserted + &nq_line(&alice, RDF_TYPE_P, &person, &world_b);
+    assert!(
+        !violated(&contradictory, &alice),
+        "a world that also types Alice a Person evidences no loss"
+    );
     let closed = nq
         + &closure_entry(
             &world_b,
-            &person,
+            RDF_TYPE_P,
             &alice,
             &format!("{LOGIC}ClosedWorldClosure"),
         );
     assert!(
         violated(&closed, &alice),
-        "a closed-world closure scoped to Alice and Person must give Alice a rigidityViolation"
+        "a contract's closed-world closure of Alice's types must give her a rigidityViolation"
     );
     assert!(
         !violated(&closed, &format!("{base}/bob")),

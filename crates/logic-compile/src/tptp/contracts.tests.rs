@@ -629,6 +629,22 @@ fn closure_entries_cannot_choose_one_of_several_keys_or_values() {
             FofProjectionStatus::Blocked
         );
     }
+    // An individual-scoped entry is never widened into a contract-wide key.
+    let theory = compile(&format!(
+        "{PREFIXES}ex:contract a logic:ReasoningContract ; logic:closureEntry [ logic:closureKey ex:p ; logic:closureValue logic:ClosedWorldClosure ; logic:closureIndividual ex:alice ] ."
+    ));
+    assert!(
+        theory
+            .diagnostics()
+            .iter()
+            .any(|diagnostic| diagnostic.code == "MALFORMED_CLOSURE_ENTRY"
+                && diagnostic.message.contains("closureIndividual")),
+        "{:?}",
+        theory.diagnostics()
+    );
+    let admission =
+        SourceAdmission::classical_fof(&theory, SourceSelection::all_classical_roots(&theory));
+    assert_eq!(admission.configuration_declarations().count(), 0);
 }
 
 #[test]

@@ -170,14 +170,18 @@ const PROFILE_IRI: &str = "https://blackcatinformatics.ca/logic/PositiveHornProf
 /// no budget ceiling, so every quad is `"ok"`.
 const BUDGET_OK: &str = "ok";
 
-/// Rigid sortals (supply / inherit a principle of identity) — the **primary**
-/// rigid-type path.
-const RIGID_SORTALS: [&str; 2] = ["Kind", "SubKind"];
+/// Stereotypes of a `logic:RigidType`: the rigid sortals `logic:Kind` and
+/// `logic:SubKind` and the rigid non-sortal `logic:Category`.  Each applies necessarily
+/// to every instance.
+const RIGID_STEREOTYPES: [&str; 3] = ["Category", "Kind", "SubKind"];
 
-/// Stereotypes that declare a type anti-rigid: each instantiation is contingent.  The
-/// declaration holds only while every instance is contingently typed; a type with a
-/// permanently typed instance is semi-rigid and owes no anti-rigidity witness.
-const ANTI_RIGID_SORTALS: [&str; 2] = ["Phase", "Role"];
+/// Stereotypes of a `logic:AntiRigidType`: the anti-rigid sortals `logic:Phase` and
+/// `logic:Role` and the anti-rigid non-sortals `logic:PhaseMixin` and
+/// `logic:RoleMixin`.  Each applies contingently to every instance and owes the
+/// anti-rigidity witness.  `logic:Mixin`, the semi-rigid stereotype, is in neither
+/// list: its instances are rigid exactly where a `logic:rigidlyAppliesTo` record says
+/// so, and it owes no witness.
+const ANTI_RIGID_STEREOTYPES: [&str; 4] = ["Phase", "PhaseMixin", "Role", "RoleMixin"];
 
 /// `logic:rigidlyAppliesTo`: relates a type to one individual it necessarily classifies,
 /// making that typing permanent (honoured in addition to the stereotype-derived path).
@@ -2304,29 +2308,46 @@ fn strip_angle(n3: &str) -> &str {
 
 /// The rigidity declarations read from the materialized quads of every world.
 ///
-/// A type is rigid for every instance when it is stereotyped `logic:Kind` or
-/// `logic:SubKind` in any world (the primary path).  `logic:rigidlyAppliesTo`
-/// relates a type to one individual it necessarily classifies: it makes that single
-/// typing permanent without making the type rigid for its other instances, which is
-/// how a semi-rigid type carries both permanently and contingently typed instances.
+/// The stereotype fixes a type's rigidity where its definition does: a
+/// `logic:RigidType` stereotype ([`RIGID_STEREOTYPES`]) makes the type rigid for every
+/// instance, and a `logic:AntiRigidType` stereotype ([`ANTI_RIGID_STEREOTYPES`]) makes
+/// it contingent for every instance.  `logic:rigidlyAppliesTo` relates a type to one
+/// individual it necessarily classifies: it makes that single typing permanent without
+/// making the type rigid for its other instances, which is how a `logic:Mixin` (or an
+/// unstereotyped type) carries both permanently and contingently typed instances.
 #[derive(Debug, Default)]
 struct RigidityDeclarations {
     /// Types rigid for every instance by stereotype.
     rigid_types: BTreeSet<String>,
+    /// Types contingent for every instance by stereotype.
+    anti_rigid_types: BTreeSet<String>,
     /// Type to the individuals a `logic:rigidlyAppliesTo` record makes permanent.
     permanent: BTreeMap<String, BTreeSet<String>>,
 }
 
 impl RigidityDeclarations {
-    fn new(quads: &[FoundationQuad]) -> Self {
-        let rigid_objs: BTreeSet<String> = RIGID_SORTALS
-            .iter()
-            .map(|m| n3(&format!("{LOGIC_NS}{m}")))
-            .collect();
+    /// Read the declarations of every world.
+    ///
+    /// # Errors
+    ///
+    /// Refuses a `logic:rigidlyAppliesTo` record on a type with an anti-rigid
+    /// stereotype: such a type rigidly applies to none of its instances, and the record
+    /// contradicts its stereotype.
+    fn new(quads: &[FoundationQuad]) -> gmeow_errors::Result<Self> {
+        let stereotypes = |locals: &[&str]| -> BTreeSet<String> {
+            locals
+                .iter()
+                .map(|local| n3(&format!("{LOGIC_NS}{local}")))
+                .collect()
+        };
+        let rigid_objs = stereotypes(&RIGID_STEREOTYPES);
+        let anti_objs = stereotypes(&ANTI_RIGID_STEREOTYPES);
         let mut declarations = Self::default();
         for q in quads {
             if q.predicate == RDF_TYPE && rigid_objs.contains(&q.object) {
                 declarations.rigid_types.insert(q.subject.clone());
+            } else if q.predicate == RDF_TYPE && anti_objs.contains(&q.object) {
+                declarations.anti_rigid_types.insert(q.subject.clone());
             } else if q.predicate == RIGIDLY_APPLIES_TO
                 && let Some(individual) = strip_angle_opt(&q.object)
             {
@@ -2337,45 +2358,51 @@ impl RigidityDeclarations {
                     .insert(individual.to_owned());
             }
         }
-        declarations
+        for (type_iri, individuals) in &declarations.permanent {
+            if declarations.anti_rigid_types.contains(type_iri)
+                && let Some(individual) = individuals.first()
+            {
+                return Err(foundation_err(format!(
+                    "<{type_iri}> logic:rigidlyAppliesTo <{individual}> contradicts the \
+                     anti-rigid stereotype of <{type_iri}>: an anti-rigid type rigidly applies \
+                     to none of its instances"
+                )));
+            }
+        }
+        Ok(declarations)
     }
 
     /// Whether `individual` is necessarily classified by `type_iri`.
     fn is_rigid(&self, type_iri: &str, individual: &str) -> bool {
-        self.rigid_types.contains(type_iri) || self.is_permanent(type_iri, individual)
+        self.rigid_types.contains(type_iri)
+            || self
+                .permanent
+                .get(type_iri)
+                .is_some_and(|individuals| individuals.contains(individual))
     }
 
-    /// Whether a `logic:rigidlyAppliesTo` record makes this typing permanent.
-    fn is_permanent(&self, type_iri: &str, individual: &str) -> bool {
-        self.permanent
-            .get(type_iri)
-            .is_some_and(|individuals| individuals.contains(individual))
-    }
-
-    fn is_empty(&self) -> bool {
-        self.rigid_types.is_empty() && self.permanent.is_empty()
+    /// Whether every instance of `type_iri` is contingently typed, so that each
+    /// instantiation owes the anti-rigidity witness.
+    fn is_anti_rigid(&self, type_iri: &str) -> bool {
+        self.anti_rigid_types.contains(type_iri)
     }
 }
 
 /// Emit `logic:rigidityViolation` quads for cross-world rigidity failures.
 ///
 /// For each `(x, T)` necessarily typed in a source world `w1`, every world `w2`
-/// accessible from `w1` along a typed accessibility record in which `x` demonstrably
-/// existed without being a `T` is a violation, recorded in `w2`.  The loss must be
-/// admissible evidence (see [`world_evidence`]): an explicit non-membership assertion
-/// or a closed-world closure scoped to `x` and `T` in `w2`; a mere absence of the
-/// typing never is.  An inaccessible world is not judged.  De-duplicated to one quad
-/// per `(x, T, w2)`.  `source_quad_ids` is empty (cross-world leaf); `derivation_id`
-/// hashes the rigidity rule IRI over the reifier of the witnessing typing fact.
+/// accessible from `w1` along an admitted typed accessibility record in which `x`
+/// demonstrably existed without being a `T` is a violation, recorded in `w2`.  The
+/// loss must be admissible evidence (see [`world_evidence`]): an explicit
+/// non-membership assertion, or a closed-world closure of `x`'s `rdf:type` statements
+/// declared by the contract of `w2`; a mere absence of the typing never is.  An
+/// inaccessible world is not judged.  De-duplicated to one quad per `(x, T, w2)`.
+/// `source_quad_ids` is empty (cross-world leaf); `derivation_id` hashes the rigidity
+/// rule IRI over the reifier of the witnessing typing fact.
 fn cross_world_rigidity_violations(
-    quads: &[FoundationQuad],
+    rigidity: &RigidityDeclarations,
+    evidence: &WorldEvidence,
 ) -> gmeow_errors::Result<Vec<FoundationQuad>> {
-    let rigidity = RigidityDeclarations::new(quads);
-    if rigidity.is_empty() {
-        return Ok(Vec::new());
-    }
-    let evidence = WorldEvidence::new(quads);
-
     // First witnessing (lexicographically smallest) source world wins — dedup on (x, T, w2).
     let mut seen: BTreeSet<(&str, &str, &str)> = BTreeSet::new();
     let mut out: Vec<FoundationQuad> = Vec::new();
@@ -2427,73 +2454,31 @@ fn evaluate_modal_formulas(quads: &[FoundationQuad]) -> gmeow_errors::Result<Vec
 
 // ── Anti-rigidity witness policy (post-pass) ─────────────────────────────────────
 
-/// The union-of-worlds anti-rigid-type IRI set.
-///
-/// A type owes the anti-rigidity witness only when its instantiation is contingent
-/// for EVERY instance.  The `logic:Phase` / `logic:Role` stereotype declares that
-/// intent for the type; the instance data decides it: a type with even one permanently
-/// typed instance (a `logic:rigidlyAppliesTo` record over an instance) is semi-rigid,
-/// not anti-rigid, and owes none.
-fn anti_rigid_type_iris(
-    quads: &[FoundationQuad],
-    rigidity: &RigidityDeclarations,
-    evidence: &WorldEvidence,
-) -> BTreeSet<String> {
-    let anti_objs: BTreeSet<String> = ANTI_RIGID_SORTALS
-        .iter()
-        .map(|m| n3(&format!("{LOGIC_NS}{m}")))
-        .collect();
-    let semi_rigid: BTreeSet<&str> = evidence
-        .typings()
-        .filter(|(_, inst, type_iri)| rigidity.is_permanent(type_iri, inst))
-        .map(|(_, _, type_iri)| type_iri.as_str())
-        .collect();
-    let mut anti = BTreeSet::new();
-    for q in quads {
-        if q.predicate == RDF_TYPE
-            && anti_objs.contains(&q.object)
-            && !semi_rigid.contains(q.subject.as_str())
-        {
-            anti.insert(q.subject.clone());
-        }
-    }
-    anti
-}
-
 /// Emit the policy-appropriate anti-rigidity instance-level obligation quads.
 ///
 /// `schema-only` emits nothing.  For the other two policies, every instantiation
-/// `(x, rdf:type, T)` of an anti-rigid type emits one quad in its world:
-/// `dischargeObligation` (witness-obligation) or `witnessRequiredViolation`
+/// `(x, rdf:type, T)` of a type with an anti-rigid stereotype emits one quad in its
+/// world: `dischargeObligation` (witness-obligation) or `witnessRequiredViolation`
 /// (witness-required, unless a counter-world discharges it).  A counter-world
-/// discharges the obligation only when it is accessible from the typing world and
-/// admissibly evidences that `x` existed there without being a `T` (see
-/// [`world_evidence`]); a bare mention of `x` does not.  `source_quad_ids` is empty;
-/// `derivation_id` hashes the anti-rigidity rule IRI over the typing reifier.
+/// discharges the obligation only when an admitted typed accessibility record reaches
+/// it from the typing world and it admissibly evidences that `x` existed there without
+/// being a `T` (see [`world_evidence`]); a bare mention of `x` does not.
+/// `source_quad_ids` is empty; `derivation_id` hashes the anti-rigidity rule IRI over
+/// the typing reifier.
 fn anti_rigidity_obligations(
-    quads: &[FoundationQuad],
+    rigidity: &RigidityDeclarations,
+    evidence: &WorldEvidence,
     policy: AntiRigidityPolicy,
 ) -> gmeow_errors::Result<Vec<FoundationQuad>> {
-    if policy == AntiRigidityPolicy::SchemaOnly {
-        return Ok(Vec::new());
-    }
-
-    let rigidity = RigidityDeclarations::new(quads);
-    let evidence = WorldEvidence::new(quads);
-    let anti_rigid_types = anti_rigid_type_iris(quads, &rigidity, &evidence);
-    if anti_rigid_types.is_empty() {
-        return Ok(Vec::new());
-    }
-
     let predicate = match policy {
+        AntiRigidityPolicy::SchemaOnly => return Ok(Vec::new()),
         AntiRigidityPolicy::WitnessObligation => format!("{LOGIC_NS}dischargeObligation"),
         AntiRigidityPolicy::WitnessRequired => format!("{LOGIC_NS}witnessRequiredViolation"),
-        AntiRigidityPolicy::SchemaOnly => unreachable!("schema-only returned early"),
     };
 
     let mut out: Vec<FoundationQuad> = Vec::new();
     for (typing_world, inst, type_iri) in evidence.typings() {
-        if !anti_rigid_types.contains(type_iri) {
+        if !rigidity.is_anti_rigid(type_iri) {
             continue;
         }
         if policy == AntiRigidityPolicy::WitnessRequired {
@@ -3145,7 +3130,10 @@ fn relatum_distinctness_pass(
 ///
 /// Returns `Err` for an invalid IRI in the input, a non-IRI (literal or blank-node)
 /// object — foundation requires all-IRI triples — an unbound inequality-guard
-/// variable, or any provenance recipe failure (e.g. an RDF-star term).
+/// variable, any provenance recipe failure (e.g. an RDF-star term), a
+/// `logic:rigidlyAppliesTo` record on a type with an anti-rigid stereotype, or an
+/// individual-scoped closure entry of a world's contract that is ambiguous, incomplete
+/// or in conflict with another entry of that world.
 pub fn evaluate(
     store: &WorldStore,
     policy: AntiRigidityPolicy,
@@ -3160,8 +3148,12 @@ pub fn evaluate(
 
     // Cross-world post-passes operate over the union of all materialized quads.  Each
     // reads the chase result, so they are computed before any is folded back in.
-    let rigidity = cross_world_rigidity_violations(&all)?;
-    let obligations = anti_rigidity_obligations(&all, policy)?;
+    // The rigidity declarations and the cross-world evidence are read once, so their
+    // refusals do not depend on the selected anti-rigidity policy.
+    let declarations = RigidityDeclarations::new(&all)?;
+    let evidence = WorldEvidence::new(&all)?;
+    let rigidity = cross_world_rigidity_violations(&declarations, &evidence)?;
+    let obligations = anti_rigidity_obligations(&declarations, &evidence, policy)?;
     let characteristics = property_characteristic_pass(&all)?;
     let carrier_agreement = characteristic_carrier_agreement_pass(&all)?;
     let distinctness = relatum_distinctness_pass(&all)?;

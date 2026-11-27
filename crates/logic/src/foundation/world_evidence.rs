@@ -8,26 +8,24 @@
 //! indexes the materialized quads once and answers the three questions such a
 //! judgment needs:
 //!
-//! * **Accessibility.**  `w2` is judged from `w1` only when a typed accessibility
-//!   record `w1 R w2` is present, with `R` one of [`ADMISSIBLE_ACCESSIBILITY`].  The
-//!   bare `logic:accessibleFrom` superproperty licenses no cross-type entailment and
-//!   is not a record.
+//! * **Accessibility.**  `w2` is judged from `w1` only along a typed accessibility
+//!   record asserted in the graph of the record's subject: `w1
+//!   logic:epistemicallyPossible w2` asserted in `w1`, or `w2 logic:temporallySucceeds
+//!   w1` asserted in `w2` (the later state names its predecessor, so a later state is
+//!   reached from the earlier one).  A record asserted in any other graph, the bare
+//!   `logic:accessibleFrom` superproperty and every other typed relation license
+//!   nothing.
 //! * **Existence.**  `x` is the subject of at least one quad in `w2` other than a
 //!   non-membership assertion about `x` itself.
 //! * **Loss.**  `x` is not typed `T` in `w2`, and the absence is backed by evidence:
-//!   an explicit `x logic:notInstanceOf T` assertion in `w2`, or a
-//!   `logic:ClosureEntry` in `w2` that closes the world for `T` over the individual
-//!   `x`.  Absence of a typing alone is never evidence.
+//!   an explicit `x logic:notInstanceOf T` assertion in `w2`, or a closed-world
+//!   closure of `x`'s `rdf:type` statements that a `logic:ReasoningContract` asserted
+//!   in `w2` declares through `logic:closureEntry`.  Absence of a typing alone is
+//!   never evidence.
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use super::{FoundationQuad, LOGIC_NS, RDF_TYPE, strip_angle_opt};
-
-/// Typed accessibility relations a cross-world existence judgment follows: the
-/// alethic relation and temporal succession.  The doxastic, deontic, counterfactual
-/// and standpoint relations relate contexts whose members need not be states of the
-/// individual's existence, so they never carry one.
-const ADMISSIBLE_ACCESSIBILITY: [&str; 2] = ["epistemicallyPossible", "temporallySucceeds"];
+use super::{FoundationQuad, LOGIC_NS, RDF_TYPE, foundation_err, strip_angle_opt};
 
 /// One typing: `(world, individual, type)`.
 pub(super) type Typing = (String, String, String);
@@ -42,33 +40,55 @@ pub(super) struct WorldEvidence {
     existing: BTreeSet<(String, String)>,
     /// Explicit `(world, individual, type)` non-membership assertions.
     non_members: BTreeSet<Typing>,
-    /// `(world, individual, type)` triples a closed-world `logic:ClosureEntry` covers.
-    closed: BTreeSet<Typing>,
-    /// Typed accessibility records: source world to the worlds accessible from it.
+    /// `(world, individual)` pairs whose `rdf:type` statements the world's contract
+    /// closes under the closed-world closure.
+    closed: BTreeSet<(String, String)>,
+    /// Typed accessibility records: judging world to the worlds accessible from it.
     accessible: BTreeMap<String, BTreeSet<String>>,
 }
 
-/// The entry-local facts of one `logic:ClosureEntry` while the quads are scanned.
+/// The fields of one closure entry, keyed by `(world, entry)` while the quads are
+/// scanned.  Sets keep identical repetitions harmless; distinct values are ambiguous.
 #[derive(Debug, Default)]
 struct ClosureEntryFacts {
-    is_entry: bool,
-    keys: Vec<String>,
-    values: Vec<String>,
-    individuals: Vec<String>,
+    keys: BTreeSet<String>,
+    values: BTreeSet<String>,
+    individuals: BTreeSet<String>,
+}
+
+impl ClosureEntryFacts {
+    /// The `logic:` local names of the fields an entry carries.
+    const FIELDS: [&'static str; 3] = ["closureKey", "closureValue", "closureIndividual"];
+
+    fn field_mut(&mut self, local: &str) -> Option<&mut BTreeSet<String>> {
+        match local {
+            "closureKey" => Some(&mut self.keys),
+            "closureValue" => Some(&mut self.values),
+            "closureIndividual" => Some(&mut self.individuals),
+            _ => None,
+        }
+    }
 }
 
 impl WorldEvidence {
     /// Index `quads` (the union of every materialized world).
-    pub(super) fn new(quads: &[FoundationQuad]) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Refuses an individual-scoped closure entry of a world's contract that has
+    /// several distinct keys, values or individuals, that lacks its key or value, or
+    /// that assigns a value conflicting with another entry of the same world for the
+    /// same individual's `rdf:type` statements.
+    pub(super) fn new(quads: &[FoundationQuad]) -> gmeow_errors::Result<Self> {
         let not_instance_of = format!("{LOGIC_NS}notInstanceOf");
-        let admissible: BTreeSet<String> = ADMISSIBLE_ACCESSIBILITY
-            .iter()
-            .map(|local| format!("{LOGIC_NS}{local}"))
-            .collect();
-        let closure_entry = format!("{LOGIC_NS}ClosureEntry");
-        let closed_world = format!("{LOGIC_NS}ClosedWorldClosure");
+        let epistemic = format!("{LOGIC_NS}epistemicallyPossible");
+        let temporal = format!("{LOGIC_NS}temporallySucceeds");
+        let contract_class = format!("{LOGIC_NS}ReasoningContract");
+        let closure_entry = format!("{LOGIC_NS}closureEntry");
         let mut evidence = Self::default();
-        let mut entries: BTreeMap<(String, String), ClosureEntryFacts> = BTreeMap::new();
+        let mut contracts: BTreeSet<(&str, &str)> = BTreeSet::new();
+        let mut ownership: Vec<(&str, &str, &str)> = Vec::new();
+        let mut entries: BTreeMap<(&str, &str), ClosureEntryFacts> = BTreeMap::new();
         for quad in quads {
             let object = strip_angle_opt(&quad.object);
             if quad.predicate == not_instance_of {
@@ -91,53 +111,81 @@ impl WorldEvidence {
                     quad.subject.clone(),
                     object.to_owned(),
                 ));
-            }
-            if admissible.contains(&quad.predicate) {
-                evidence
-                    .accessible
-                    .entry(quad.subject.clone())
-                    .or_default()
-                    .insert(object.to_owned());
-            }
-            let local = quad.predicate.strip_prefix(LOGIC_NS);
-            let entry_marker = quad.predicate == RDF_TYPE && object == closure_entry;
-            if !entry_marker
-                && !matches!(
-                    local,
-                    Some("closureKey" | "closureValue" | "closureIndividual")
-                )
-            {
-                continue;
-            }
-            let facts = entries
-                .entry((quad.graph.clone(), quad.subject.clone()))
-                .or_default();
-            let object = object.to_owned();
-            match local {
-                Some("closureKey") => facts.keys.push(object),
-                Some("closureValue") => facts.values.push(object),
-                Some("closureIndividual") => facts.individuals.push(object),
-                _ => facts.is_entry = true,
-            }
-        }
-        for ((world, _), facts) in entries {
-            // Only an entry whose every value is the closed-world closure applies: a
-            // missing, open or conflicting value leaves the key open, the default.
-            if !facts.is_entry
-                || facts.values.is_empty()
-                || facts.values.iter().any(|value| *value != closed_world)
-            {
-                continue;
-            }
-            for type_iri in &facts.keys {
-                for individual in &facts.individuals {
-                    evidence
-                        .closed
-                        .insert((world.clone(), individual.clone(), type_iri.clone()));
+                if object == contract_class {
+                    contracts.insert((quad.graph.as_str(), quad.subject.as_str()));
                 }
             }
+            if quad.graph == quad.subject {
+                if quad.predicate == epistemic {
+                    evidence
+                        .accessible
+                        .entry(quad.subject.clone())
+                        .or_default()
+                        .insert(object.to_owned());
+                } else if quad.predicate == temporal {
+                    evidence
+                        .accessible
+                        .entry(object.to_owned())
+                        .or_default()
+                        .insert(quad.subject.clone());
+                }
+            }
+            if quad.predicate == closure_entry {
+                ownership.push((quad.graph.as_str(), quad.subject.as_str(), object));
+                continue;
+            }
+            let Some(local) = quad.predicate.strip_prefix(LOGIC_NS) else {
+                continue;
+            };
+            if ClosureEntryFacts::FIELDS.contains(&local)
+                && let Some(field) = entries
+                    .entry((quad.graph.as_str(), quad.subject.as_str()))
+                    .or_default()
+                    .field_mut(local)
+            {
+                field.insert(object.to_owned());
+            }
         }
-        evidence
+        // An entry counts only when a contract asserted in the same world owns it.
+        let contract_entries: BTreeSet<(&str, &str)> = ownership
+            .into_iter()
+            .filter(|(world, contract, _)| contracts.contains(&(*world, *contract)))
+            .map(|(world, _, entry)| (world, entry))
+            .collect();
+        let mut membership_closure: BTreeMap<(&str, &str), &str> = BTreeMap::new();
+        for (&(world, entry), facts) in &entries {
+            if facts.individuals.is_empty() || !contract_entries.contains(&(world, entry)) {
+                continue;
+            }
+            let (Some(key), Some(value), Some(individual)) = (
+                single(&facts.keys, "closureKey", world, entry)?,
+                single(&facts.values, "closureValue", world, entry)?,
+                single(&facts.individuals, "closureIndividual", world, entry)?,
+            ) else {
+                return Err(foundation_err(format!(
+                    "closure entry <{entry}> in world <{world}> is scoped to an individual but \
+                     lacks logic:closureKey or logic:closureValue"
+                )));
+            };
+            if key != RDF_TYPE {
+                continue;
+            }
+            if let Some(previous) = membership_closure.insert((world, individual), value)
+                && previous != value
+            {
+                return Err(foundation_err(format!(
+                    "world <{world}> assigns conflicting closure values <{previous}> and \
+                     <{value}> to the rdf:type statements of <{individual}>"
+                )));
+            }
+        }
+        let closed_world = format!("{LOGIC_NS}ClosedWorldClosure");
+        evidence.closed = membership_closure
+            .into_iter()
+            .filter(|(_, value)| *value == closed_world)
+            .map(|((world, individual), _)| (world.to_owned(), individual.to_owned()))
+            .collect();
+        Ok(evidence)
     }
 
     /// Every `(world, individual, type)` typing, in canonical order.
@@ -154,10 +202,26 @@ impl WorldEvidence {
     /// it is present, not typed, and its absence of the type is explicitly asserted or
     /// closed-world covered.
     pub(super) fn lost_in(&self, world: &str, individual: &str, type_iri: &str) -> bool {
+        let present = (world.to_owned(), individual.to_owned());
         let key = (world.to_owned(), individual.to_owned(), type_iri.to_owned());
-        self.existing
-            .contains(&(world.to_owned(), individual.to_owned()))
+        self.existing.contains(&present)
             && !self.typings.contains(&key)
-            && (self.non_members.contains(&key) || self.closed.contains(&key))
+            && (self.non_members.contains(&key) || self.closed.contains(&present))
     }
+}
+
+/// The one value of a closure-entry field; several distinct values are ambiguous, the
+/// same refusal the contract frontend applies.
+fn single<'a>(
+    values: &'a BTreeSet<String>,
+    field: &str,
+    world: &str,
+    entry: &str,
+) -> gmeow_errors::Result<Option<&'a str>> {
+    if values.len() > 1 {
+        return Err(foundation_err(format!(
+            "closure entry <{entry}> in world <{world}> has multiple distinct logic:{field} values"
+        )));
+    }
+    Ok(values.first().map(String::as_str))
 }

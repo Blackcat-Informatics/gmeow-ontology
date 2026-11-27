@@ -493,7 +493,11 @@ fn is_facet_config_predicate(prop_local: &str) -> bool {
     FACET_PROPERTIES.contains(&prop_local)
         || matches!(
             prop_local,
-            "closureEntry" | "closureKey" | "closureValue" | "complexityClass"
+            "closureEntry"
+                | "closureKey"
+                | "closureValue"
+                | "closureIndividual"
+                | "complexityClass"
         )
 }
 
@@ -1817,6 +1821,23 @@ fn extract_contracts(
                 ));
                         continue;
                     };
+                    // The contract closure map binds a key for the whole contract; an
+                    // entry scoped to one individual is world evidence for the
+                    // foundation evaluator and has no contract-wide reading.
+                    if !objects(store, &entry_node, &nn(&logic_iri("closureIndividual"))).is_empty()
+                    {
+                        diagnostics.push(Diagnostic::error(
+                            "MALFORMED_CLOSURE_ENTRY",
+                            format!(
+                                "reasoning contract {iri_str:?} closure entry {:?} is scoped to \
+                                 an individual by logic:closureIndividual, which a contract-wide \
+                                 closure map cannot bind",
+                                subject_str(&entry_node)
+                            ),
+                            Some(iri_str.clone()),
+                        ));
+                        continue;
+                    }
                     let key = match closure_key(store, &entry_node, &iri_str) {
                         Ok(key) => Some(key),
                         Err(diagnostic) => {
