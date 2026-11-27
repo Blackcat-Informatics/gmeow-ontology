@@ -11,6 +11,8 @@
 <https://blackcatinformatics.ca/gmeow/slices/operational-conditions>
     a logic:Ontology ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/operational-conditions> ;
+    rdfs:label "operational conditions"@x-gmeow-english ;
+    skos:definition "Ledger records of machinery conditions and their acknowledgements."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox , gmeow:boxTBox .
 
 gmeow:BodyConditionObservation
