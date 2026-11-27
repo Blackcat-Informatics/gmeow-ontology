@@ -1,0 +1,23 @@
+# Competency question: "Which interpretation reads a version that an amendment or repeal ended,
+# which event ended it, and which version is current?"
+#
+# The interpretation is an authority claim tied to the version it reads. The change is the legal
+# effect event that ended that version. The current version is the other version of the same
+# provision with no recorded end, so the historic basis and the current account are both rows.
+# A repeal with no replacement version has no current version, so the current column is unbound.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?claim ?version ?event ?current WHERE {
+    ?claim a gmeow:AuthorityClaim ;
+        gmeow:interpretsVersion ?version .
+    ?version gmeow:versionOf ?provision ;
+        gmeow:versionEndedBy ?event .
+    ?event gmeow:effectKind ?kind .
+    FILTER(?kind IN (gmeow:effectAmendment, gmeow:effectRepeal))
+    OPTIONAL {
+        ?current a gmeow:ProvisionVersion ;
+            gmeow:versionOf ?provision .
+        FILTER NOT EXISTS { ?current gmeow:versionEndedBy ?currentEnded }
+    }
+}

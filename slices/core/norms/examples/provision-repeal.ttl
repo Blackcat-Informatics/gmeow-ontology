@@ -1,0 +1,60 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# SYNTHETIC fixture. The act, its section and its repeal are invented for this test and are not a
+# statute of any jurisdiction. The jurisdiction is a placeholder. No fact here may be cited as the
+# law of a real legal order.
+#
+# A provision is repealed with no replacement version. The interpretation of the repealed version
+# keeps its ending event, and no version of the provision is in force, so the current column of
+# the claim-affected question is unbound.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/norms/provision/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:jurisdiction a gmeow:Place .
+ex:legalOrder a gmeow:NormativeSystem .
+ex:assessor a gmeow:Organization .
+ex:consolidation a gmeow:Document .
+ex:propRepealedReading a gmeow:Proposition .
+ex:secRepealed a gmeow:Norm ;
+    gmeow:partOf ex:legalOrder .
+
+ex:evEnactRepealed a gmeow:LegalEffectEvent ;
+    gmeow:effectKind gmeow:effectEnactment ;
+    gmeow:eventTime "2000-01-01"^^xsd:date .
+ex:evRepeal a gmeow:LegalEffectEvent ;
+    gmeow:effectKind gmeow:effectRepeal ;
+    gmeow:eventTime "2012-06-01"^^xsd:date .
+
+ex:verRepealed a gmeow:ProvisionVersion ;
+    gmeow:versionOf ex:secRepealed ;
+    gmeow:versionJurisdiction ex:jurisdiction ;
+    gmeow:versionBeganBy ex:evEnactRepealed ;
+    gmeow:versionEndedBy ex:evRepeal ;
+    gmeow:versionSource ex:citeVerRepealed .
+
+ex:selVerRepealed a gmeow:Selector ;
+    gmeow:selectorLocator "synthetic repealed section, enacted text" .
+ex:citeVerRepealed a gmeow:CitationAct ;
+    gmeow:citingEntity ex:verRepealed ; gmeow:citedEntity ex:consolidation ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selVerRepealed ;
+    gmeow:assertedAt "2000-03-01T00:00:00Z"^^xsd:dateTime .
+
+ex:selClaimRepealed a gmeow:Selector ;
+    gmeow:selectorLocator "synthetic repealed section, reading" .
+ex:citeClaimRepealed a gmeow:CitationAct ;
+    gmeow:citingEntity ex:claimRepealed ; gmeow:citedEntity ex:consolidation ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selClaimRepealed ;
+    gmeow:assertedAt "2012-07-01T00:00:00Z"^^xsd:dateTime .
+
+ex:claimRepealed a gmeow:AuthorityClaim ;
+    gmeow:expresses ex:propRepealedReading ;
+    gmeow:wasAssociatedWith ex:assessor ; gmeow:accordingTo ex:assessor ;
+    gmeow:authorityOrder ex:legalOrder ;
+    gmeow:authorityForce gmeow:authorityForceUnresolved ;
+    gmeow:authorityIssue "the proceedings to which the repealed section applied"@en ;
+    gmeow:authoritySource ex:citeClaimRepealed ;
+    gmeow:interpretsVersion ex:verRepealed ;
+    gmeow:eventTime "2011-02-01"^^xsd:date .

@@ -1,0 +1,146 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Pinned federal provision with two versions split by an amending legal effect event.
+#
+# The provision is the definition of "Act" in subsection 35(1) of the Interpretation Act,
+# R.S.C. 1985, c. I-21. Its wording is replaced at the amendment in S.C. 2014, c. 2, s. 14. The
+# two wordings are pinned to the Justice Laws point-in-time pages, which carry the version dates.
+#
+#   Version 1, in force 2003-04-01 to 2014-03-31 (the page quoted below covers 2003-04-01 to
+#   2003-07-01; the 2005-04-01 to 2014-03-31 page carries the same wording):
+#     https://laws-lois.justice.gc.ca/eng/acts/I-21/20030401/P1TT3xt3.html
+#     https://laws-lois.justice.gc.ca/eng/acts/I-21/20050401/P1TT3xt3.html
+#     Wording: "Act, as meaning an Act of a legislature, includes an ordinance of the
+#     Northwest Territories" and "a law of the Legislature of Yukon or of the Legislature for
+#     Nunavut;"
+#   Version 2, in force from 2014-04-01 (page window 2014-04-01 to 2015-02-25; the current
+#   consolidation carries the same wording):
+#     https://laws-lois.justice.gc.ca/eng/acts/I-21/20140401/P1TT3xt3.html
+#     https://laws-lois.justice.gc.ca/eng/acts/I-21/page-3.html
+#     Wording: "Act, in respect of an Act of a legislature, includes a law of the Legislature
+#     of Yukon, of the Northwest Territories or for Nunavut;"
+#   Version history of section 35(1), 2014 page: its list ends "2014, c. 2, s. 14".
+#   Amending Act: https://laws-lois.justice.gc.ca/eng/AnnualStatutes/2014_2/FullText.html
+#     (S.C. 2014, c. 2, assented to 2014-03-25; section 14 amends the Interpretation Act).
+#   Commencement order SI/2014-34, "Order Fixing April 1, 2014 as the Day on which Certain
+#   Provisions of the Act Come into Force":
+#     https://gazette.gc.ca/rp-pr/p2/2014/2014-04-09/html/si-tr34-eng.html
+#
+# What the sources establish and what they do not:
+# - The 2014-04-01 material date is the day SI/2014-34 fixes for Part 1 of the amending Act,
+#   except sections 47 and 64. Section 14 is in Part 1, and its subsection 14(2) replaces the
+#   definition of "Act" in Interpretation Act subsection 35(1). The order therefore covers the
+#   wording change; the date is not read from the consolidation alone.
+# - The 2003-04-01 start is an inference, separate from the order. It is the first version
+#   carrying this
+#   wording; the history note of that version ends "2002, c. 7, s. 188", and the link between
+#   that amendment and the date is an inference.
+# - The transition rule is a SYNTHETIC companion. It cites the opening words of section 43 of the
+#   same Act (effect of repeal), whose text is at
+#     https://laws-lois.justice.gc.ca/eng/acts/I-21/FullText.html
+#   as the general savings text. Whether section 43 saves any matter under this amendment is not
+#   asserted: the saved matter is an invented event, and the pairing of rule and matter exercises
+#   the query only.
+# - The three matters and their evaluations are invented dates for the test.
+#
+# Times are kept apart: a legal effect event's eventTime is the material date; a citation's
+# assertedAt is the time the page was read and asserted, which is not a date of the law; an
+# applicability evaluation's eventTime is the evaluation time.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/norms/provision-canada/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Jurisdiction, legal order and provision identity ----------------------------------------
+ex:canada a gmeow:Place ;
+    rdfs:label "Canada (federal jurisdiction)"@x-gmeow-english .
+ex:legalOrder a gmeow:NormativeSystem ;
+    rdfs:label "Canadian legal order"@x-gmeow-english .
+ex:actDefinition a gmeow:Norm ;
+    rdfs:label "Interpretation Act, subsection 35(1), definition of Act (provision identity)"@x-gmeow-english ;
+    gmeow:partOf ex:legalOrder .
+
+# --- Cited pages -----------------------------------------------------------------------------
+ex:pitV1 a gmeow:Document ;
+    gmeow:bibliographicCitation "Interpretation Act, R.S.C. 1985, c. I-21, version of 2003-04-01 to 2003-07-01"@x-gmeow-english ;
+    gmeow:sourceLocation "https://laws-lois.justice.gc.ca/eng/acts/I-21/20030401/P1TT3xt3.html" .
+ex:pitV2 a gmeow:Document ;
+    gmeow:bibliographicCitation "Interpretation Act, R.S.C. 1985, c. I-21, version of 2014-04-01 to 2015-02-25"@x-gmeow-english ;
+    gmeow:sourceLocation "https://laws-lois.justice.gc.ca/eng/acts/I-21/20140401/P1TT3xt3.html" .
+ex:actFullText a gmeow:Document ;
+    gmeow:bibliographicCitation "Interpretation Act, R.S.C. 1985, c. I-21, section 43"@x-gmeow-english ;
+    gmeow:sourceLocation "https://laws-lois.justice.gc.ca/eng/acts/I-21/FullText.html" .
+
+# --- Pinpoints -------------------------------------------------------------------------------
+ex:selV1 a gmeow:Selector ;
+    gmeow:selectorLocator "subsection 35(1), definition of Act" ;
+    gmeow:selectorTextQuote "includes an ordinance of the Northwest Territories" .
+ex:selV2 a gmeow:Selector ;
+    gmeow:selectorLocator "subsection 35(1), definition of Act" ;
+    gmeow:selectorTextQuote "includes a law of the Legislature of Yukon" .
+ex:selTransition a gmeow:Selector ;
+    gmeow:selectorLocator "section 43, opening words" ;
+    gmeow:selectorTextQuote "Where an enactment is repealed in whole or in part, the repeal does not" .
+
+# The assertion time is the day the pages were read, apart from every material date.
+ex:citeV1 a gmeow:CitationAct ;
+    gmeow:citingEntity ex:actDefinitionV1 ; gmeow:citedEntity ex:pitV1 ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selV1 ;
+    gmeow:assertedAt "2026-11-26T00:00:00Z"^^xsd:dateTime .
+ex:citeV2 a gmeow:CitationAct ;
+    gmeow:citingEntity ex:actDefinitionV2 ; gmeow:citedEntity ex:pitV2 ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selV2 ;
+    gmeow:assertedAt "2026-11-26T00:00:00Z"^^xsd:dateTime .
+ex:citeTransition a gmeow:CitationAct ;
+    gmeow:citingEntity ex:transitionSynthetic ; gmeow:citedEntity ex:actFullText ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selTransition ;
+    gmeow:assertedAt "2026-11-26T00:00:00Z"^^xsd:dateTime .
+
+# --- Legal effect events (material dates from the point-in-time version boundaries) ----------
+ex:evFirstWording a gmeow:LegalEffectEvent ;
+    rdfs:label "Start of the first wording of the definition (version boundary 2003-04-01)"@x-gmeow-english ;
+    gmeow:effectKind gmeow:effectAmendment ;
+    gmeow:eventTime "2003-04-01"^^xsd:date .
+ex:evAmendment a gmeow:LegalEffectEvent ;
+    rdfs:label "Amendment replacing the wording (version boundary 2014-04-01)"@x-gmeow-english ;
+    gmeow:effectKind gmeow:effectAmendment ;
+    gmeow:eventTime "2014-04-01"^^xsd:date .
+
+# --- Provision versions ----------------------------------------------------------------------
+ex:actDefinitionV1 a gmeow:ProvisionVersion ;
+    gmeow:versionOf ex:actDefinition ;
+    gmeow:versionJurisdiction ex:canada ;
+    gmeow:versionBeganBy ex:evFirstWording ;
+    gmeow:versionEndedBy ex:evAmendment ;
+    gmeow:versionSource ex:citeV1 .
+ex:actDefinitionV2 a gmeow:ProvisionVersion ;
+    gmeow:versionOf ex:actDefinition ;
+    gmeow:versionJurisdiction ex:canada ;
+    gmeow:versionBeganBy ex:evAmendment ;
+    gmeow:versionSource ex:citeV2 .
+
+# --- Synthetic companion transition ----------------------------------------------------------
+ex:transitionSynthetic a gmeow:TransitionRule ;
+    gmeow:transitionEvent ex:evAmendment ;
+    gmeow:savesVersion ex:actDefinitionV1 ;
+    gmeow:savedMatter ex:matterSaved ;
+    gmeow:transitionSource ex:citeTransition .
+
+# --- Synthetic matters and their evaluations -------------------------------------------------
+ex:matterOlder a gmeow:Event ;
+    gmeow:eventTime "2012-05-01"^^xsd:date .
+ex:matterSaved a gmeow:Event ;
+    gmeow:eventTime "2014-09-01"^^xsd:date .
+ex:matterLater a gmeow:Event ;
+    gmeow:eventTime "2016-03-01"^^xsd:date .
+
+ex:evalOlder a gmeow:ApplicabilityEvaluation ;
+    gmeow:evaluatedMatter ex:matterOlder ;
+    gmeow:eventTime "2026-11-26"^^xsd:date .
+ex:evalSaved a gmeow:ApplicabilityEvaluation ;
+    gmeow:evaluatedMatter ex:matterSaved ;
+    gmeow:eventTime "2026-11-26"^^xsd:date .
+ex:evalLater a gmeow:ApplicabilityEvaluation ;
+    gmeow:evaluatedMatter ex:matterLater ;
+    gmeow:eventTime "2026-11-26"^^xsd:date .

@@ -1,0 +1,17 @@
+# Competency question: "Which amendment changed the pinned federal definition, and on what
+# material date?"
+#
+# The row pairs the version the amendment ended with the version it began, so the historic basis
+# and the current account stay queryable together.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?event ?kind ?eventTime ?ended ?began WHERE {
+    ?ended gmeow:versionOf <https://blackcatinformatics.ca/gmeow/examples/norms/provision-canada/actDefinition> ;
+        gmeow:versionEndedBy ?event .
+    ?began gmeow:versionOf <https://blackcatinformatics.ca/gmeow/examples/norms/provision-canada/actDefinition> ;
+        gmeow:versionBeganBy ?event .
+    ?event gmeow:effectKind ?kind ;
+        gmeow:eventTime ?eventTime .
+    FILTER(?kind IN (gmeow:effectAmendment, gmeow:effectRepeal))
+}

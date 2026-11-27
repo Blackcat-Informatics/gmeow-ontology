@@ -1,0 +1,38 @@
+# Competency question: "Which version governs each evaluated matter, and when was it evaluated?"
+#
+# The evaluation time is the eventTime of the applicability evaluation, not a date of the matter or
+# of the legal effect events. A matter named by a transition rule is governed by the version that
+# rule saves. Any other matter is governed by the version whose operating period contains its
+# material date, where every end event that bounds that period is dated. A matter with no material
+# date, or a version whose bounding event is undated, yields no row.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?matter ?version ?evaluatedAt WHERE {
+    ?evaluation a gmeow:ApplicabilityEvaluation ;
+        gmeow:evaluatedMatter ?matter ;
+        gmeow:eventTime ?evaluatedAt .
+    {
+        ?transition a gmeow:TransitionRule ;
+            gmeow:savedMatter ?matter ;
+            gmeow:savesVersion ?version .
+        ?version gmeow:versionOf <https://blackcatinformatics.ca/gmeow/examples/norms/provision/sec5> .
+    } UNION {
+        ?matter gmeow:eventTime ?matterAt .
+        ?version gmeow:versionOf <https://blackcatinformatics.ca/gmeow/examples/norms/provision/sec5> ;
+            gmeow:versionBeganBy ?began .
+        ?began gmeow:eventTime ?beganAt .
+        FILTER(?beganAt <= ?matterAt)
+        FILTER NOT EXISTS {
+            ?version gmeow:versionEndedBy ?ended .
+            OPTIONAL { ?ended gmeow:eventTime ?endedAt }
+            FILTER(!BOUND(?endedAt) || ?endedAt <= ?matterAt)
+        }
+        FILTER NOT EXISTS {
+            ?saving a gmeow:TransitionRule ;
+                gmeow:savedMatter ?matter ;
+                gmeow:savesVersion ?savedVersion .
+            ?savedVersion gmeow:versionOf <https://blackcatinformatics.ca/gmeow/examples/norms/provision/sec5> .
+        }
+    }
+}
