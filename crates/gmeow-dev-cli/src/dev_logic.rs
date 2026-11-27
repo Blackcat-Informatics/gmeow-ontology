@@ -324,13 +324,14 @@ pub fn prepared_canon(path: &Path) -> i32 {
     use purrdf::gts::reader::GtsReadLimits;
     use purrdf_hash::hex::Digest32;
 
-    // The full bundle contains large unrelated RDF/blob frames. Bound their
-    // fold separately from the smaller selected proof payload.
+    // Production bundles can exceed the generic encoded and aggregate limits.
+    // Bound their whole read separately from the smaller selected proof payload.
     const LIMITS: GtsReadLimits = GtsReadLimits {
+        encoded_input_bytes: 512 * 1024 * 1024,
         encoded_frame_bytes: 256 * 1024 * 1024,
         decoded_frame_bytes: 1024 * 1024 * 1024,
         decoded_blob_bytes: 1024 * 1024 * 1024,
-        total_decoded_bytes: 2 * 1024 * 1024 * 1024,
+        total_decoded_bytes: 3 * 1024 * 1024 * 1024,
         terms: 8_000_000,
         rows: 32_000_000,
         work: 4_000_000_000,
