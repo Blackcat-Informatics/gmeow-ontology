@@ -83,6 +83,9 @@ pub use emission::{
 mod claims;
 pub use claims::{ClaimCarrier, ClaimResolver, ClaimStatement};
 
+mod contract_config;
+use contract_config::collect_contract_config_subjects;
+
 mod prepared;
 pub use crate::graphutil::default_graph_pattern as default_source_statements;
 pub use crate::graphutil::source_graph_pattern as selected_source_statements;
@@ -485,16 +488,21 @@ fn scope_from_node(
 // --------------------------------------------------------------------------- //
 
 /// The set of `logic:` predicate-local names that carry reasoning-contract /
-/// preset / closure *meta-configuration*.  When such a predicate's
-/// subject is a `logic:ReasoningContract` / `logic:ReasoningPreset` /
-/// `logic:ClosureEntry` node, the triple is contract configuration consumed by
-/// [`extract_contracts`] — NOT a domain fact — and must NOT leak into `prog.axioms`
-/// (where it would pollute the Datalog / N3 / ledger projections).
+/// preset / closure *meta-configuration*.  The closure-entry predicates (`closureKey`,
+/// `closureValue`, `closureIndividual`) are configuration on a closure entry; every other
+/// predicate listed is configuration on a `logic:ReasoningContract` / `logic:ReasoningPreset`.
+/// A row so held is consumed by [`extract_contracts`] — NOT a domain fact — and must NOT leak
+/// into `prog.axioms` (where it would pollute the Datalog / N3 / ledger projections).
+/// The same predicate on a node of the other role is a domain axiom.
 fn is_facet_config_predicate(prop_local: &str) -> bool {
     FACET_PROPERTIES.contains(&prop_local)
         || matches!(
             prop_local,
-            "closureEntry" | "closureKey" | "closureValue" | "complexityClass"
+            "closureEntry"
+                | "closureKey"
+                | "closureValue"
+                | "closureIndividual"
+                | "complexityClass"
         )
 }
 
@@ -838,21 +846,6 @@ fn aggregation_from_node(
     ))
 }
 
-/// Collect the IRIs / blank-node ids of every subject typed
-/// `logic:ReasoningContract`, `logic:ReasoningPreset`, OR `logic:ClosureEntry`.
-/// These are the meta-configuration nodes whose facet-config triples must be kept
-/// out of the domain axiom set.
-fn collect_contract_config_subjects(store: &RdfDataset) -> HashSet<String> {
-    let mut subjects: HashSet<String> = HashSet::new();
-    for class_local in ["ReasoningContract", "ReasoningPreset", "ClosureEntry"] {
-        let class_term = Node::iri(logic_iri(class_local));
-        for subj in subjects_of_structural_class(store, &class_term) {
-            subjects.insert(subject_str(&subj));
-        }
-    }
-    subjects
-}
-
 /// Lift the RDFS/SKOS annotation surface (`ANNOTATION_LIFT_PREDS`) into first-class
 /// [`NodeKind::Annotation`] axioms — the inbound half of `logic: isSupersetOf SKOS/RDFS`.
 /// Each `<term> <annotation-pred> "literal"@x-gmeow-english` triple becomes one annotation
@@ -960,7 +953,7 @@ fn extract_axioms(
     let mut axioms: Vec<AxiomEmission> = Vec::new();
 
     // Meta-config subjects (contracts / presets / closure entries): facet-config
-    // triples on these are contract configuration, not domain facts.
+    // triples on these, in their own role, are contract configuration, not domain facts.
     let config_subjects = collect_contract_config_subjects(store);
     // Presentation syntax belongs to the typed declaration catalog. It must not
     // additionally assert its signed sentences or configuration as global facts.
@@ -1154,7 +1147,7 @@ fn extract_axioms(
         // Skip contract/preset/closure facet-config triples: they are consumed by
         // extract_contracts and must not pollute the domain axiom set.
         if is_facet_config_predicate(p_local)
-            && config_subjects.contains(&subject_str(&quad.subject))
+            && config_subjects.holds_predicate(p_local, &subject_str(&quad.subject))
         {
             continue;
         }
@@ -1267,7 +1260,7 @@ fn extract_axioms(
         if matches!(
             o_local,
             "ReasoningContract" | "ReasoningPreset" | "ClosureEntry"
-        ) && config_subjects.contains(&subject_str(&quad.subject))
+        ) && config_subjects.declares_class(o_local, &subject_str(&quad.subject))
         {
             continue;
         }
@@ -1818,6 +1811,23 @@ fn extract_contracts(
                 ));
                         continue;
                     };
+                    // The contract closure map binds a key for the whole contract; an
+                    // entry scoped to one individual is world evidence for the
+                    // foundation evaluator and has no contract-wide reading.
+                    if !objects(store, &entry_node, &nn(&logic_iri("closureIndividual"))).is_empty()
+                    {
+                        diagnostics.push(Diagnostic::error(
+                            "MALFORMED_CLOSURE_ENTRY",
+                            format!(
+                                "reasoning contract {iri_str:?} closure entry {:?} is scoped to \
+                                 an individual by logic:closureIndividual, which a contract-wide \
+                                 closure map cannot bind",
+                                subject_str(&entry_node)
+                            ),
+                            Some(iri_str.clone()),
+                        ));
+                        continue;
+                    }
                     let key = match closure_key(store, &entry_node, &iri_str) {
                         Ok(key) => Some(key),
                         Err(diagnostic) => {
@@ -4947,6 +4957,9 @@ fn path_to_file_uri(path: &Path) -> Option<String> {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod shape_derivation_tests;
 
 #[cfg(test)]
 mod native_statement_tests;

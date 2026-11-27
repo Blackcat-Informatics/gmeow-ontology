@@ -9,7 +9,7 @@
 # N3 projection of the canonical logic: program.
 
 # === Axioms ===
-<https://example.org/foundation/cross-world-rigidity/Employee> a <https://blackcatinformatics.ca/logic/Role> .
 <https://example.org/foundation/cross-world-rigidity/Person> a <https://blackcatinformatics.ca/logic/Kind> .
+<https://example.org/foundation/cross-world-rigidity/Employee> a <https://blackcatinformatics.ca/logic/Role> .
 
 # === Rules ===

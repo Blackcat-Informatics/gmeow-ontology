@@ -22,8 +22,8 @@ use crate::source_inventory::{
 use purrdf::{DatasetView, GraphMatch, QuadIds, RdfDataset, TermId, TermRef};
 
 use super::{
-    AxiomSource, CompiledTheory, FormulaDisposition, OwnerDisposition, OwnerFamily, Severity,
-    SourceCarrier, SourceEdgeRole, SourceNode, SourceStatementBinding, SourceUnitKind,
+    AxiomSource, CompiledTheory, FormulaDisposition, OwnerDisposition, OwnerFamily, OwnerLowering,
+    Severity, SourceCarrier, SourceEdgeRole, SourceNode, SourceStatementBinding, SourceUnitKind,
     StructuralSourceGraph,
 };
 use crate::ir::{AtomicTerm, ContextualScope, Formula, LogicAxiom, LogicModality, Term};
@@ -225,8 +225,16 @@ pub struct SourceContractDeclaration {
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum AdmittedSemanticUnit {
     Assertion(SourceAssertion),
-    Formula { index: usize },
-    Rule { index: usize },
+    Formula {
+        index: usize,
+    },
+    Rule {
+        index: usize,
+    },
+    /// An admitted compact denial's index in the exact compiled constraint program.
+    ForbiddenPattern {
+        index: usize,
+    },
     PropertyCharacteristic(PropertyCharacteristic),
     ClassDefinition(SourceClassDefinition),
 }
@@ -496,6 +504,28 @@ impl<'a> AdmissionBuilder<'a> {
                     anchor,
                     documents,
                     outside("the contributing documents are outside the exact selection"),
+                );
+                continue;
+            }
+            if let Some(ordinal) = self.inventory.forbidden_pattern_owner(binding) {
+                let source = self.theory.owner_lowerings()[ordinal].source;
+                let disposition = if self.documents_selected(&self.node_documents(source))
+                    && self
+                        .selection
+                        .owners
+                        .contains(&node_anchor(dataset, source))
+                {
+                    SemanticUnitDisposition::StructuralSupport {
+                        detail: "compact denial field is accounted by its exact owner".into(),
+                    }
+                } else {
+                    outside("the compact denial field's owner is outside the selection")
+                };
+                self.push(
+                    SemanticUnitKind::StructuralSyntax,
+                    anchor,
+                    documents,
+                    disposition,
                 );
                 continue;
             }
@@ -834,12 +864,12 @@ impl<'a> AdmissionBuilder<'a> {
 
     fn admit_rules_and_owners(&mut self) {
         let dataset = self.theory.source().dataset();
-        for lowering in
+        for (ordinal, lowering) in
             self.inventory
                 .obligations()
                 .filter_map(|obligation| match obligation.origin() {
                     SourceObligationOrigin::Owner(index) => {
-                        Some(&self.theory.owner_lowerings()[index])
+                        Some((index, &self.theory.owner_lowerings()[index]))
                     }
                     _ => None,
                 })
@@ -899,6 +929,11 @@ impl<'a> AdmissionBuilder<'a> {
                         {
                             self.contract_declaration(lowering.source, *index)
                         }
+                        OwnerDisposition::Emitted { index }
+                            if self.inventory.is_forbidden_pattern(ordinal) =>
+                        {
+                            self.forbidden_pattern_declaration(lowering, *index)
+                        }
                         OwnerDisposition::Emitted { .. } => blocked(
                             "UNSUPPORTED_SELECTED_OWNER",
                             format!(
@@ -951,6 +986,83 @@ impl<'a> AdmissionBuilder<'a> {
         };
         self.definition_support.extend(support.iter().copied());
         disposition.clone()
+    }
+
+    fn forbidden_pattern_declaration(
+        &self,
+        lowering: &OwnerLowering,
+        index: usize,
+    ) -> SemanticUnitDisposition {
+        let source = self.theory.source();
+        let graph = source.source_graph();
+        if graph.outgoing(lowering.source).iter().any(|edge| {
+            matches!(
+                edge.role,
+                SourceEdgeRole::Standpoint
+                    | SourceEdgeRole::Context
+                    | SourceEdgeRole::Provenance
+                    | SourceEdgeRole::Module
+            )
+        }) || graph
+            .default_statement_annotations(lowering.source.term)
+            .next()
+            .is_some()
+        {
+            return blocked(
+                "CONTEXT_ERASURE_FORBIDDEN",
+                "a scoped or statement-annotated denial requires a typed context translation",
+            );
+        }
+        if lowering.record_support.iter().any(|binding| {
+            binding.canonical.g.is_some()
+                || binding.carrier != SourceCarrier::Statement
+                || !self.statement_selected(binding.canonical, binding.carrier)
+        }) {
+            return blocked(
+                "UNADMITTED_FORBIDDEN_PATTERN_SUPPORT",
+                "the denial requires every exact field as a selected default-graph assertion",
+            );
+        }
+        if lowering.record_support.iter().any(|binding| {
+            matches!(
+                source.dataset().resolve(binding.canonical.p),
+                TermRef::Iri("https://blackcatinformatics.ca/logic/onClass")
+            ) && self.references_class_expression(binding.canonical)
+        }) {
+            return blocked(
+                "UNADMITTED_CLASS_DEPENDENCY",
+                "the denial's class guard depends on an excluded or unsupported class definition",
+            );
+        }
+        let dataset = source.dataset();
+        if let Some(predicate) = lowering.record_support.iter().find_map(|binding| {
+            let quad = binding.canonical;
+            if matches!(
+                dataset.resolve(quad.p),
+                TermRef::Iri("https://blackcatinformatics.ca/logic/forbiddenPredicate")
+            ) && let TermRef::Iri(predicate) = dataset.resolve(quad.o)
+                && crate::datalog::is_interpreted(predicate)
+            {
+                Some(predicate)
+            } else {
+                None
+            }
+        }) {
+            return blocked(
+                "UNSUPPORTED_FORBIDDEN_PATTERN",
+                format!("the denial predicate {predicate} requires interpreted execution"),
+            );
+        }
+        let Some(constraint) = self.theory.program().constraints.get(index) else {
+            return malformed(
+                "MISSING_CONSTRAINT_IR",
+                "constraint trace index is out of range",
+            );
+        };
+        if let Some(reason) = unsupported_formula(&constraint.integrity, &self.declared_builtins) {
+            return blocked("UNSUPPORTED_FORBIDDEN_PATTERN", reason);
+        }
+        SemanticUnitDisposition::Admitted(AdmittedSemanticUnit::ForbiddenPattern { index })
     }
 
     fn admit_remaining_axioms(&mut self) {

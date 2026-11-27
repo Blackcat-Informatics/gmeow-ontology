@@ -49,8 +49,8 @@ pub(super) fn parse_positive_int(lexical: &str) -> Option<u32> {
 /// allows. The default is to derive a shape for every eligible axiom (MAXIMAL UTILITY), so an
 /// absent annotation means "derive". Read directly off the merged authored store, consistent
 /// with the dataset-derive architecture. Property-GLOBAL entries only: an entry carrying
-/// `logic:onClass` is class-scoped and never suppresses corpus-wide (see
-/// [`closure_keys_with_value`]).
+/// `logic:onClass` is class-scoped and one carrying `logic:closureIndividual` is
+/// individual-scoped; neither suppresses corpus-wide (see [`closure_keys_with_value`]).
 pub(super) fn closure_validation_optouts(
     store: &RdfDataset,
 ) -> gmeow_errors::Result<std::collections::BTreeSet<String>> {
@@ -60,23 +60,27 @@ pub(super) fn closure_validation_optouts(
 /// The `logic:closureKey` set of every PROPERTY-GLOBAL `logic:closureEntry` whose
 /// `logic:closureValue` is the closure-value individual named by `value_local`. An entry that
 /// carries `logic:onClass` is CLASS-SCOPED — its (class, key) pair is read by
-/// [`closure_validation_closed_requirements`] alone — and contributes NOTHING here: sweeping a
-/// class-scoped key into a global set would promote a per-class closure into a corpus-wide law
-/// the author never asserted. The predicate nodes are built once and reused across entries
-/// (not re-minted per iteration).
+/// [`closure_validation_closed_requirements`] alone — and an entry that carries
+/// `logic:closureIndividual` is INDIVIDUAL-SCOPED, a closure of one resource's statements. Neither
+/// contributes anything here: sweeping a scoped key into a global set would promote a per-class or
+/// per-individual closure into a corpus-wide law the author never asserted. The predicate nodes
+/// are built once and reused across entries (not re-minted per iteration).
 pub(super) fn closure_keys_with_value(
     store: &RdfDataset,
     value_local: &str,
 ) -> gmeow_errors::Result<std::collections::BTreeSet<String>> {
     let target = Node::iri(logic_iri(value_local));
     let class_pred = nn(&logic_iri("onClass"));
+    let individual_pred = nn(&logic_iri("closureIndividual"));
     let mut set = std::collections::BTreeSet::new();
     for entry in subjects_with(store, &nn(&logic_iri("closureValue")), &target) {
         let key = closure_key(store, &entry, &subject_str(&entry)).map_err(|diagnostic| {
             Diag::of_kind(crate::error::Frontend::new(diagnostic.message))
                 .with_focus(subject_str(&entry))
         })?;
-        if value(store, &entry, &class_pred).is_some() {
+        if value(store, &entry, &class_pred).is_some()
+            || value(store, &entry, &individual_pred).is_some()
+        {
             continue;
         }
         set.insert(key);
@@ -94,8 +98,9 @@ pub(super) fn closure_keys_with_value(
 /// verbatim (no new shape DSL). An absent annotation means "open-world / derive no domain-range
 /// shape". Read directly off the merged authored store, consistent with the dataset-derive
 /// architecture. Property-GLOBAL entries only: an entry carrying `logic:onClass` is class-scoped
-/// — it feeds [`closure_validation_closed_requirements`], never this global set, so it derives
-/// no corpus-wide `sh:targetSubjectsOf`/`sh:targetObjectsOf` domain/range shape (see
+/// — it feeds [`closure_validation_closed_requirements`] — and an entry carrying
+/// `logic:closureIndividual` is individual-scoped; neither enters this global set, so neither
+/// derives a corpus-wide `sh:targetSubjectsOf`/`sh:targetObjectsOf` domain/range shape (see
 /// [`closure_keys_with_value`]).
 pub(super) fn closure_validation_closed_optins(
     store: &RdfDataset,
@@ -107,17 +112,23 @@ pub(super) fn closure_validation_closed_optins(
 /// into a required closed-world path. The pair is class-scoped: closing a predicate globally does
 /// not imply that every class must carry it. This avoids an OWL existential in the reasoned core
 /// while giving the validation projection an explicit, canonical `sh:minCount 1` authority.
+/// An entry that carries `logic:closureIndividual` is scoped to one resource and never yields a
+/// class-wide pair, whether or not it also names a class.
 pub(super) fn closure_validation_closed_requirements(
     store: &RdfDataset,
 ) -> gmeow_errors::Result<std::collections::BTreeSet<(String, String)>> {
     let closed = Node::iri(logic_iri("ClosedWorldClosure"));
     let class_pred = nn(&logic_iri("onClass"));
+    let individual_pred = nn(&logic_iri("closureIndividual"));
     let mut set = std::collections::BTreeSet::new();
     for entry in subjects_with(store, &nn(&logic_iri("closureValue")), &closed) {
         let key = closure_key(store, &entry, &subject_str(&entry)).map_err(|diagnostic| {
             Diag::of_kind(crate::error::Frontend::new(diagnostic.message))
                 .with_focus(subject_str(&entry))
         })?;
+        if value(store, &entry, &individual_pred).is_some() {
+            continue;
+        }
         if let Some(Node::Iri(class)) = value(store, &entry, &class_pred) {
             set.insert((class, key));
         }

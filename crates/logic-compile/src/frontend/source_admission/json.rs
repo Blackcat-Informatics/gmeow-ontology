@@ -224,28 +224,18 @@ impl FromJson for AdmittedSemanticUnit {
         let decode = || -> Result<Self, DecodeError> {
             match tag {
                 "Assertion" => SourceAssertion::from_json(payload).map(Self::Assertion),
-                "Formula" => {
-                    let mut fields =
-                        Record::new(payload, "struct variant AdmittedSemanticUnit::Formula")?;
-                    Ok(Self::Formula {
-                        index: fields.required_with("index", |value| {
-                            gmeow_errors::json::read_unsigned::<usize>(
-                                value,
-                                "an unsigned source index",
-                            )
-                        })?,
-                    })
-                }
-                "Rule" => {
-                    let mut fields =
-                        Record::new(payload, "struct variant AdmittedSemanticUnit::Rule")?;
-                    Ok(Self::Rule {
-                        index: fields.required_with("index", |value| {
-                            gmeow_errors::json::read_unsigned::<usize>(
-                                value,
-                                "an unsigned source index",
-                            )
-                        })?,
+                "Formula" | "Rule" | "ForbiddenPattern" => {
+                    let mut fields = Record::new(payload, "indexed admitted semantic unit")?;
+                    let index = fields.required_with("index", |value| {
+                        gmeow_errors::json::read_unsigned::<usize>(
+                            value,
+                            "an unsigned source index",
+                        )
+                    })?;
+                    Ok(match tag {
+                        "Formula" => Self::Formula { index },
+                        "Rule" => Self::Rule { index },
+                        _ => Self::ForbiddenPattern { index },
                     })
                 }
                 "PropertyCharacteristic" => {
@@ -260,6 +250,7 @@ impl FromJson for AdmittedSemanticUnit {
                         "Assertion",
                         "Formula",
                         "Rule",
+                        "ForbiddenPattern",
                         "PropertyCharacteristic",
                         "ClassDefinition",
                     ],

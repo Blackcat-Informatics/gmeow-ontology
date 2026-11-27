@@ -920,8 +920,14 @@ are unaffected.
 
 Cross-world rigidity — the world-spanning universal quantifier that no ordinary in-world Datalog rule
 expresses — is evaluated as a bounded closure pass over the finite materialized world set, emitting
-`logic:rigidityViolation` quads in the world where rigidity persistence fails. The pass fires when at
-least two worlds are materialized.
+`logic:rigidityViolation` quads in the world where rigidity persistence fails. Materialized worlds
+alone never fire it: the pass judges a world only when typed accessibility records admit it from
+the typing world (a direct epistemic record, or a chain of temporal succession records, each
+asserted in the graph of its own subject), the individual still exists there, and the world
+carries admissible evidence of the loss — an explicit `logic:notInstanceOf` assertion or a closed-world closure of the individual's type
+statements that the world's reasoning contract declares. The same evidence is the only thing that
+discharges an anti-rigidity witness. The full contract is
+[LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#admissible-evidence-for-a-cross-world-judgment).
 
 Anti-rigidity's witness obligation — a world of existence where the instance lacks the type — belongs
 to counterfactual construction in Stratum C; the `"anti_rigidity_policy"` profile field governs the

@@ -88,7 +88,7 @@ passes; cases that omit it are not foundation cases.
 | Field | Type | Meaning |
 |---|---|---|
 | `"foundation_lowering"` | boolean | Must be `true` to activate foundation lowering. When absent or `false` the case is processed without discipline rules and the expected output must be byte-identical to what the non-lowering engine would produce. |
-| `"anti_rigidity_policy"` | string | Governs the instance-level anti-rigidity obligation/witness facet. Closed enum: `"witness-obligation"` (default, emits `logic:dischargeObligation`), `"schema-only"` (emits nothing at the instance level), `"witness-required"` (emits `logic:witnessRequiredViolation` absent a materialized counter-world). Absent means `"witness-obligation"`. An unknown value is a hard failure. |
+| `"anti_rigidity_policy"` | string | Governs the instance-level anti-rigidity obligation/witness facet. Closed enum: `"witness-obligation"` (default, emits `logic:dischargeObligation`), `"schema-only"` (emits nothing at the instance level), `"witness-required"` (emits `logic:witnessRequiredViolation` absent an accessible counter-world that admissibly evidences the loss). Absent means `"witness-obligation"`. An unknown value is a hard failure. |
 
 ### Vocabulary in `materialized.nq`
 
@@ -98,9 +98,9 @@ The diagnostic quads a foundation case's `materialized.nq` may contain, all in t
 | Predicate | Subject | Object | Produced by |
 |---|---|---|---|
 | `logic:violation` | offending class IRI | one of the five discipline labels below | in-world Datalog rules (all three lowered disciplines) |
-| `logic:rigidityViolation` | instance IRI | rigid type IRI | cross-world closure pass (fired only with ≥2 materialized worlds) |
+| `logic:rigidityViolation` | instance IRI | rigid type IRI | cross-world closure pass (fired only across a typed accessibility record, with admissible evidence of the loss) |
 | `logic:dischargeObligation` | instance IRI | anti-rigid type IRI | anti-rigidity pass under `"witness-obligation"` policy |
-| `logic:witnessRequiredViolation` | instance IRI | anti-rigid type IRI | anti-rigidity pass under `"witness-required"` policy, when no counter-world is materialized |
+| `logic:witnessRequiredViolation` | instance IRI | anti-rigid type IRI | anti-rigidity pass under `"witness-required"` policy, when no accessible counter-world admissibly evidences the loss |
 
 Discipline label individuals (objects of `logic:violation` quads):
 
