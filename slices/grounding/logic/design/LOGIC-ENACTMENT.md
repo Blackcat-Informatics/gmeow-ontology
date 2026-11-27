@@ -11,9 +11,9 @@
 > known about it. The plan it enacts is [`LOGIC-TELEOLOGY.md`](LOGIC-TELEOLOGY.md)'s `logic:Plan`,
 > unmodified. The state-change substrate is [`LOGIC-TRANSACTION.md`](LOGIC-TRANSACTION.md); the Rust
 > operational façade whose constructs this layer twins ontologically is
-> [`LOGIC-SESSION.md`](LOGIC-SESSION.md); the lens laws that govern revision and restore are in
+> [`LOGIC-SESSION.md`](LOGIC-SESSION.md); the lens laws that govern revision are in
 > [`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md). The domain binding — work clusters,
-> guidance sets, and the operator review projection — is charted outside this slice, in
+> guidance sets, and the review projection — is charted outside this slice, in
 > `slices/core/work-orchestration/design/WORK-ORCHESTRATION.md`; **no term this charter governs
 > names a `gmeow:` term**.
 
@@ -142,7 +142,7 @@ contract, not any other artifact's identity or admission evidence.
 | `logic:ApprovalBindingFault` | the value individual (one of four) | the record that exhibits it |
 | `logic:DeadlineConsumption` | equal (bounded resource, enactment, attributed clock, consumption reading) tuple | the deadline itself |
 | `logic:ActionableFrontier` | equal (enactment, classifying standpoint, saturation witness) triple | the label set, which is derived |
-| `logic:FrontierLabel` | the value individual; each is a total function of the axis tuple, and carries the tuple witness that produced it | the operator's reading of it |
+| `logic:FrontierLabel` | the value individual; each is a total function of the axis tuple, and carries the tuple witness that produced it | the reading the record gives of it |
 | `logic:SkipReason` | the value individual | the step that carries it |
 | `logic:OperationOutcome` | the value individual (one of six) | the evidence payload it carries |
 | `logic:ContextAssembly` | equal (served enactment/step, inclusion roster digest, exclusion roster digest, assembly budget) tuple | the decision that followed it |
@@ -337,7 +337,7 @@ straight to running would let a stale gate verdict authorize execution.
 | `ApprovalDischarged` · `ApprovalExpired` · `ApprovalViolated` · `ApprovalCancelled` · `ApprovalReleased` | — (quiescent) |
 
 The load-bearing omission is `ApprovalDetached → ApprovalCancelled`. Once the antecedent has been
-satisfied — the exact dispatch intent exists, its digest matches, the operator's window is open — the
+satisfied — the exact dispatch intent exists, its digest matches, the dispatch window is open — the
 debtor's unilateral withdrawal is a **violation**, not a cancellation. `ApprovalReleased` remains
 admitted from `Detached` because the creditor may always waive what is owed to it. That asymmetry is
 what turns "the approval must bind the exact intent" from a comparison someone remembers to write
@@ -382,8 +382,8 @@ reconciliation constraint has been authored or executed.
 ### Axis 6 — `logic:GoalEvaluationStatus`: a minting-and-supersession law
 
 A `logic:GoalEvaluation` is a reified record over (goal, world, evaluator, time, criterion). Its
-status does not transition in place — a changed verdict **mints a new attributed evaluation and
-supersedes the prior one** through the supersession quartet, so both remain auditable and two
+status does not transition in place — a changed verdict **mints a new attributed evaluation**, which
+the supersession quartet links to the prior one, so both remain auditable and two
 vantages that disagree coexist. The law is therefore:
 
 ```text
@@ -452,7 +452,7 @@ membership axes as well as each axis, because a tuple can be individually live o
 each coordinate and jointly stuck — a
 step at `StepWaiting` whose approval is at `ApprovalExpired` has an admitted successor on each axis
 and no admissible joint move. Checking only per-axis liveness would prove nothing about the system
-the operator actually faces.
+as it is actually presented.
 
 ## The ⊑ₖ knowledge order
 
@@ -580,7 +580,7 @@ indistinguishable that consumers must distinguish.
 | `WorkCluster` | **MINT** `gmeow:WorkCluster` (domain binding, not the kernel) | Identified by its continuing goal plus the standpoint that holds it — a *domain* identity binding a `gmeow:Goal`, a `gmeow:Norm`, and a `gmeow:EventSchedule`. It cannot live in `logic:`, which takes no axiom edge into `gmeow:`. The kernel-side continuing structure it needs is already covered by `logic:PrescriptionVersion` + supersession, so the kernel mints no cluster class of its own. |
 | `WorkPlanVersion` | **MINT** `logic:PrescriptionVersion` | Identified by the selected version identity contract plus its `logic:prescriptionOf` target. Content addressing remains the default; explicit immutable IRI identity requires external immutable resolution and retention. A version is distinct from the continuing plan under either contract. Named domain-neutrally: a curriculum version and a SCADA recipe version are the same construct. |
 | `WorkRun` | **MINT** `logic:Enactment` (the candidate name is not minted) | Identified as an occurrence, not by its (version, snapshot) pair — because a repeat legitimately shares both. `logic:TransactionOutcome` records one program run's success under executional entailment and is identified by (program, start state); it is a *verdict*, not a durable resumable occurrence with a journal, checkpoints, and a continuation kind. The candidate name is rejected under the generality obligations: a curriculum enrolment and a SCADA control session are not "work runs". |
-| `PlanExecution` | **MINT** `logic:Enactment` (the candidate name is not minted; it is the same term as the row above) | The same identity criterion, reached from the other direction. The "execution" spelling is rejected because it is already taken by a hand-authored process-model surface that this kernel **supersedes and removes** rather than retains beside it: keeping a second execution class as a projection surface would be a second source of truth by construction, and lossy compatibility for consumers belongs in generated projections, never in the canon. One occurrence class, one name. |
+| `PlanExecution` | **MINT** `logic:Enactment` (the candidate name is not minted; it is the same term as the row above) | The same identity criterion, reached from the other direction. The "execution" spelling is rejected because it is already taken by a hand-authored process-model surface that this kernel **replaces and removes** rather than retains beside it: keeping a second execution class as a projection surface would be a second source of truth by construction, and lossy compatibility for consumers belongs in generated projections, never in the canon. One occurrence class, one name. |
 | `PlanRefinementEpisode` | **MINT** `logic:RefinementEpisode` | Identified by (refined step, served goal, world snapshot, vantage, decision time). Nothing existing reifies a *bounded, attributed act of deciding how to decompose*; `logic:refinesGoal` is a standing relation between goals with no episode, no budget, and no closed candidate roster. |
 | `PreparationReceipt` | **MINT** `logic:PreparationReceipt` | Identified by (preparation step, enactment, evidence digest). Distinct from `logic:ExternalEffectReceipt`, whose identity involves a *provider-side* receipt identity: a preparation receipt attests local readiness work, and conflating the two would let an internal readiness note be read as evidence of an external commitment. |
 | `DispatchIntent` | **MINT** `logic:DispatchIntent` | Identified by the digest over its nine mandatory bindings including the normalized arguments and `logic:expectedJournalHead`. No existing term binds an action-schema version, a normalized argument set, an approval requirement, and a journal head into one immutable pre-effect record. Carrying the expected head is what makes no-blind-retry a structural property of the hash chain rather than an ABox rule. |
@@ -592,7 +592,7 @@ indistinguishable that consumers must distinguish.
 | `ReconciliationAttempt` | **MINT** `logic:ReconciliationAttempt` | Identified by (attempt under reconciliation, probe roster). One reconciliation attempt may issue several probes; identifying it with a single probe would make a multi-probe reconciliation unrepresentable and its verdict unattributable. |
 | `CompensationAttempt` | **MINT** `logic:CompensationAttempt` | Identified by (compensating schema, `logic:compensatesEffect` target receipt, intent digest). The existing `logic:compensation` facet names *which action undoes a schema's realized outcome* — a type-level fact. An attempt is an occurrence bound to the exact forward receipt, and one forward effect may be compensated by several distinct attempts. |
 | `ApprovalGrant` | **MINT** `logic:ApprovalCommitment` (the candidate name is not minted) | Identified by its six mandatory bindings: the exact dispatch-intent digest, the enactment/step, the authorized operator identity, the governing policy, the decision, and the validity window. A "grant" is a snapshot of one state of a social commitment; modelling the commitment itself makes revocation, delegation, escalation, quorum, and expiry first-class instead of absent, and turns "exact binding" into a detachment law. `gmeow:Commitment` is the intentional-mode relator between agents and is not the artifact that authorizes one intent. |
-| `OperationalCapabilityGap` | **MINT** `logic:OperationalCapabilityGap` | Identified by (blocked step, missing capability contract, enactment). It is **disjoint** from `gmeow:CapabilityGap`, which reifies a committed *reasoning-profile* expressiveness gap. One says "this engine profile cannot express that"; the other says "no available tool can do this work". Same word, different identity criteria, different remedies. |
+| `OperationalCapabilityGap` | **MINT** `logic:OperationalCapabilityGap` | Identified by (blocked step, missing capability contract, enactment). It is **disjoint** from `gmeow:CapabilityGap`, which reifies a committed *reasoning-profile* expressiveness gap. One states that this engine profile cannot express a construct; the other states that no available tool can do the work. Same word, different identity criteria, different remedies. |
 | `CapabilityGapProposal` | **MINT** `logic:CapabilityGapProposal` | Identified by (gap, digest over its eight mandatory fields): missing capability, required contract, expected inputs, expected outputs, expected effects, verification method, security/lifecycle needs, and the blocked step. All eight are gated by `logic:CapabilityGapProposalCompletenessConstraint`; a seven-field gate would let the blocked step be omitted, which is the field that makes the proposal actionable. |
 | `gmeow:EventSeries` | **REUSE** | Reused as the cluster's **occurrence series** — the group of generated occurrences reached through `gmeow:hasRecurrenceRule` / `gmeow:seriesOccurrence`. Each occurrence *generates* a `logic:Enactment`; `gmeow:EnactmentIsNotOccurrenceConstraint` forbids identifying the two. |
 | `gmeow:RecurrenceRule` | **REUSE** | Reused verbatim as the recurrence generator. Re-minting a recurrence rule in either new surface is a second source of truth for calendar semantics, and is banned by the structural cell `saRecurrenceReusesCalendar` with a fail witness that mints a local rule. |
@@ -606,7 +606,7 @@ indistinguishable that consumers must distinguish.
 | `logic:AdviceGuidance` | **REUSE**, and held strictly apart from `logic:Advisory` | See the non-conflation rules. |
 | `logic:ClosureEntry` | **REUSE** | Certifies the refinement candidate roster as closed, rather than a bespoke "isClosed" boolean. |
 | `logic:BudgetBoundedResource` / `logic:BudgetExhausted` / `logic:resourceExhausted` / `logic:consumedBudget` | **REUSE** | Every budget in the kernel. `logic:DeadlineConsumption` is the one mint here, because a deadline is consumed against an **attributed clock** and the existing budget terms carry no clock attribution. |
-| `logic:Correspondence` with its `get`/`put` legs | **REUSE** | `logic:ContinuationRevise` **is** a `put`; checkpoint-restore **is** `get∘put`. The lens laws replace what would otherwise be ad-hoc revision constraints. |
+| `logic:Correspondence` with its `get`/`put` legs | **REUSE** | `logic:ContinuationRevise` **is** a `put`, so the lens laws replace what would otherwise be ad-hoc revision constraints. Checkpoint restore is not a correspondence: it rebuilds the base closure from the authorized inputs, replays the checkpoint's committed deltas, and is refused unless the replayed journal head equals the recorded head ([`LOGIC-SESSION.md`](LOGIC-SESSION.md#content-addressed-checkpoints)). No lens law is executed over it. |
 | `logic:prescriptionDigest` / `logic:enactedPrescriptionDigest` | **REUSE** | Frozen prescription content and the independently recorded run-pinned witness; neither is replaced by an IRI identity selection. |
 | `gmeow:supersededBy` and the supersession quartet | **REUSE** | The only revision path for a prescription version, and the mechanism by which a superseded goal evaluation stays auditable. |
 | `gmeow:CapabilityGap` | **REUSE**, disjoint | Retained for what it means; explicitly disjoint from the operational gap. |
@@ -780,9 +780,8 @@ The resolution is placement, not amendment. Means–end search lives in
 - the outcome is a `logic:OperationOutcome`, so an incomplete search is *labelled* incomplete rather
   than presented as a closed answer.
 
-`teleology.rs` gains **one cross-reference line** naming where search lives and under which budget.
-Its purity contract is preserved word for word: weakening it would destroy a real invariant that the
-conformance runner depends on, in exchange for nothing.
+`teleology.rs` keeps its purity contract word for word: weakening it would destroy a real invariant
+that the conformance runner depends on, in exchange for nothing.
 
 ## Generality obligations
 

@@ -15,8 +15,8 @@ These artifacts ground the data-axis and process-axis use cases
 | `blood_pressure.complement.ttl` | the GMEOW in-band complement (`S ∖ im(get)`) | GMEOW (CC-BY-4.0) |
 | `blood_pressure.source.ttl` | the reconstructed canonical GMEOW source `S` = the complement ∪ the two asserted `gmeow:measuredValue` leaves re-lifted from the RM slice; the golden for `u(d(S)) = S` | GMEOW (CC-BY-4.0) |
 | `blood_pressure.augmented.json` | `⟨ openEHR file ⊕ gmeow complement ⟩` — the down-projection artifact `d(g)`; the complement rides in `feeder_audit.original_content` (DV_PARSABLE, `text/turtle`) + a COMPOSITION `LINK` whose `DV_EHR_URI` target uses the `ehr` scheme (see *The empirical slot test*) | derived (source Apache-2.0 + GMEOW complement CC-BY-4.0) |
-| `rchops21.plan.ttl` | RCHOPS21 chemotherapy as a GMEOW `logic:Plan` | GMEOW (CC-BY-4.0) rendering derived from openEHR PROC 1.6.0; openEHR DLM **not** vendored (cited only) |
-| `rchops21.observed.ttl` | a partial descriptive RCHOPS21 record whose reported occurrences carry exact `logic:instantiatesPlan` + `logic:instantiatesSchema` witnesses | GMEOW (CC-BY-4.0); synthetic observed record, deliberately silent about unreported events |
+| `rchops21.plan.ttl` | `RCHOPS21` chemotherapy as a GMEOW `logic:Plan` | GMEOW (CC-BY-4.0) rendering derived from openEHR PROC 1.6.0; openEHR DLM **not** vendored (cited only) |
+| `rchops21.observed.ttl` | a partial descriptive `RCHOPS21` record whose reported occurrences carry exact `logic:instantiatesPlan` + `logic:instantiatesSchema` witnesses | GMEOW (CC-BY-4.0); synthetic observed record, deliberately silent about unreported events |
 
 ## Executable evidence (in GMEOW's gate)
 
@@ -41,13 +41,14 @@ tooling. Their evidence domains are distinct:
   committed fixture using a dedicated JSON reader; it does not execute a general typed
   source/view/complement correspondence. (A separate assertion confirms the embedded complement canonicalizes equal to
   `blood_pressure.complement.ttl`, i.e. the carrier survives the RDF-1.2 parser byte-losslessly.)
-- **ADL fidelity** — `crates/shacl/src/openehr_opt.rs` reads the systolic/diastolic `C_DV_QUANTITY`
-  `magnitude` block straight out of the vendored `Blutdruck.opt` and lowers the half-open
-  `[0, 1000)` mm[Hg] to `sh:minInclusive` + `sh:maxExclusive` (never `sh:maxInclusive`);
-  `crates/shacl/tests/bloodpressure_halfopen.rs` drives that reader and asserts `value == hi` is
-  rejected. Flipping the OPT's `upper_included` to `true` fails the test — boundary inclusivity is
-  read from the OPT, not hand-transcribed. (Only the magnitude-interval slice is lowered; the
-  general OPT constraint lowering is not established by this test.)
+- **ADL fidelity** — `crates/logic-compile/src/openehr_opt.rs` reads the constraint families of the
+  vendored `Blutdruck.opt`, including each `C_DV_QUANTITY` `magnitude` interval with its
+  `lower_included` and `upper_included` flags. `crates/logic-compile/src/openehr_opt.walker_tests.rs`
+  lifts every walked constraint to a validation shape and recovers it unchanged.
+  `crates/logic-compile/src/opt_lift.tests.rs` shows that a constructed half-open `[0, 1000)` mm[Hg]
+  interval projects to `sh:minInclusive` + `sh:maxExclusive` (never `sh:maxInclusive`) and that every
+  inclusivity combination round-trips. No test asserts the interval read from the vendored OPT, and none
+  validates a value equal to the upper bound against the projected shape.
 - **Process projection and witnessed recovery** — the optimized `stage-compile-logic` producer
   projects `rchops21.plan.ttl` under an explicit six-iteration bound and emits
   `generated/logic/rchops21-plan-projection.json`. The typed artifact retains the precondition and
