@@ -34,6 +34,8 @@ const RDFS_DATATYPE: &str = "http://www.w3.org/2000/01/rdf-schema#Datatype";
 const GRAPH_BOX_ROLE: &str = "https://blackcatinformatics.ca/gmeow/graphBoxRole";
 const CHARACTERIZES: &str = "https://blackcatinformatics.ca/logic/characterizes";
 const CHARACTERISTIC_SORT: &str = "https://blackcatinformatics.ca/logic/characteristicSort";
+const PROPERTY_CHARACTERISTIC_ASSERTION: &str =
+    "https://blackcatinformatics.ca/logic/PropertyCharacteristicAssertion";
 
 /// The kind a vendored declaration gives a term.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -314,11 +316,6 @@ impl TermOutcome {
             .min()
             .unwrap_or(Judgment::Uncovered)
     }
-
-    /// The distinct target claims the term's cells make.
-    pub(super) fn target_claims(&self) -> BTreeSet<TargetClaim> {
-        self.cells.iter().map(|cell| cell.target.clone()).collect()
-    }
 }
 
 /// A failure to join the catalog to the denominator.
@@ -379,13 +376,14 @@ impl<'a> Natives<'a> {
         self.pairs(GRAPH_BOX_ROLE).any(|(s, _)| s == subject)
     }
 
-    /// Characteristics carried as a type of the property or by an assertion that
-    /// characterizes it.
+    /// Characteristics carried as a type of the property or by a typed
+    /// `logic:PropertyCharacteristicAssertion` that characterizes it.
     fn characteristics(&self, subject: &str) -> BTreeSet<Characteristic> {
         let assertions: BTreeSet<&str> = self
             .pairs(CHARACTERIZES)
             .filter(|(_, o)| matches!(o, ObservedTerm::Iri(iri) if iri == subject))
             .map(|(s, _)| s.as_str())
+            .filter(|assertion| self.has_type(assertion, PROPERTY_CHARACTERISTIC_ASSERTION))
             .collect();
         Characteristic::ALL
             .into_iter()

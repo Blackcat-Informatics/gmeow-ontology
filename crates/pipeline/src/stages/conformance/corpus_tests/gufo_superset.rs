@@ -391,22 +391,26 @@ fn many_to_one_sources_and_independent_claims_are_retained(report: &Report) {
         .iter()
         .find(|outcome| outcome.term.iri == gufo_iri("IntrinsicMode"))
         .expect("the denominator holds gufo:IntrinsicMode");
-    let sources: BTreeSet<&str> = mode
-        .cells
-        .iter()
-        .map(|cell| cell.correspondence.source.as_str())
-        .collect();
     assert_eq!(
-        sources,
-        BTreeSet::from([
-            logic_iri("Mode").as_str(),
-            logic_iri("Disposition").as_str()
-        ])
+        mode.cells.len(),
+        2,
+        "exactly the Mode and Disposition cells"
     );
-    assert_eq!(mode.judgment(), Judgment::EarnedCounterpart);
+    let cell_from = |source: &str| {
+        mode.cells
+            .iter()
+            .find(|cell| cell.correspondence.source == source)
+            .unwrap_or_else(|| panic!("gufo:IntrinsicMode has a cell from {source}"))
+    };
+    let mode_cell = cell_from(logic_iri("Mode").as_str());
+    assert_eq!(mode_cell.judgment, Judgment::EarnedCounterpart);
+    assert_eq!(mode_cell.target, TargetClaim::ValidationOnly);
+    let disposition_cell = cell_from(logic_iri("Disposition").as_str());
+    assert_eq!(disposition_cell.judgment, Judgment::ValidationOnlyMatch);
+    assert_eq!(disposition_cell.target, TargetClaim::Unsupported);
     assert_eq!(
-        mode.target_claims(),
-        BTreeSet::from([TargetClaim::ValidationOnly, TargetClaim::Unsupported]),
+        mode.judgment(),
+        Judgment::EarnedCounterpart,
         "the unsupported downprojection coexists with the earned native counterpart"
     );
 }
@@ -609,13 +613,22 @@ fn criticism_example_references_builtin() {
     }
 }
 
-/// INVARIANT: every gUFO cell's source is a subject a measured native module declares. A
-/// source no module declares is refused here. A declared source of another kind is measured
-/// as a validation-only match by the floor, not refused.
+/// INVARIANT: every gUFO cell's source is a subject a measured native module types with
+/// `rdf:type`. A source with no type in any native module, such as a label-only IRI, is refused
+/// here. A typed source of another kind is measured as a validation-only match by the floor,
+/// not refused.
 fn every_gufo_source_is_declared_by_a_native_module() {
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     let declared: BTreeSet<&str> = NATIVE_TTL
         .into_iter()
-        .flat_map(|path| observed_source(path).subjects.iter().map(String::as_str))
+        .flat_map(|path| {
+            observed_source(path)
+                .pairs
+                .get(RDF_TYPE)
+                .into_iter()
+                .flatten()
+                .map(|(subject, _)| subject.as_str())
+        })
         .collect();
     let undeclared: Vec<String> = gufo_correspondences()
         .into_iter()
