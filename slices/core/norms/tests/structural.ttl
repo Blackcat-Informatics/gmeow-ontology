@@ -542,3 +542,32 @@ wordtest:sanormsWords a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ; gmeow:saPolarity gmeow:must ;
     gmeow:saPattern "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX lang: <https://blackcatinformatics.ca/lang/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK { gmeow:conditionText (logic:range|rdfs:range) rdfs:Literal . gmeow:Condition (logic:subClassOf|rdfs:subClassOf) [ (logic:onProperty|owl:onProperty) gmeow:conditionText ; (logic:allValuesFrom|owl:allValuesFrom) ?values0_0 ] . ?values0_0 (logic:unionOf|owl:unionOf)/rdf:rest*/rdf:first xsd:string, rdf:langString, rdf:dirLangString . }" ;
     gmeow:saRationale "Natural-language fields admit unspecified, language-tagged and directional text through canonical value restrictions, without closing subject domains." .
+
+# --- Authority claims keep force on the claim, never on a correspondence ------------------------
+ex:saAuthorityCorrespondenceCarriesNoForce a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:AuthorityClaim logic:subClassOf gmeow:ClaimToken .
+    gmeow:AuthorityCorrespondence logic:subClassOf gmeow:ClaimToken ;
+        logic:disjointWith gmeow:AuthorityClaim .
+    gmeow:authorityForce logic:domain gmeow:AuthorityClaim .
+    FILTER NOT EXISTS { gmeow:AuthorityCorrespondence logic:subClassOf gmeow:AuthorityClaim }
+}""" ;
+    gmeow:saRationale "An authority correspondence between two legal orders MUST be a claim token disjoint from an authority claim, and gmeow:authorityForce MUST have only authority claims in its domain, so a correspondence transfers no force and neither order's interpretation is established by the other." .
+
+ex:saAuthorityForceEvidenceConstraints a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    gmeow:BindingAuthoritySourceConstraint logic:triggerValue gmeow:authorityForceBinding ; logic:requires gmeow:authoritySource .
+    gmeow:BindingAuthorityForumConstraint logic:triggerValue gmeow:authorityForceBinding ; logic:requires gmeow:authorityForum .
+    gmeow:PersuasiveAuthoritySourceConstraint logic:triggerValue gmeow:authorityForcePersuasive ; logic:requires gmeow:authoritySource .
+    gmeow:AuthoritySourcePinpointConstraint a logic:Constraint ; logic:formalizes gmeow:authoritySource .
+    gmeow:DissentNotBindingConstraint a logic:Constraint ; logic:formalizes gmeow:AuthorityClaim .
+}""" ;
+    gmeow:saRationale "A binding authority claim MUST need a pinpoint source and a forum, a persuasive claim a pinpoint source, and a dissenting opinion role MUST NOT carry binding force, so a citation alone cannot supply a binding holding." .

@@ -1,0 +1,34 @@
+# Competency question: "Does any correspondence carry authority force, or any binding or
+# persuasive claim lack the evidence its force needs?"
+#
+# A correspondence transfers no force, a binding claim needs a pinpoint source and a forum, and a
+# persuasive claim needs a pinpoint source. The answer is no row.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?subject WHERE {
+    {
+        ?subject a gmeow:AuthorityCorrespondence ;
+            gmeow:authorityForce ?force .
+    } UNION {
+        ?subject a gmeow:AuthorityClaim ;
+            gmeow:authorityForce ?force .
+        FILTER (?force IN (gmeow:authorityForceBinding, gmeow:authorityForcePersuasive))
+        FILTER NOT EXISTS { ?subject gmeow:authoritySource ?source . }
+    } UNION {
+        ?subject a/rdfs:subClassOf* gmeow:AuthorityClaim ;
+            gmeow:authoritySource ?source .
+        FILTER NOT EXISTS {
+            ?source a/rdfs:subClassOf* gmeow:CitationAct ;
+                gmeow:viaSelector ?selector .
+            ?selector a/rdfs:subClassOf* gmeow:Selector ;
+                (gmeow:selectorLocator|gmeow:selectorPage|gmeow:selectorTextPosition|gmeow:selectorTextQuote) ?pin .
+            FILTER (isLiteral(?pin) && REGEX(STR(?pin), "\\S"))
+        }
+    } UNION {
+        ?subject a gmeow:AuthorityClaim ;
+            gmeow:authorityForce gmeow:authorityForceBinding .
+        FILTER NOT EXISTS { ?subject gmeow:authorityForum ?forum . }
+    }
+}

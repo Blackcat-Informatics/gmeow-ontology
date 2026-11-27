@@ -1,0 +1,219 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the authority and later treatment of identified legal propositions.
+#
+# 1. A decision revises one proposition of an earlier decision and leaves another untouched.
+#    The Supreme Court of Canada's reasons in Vavilov report that the Dunsmuir majority held
+#    correctness review applies to jurisdictional questions (para. 65), then cease to recognize
+#    that category (paras. 65 and 67). The same reasons keep correctness review for
+#    questions about the jurisdictional boundaries between administrative bodies, citing a
+#    different paragraph of Dunsmuir (para. 63). One explicit gmeow:PropositionDependency
+#    flags the first reading for review; the second reading is cited by the same decision and
+#    flagged by nothing.
+# 2. An Indigenous legal order's own statement of its authority is kept under its source and
+#    contrasted with a separately attributed Canadian constitutional proposition. The only
+#    correspondence is attributed to the Gitanyow Nation, which states it in its own
+#    preamble, and it transfers no force and no interpretation to either order.
+#
+# Facts are limited to what the cited texts state. The text of Dunsmuir itself is not
+# reproduced: its readings are located through the pinpoints Vavilov gives. The force and
+# forum of each claim are classifications of the record, not findings about any case.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/norms/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Bodies, forum and legal orders ---------------------------------------------------------
+ex:sccCanada a gmeow:Organization ; gmeow:name "Supreme Court of Canada"@x-gmeow-english .
+ex:reviewingCourts a gmeow:Organization ;
+    gmeow:name "Courts reviewing the merits of an administrative decision"@x-gmeow-english .
+ex:justiceCanada a gmeow:Organization ;
+    gmeow:name "Department of Justice Canada, publisher of the consolidated Constitution Acts"@x-gmeow-english .
+ex:gitanyowNation a gmeow:Organization ; gmeow:name "Gitanyow Nation"@x-gmeow-english .
+
+ex:canadianLegalOrder a gmeow:NormativeSystem ;
+    rdfs:label "Canadian legal order"@x-gmeow-english .
+ex:gitanyowAyookxw a gmeow:NormativeSystem ;
+    rdfs:label "Gitanyow Ayookxw"@x-gmeow-english .
+
+# --- Cited works ----------------------------------------------------------------------------
+ex:vavilovDecision a gmeow:Document ;
+    gmeow:bibliographicCitation "Canada (Minister of Citizenship and Immigration) v. Vavilov, 2019 SCC 65, [2019] 4 S.C.R. 653"@x-gmeow-english ;
+    gmeow:sourceLocation "https://decisions.scc-csc.ca/scc-csc/scc-csc/en/item/18078/index.do" .
+ex:dunsmuirDecision a gmeow:Document ;
+    gmeow:bibliographicCitation "Dunsmuir v. New Brunswick, [2008] 1 S.C.R. 190, 2008 SCC 9"@x-gmeow-english ;
+    gmeow:sourceLocation "https://decisions.scc-csc.ca/scc-csc/scc-csc/en/item/2408/index.do" .
+ex:constitutionAct1982 a gmeow:Document ;
+    gmeow:bibliographicCitation "Constitution Act, 1982, section 35(1)"@x-gmeow-english ;
+    gmeow:sourceLocation "https://laws-lois.justice.gc.ca/eng/Const/FullText.html" .
+ex:gitanyowConstitution a gmeow:Document ;
+    gmeow:bibliographicCitation "The Gitanyow Ayookxw: The Constitution of the Gitanyow Nation"@x-gmeow-english ;
+    gmeow:sourceLocation "https://www.gitanyowchiefs.com/wp-content/uploads/2023/08/Gitanyow_Constitution_2009.pdf" .
+
+# --- Propositions ---------------------------------------------------------------------------
+ex:propJurisdictionalCorrectness a gmeow:Proposition ;
+    rdfs:label "Correctness review applies to jurisdictional questions"@x-gmeow-english .
+ex:propNoJurisdictionalCategory a gmeow:Proposition ;
+    rdfs:label "Jurisdictional questions are not a distinct category attracting correctness review"@x-gmeow-english .
+ex:propBoundariesCorrectness a gmeow:Proposition ;
+    rdfs:label "Correctness review applies to questions about the jurisdictional boundaries between administrative bodies"@x-gmeow-english .
+ex:propPresumptionReasonableness a gmeow:Proposition ;
+    rdfs:label "The standard of review begins from a presumption of reasonableness"@x-gmeow-english .
+ex:propAyookxwSupreme a gmeow:Proposition ;
+    rdfs:label "The Gitanyow Ayookxw is the supreme law of the Gitanyow Nation and for the Gitanyow People"@x-gmeow-english .
+ex:propSection35 a gmeow:Proposition ;
+    rdfs:label "The existing aboriginal and treaty rights of the aboriginal peoples of Canada are recognized and affirmed"@x-gmeow-english .
+
+# --- Relevant facts -------------------------------------------------------------------------
+ex:factMeritsReview a gmeow:Condition ;
+    gmeow:conditionText "A court reviews the merits of an administrative decision."@en .
+ex:factOralTraditions a gmeow:Condition ;
+    gmeow:conditionText "This written Constitution must be interpreted and understood in the context of our oral history and oral traditions."@en .
+
+# --- Pinpoint sources -----------------------------------------------------------------------
+ex:selVavilov10 a gmeow:Selector ;
+    gmeow:selectorLocator "para. 10" .
+ex:selVavilov65 a gmeow:Selector ;
+    gmeow:selectorLocator "para. 65" ;
+    gmeow:selectorTextQuote "We would cease to recognize jurisdictional questions as a distinct category attracting correctness review." .
+ex:selVavilov65Report a gmeow:Selector ;
+    gmeow:selectorLocator "para. 65" .
+ex:selVavilov63 a gmeow:Selector ;
+    gmeow:selectorLocator "para. 63" .
+ex:selVavilov200 a gmeow:Selector ;
+    gmeow:selectorLocator "para. 200" .
+ex:selDunsmuir50 a gmeow:Selector ; gmeow:selectorLocator "para. 50" .
+ex:selDunsmuir61 a gmeow:Selector ; gmeow:selectorLocator "para. 61" .
+ex:selGitanyow a gmeow:Selector ;
+    gmeow:selectorLocator "section 3.0, Fundamental Gitanyow Principles, item 4" ;
+    gmeow:selectorPage "5" .
+ex:selSection35 a gmeow:Selector ;
+    gmeow:selectorLocator "section 35(1)" ;
+    gmeow:selectorTextQuote "The existing aboriginal and treaty rights of the aboriginal peoples of Canada are hereby recognized and affirmed." .
+
+# --- Citations ------------------------------------------------------------------------------
+ex:citeVavilov10 a gmeow:CitationAct ;
+    gmeow:citingEntity ex:claimVavilovPresumption ; gmeow:citedEntity ex:vavilovDecision ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selVavilov10 .
+ex:citeVavilov65 a gmeow:CitationAct ;
+    gmeow:citingEntity ex:claimVavilovNoCategory ; gmeow:citedEntity ex:vavilovDecision ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selVavilov65 .
+ex:citeVavilov65Report a gmeow:CitationAct ;
+    gmeow:citingEntity ex:claimDunsmuirJurisdiction ; gmeow:citedEntity ex:vavilovDecision ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selVavilov65Report .
+ex:citeDunsmuir50 a gmeow:CitationAct ;
+    gmeow:citingEntity ex:claimDunsmuirJurisdiction ; gmeow:citedEntity ex:dunsmuirDecision ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selDunsmuir50 .
+ex:citeVavilov63 a gmeow:CitationAct ;
+    gmeow:citingEntity ex:claimDunsmuirBoundaries ; gmeow:citedEntity ex:vavilovDecision ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selVavilov63 .
+ex:citeDunsmuir61 a gmeow:CitationAct ;
+    gmeow:citingEntity ex:claimDunsmuirBoundaries ; gmeow:citedEntity ex:dunsmuirDecision ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selDunsmuir61 .
+ex:citeVavilov200 a gmeow:CitationAct ;
+    gmeow:citingEntity ex:claimVavilovConcurringNoCategory ; gmeow:citedEntity ex:vavilovDecision ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selVavilov200 .
+ex:citeGitanyow a gmeow:CitationAct ;
+    gmeow:citingEntity ex:claimAyookxwSupreme ; gmeow:citedEntity ex:gitanyowConstitution ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selGitanyow .
+ex:citeSection35 a gmeow:CitationAct ;
+    gmeow:citingEntity ex:claimSection35 ; gmeow:citedEntity ex:constitutionAct1982 ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:selSection35 .
+
+# The later decision cites two paragraphs of the earlier one. A citation, whatever its intent,
+# is not an authority claim and flags no reading by itself.
+ex:vavilovCitesDunsmuir50 a gmeow:CitationAct ;
+    gmeow:citingEntity ex:vavilovDecision ; gmeow:citedEntity ex:dunsmuirDecision ;
+    gmeow:citationIntent gmeow:intentDisagreesWith ; gmeow:viaSelector ex:selDunsmuir50 .
+ex:vavilovCitesDunsmuir61 a gmeow:CitationAct ;
+    gmeow:citingEntity ex:vavilovDecision ; gmeow:citedEntity ex:dunsmuirDecision ;
+    gmeow:citationIntent gmeow:intentSupports ; gmeow:viaSelector ex:selDunsmuir61 .
+# A synthetic overview supplies an ordinary whole-work citation, not authority evidence.
+ex:fixtureOverview a gmeow:Document .
+ex:overviewWholeWorkReference a gmeow:CitationAct ;
+    gmeow:citingEntity ex:fixtureOverview ; gmeow:citedEntity ex:dunsmuirDecision ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource .
+
+# --- Authority claims: the revised review framework -----------------------------------------
+ex:claimVavilovPresumption a gmeow:AuthorityClaim ;
+    gmeow:expresses ex:propPresumptionReasonableness ;
+    gmeow:wasAssociatedWith ex:sccCanada ; gmeow:accordingTo ex:sccCanada ;
+    gmeow:authorityOrder ex:canadianLegalOrder ; gmeow:authorityForum ex:reviewingCourts ;
+    gmeow:authorityForce gmeow:authorityForceBinding ; gmeow:opinionRole gmeow:opinionRoleMajority ;
+    gmeow:authorityIssue "the standard of review applied by a court reviewing the merits of an administrative decision"@en ;
+    gmeow:authoritySource ex:citeVavilov10 ; gmeow:relevantFact ex:factMeritsReview ;
+    gmeow:eventTime "2019-12-19"^^xsd:date .
+
+ex:claimVavilovNoCategory a gmeow:AuthorityClaim ;
+    gmeow:expresses ex:propNoJurisdictionalCategory ;
+    gmeow:wasAssociatedWith ex:sccCanada ; gmeow:accordingTo ex:sccCanada ;
+    gmeow:authorityOrder ex:canadianLegalOrder ; gmeow:authorityForum ex:reviewingCourts ;
+    gmeow:authorityForce gmeow:authorityForceBinding ; gmeow:opinionRole gmeow:opinionRoleMajority ;
+    gmeow:authorityIssue "whether jurisdictional questions are a distinct category attracting correctness review"@en ;
+    gmeow:authoritySource ex:citeVavilov65 ; gmeow:relevantFact ex:factMeritsReview ;
+    gmeow:eventTime "2019-12-19"^^xsd:date .
+
+ex:claimVavilovConcurringNoCategory a gmeow:AuthorityClaim ;
+    gmeow:expresses ex:propNoJurisdictionalCategory ;
+    gmeow:wasAssociatedWith ex:sccCanada ; gmeow:accordingTo ex:sccCanada ;
+    gmeow:authorityOrder ex:canadianLegalOrder ;
+    gmeow:authorityForce gmeow:authorityForcePersuasive ; gmeow:opinionRole gmeow:opinionRoleConcurring ;
+    gmeow:authorityIssue "whether jurisdictional questions are a distinct category attracting correctness review"@en ;
+    gmeow:authoritySource ex:citeVavilov200 ;
+    gmeow:eventTime "2019-12-19"^^xsd:date .
+
+# --- Authority claims: the two earlier readings ---------------------------------------------
+# Reading flagged for review: the earlier holding on jurisdictional questions.
+ex:claimDunsmuirJurisdiction a gmeow:AuthorityClaim ;
+    gmeow:expresses ex:propJurisdictionalCorrectness ;
+    gmeow:wasAssociatedWith ex:sccCanada ; gmeow:accordingTo ex:sccCanada ;
+    gmeow:authorityOrder ex:canadianLegalOrder ; gmeow:authorityForum ex:reviewingCourts ;
+    gmeow:authorityForce gmeow:authorityForceBinding ; gmeow:opinionRole gmeow:opinionRoleMajority ;
+    gmeow:authorityIssue "whether jurisdictional questions are a distinct category attracting correctness review"@en ;
+    gmeow:authoritySource ex:citeDunsmuir50 , ex:citeVavilov65Report ;
+    gmeow:eventTime "2008"^^xsd:gYear .
+
+# Reading not flagged: a different use of the same earlier decision, restated by the later one.
+ex:claimDunsmuirBoundaries a gmeow:AuthorityClaim ;
+    gmeow:expresses ex:propBoundariesCorrectness ;
+    gmeow:wasAssociatedWith ex:sccCanada ; gmeow:accordingTo ex:sccCanada ;
+    gmeow:authorityOrder ex:canadianLegalOrder ; gmeow:authorityForum ex:reviewingCourts ;
+    gmeow:authorityForce gmeow:authorityForceBinding ; gmeow:opinionRole gmeow:opinionRoleMajority ;
+    gmeow:authorityIssue "the standard of review for questions about the jurisdictional boundaries between administrative bodies"@en ;
+    gmeow:authoritySource ex:citeDunsmuir61 , ex:citeVavilov63 ;
+    gmeow:eventTime "2008"^^xsd:gYear .
+
+# The explicit dependency: only the jurisdictional-questions reading is flagged for review.
+ex:depDunsmuirJurisdiction a gmeow:PropositionDependency ;
+    gmeow:dependencyReading ex:claimDunsmuirJurisdiction ;
+    gmeow:dependencyProposition ex:propJurisdictionalCorrectness ;
+    gmeow:dependencyTreatment ex:claimVavilovNoCategory .
+
+# --- Authority claims: two legal orders ------------------------------------------------------
+ex:claimAyookxwSupreme a gmeow:AuthorityClaim ;
+    gmeow:expresses ex:propAyookxwSupreme ;
+    gmeow:wasAssociatedWith ex:gitanyowNation ; gmeow:accordingTo ex:gitanyowNation ;
+    gmeow:authorityOrder ex:gitanyowAyookxw ; gmeow:authorityForum ex:gitanyowNation ;
+    gmeow:authorityForce gmeow:authorityForceBinding ;
+    gmeow:authorityIssue "the supreme law of the Gitanyow Nation"@en ;
+    gmeow:authoritySource ex:citeGitanyow ; gmeow:relevantFact ex:factOralTraditions .
+
+# The published text is recorded; no evidence of force is supplied, so the force is unresolved.
+ex:claimSection35 a gmeow:AuthorityClaim ;
+    gmeow:expresses ex:propSection35 ;
+    gmeow:wasAssociatedWith ex:justiceCanada ; gmeow:accordingTo ex:justiceCanada ;
+    gmeow:authorityOrder ex:canadianLegalOrder ;
+    gmeow:authorityForce gmeow:authorityForceUnresolved ;
+    gmeow:authorityIssue "the recognition and affirmation of existing aboriginal and treaty rights"@en ;
+    gmeow:authoritySource ex:citeSection35 .
+
+# The one correspondence is attributed to the Gitanyow Nation, scoped to its own preamble, and
+# carries no force of its own.
+ex:scopePreamble a gmeow:Condition ;
+    gmeow:conditionText "The statement in the Gitanyow preamble that our people and our unique histories, territories and laws have been recognized, affirmed and offered protection by the people and governments of Canada through the supreme law of Canada, the Constitution Act, 1867-1982."@en .
+ex:correspondenceAyookxwSection35 a gmeow:AuthorityCorrespondence ;
+    gmeow:correspondenceFrom ex:claimAyookxwSupreme ;
+    gmeow:correspondenceTo ex:claimSection35 ;
+    gmeow:correspondenceScope ex:scopePreamble ;
+    gmeow:wasAssociatedWith ex:gitanyowNation ; gmeow:accordingTo ex:gitanyowNation .
