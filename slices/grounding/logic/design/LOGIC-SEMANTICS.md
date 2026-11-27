@@ -693,11 +693,19 @@ are context-relativized — `holds(c, type(x, T))` rather than bare `type(x, T)`
 operators are the **standard translation** of modal logic into first-order logic over an explicit,
 *typed* accessibility relation:
 
-- **Rigidity.** `logic:rigidlyAppliesTo(T)` lowers to the integrity constraint *for every individual
-  `x` and every pair of worlds `w`, `w'` in which `x` exists, if `x` is a `T` in `w` then `x` is a
-  `T` in `w'`*. A `Kind` is rigid; a `Role`/`Phase` is anti-rigid — the same constraint *negated*.
-  The solver needs no native ◻ operator: the compiler emits a universally quantified, world-indexed
-  rule evaluated by closure/counting over the world set.
+- **Rigidity.** `logic:rigidlyAppliesTo(T, x)` records that `T` necessarily classifies the
+  individual `x`; a `Kind` or `SubKind` does so for every instance by its stereotype. It lowers to the
+  integrity constraint *for every pair of worlds `w`, `w'` in which `x` exists and `w'` is accessible
+  from `w` along a typed accessibility record, if `x` is a `T` in `w` then `x` is a `T` in `w'`*.
+  Rigidity is a property of each typing, and the type definitions state how a type's instances
+  distribute over it: `logic:RigidType` applies necessarily to each instance, `logic:AntiRigidType`
+  applies contingently to **every** instance, and `logic:SemiRigidType` is permanent for **some**
+  instances and contingent for others. A `Role`/`Phase` declares the anti-rigid sort — the same
+  constraint *negated* — and holds only while every instance is contingently typed: a type with one
+  permanently typed instance and one contingently typed instance is semi-rigid, whatever its
+  stereotype, and anti-rigidity is not asserted of it. The solver needs no native ◻ operator: the
+  compiler emits a universally quantified, world-indexed rule evaluated by closure/counting over the
+  world set.
 - **Boundedness.** Because the world set is the *finite, materialized* contextual index — not the
   unbounded space of all logically possible worlds — evaluation is bounded universal quantification,
   not full modal theorem proving.
@@ -732,7 +740,7 @@ counter-world has been materialized. A policy must be chosen:
 
 | Policy | Meaning | Tradeoff |
 |---|---|---|
-| Witness-required | anti-rigid instantiation is invalid unless a counter-world exists | strict but heavy |
+| Witness-required | anti-rigid instantiation is invalid unless an accessible counter-world admissibly evidences the loss | strict but heavy |
 | Witness-obligation | the solver emits an obligation to construct or cite such a world | practical |
 | Schema-only anti-rigidity | anti-rigidity constrains the type hierarchy, not each token instance | closest to a structural check |
 | Context-dependent | finite-context reasoning uses obligation; generative reasoning may construct witnesses | most flexible |
@@ -745,10 +753,42 @@ counter-world has been materialized. A policy must be chosen:
 
 The three policy values are enforced by a dedicated anti-rigidity pass: `witness-obligation` (default,
 emits a discharge obligation), `schema-only` (emits nothing at the instance level), and
-`witness-required` (emits a witness-required violation absent a materialized counter-world). The policy
-governs **only** the obligation/witness facet; the `logic:violation` and rigidity-violation findings
-are computed by separate passes and are identical across all three policy values (the non-suppression
-invariant).
+`witness-required` (emits a witness-required violation absent an admissible counter-world). The
+policy governs **only** the obligation/witness facet; the `logic:violation` and rigidity-violation
+findings are computed by separate passes and are identical across all three policy values (the
+non-suppression invariant). The obligation applies only to a type whose instances are all contingently
+typed; a semi-rigid type owes no witness.
+
+### Admissible evidence for a cross-world judgment
+
+A cross-world judgment — a `logic:rigidityViolation`, or the discharge of an anti-rigidity witness —
+binds the same individual `x` and the same type `T` in both worlds, and a counter-world cannot be
+conjured from the absence of data. It rests on four things:
+
+1. **A permitted world.** `w'` is judged from `w` only when a typed accessibility record `w R w'` is
+   present, with `R` the alethic `logic:epistemicallyPossible` or the temporal
+   `logic:temporallySucceeds`. The bare `logic:accessibleFrom` superproperty, the doxastic, deontic,
+   counterfactual and standpoint relations, and the absence of any record license nothing: an
+   inaccessible world neither fires a violation nor discharges a witness.
+2. **Continued existence.** `x` is the subject of a statement in `w'` other than its own
+   non-membership assertion. A world that never mentions `x` says nothing about it.
+3. **Negative membership.** `x` is not typed `T` in `w'`, and that is evidenced: an explicit
+   `x logic:notInstanceOf T` assertion in `w'`, or a `logic:ClosureEntry` authored in `w'` with
+   `logic:closureKey T`, `logic:closureIndividual x` and `logic:closureValue
+   logic:ClosedWorldClosure`. Absence of a typing in a materialized graph is never negative
+   evidence: open world is the default, and closure is per type, per individual and per context.
+4. **The selected contract.** The closure that supports the negative membership is the one the
+   world's authoring context declares; an entry for another individual, another type, another world
+   or an open-world value does not apply.
+
+The worked case is a board's minutes that identify Alice as a board member, modelled as a
+`gmeow:Membership` (organization) founded on the bylaws (agreements), according to the minutes'
+standpoint (standpoint), valid from the start of the term (temporal) and attributed to the
+secretary (provenance). An address register that mentions Alice and says nothing about her role
+leaves the witness obligation open, because it gives no evidence that she lost the role. A later
+assertion that is accessible from the minutes, shows Alice still present and carries either the
+explicit non-membership or the scoped closure discharges the obligation; it keeps its own
+attribution and closes the membership's period (`gmeow:validUntil`) without rewriting the minutes.
 
 ## Worlds, Modality, and Counterfactuals — a typed context algebra
 

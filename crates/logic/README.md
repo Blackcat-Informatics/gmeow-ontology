@@ -196,10 +196,14 @@ derive `?C logic:violation <label>` facts for:
 
 Positive cross-world rigidity cannot be expressed as an in-world Datalog rule because the chase
 is world-local. It is evaluated by a bounded closure pass over the finite materialized world set,
-emitting `logic:rigidityViolation` quads in the world where rigidity persistence fails. The
+emitting `logic:rigidityViolation` quads in the world where rigidity persistence fails: an accessible
+world (a typed `logic:epistemicallyPossible` or `logic:temporallySucceeds` record) in which the
+individual still exists and carries admissible evidence of the loss, an explicit
+`logic:notInstanceOf` assertion or a scoped closed-world `logic:ClosureEntry`. The
 anti-rigidity witness policy (`witness-obligation` / `witness-required` / `schema-only`) is a
 companion pass that emits `logic:dischargeObligation` / `logic:witnessRequiredViolation` per the
-declared policy without ever suppressing a violation.
+declared policy without ever suppressing a violation; the witness is discharged only by the same
+admissible evidence, and a semi-rigid type owes none.
 
 ### Native Rust evaluator
 

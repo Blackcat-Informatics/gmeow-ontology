@@ -200,7 +200,7 @@ logic:ClosureEntry
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Closure Entry"@x-gmeow-english ;
-    skos:definition "A reified entry of the Closure facet map: it binds a predicate or context key (logic:closureKey) to an open- or closed-world value (logic:closureValue). The Closure facet is a map, not a global flag; WorldBoundary-scoped closed-world is the per-key value, open-world the default for unlisted keys."@x-gmeow-english ;
+    skos:definition "A reified entry of the Closure facet map: it binds a predicate or context key (logic:closureKey) to an open- or closed-world value (logic:closureValue). The Closure facet is a map, not a global flag; WorldBoundary-scoped closed-world is the per-key value, open-world the default for unlisted keys. An entry may be scoped to one individual through logic:closureIndividual, so that a closed-world closure of a type is local to that individual and to the context that authors the entry."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:ClosureValue
@@ -2899,6 +2899,15 @@ logic:closureValue
     rdfs:label "closure value"@x-gmeow-english ;
     skos:definition "Relates a logic:ClosureEntry to the logic:ClosureValue (open- or closed-world) it assigns to its key. Domain logic:ClosureEntry, range logic:ClosureValue (stated in prose, matching the module's convention). Together with logic:closureKey it forms one binding of the closure map."@x-gmeow-english .
 
+logic:closureIndividual
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "closure individual"@x-gmeow-english ;
+    skos:definition "Relates a logic:ClosureEntry to the individual its closure is scoped to. An entry that names a type through logic:closureKey, an individual through logic:closureIndividual and logic:ClosedWorldClosure through logic:closureValue, and that is authored in a context, makes the absence of the individual from the type in that context negative membership evidence: the individual is read as not a member there. Closure is per type, per individual and per context; an entry with no individual scope supplies no negative membership evidence to a cross-world rigidity judgment or an anti-rigidity witness. Domain logic:ClosureEntry, range logic:Individual."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain logic:ClosureEntry ;
+    logic:range logic:Individual .
+
 logic:complexityClass
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -2998,7 +3007,7 @@ logic:dischargeObligation
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "discharge obligation"@x-gmeow-english ;
-    skos:definition "Relates an individual to an anti-rigid type it instantiates contingently, carrying the standing obligation to construct or cite a world of existence in which the individual lacks that type (the anti-rigidity witness). The instance-level diagnostic the anti-rigidity lowering emits under the witness-obligation policy (the default; LOGIC-SEMANTICS.md §Anti-rigidity needs a witness policy): for an individual x typed by an anti-rigid Role or Phase T in a world, a logic:dischargeObligation fact is entailed in that world. It is an obligation, NOT a violation — anti-rigid instantiation is licensed on the promise that the counter-world is satisfiable on demand (its construction happens on demand); the lighter schema-only policy emits nothing instance-level, the stricter witness-required policy emits logic:witnessRequiredViolation instead. Like the other derived diagnostics it is never asserted by hand."@x-gmeow-english .
+    skos:definition "Relates an individual to an anti-rigid type it instantiates contingently, carrying the standing obligation to construct or cite a world of existence in which the individual lacks that type (the anti-rigidity witness). The instance-level diagnostic the anti-rigidity lowering emits under the witness-obligation policy (the default; LOGIC-SEMANTICS.md §Anti-rigidity needs a witness policy): for an individual x typed by a Role or Phase T in a world, where every instance of T is contingently typed (a type with a permanently typed instance is semi-rigid and owes no witness), a logic:dischargeObligation fact is entailed in that world. It is an obligation, NOT a violation — anti-rigid instantiation is licensed on the promise that the counter-world is satisfiable on demand (its construction happens on demand); the lighter schema-only policy emits nothing instance-level, the stricter witness-required policy emits logic:witnessRequiredViolation instead. Like the other derived diagnostics it is never asserted by hand."@x-gmeow-english .
 
 logic:disjoint
     a logic:ObjectProperty ;
@@ -3155,6 +3164,15 @@ logic:instanceOf
     rdfs:label "instance of"@x-gmeow-english ;
     skos:definition "HiLog deep instantiation: relates an individual or a type to a (possibly higher-order) type it instantiates, across any number of meta-levels. The first-class multi-level primitive that replaces OWL punning (criticism 5): types are reified as first-order individuals so 'an instance of a type that is itself an instance of a metatype' is ordinary first-order quantification rather than a punning trick. The general relation of which logic:suppliesIdentity is the identity-supplying specialization."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:notInstanceOf
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "not instance of"@x-gmeow-english ;
+    skos:definition "Relates an individual to a type it is explicitly asserted NOT to instantiate in the context that asserts the statement: an explicit non-membership assertion, the typed counterpart of logic:instanceOf. It is negative membership evidence for a cross-world rigidity judgment and for an anti-rigidity witness, and it is not evidence that the individual exists in that context: continued existence needs a positive statement about the individual. An assertion that contradicts a positive typing of the same individual by the same type in the same context is not admissible evidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain logic:Individual ;
+    logic:range logic:Type .
 
 logic:integrativeBasis
     a logic:ObjectProperty ;
@@ -3500,14 +3518,14 @@ logic:rigidityViolation
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "rigidity violation"@x-gmeow-english ;
-    skos:definition "Relates an individual to a rigid type it fails to persist as across worlds: the derived diagnostic of the positive cross-world rigidity discipline (the fourth OntoUML discipline, the one the type-only lint cannot express). For an individual x and a rigid type T, if x instantiates T in some world but still exists in another world where it is NOT typed T, a logic:rigidityViolation fact is entailed in that other world. Unlike logic:violation it is not produced by an in-world Datalog rule — rigidity quantifies over pairs of worlds and the chase is world-local, so it is evaluated by bounded closure over the finite materialized world set (LOGIC-SEMANTICS.md §Operational semantics). It is never asserted by hand; its presence is a machine-checkable proof that a rigid type's instantiation did not carry over to a world where the individual persists."@x-gmeow-english .
+    skos:definition "Relates an individual to a rigid type it fails to persist as across worlds: the derived diagnostic of the positive cross-world rigidity discipline (the fourth OntoUML discipline, the one the type-only lint cannot express). For an individual x and a type T that necessarily classifies x, if x instantiates T in a world w1, a world w2 is accessible from w1 along a typed accessibility record (logic:epistemicallyPossible or logic:temporallySucceeds), x still exists in w2 (it is the subject of a statement there other than its own non-membership assertion), and w2 carries admissible evidence that x is NOT a T (an explicit logic:notInstanceOf assertion in w2, or a closed-world logic:ClosureEntry in w2 scoped to T and x through logic:closureIndividual), a logic:rigidityViolation fact is entailed in w2. The mere absence of a T typing in a world, and a world that no typed accessibility record reaches, entail nothing. Unlike logic:violation it is not produced by an in-world Datalog rule — rigidity quantifies over pairs of worlds and the chase is world-local, so it is evaluated by bounded closure over the finite materialized world set (LOGIC-SEMANTICS.md §Operational semantics). It is never asserted by hand; its presence is a machine-checkable proof that a rigid type's instantiation did not carry over to a world where the individual persists."@x-gmeow-english .
 
 logic:rigidlyAppliesTo
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "rigidly applies to"@x-gmeow-english ;
     logic:instantiatesFramework logic:ModalFramework ;
-    skos:definition "Relates a rigid type to the individuals it necessarily classifies: for every individual and every pair of worlds in which the individual exists, if it instantiates the type in one world it instantiates it in the other. The modal rigidity constraint; a Kind rigidly applies to its instances, an anti-rigid Role or Phase does not (the same constraint negated). Lowered to a universally quantified, world-indexed rule evaluated by closure over the finite materialized world set, needing no native modal operator."@x-gmeow-english .
+    skos:definition "Relates a type to one individual it necessarily classifies: for every pair of worlds in which the individual exists, if it instantiates the type in one world it instantiates it in the other. The modal rigidity constraint, stated per instance: a Kind or SubKind rigidly applies to every instance by its stereotype; a record for one individual makes that typing permanent without making the type rigid for its other instances, so a type with one permanently typed and one contingently typed instance is a logic:SemiRigidType; an anti-rigid Role or Phase has no such record for any instance (the same constraint negated). Lowered to a universally quantified, world-indexed rule evaluated by closure over the finite materialized world set, needing no native modal operator."@x-gmeow-english .
 
 logic:selfAssertiveBasis
     a logic:ObjectProperty ;
@@ -3592,7 +3610,7 @@ logic:witnessRequiredViolation
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "witness required violation"@x-gmeow-english ;
-    skos:definition "Relates an individual to an anti-rigid type it instantiates with no materialized counter-world to witness the anti-rigidity: the instance-level diagnostic the anti-rigidity lowering emits under the strict witness-required policy (LOGIC-SEMANTICS.md §Anti-rigidity needs a witness policy). For an individual x typed by an anti-rigid Role or Phase T in a world, if there is no other materialized world in which x exists but is NOT typed T, a logic:witnessRequiredViolation fact is entailed in the typing world; a counter-world that witnesses x existing untyped by T discharges the obligation and no violation is emitted. Unlike the default witness-obligation policy (which emits logic:dischargeObligation, an obligation rather than a violation) this policy treats a missing counter-world as a hard failure; the construction of the witness world itself happens on demand. It is never asserted by hand; its presence is a machine-checkable proof that an anti-rigid instantiation lacks the world of existence its anti-rigidity requires."@x-gmeow-english .
+    skos:definition "Relates an individual to an anti-rigid type it instantiates with no admissible counter-world to witness the anti-rigidity: the instance-level diagnostic the anti-rigidity lowering emits under the strict witness-required policy (LOGIC-SEMANTICS.md §Anti-rigidity needs a witness policy). For an individual x typed by a Role or Phase T in a world, where every instance of T is contingently typed, if no world accessible from it along a typed accessibility record (logic:epistemicallyPossible or logic:temporallySucceeds) both shows x existing and carries admissible evidence that x is NOT a T there, a logic:witnessRequiredViolation fact is entailed in the typing world. Admissible evidence is an explicit logic:notInstanceOf assertion in that world, or a closed-world logic:ClosureEntry in that world scoped to T and x through logic:closureIndividual; a world that merely mentions x, or that no typed accessibility record reaches, discharges nothing. A counter-world that qualifies discharges the obligation and no violation is emitted. Unlike the default witness-obligation policy (which emits logic:dischargeObligation, an obligation rather than a violation) this policy treats a missing counter-world as a hard failure; the construction of the witness world itself happens on demand. It is never asserted by hand; its presence is a machine-checkable proof that an anti-rigid instantiation lacks the world of existence its anti-rigidity requires."@x-gmeow-english .
 
 logic:activeInState
     a logic:ObjectProperty ;

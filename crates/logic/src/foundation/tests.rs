@@ -487,55 +487,414 @@ fn anti_rigidity_witness_required_fires_when_not_discharged() {
     );
 }
 
-#[test]
-fn anti_rigidity_witness_required_discharged_by_counter_world() {
-    // carol typed Employee in worldA, exists (untyped Employee) in worldB → discharged.
-    let base = "https://example.org/foundation/anti-rig-discharged";
-    let nq = format!(
-        "<{base}/Employee> <{RDF_TYPE_P}> <{LOGIC}Role> <{base}/worldA> .\n\
-         <{base}/carol> <{RDF_TYPE_P}> <{base}/Employee> <{base}/worldA> .\n\
-         <{base}/carol> <{base}/livesIn> <{base}/Berlin> <{base}/worldB> .\n"
+const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+const BOARD: &str = "https://example.org/foundation/board";
+
+/// One N-Quads line `<s> <p> <o> <g> .`.
+fn nq_line(subject: &str, predicate: &str, object: &str, graph: &str) -> String {
+    format!("<{subject}> <{predicate}> <{object}> <{graph}> .\n")
+}
+
+/// A typed accessibility record `from epistemicallyPossible to`, asserted in `from`.
+fn accessible(from: &str, to: &str) -> String {
+    nq_line(from, &format!("{LOGIC}epistemicallyPossible"), to, from)
+}
+
+/// Alice is a subject of the world, saying nothing about her board role.
+fn alice_mentioned_in(world: &str) -> String {
+    nq_line(
+        &format!("{BOARD}/alice"),
+        &format!("{BOARD}/residesAt"),
+        &format!("{BOARD}/elmStreet"),
+        world,
+    )
+}
+
+/// The minutes world: `BoardMember` is a `logic:Role`, Alice holds it, and a
+/// `gmeow:Membership` relator (organization) founded on the bylaws (agreements)
+/// records the period (temporal), the standpoint it is according to (standpoint) and
+/// who attributes it (provenance).
+fn board_minutes() -> String {
+    let minutes = format!("{BOARD}/minutes");
+    let m1 = format!("{BOARD}/membership1");
+    let mut nq = String::new();
+    nq += &nq_line(
+        &format!("{BOARD}/BoardMember"),
+        RDF_TYPE_P,
+        &format!("{LOGIC}Role"),
+        &minutes,
     );
-    let quads = run(&nq, AntiRigidityPolicy::WitnessRequired);
+    nq += &nq_line(
+        &format!("{BOARD}/alice"),
+        RDF_TYPE_P,
+        &format!("{BOARD}/BoardMember"),
+        &minutes,
+    );
+    nq += &nq_line(&m1, RDF_TYPE_P, &format!("{GMEOW}Membership"), &minutes);
+    for (predicate, object) in [
+        ("membershipMember", format!("{BOARD}/alice")),
+        ("membershipOrganization", format!("{BOARD}/board")),
+        ("foundedOn", format!("{BOARD}/bylaws")),
+        ("validFrom", format!("{BOARD}/instant/2023-01-01")),
+        ("accordingTo", format!("{BOARD}/minutesStandpoint")),
+        ("wasAttributedTo", format!("{BOARD}/secretary")),
+    ] {
+        nq += &nq_line(&m1, &format!("{GMEOW}{predicate}"), &object, &minutes);
+    }
+    nq
+}
+
+fn board_violation_open(nq: &str) -> bool {
+    let quads = run(nq, AntiRigidityPolicy::WitnessRequired);
     let pred = format!("{LOGIC}witnessRequiredViolation");
+    quads.iter().any(|q| {
+        q.subject == format!("{BOARD}/alice")
+            && q.predicate == pred
+            && q.object == format!("<{BOARD}/BoardMember>")
+            && q.graph == format!("{BOARD}/minutes")
+    })
+}
+
+/// A later assertion that Alice no longer holds the role, with its own attribution
+/// and the end of the membership's period.
+fn later_loss_of_role(evidence: &str) -> String {
+    let later = format!("{BOARD}/later");
+    let mut nq = alice_mentioned_in(&later);
+    nq += evidence;
+    nq += &nq_line(
+        &format!("{BOARD}/membership1"),
+        &format!("{GMEOW}validUntil"),
+        &format!("{BOARD}/instant/2025-01-01"),
+        &later,
+    );
+    nq += &nq_line(
+        &format!("{BOARD}/membership1"),
+        &format!("{GMEOW}wasAttributedTo"),
+        &format!("{BOARD}/clerk"),
+        &later,
+    );
+    nq
+}
+
+/// A closure entry with `value` for `key` over `individual`, authored in `world`.
+fn closure_entry(world: &str, key: &str, individual: &str, value: &str) -> String {
+    let entry = format!("{BOARD}/closure");
+    let mut nq = nq_line(&entry, RDF_TYPE_P, &format!("{LOGIC}ClosureEntry"), world);
+    nq += &nq_line(&entry, &format!("{LOGIC}closureKey"), key, world);
+    nq += &nq_line(&entry, &format!("{LOGIC}closureValue"), value, world);
+    nq += &nq_line(
+        &entry,
+        &format!("{LOGIC}closureIndividual"),
+        individual,
+        world,
+    );
+    nq
+}
+
+/// INVARIANT: a world that merely mentions an individual is not evidence that the
+/// individual lost a role.  The address register leaves the standing witness
+/// obligation open under both the default and the witness-required policy.
+#[test]
+fn address_register_leaves_the_role_witness_open() {
+    let register = format!("{BOARD}/register");
+    let nq = board_minutes()
+        + &accessible(&format!("{BOARD}/minutes"), &register)
+        + &alice_mentioned_in(&register);
+
+    assert!(
+        board_violation_open(&nq),
+        "an accessible mention of Alice without role-loss evidence must not discharge"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        quads.iter().any(|q| q.subject == format!("{BOARD}/alice")
+            && q.predicate == format!("{LOGIC}dischargeObligation")),
+        "the default policy keeps the obligation standing"
+    );
+}
+
+/// INVARIANT: an accessible alternative that positively supports Alice's continued
+/// existence and her loss of the role discharges the witness requirement, and the
+/// later assertion keeps its own attribution and the period it closes.
+#[test]
+fn accessible_alternative_with_explicit_loss_discharges_the_witness() {
+    let minutes = format!("{BOARD}/minutes");
+    let later = format!("{BOARD}/later");
+    let loss = nq_line(
+        &format!("{BOARD}/alice"),
+        &format!("{LOGIC}notInstanceOf"),
+        &format!("{BOARD}/BoardMember"),
+        &later,
+    );
+    let nq = board_minutes() + &accessible(&minutes, &later) + &later_loss_of_role(&loss);
+
+    assert!(
+        !board_violation_open(&nq),
+        "an explicit non-membership assertion over a living Alice discharges the witness"
+    );
+    let set = quad_set(&run(&nq, AntiRigidityPolicy::WitnessRequired));
+    for (predicate, object) in [
+        ("wasAttributedTo", "clerk"),
+        ("validUntil", "instant/2025-01-01"),
+    ] {
+        assert!(
+            set.contains(&(
+                format!("{BOARD}/membership1"),
+                format!("{GMEOW}{predicate}"),
+                format!("<{BOARD}/{object}>"),
+                later.clone(),
+            )),
+            "the later assertion must keep its {predicate}"
+        );
+    }
+    assert!(
+        set.contains(&(
+            format!("{BOARD}/membership1"),
+            format!("{GMEOW}wasAttributedTo"),
+            format!("<{BOARD}/secretary>"),
+            minutes,
+        )),
+        "the minutes keep their own attribution beside the later one"
+    );
+}
+
+/// INVARIANT: absence is negative evidence only under a closed-world closure for the
+/// type, the individual and the context.  A closure over another individual, an
+/// open-world closure, and a closure authored in another world do not apply.
+#[test]
+fn scoped_closed_world_closure_is_the_only_absence_evidence() {
+    let minutes = format!("{BOARD}/minutes");
+    let later = format!("{BOARD}/later");
+    let closed = format!("{LOGIC}ClosedWorldClosure");
+    let open = format!("{LOGIC}OpenWorldClosure");
+    let alice = format!("{BOARD}/alice");
+    let member = format!("{BOARD}/BoardMember");
+    let base = board_minutes() + &accessible(&minutes, &later) + &later_loss_of_role("");
+
+    let applicable = base.clone() + &closure_entry(&later, &member, &alice, &closed);
+    assert!(
+        !board_violation_open(&applicable),
+        "a closure scoped to Alice, BoardMember and the later world discharges"
+    );
+    for (why, closure) in [
+        (
+            "another individual",
+            closure_entry(&later, &member, &format!("{BOARD}/bob"), &closed),
+        ),
+        (
+            "an open-world value",
+            closure_entry(&later, &member, &alice, &open),
+        ),
+        (
+            "another world",
+            closure_entry(&minutes, &member, &alice, &closed),
+        ),
+    ] {
+        assert!(
+            board_violation_open(&(base.clone() + &closure)),
+            "a closure over {why} must leave the witness open"
+        );
+    }
+}
+
+/// INVARIANT: a world with no typed accessibility record from the typing world is not
+/// judged: even complete loss evidence there neither discharges the witness nor
+/// fires a rigidity violation.
+#[test]
+fn inaccessible_world_neither_discharges_nor_violates() {
+    let later = format!("{BOARD}/later");
+    let loss = nq_line(
+        &format!("{BOARD}/alice"),
+        &format!("{LOGIC}notInstanceOf"),
+        &format!("{BOARD}/BoardMember"),
+        &later,
+    );
+    let nq = board_minutes() + &later_loss_of_role(&loss);
+    assert!(
+        board_violation_open(&nq),
+        "an inaccessible alternative must not discharge the witness"
+    );
+
+    let person = format!("{BOARD}/Person");
+    let rigid = nq_line(&person, RDF_TYPE_P, &format!("{LOGIC}Kind"), &later)
+        + &nq_line(
+            &format!("{BOARD}/alice"),
+            RDF_TYPE_P,
+            &person,
+            &format!("{BOARD}/minutes"),
+        )
+        + &nq_line(
+            &format!("{BOARD}/alice"),
+            &format!("{LOGIC}notInstanceOf"),
+            &person,
+            &later,
+        )
+        + &alice_mentioned_in(&later);
+    let quads = run(&rigid, AntiRigidityPolicy::WitnessObligation);
     assert!(
         !quads
             .iter()
-            .any(|q| q.subject == format!("{base}/carol") && q.predicate == pred),
-        "a counter-world must discharge the witness-required obligation"
+            .any(|q| q.predicate == format!("{LOGIC}rigidityViolation")),
+        "an inaccessible world must not fire a rigidity violation"
+    );
+}
+
+/// INVARIANT: the policy governs only the obligation facet; the rigidity findings are
+/// identical under every anti-rigidity policy.
+#[test]
+fn rigidity_findings_do_not_depend_on_the_witness_policy() {
+    let minutes = format!("{BOARD}/minutes");
+    let later = format!("{BOARD}/later");
+    let person = format!("{BOARD}/Person");
+    let nq = board_minutes()
+        + &accessible(&minutes, &later)
+        + &nq_line(&person, RDF_TYPE_P, &format!("{LOGIC}Kind"), &minutes)
+        + &nq_line(&format!("{BOARD}/alice"), RDF_TYPE_P, &person, &minutes)
+        + &later_loss_of_role("")
+        + &closure_entry(
+            &later,
+            &person,
+            &format!("{BOARD}/alice"),
+            &format!("{LOGIC}ClosedWorldClosure"),
+        );
+    let findings = |policy| {
+        run(&nq, policy)
+            .into_iter()
+            .filter(|q| q.predicate == format!("{LOGIC}rigidityViolation"))
+            .map(|q| (q.graph, q.subject, q.object))
+            .collect::<Vec<_>>()
+    };
+    let default = findings(AntiRigidityPolicy::WitnessObligation);
+    assert_eq!(
+        default,
+        vec![(later, format!("{BOARD}/alice"), format!("<{person}>"))],
+        "Alice's rigid Person typing must be reported as lost in the later world"
+    );
+    assert_eq!(default, findings(AntiRigidityPolicy::SchemaOnly));
+    assert_eq!(default, findings(AntiRigidityPolicy::WitnessRequired));
+}
+
+/// INVARIANT: anti-rigidity requires contingency for EVERY instance.  A type with one
+/// permanently typed and one contingently typed instance is semi-rigid: it owes no
+/// anti-rigidity witness, and only the permanent typing is held rigid across worlds.
+#[test]
+fn semi_rigid_type_owes_no_witness_and_holds_only_its_permanent_instance_rigid() {
+    let minutes = format!("{BOARD}/minutes");
+    let later = format!("{BOARD}/later");
+    let board_member = format!("{BOARD}/BoardMember");
+    let dave = format!("{BOARD}/dave");
+    let mut contingent = board_minutes() + &nq_line(&dave, RDF_TYPE_P, &board_member, &minutes);
+    contingent += &accessible(&minutes, &later);
+    for who in [format!("{BOARD}/alice"), dave.clone()] {
+        contingent += &nq_line(
+            &who,
+            &format!("{BOARD}/residesAt"),
+            &format!("{BOARD}/elmStreet"),
+            &later,
+        );
+        contingent += &nq_line(
+            &who,
+            &format!("{LOGIC}notInstanceOf"),
+            &board_member,
+            &later,
+        );
+    }
+    let semi_rigid = contingent.clone()
+        + &nq_line(
+            &board_member,
+            &format!("{LOGIC}rigidlyAppliesTo"),
+            &dave,
+            &minutes,
+        );
+
+    let obligations = |nq: &str| {
+        run(nq, AntiRigidityPolicy::WitnessObligation)
+            .into_iter()
+            .filter(|q| q.predicate == format!("{LOGIC}dischargeObligation"))
+            .count()
+    };
+    assert_eq!(
+        obligations(&contingent),
+        2,
+        "a type contingent for every instance owes a witness for each"
+    );
+    assert_eq!(
+        obligations(&semi_rigid),
+        0,
+        "a type with a permanently typed instance is semi-rigid and owes no witness"
+    );
+
+    let violations: Vec<String> = run(&semi_rigid, AntiRigidityPolicy::WitnessRequired)
+        .into_iter()
+        .filter(|q| q.predicate == format!("{LOGIC}rigidityViolation"))
+        .map(|q| q.subject)
+        .collect();
+    assert_eq!(
+        violations,
+        vec![dave],
+        "only the permanently typed instance must persist across worlds"
     );
 }
 
 // ── Cross-world rigidity ─────────────────────────────────────────────────────────
 
+/// INVARIANT: a rigid typing is held across the worlds the typed accessibility
+/// records reach, and its loss there needs admissible evidence.  A bare mention of
+/// the individual is not a violation; an explicit non-membership assertion or a
+/// scoped closed-world closure is, and a persisting individual never is.
 #[test]
-fn cross_world_rigidity_fires_two_worlds() {
-    // Mirrors conformance cross-world-rigidity: alice is a Person (Kind=rigid) in
-    // worldA and still exists in worldB but is NOT typed Person there → violation in B.
+fn cross_world_rigidity_fires_only_on_admissible_loss_evidence() {
     let base = "https://example.org/foundation/cross-world-rigidity";
-    let nq = format!(
-        "<{base}/Person> <{RDF_TYPE_P}> <{LOGIC}Kind> <{base}/worldA> .\n\
-         <{base}/alice> <{RDF_TYPE_P}> <{base}/Person> <{base}/worldA> .\n\
-         <{base}/bob> <{RDF_TYPE_P}> <{base}/Person> <{base}/worldA> .\n\
-         <{base}/alice> <{base}/livesIn> <{base}/Berlin> <{base}/worldB> .\n\
-         <{base}/bob> <{RDF_TYPE_P}> <{base}/Person> <{base}/worldB> .\n"
-    );
-    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    let (world_a, world_b) = (format!("{base}/worldA"), format!("{base}/worldB"));
+    let person = format!("{base}/Person");
+    let alice = format!("{base}/alice");
+    let nq = nq_line(&person, RDF_TYPE_P, &format!("{LOGIC}Kind"), &world_a)
+        + &nq_line(&alice, RDF_TYPE_P, &person, &world_a)
+        + &nq_line(&format!("{base}/bob"), RDF_TYPE_P, &person, &world_a)
+        + &nq_line(
+            &alice,
+            &format!("{base}/livesIn"),
+            &format!("{base}/Berlin"),
+            &world_b,
+        )
+        + &nq_line(&format!("{base}/bob"), RDF_TYPE_P, &person, &world_b)
+        + &accessible(&world_a, &world_b);
     let pred = format!("{LOGIC}rigidityViolation");
-    // alice: typed Person in A, exists in B but not typed Person → violation in B.
-    assert!(
-        quads.iter().any(|q| q.subject == format!("{base}/alice")
-            && q.predicate == pred
-            && q.object == format!("<{base}/Person>")
-            && q.graph == format!("{base}/worldB")),
-        "alice must get a rigidityViolation in worldB"
-    );
-    // bob persists as Person into worldB → no violation.
-    assert!(
-        !quads
+    let violated = |nq: &str, who: &str| {
+        run(nq, AntiRigidityPolicy::WitnessObligation)
             .iter()
-            .any(|q| q.subject == format!("{base}/bob") && q.predicate == pred),
-        "bob (persists) must NOT get a rigidityViolation"
+            .any(|q| {
+                q.subject == who
+                    && q.predicate == pred
+                    && q.object == format!("<{person}>")
+                    && q.graph == world_b
+            })
+    };
+
+    assert!(
+        !violated(&nq, &alice),
+        "Alice merely existing in worldB, with no loss evidence, is not a violation"
+    );
+    let asserted =
+        nq.clone() + &nq_line(&alice, &format!("{LOGIC}notInstanceOf"), &person, &world_b);
+    assert!(
+        violated(&asserted, &alice),
+        "an explicit non-membership assertion in worldB must give Alice a rigidityViolation"
+    );
+    let closed = nq
+        + &closure_entry(
+            &world_b,
+            &person,
+            &alice,
+            &format!("{LOGIC}ClosedWorldClosure"),
+        );
+    assert!(
+        violated(&closed, &alice),
+        "a closed-world closure scoped to Alice and Person must give Alice a rigidityViolation"
+    );
+    assert!(
+        !violated(&closed, &format!("{base}/bob")),
+        "bob persists as Person into worldB and must NOT get a rigidityViolation"
     );
 }
 
@@ -827,8 +1186,9 @@ fn provenance_isclass_derivation_matches_recipe() {
 
 #[test]
 fn provenance_rigidity_and_obligation_recipes() {
-    // Cross-world rigidity: alice rigidityViolation Person in worldB; witness is the
-    // worldA typing reifier; source_quad_ids empty.
+    // Cross-world rigidity: alice rigidityViolation Person in worldB (accessible from
+    // worldA, with an explicit non-membership assertion); witness is the worldA typing
+    // reifier; source_quad_ids empty.
     let base = "https://example.org/foundation/cross-world-rigidity";
     let nq = format!(
         "<{base}/Person> <{RDF_TYPE_P}> <{LOGIC}Kind> <{base}/worldA> .\n\
@@ -837,7 +1197,9 @@ fn provenance_rigidity_and_obligation_recipes() {
          <{base}/bob> <{RDF_TYPE_P}> <{base}/Person> <{base}/worldA> .\n\
          <{base}/carol> <{RDF_TYPE_P}> <{base}/Employee> <{base}/worldA> .\n\
          <{base}/alice> <{base}/livesIn> <{base}/Berlin> <{base}/worldB> .\n\
-         <{base}/bob> <{RDF_TYPE_P}> <{base}/Person> <{base}/worldB> .\n"
+         <{base}/bob> <{RDF_TYPE_P}> <{base}/Person> <{base}/worldB> .\n\
+         <{base}/worldA> <{LOGIC}epistemicallyPossible> <{base}/worldB> <{base}/worldA> .\n\
+         <{base}/alice> <{LOGIC}notInstanceOf> <{base}/Person> <{base}/worldB> .\n"
     );
     let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
 
