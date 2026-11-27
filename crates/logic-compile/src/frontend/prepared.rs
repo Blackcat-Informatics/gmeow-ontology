@@ -280,8 +280,7 @@ impl PreparedLogicSource {
         &self,
         source_iri: Option<String>,
     ) -> Result<(LogicProgram, Vec<Diagnostic>), Diag> {
-        let compiled = self.compile_with_sources(source_iri)?;
-        Ok((compiled.program, compiled.diagnostics))
+        super::compile_program_from_source(self.dataset(), &self.source_graph, source_iri)
     }
 
     /// Retain native source anchors through formula routing, class-expression
@@ -295,7 +294,7 @@ impl PreparedLogicSource {
         source_iri: Option<String>,
     ) -> Result<super::SourceCompilation<'_>, Diag> {
         let (program, diagnostics, trace) =
-            super::compile_source_graph(self.dataset(), &self.source_graph, source_iri)?;
+            super::compile_source_graph(self.dataset(), &self.source_graph, source_iri, true)?;
         Ok(super::SourceCompilation {
             source: self,
             program,

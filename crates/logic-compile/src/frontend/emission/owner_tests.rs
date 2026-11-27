@@ -29,6 +29,89 @@ fn index(owner: &OwnerLowering) -> usize {
     index
 }
 
+/// Authored integrity owners bind the reused formula reads without annexing other source facts.
+#[test]
+fn authored_constraint_owner_retains_exact_integrity_carriers() {
+    let data = purrdf::parse_dataset(
+        br#"
+        @prefix ex: <https://example.org/> .
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .
+        ex:law a logic:Constraint ; logic:integrity ex:root ; ex:noise ex:elsewhere .
+        ex:root a logic:Formula ;
+            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "record" ],
+                [ logic:termIndex 1 ; logic:termVariable "revision" ] ;
+            logic:forall [ a logic:Formula ;
+                logic:antecedent [ a logic:Formula ; logic:relation ex:source ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "record" ],
+                        [ logic:termIndex 1 ; logic:termVariable "revision" ] ] ;
+                logic:consequent [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "digest" ] ;
+                    logic:exists ex:witness ] ] .
+        ex:witness a logic:Formula ; logic:relation ex:contentDigest ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "revision" ],
+                [ logic:termIndex 1 ; logic:termVariable "digest" ] ;
+            ex:noise ex:elsewhere .
+        ex:otherGraph { ex:witness logic:relation ex:otherDigest . }
+        "#,
+        "application/trig",
+        None,
+    )
+    .expect("parse a source-scoped existential integrity law");
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    for quad in data.owned_quads() {
+        builder
+            .push_owned_quad(&quad)
+            .expect("copy the source quad");
+    }
+    let witness = builder.intern_iri("https://example.org/witness").unwrap();
+    let relation = builder
+        .intern_iri("https://blackcatinformatics.ca/logic/relation")
+        .unwrap();
+    let digest = builder
+        .intern_iri("https://example.org/contentDigest")
+        .unwrap();
+    builder.push_annotation(witness, relation, digest).unwrap();
+    let source = PreparedLogicSource::new(&builder.freeze().unwrap()).unwrap();
+    let compiled = source.compile_with_sources(None).unwrap();
+    let law = owner(&compiled, "law", OwnerFamily::Constraint);
+    assert_eq!(
+        compiled.program().constraints[index(law)].iri,
+        "https://example.org/law"
+    );
+
+    let dataset = compiled.source().dataset();
+    let has = |subject, predicate, object, carrier| {
+        law.record_support.iter().any(|binding| {
+            let quad = binding.canonical;
+            binding.carrier == carrier
+                && matches!(dataset.resolve(quad.s), purrdf::TermRef::Iri(iri) if iri == subject)
+                && matches!(dataset.resolve(quad.p), purrdf::TermRef::Iri(iri) if iri == predicate)
+                && matches!(dataset.resolve(quad.o), purrdf::TermRef::Iri(iri) if iri == object)
+        })
+    };
+    assert!(has(
+        "https://example.org/law",
+        "https://blackcatinformatics.ca/logic/integrity",
+        "https://example.org/root",
+        Statement,
+    ));
+    for carrier in [Statement, Annotation] {
+        assert!(has(
+            "https://example.org/witness",
+            "https://blackcatinformatics.ca/logic/relation",
+            "https://example.org/contentDigest",
+            carrier,
+        ));
+    }
+    assert!(law.record_support.iter().all(|binding| {
+        binding.canonical.g.is_none()
+            && !matches!(
+                dataset.resolve(binding.canonical.p),
+                purrdf::TermRef::Iri("https://example.org/noise")
+            )
+    }));
+}
+
 /// The compact constraint binds its selected source rows and refuses ambiguous fields.
 #[test]
 fn forbidden_pattern_owner_preserves_physical_field_support() {
@@ -258,10 +341,15 @@ fn rejected_owners_bind_their_own_or_shared_original_diagnostics() {
     );
 }
 
+/// Protects diagnostic ownership when a contract declares incompatible facets.
 #[test]
 fn emitted_unsupported_contract_keeps_its_admission_error() {
     let source = prepared(
-        "ex:contract a logic:ReasoningContract ; logic:uncertaintyMeasure logic:ProbabilisticMeasure .",
+        r#"
+        ex:contract a logic:ReasoningContract ;
+            logic:modelSemantics logic:StableModelSemantics ;
+            logic:uncertaintyMeasure logic:ProbabilisticMeasure .
+        "#,
     );
     let compiled = source.compile_with_sources(None).unwrap();
     let contract = owner(&compiled, "contract", OwnerFamily::Contract);
