@@ -39,6 +39,9 @@
 //! proof operation. Referenced closure entries and
 //! facet-type support must belong to the selected source; compiler errors and
 //! scoped declarations still refuse admission.
+//! Selected, unscoped forbidden-pattern owners retain their exact asserted
+//! record fields and project the compiler's integrity formula as a denial.
+//! Unread support, uncertified guard classes and procedural predicates refuse.
 //!
 //! The source profile retains explicit `inContext` and typed modal standard
 //! translations through the canonical context-application family, keeping the

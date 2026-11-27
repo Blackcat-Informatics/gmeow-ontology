@@ -158,7 +158,7 @@ delta advances the head to `new_state_hash`. Re-submitting the *same* delta carr
 `expected_head` — which is now the stale prior hash — so the transition precondition
 `expected_head == head` fails and the re-submission is refused `Invalid` before any engine work. No
 in-memory set of seen deltas is needed: the guard is a property of the hash chain itself. Because
-`head` is also what a durable checkpoint stores and `restore` re-adopts (see [Content-addressed
+`head` is also what a durable checkpoint records and `restore` verifies against its replay (see [Content-addressed
 checkpoints](#content-addressed-checkpoints)), the guard **survives crash and restart** — a delta
 committed before a crash cannot be re-applied after recovery, since the restored head already reflects
 its commit.
@@ -170,15 +170,33 @@ run's cost vector or diagnostic into the hash.
 
 ## Content-addressed checkpoints
 
-A `Checkpoint` is a durable, content-addressed snapshot of a session's *position*, not its *circuit*.
-It stores exactly three things — the seven-axis `SessionIdentity`, the authorized EDB generation, and
-the journal head — plus a framed-BLAKE3 `content_address` over those three. It carries **no circuit
-state**: no serialized DBSP dataflow, no iteration history, no maintained arena.
+A `Checkpoint` is a durable, content-addressed record of a session's *position* and of the committed
+history that produced it, not of its *circuit*. It stores four fields:
 
-**Restore re-materializes; it does not deserialize the circuit.** `restore` re-runs `open` over the
-authorized EDB, program, contract, and annotation, deterministically rebuilding the maintained
-closure from scratch, then re-adopts the checkpoint's durable head. This is a deliberate design
-choice with two justifications:
+- the seven-axis `SessionIdentity`;
+- `edb_generation`, the authorized EDB generation that is the base of every stored delta;
+- `journal_head`, the journal head at checkpoint time;
+- `deltas`, the ordered sequence of committed deltas applied on top of the base, oldest first. Each
+  entry holds the delta's additions and each suppression's rows as canonical N-Quads, and the step
+  budget the delta committed under. A base checkpoint, minted before any apply, holds an empty
+  sequence.
+
+The `content_address` is a framed-BLAKE3 digest, in the domain `gmeow-logic-session-checkpoint-v1`,
+over the identity's `descriptor_hash`, `edb_generation`, `journal_head`, and then each delta in order:
+its additions, its retirement rows, and its step budget (`none` when absent). The identity contributes
+only its `descriptor_hash`, which binds the other identity axes at mint time. The stored copies of
+`program_hash`, `slice_hash`, `contract_hash`, `engine_descriptor_hash`, `annotation_identity`,
+`fragment` and `data_generation` are neither hashed nor checked individually. The preconditions
+`base_commit` and `expected_head` are not stored; restore reconstructs
+them from the replay state. A checkpoint carries **no circuit state**: no serialized DBSP dataflow,
+no iteration history, no maintained arena.
+
+**Restore re-materializes, then replays; it does not deserialize the circuit.** `restore` re-runs
+`open` over the authorized EDB, program, contract, and annotation supplied by the caller,
+deterministically rebuilding the base closure from scratch. It then replays the stored deltas on
+that base and verifies the reproduced head. The restored session's head is always the replayed head;
+a stored head is never adopted unverified. This is a deliberate design choice with two
+justifications:
 
 - **The iteration history is load-bearing and fragile.** A DBSP circuit's incremental state is its
   accumulated iteration history — a representation tightly coupled to the exact solver version,
@@ -187,25 +205,38 @@ choice with two justifications:
   optimization into a compatibility burden. Re-materialization has no such coupling.
 - **Re-materialization is deterministic and there is no measured perf need.** `open` over a fixed
   authorized EDB and program produces the byte-identical closure every time (the same discipline the
-  data-generation axis relies on), so a re-materialized session is *indistinguishable* from the one
-  the checkpoint captured. Absent a measured cost pressure, the deterministic rebuild is strictly
+  data-generation axis relies on), so the base rebuilt by `open` is identical to the base the checkpoint
+  was minted on, and replay over it reproduces the captured state. Absent a measured cost pressure, the deterministic rebuild is strictly
   preferable to a fragile serialized circuit.
 
-A restore passes a strict, ordered gate — each step a typed refusal carried on the API's own
-`OperationOutcome`, never a panic and never a silently-coerced rebuild:
+A restore passes a strict, ordered gate. Each refusal is a typed `OperationOutcome`, never a panic,
+and a refused restore returns no session:
 
-1. **Content integrity.** The checkpoint's `content_address` is recomputed and compared; a mismatch
-   is `Invalid { CorruptCheckpoint }` (the bytes were tampered with or corrupted).
-2. **Deterministic re-materialization.** `open` rebuilds the session; an engine fault here is
-   `EngineFailure`.
+1. **Content integrity.** `verify` recomputes the `content_address` over the identity's
+   `descriptor_hash`, the generation, the head and the deltas, and compares it with the stored one. A mismatch is `Invalid { CorruptCheckpoint }`
+   (the bytes were tampered with or corrupted).
+2. **Deterministic re-materialization.** `open` rebuilds the base session from the caller's
+   authorized EDB, program, contract, and annotation; an engine fault here is `EngineFailure`.
 3. **Identity gate.** The checkpoint's `descriptor_hash` must equal the freshly-reconstructed one.
    Because all seven axes fold into that one hash, a mismatch on **any** axis — data, rules, slice,
    contract, engine, annotation algebra, or fragment — is a single `Invalid { IdentityMismatch }`.
    This is why `restore` takes the *full* `open` inputs including the contract and annotation:
    `contract_hash` and `annotation_identity` cannot be reconstructed from `(edb, program)` alone, and
    all seven axes must be re-derivable to be gate-checked.
-4. **Explicit data-generation gate.** A precise `IdentityMismatch` on the EDB axis specifically, so a
-   drifted authorized world is refused with a pinpointed cause.
+4. **Explicit data-generation gate.** The rebuilt session's EDB generation must equal `edb_generation`;
+   a mismatch is a precise `IdentityMismatch` on the EDB axis, so a drifted authorized world is refused
+   with a pinpointed cause.
+5. **Replay.** The stored deltas are replayed oldest first. Each is reconstructed with `base_commit`
+   set to the session's data-generation and `expected_head` set to the session's current head, then
+   applied through the ordinary `apply` path. A payload that cannot be parsed or re-addressed is
+   `EngineFailure`. A delta whose apply returns any outcome other than `Applied` is
+   `Invalid { CheckpointReplayDivergence }`, carrying the checkpoint's `journal_head` and the head
+   reached when replay stopped.
+6. **Head verification.** The head after the last delta must equal `journal_head`. A different head
+   is `Invalid { CheckpointReplayDivergence }`, carrying both heads. Restore returns the session only
+   after this check passes.
+
+`restart` is an alias of `restore` with the same gates.
 
 The identity gate is what makes a checkpoint safe against a rebuilt world. **A rebuilt engine refuses
 the checkpoint** because the engine descriptor is one of the seven axes inside the identity: a bumped
@@ -213,6 +244,47 @@ engine mints a different `descriptor_hash`, step 3 declines, and the stale incre
 never resurrected under an engine that might interpret it differently. A checkpoint is thus restorable
 *only* against matching data / rule / slice / engine / contract / annotation / fragment identities —
 content-addressed and identity-gated together.
+
+### Base and post-change checkpoints
+
+A **base checkpoint**, minted before any apply, has an empty `deltas` sequence and a `journal_head`
+equal to the genesis head. Restore rebuilds the base closure with `open`, replays nothing, and checks
+that the rebuilt genesis head equals `journal_head`.
+
+A **checkpoint with a committed change** holds the base `edb_generation`, the committed delta `d1`
+(additions of `c→d` over a base of `a→b` and `b→c`) in `deltas`, and `journal_head` set to the head
+`h1` reached when `d1` committed. Restore:
+
+1. verifies the content address, which covers the payload of `d1`;
+2. rebuilds the base closure (`a→b`, `b→c`, and their reachability) and passes the identity and
+   data-generation gates;
+3. reconstructs `d1` against the genesis head and the unchanged data-generation, and applies it, which
+   yields `Applied`, the post-change closure, and head `h1`;
+4. checks that `h1` equals `journal_head`.
+
+The restored session holds the post-change closure at position `h1`. Restore never sets the head
+without first replaying the deltas that produce it, and a head unreachable from the stored deltas is
+refused at step 6.
+
+### Integrity and replay evidence
+
+The contract keeps two kinds of evidence apart:
+
+- **Integrity of the recorded bytes** is step 1. `verify` shows that the descriptor hash, generation,
+  head, and delta payloads match the stored address. It does not check the stored identity axes
+  individually. A checkpoint whose fields were altered and whose address was recomputed passes, so
+  establishing that the values are the originally minted ones requires an independently trusted
+  address or an authenticated record. Integrity does not show that replaying the deltas reproduces
+  the state.
+- **Evidence that replay reproduces the state** is steps 5 and 6. Every delta must apply as `Applied`,
+  and the replayed head must equal the recorded head. The journal head is a hash chain over the
+  previous head, each delta identity, and each outcome class (`gmeow-logic-transition-v1`). It does not
+  hash the closure contents. Head equality therefore confirms that the same sequence of accepted
+  transitions was reproduced, not that every closure fact matches. Closure agreement is evidenced by
+  the tests. `ac5_committed_delta_is_refused_after_restart` in
+  `crates/logic/tests/reasoning_session_crash_replay.rs` compares the restored closure with the
+  committed closure and with full recomputation over the committed EDB, and asserts that the restored
+  head equals `journal_head`. The restore path itself performs no closure comparison.
 
 ## The total, six-way `OperationOutcome`
 

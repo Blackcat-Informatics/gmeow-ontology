@@ -10,6 +10,159 @@ const CONTRACT: &str = r#"
 ex:contract a logic:ReasoningContract .
 "#;
 
+const DENIAL: &str = r#"
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex: <https://example.org/> .
+ex:ban a logic:ForbiddenPatternConstraint ;
+    logic:onClass ex:Guard ; logic:forbiddenPredicate ex:edge ;
+    logic:formalizes ex:Guard .
+"#;
+
+/// The selected source owner contributes a denial rather than its RDF syntax.
+#[test]
+fn selected_forbidden_pattern_projects_its_canonical_denial() {
+    for (pin, existential) in [
+        ("", true),
+        ("ex:ban logic:forbiddenValue ex:blocked .", false),
+    ] {
+        let theory = compile(&format!("{DENIAL}\n{pin}"));
+        let publication = crate::tptp::CanonAdmissionPublication::from_compiled_source(&theory);
+        let admission = publication.admission();
+        let projection = project_tptp_fof(&theory, admission);
+        let owner = admission
+            .units
+            .iter()
+            .find(|unit| unit.kind == SemanticUnitKind::Owner)
+            .expect("denial owner is inventoried");
+        assert!(matches!(
+            owner.disposition,
+            SemanticUnitDisposition::Admitted(
+                crate::frontend::AdmittedSemanticUnit::ForbiddenPattern { .. }
+            )
+        ));
+        assert_eq!(
+            projection.status,
+            FofProjectionStatus::Complete,
+            "{:?}",
+            projection.blockers
+        );
+        let sentence = projection
+            .sentences
+            .iter()
+            .find(|sentence| sentence.source_units.contains(&owner.id))
+            .expect("the projected denial retains its owner identity");
+        assert!(sentence.body.contains(" => (~ "));
+        assert_eq!(sentence.body.contains("? ["), existential);
+        let observed = crate::tptp::CanonAdmissionPublication::from_bytes(
+            &publication.to_bytes().expect("encode the admitted denial"),
+        )
+        .expect("decode the admitted denial observation");
+        assert!(
+            observed
+                .admission()
+                .units
+                .iter()
+                .any(|unit| unit.id == owner.id && unit.disposition == owner.disposition)
+        );
+        assert!(!observed.admission().matches(&theory));
+    }
+}
+
+/// Excluding a compact owner does not turn its failure metadata into domain facts.
+#[test]
+fn excluded_forbidden_pattern_keeps_its_exact_support_outside_the_problem() {
+    let theory = compile(&format!(
+        "{DENIAL}\nex:ban <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> ex:ForbiddenValue .\nex:item ex:separateFact ex:value ."
+    ));
+    let mut selection = SourceSelection::all_classical_roots(&theory);
+    selection.owners = RootSelection::None;
+    let admission = SourceAdmission::classical_fof(&theory, selection);
+    let projection = project_tptp_fof(&theory, &admission);
+    assert_eq!(
+        projection.status,
+        FofProjectionStatus::Complete,
+        "{:?}",
+        projection.blockers
+    );
+    let field = admission
+        .units
+        .iter()
+        .find(|unit| unit.anchor.contains("/enforcesFailureClass"))
+        .expect("the exact failure metadata row is inventoried");
+    assert!(matches!(
+        field.disposition,
+        SemanticUnitDisposition::OutsideSelection { .. }
+    ));
+    assert!(!projection.sentences.iter().any(|sentence| {
+        sentence.source_units.contains(&field.id) || sentence.body.contains("enforcesFailureClass")
+    }));
+    assert!(
+        projection
+            .sentences
+            .iter()
+            .any(|sentence| sentence.body.contains("separateFact"))
+    );
+}
+
+/// Each consumed field must remain in the selected source, without erasing scope.
+#[test]
+fn forbidden_pattern_projection_refuses_unread_or_scoped_fields() {
+    let theory = compile_documents(&[
+        (
+            "owner.ttl",
+            &DENIAL.replace("logic:forbiddenPredicate ex:edge ;", ""),
+            None,
+        ),
+        (
+            "edge.ttl",
+            "<https://example.org/ban> <https://blackcatinformatics.ca/logic/forbiddenPredicate> <https://example.org/edge> .",
+            None,
+        ),
+    ]);
+    let mut selection = SourceSelection::all_classical_roots(&theory);
+    selection.documents = DocumentSelection::Exact(BTreeSet::from(["owner.ttl".to_owned()]));
+    let unread = SourceAdmission::classical_fof(&theory, selection);
+    assert!(
+        unread
+            .units
+            .iter()
+            .any(|unit| unit.kind == SemanticUnitKind::Owner
+                && matches!(&unit.disposition, SemanticUnitDisposition::Blocked { code, .. }
+            if code == "UNADMITTED_FORBIDDEN_PATTERN_SUPPORT"))
+    );
+    assert_eq!(
+        project_tptp_fof(&theory, &unread).status,
+        FofProjectionStatus::Blocked
+    );
+
+    let (scoped, projection) = project(&format!("{DENIAL}\nex:ban logic:inContext ex:world ."));
+    assert!(
+        scoped
+            .units
+            .iter()
+            .any(|unit| unit.kind == SemanticUnitKind::Owner
+                && matches!(&unit.disposition, SemanticUnitDisposition::Blocked { code, .. }
+            if code == "CONTEXT_ERASURE_FORBIDDEN"))
+    );
+    assert_eq!(projection.status, FofProjectionStatus::Blocked);
+
+    for predicate in ["logic:termEqual", "logic:termGreater"] {
+        let (procedural, projection) = project(&format!(
+            "{}\nex:ban logic:forbiddenValue 0 .",
+            DENIAL.replace("ex:edge", predicate),
+        ));
+        assert!(
+            procedural
+                .units
+                .iter()
+                .any(|unit| unit.kind == SemanticUnitKind::Owner
+                    && matches!(&unit.disposition, SemanticUnitDisposition::Blocked { code, .. }
+                if code == "UNSUPPORTED_FORBIDDEN_PATTERN"))
+        );
+        assert_eq!(projection.status, FofProjectionStatus::Blocked);
+    }
+}
+
 #[test]
 /// Root exclusion remains a reported decision, never an absent owner row.
 fn excluded_owner_roots_remain_in_the_complete_admission_inventory() {
