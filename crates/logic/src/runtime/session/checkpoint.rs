@@ -36,8 +36,9 @@ pub struct Checkpoint {
     /// first — the durable record `restore` replays to reproduce the post-apply state. A
     /// base (pre-apply) checkpoint carries an empty sequence.
     pub deltas: Vec<CommittedDelta>,
-    /// Framed-BLAKE3 content address over every field above (identity, EDB generation,
-    /// journal head, AND the serialized deltas).
+    /// Framed-BLAKE3 content address over the identity's `descriptor_hash`, the EDB
+    /// generation, the journal head and the serialized deltas. The other identity axes are
+    /// stored but neither hashed nor checked individually.
     pub content_address: String,
 }
 
@@ -82,8 +83,8 @@ impl Checkpoint {
         purrdf_hash::hex::encode(hasher.finalize().as_bytes())
     }
 
-    /// Mint a checkpoint, computing its content address over every field including the
-    /// ordered committed deltas.
+    /// Mint a checkpoint, computing its content address over the identity's
+    /// `descriptor_hash`, the EDB generation, the journal head and the ordered committed deltas.
     #[must_use]
     pub fn new(
         identity: SessionIdentity,
@@ -109,8 +110,9 @@ impl Checkpoint {
     /// # Errors
     ///
     /// Returns [`IntegrityFault::CorruptCheckpoint`] when the recomputed address
-    /// differs from the stored one — the checkpoint bytes (any field, including a stored
-    /// delta payload) were tampered with.
+    /// differs from the stored one. A mismatch means the covered bytes (the descriptor hash,
+    /// generation, head or a stored delta payload) were changed without recomputing the
+    /// address. A recomputed address passes, so this does not prove originality.
     pub fn verify(&self) -> Result<(), IntegrityFault> {
         let computed = Self::compute_address(
             &self.identity,
