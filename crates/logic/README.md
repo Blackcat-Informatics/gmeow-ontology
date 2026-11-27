@@ -215,21 +215,16 @@ the `gmeow_logic.foundation(nquads, policy)` PyO3 binding). The in-world discipl
 cross-world rigidity closure, and the anti-rigidity witness passes all run inside that evaluator,
 which emits fully-provenanced quads (reifiers + derivation IDs via the shared `provenance` recipe).
 
-The earlier Python oracle (`src/gmeow_tools/logic_foundation.py`) has been **retired** — there is
-no Python emitter and no fallback (no-optionality doctrine: a missing `gmeow_logic` extension is a
-hard failure, not a degraded path). Golden-fixture parity is preserved by construction: the
-`conformance/logic/cases/foundation/` corpus goldens are unchanged and now certify the Rust
-evaluator directly, with no oracle in the path.
+There is no Python emitter and no fallback (no-optionality doctrine: a missing `gmeow_logic`
+extension is a hard failure, not a degraded path). The `conformance/logic/cases/foundation/`
+corpus goldens certify the Rust evaluator directly.
 
 ### Stratified NAF
 
 The discipline rules need stratified NAF to express absence (a class with no stereotype, a sortal
 with no rigid ancestor); the native evaluator partitions the rule set into strata and chases each
 to fixpoint before the next. Foundation lowering is gated on `"foundation_lowering": true` in
-`profile.json`; cases that do not opt in add zero quads. (For non-foundation programs that declare
-stratifiable negation, the Python `materialize_program()` path retains its own `enable_naf`
-stratified chase; programs the stratified oracle cannot compute fall through to a lossy positive
-materialization with the loss recorded.)
+`profile.json`; cases that do not opt in add zero quads.
 
 ---
 
@@ -291,7 +286,7 @@ The corpus lives under `conformance/logic/cases/profiles/probabilistic-*`.
 
 ---
 
-## Oracle-parity discipline
+## World-isolation discipline
 
 - **A world is a named graph.** Every insert targets a specific named graph IRI;
   every query is scoped to a single named graph. No cross-world union queries
@@ -300,7 +295,7 @@ The corpus lives under `conformance/logic/cases/profiles/probabilistic-*`.
 - **World-indexed only.** The public API exposes only `insert_quad(world, s, p, o)`
   and `quads_in_world(world)`. There is deliberately no dataset-union method.
 - **Same conformance corpus.** The unit tests validate isolation semantics
-  that both the retired Python oracle and this crate satisfy identically.
+  that this crate satisfies.
 
 ---
 

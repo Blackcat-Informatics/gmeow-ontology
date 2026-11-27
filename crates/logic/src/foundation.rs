@@ -4,9 +4,7 @@
 //! Native Rust evaluator for the OntoUML *foundation* disciplines.
 //!
 //! This module is the **canonical** provider of the OntoUML *foundation*
-//! disciplines.  (The Python foundation oracle that preceded it —
-//! `logic_foundation.py` plus the `enable_naf` chase path of
-//! `logic_materialize.py` — was retired.)  It lowers five OntoUML structural
+//! disciplines.  It lowers five OntoUML structural
 //! disciplines into a small stratified Datalog program with negation-as-failure and
 //! inequality guards, runs that program on the crate's **single** native chase
 //! ([`crate::physical::materialize_native`]), and then applies the OntoUML
@@ -162,8 +160,8 @@ const CHARACTERISTIC_CARRIER_DISAGREEMENT: &str =
 const CHAR_CARRIER_RULE_IRI: &str =
     "https://blackcatinformatics.ca/logic/rule/property-characteristic-carrier-agreement";
 
-/// The semantic-profile IRI stamped on every emitted quad — the only profile the
-/// v1 oracle applies.  Matches `py.rs::ASSERTED_PROFILE`.
+/// The semantic-profile IRI stamped on every emitted quad — the only profile this
+/// evaluator applies.
 const PROFILE_IRI: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
 
 /// Budget status stamped on every quad — this evaluator runs to full fixpoint with
@@ -254,8 +252,8 @@ struct Atom {
 #[derive(Debug, Clone, Copy)]
 struct Rule {
     head: Atom,
-    /// The body atoms, in the canonical sorted order the Python `LogicRule`
-    /// produces (so first-wins provenance matches by construction).
+    /// The body atoms, in canonical sorted order, so first-wins provenance is
+    /// deterministic.
     body: &'static [Atom],
     /// Inequality guards `(?A, ?B)` — the rule fires only when both bind to
     /// distinct N3 forms.  Mirrors `LogicRule.distinct_pairs`.
@@ -268,8 +266,8 @@ const fn var(name: &'static str) -> TermPat {
     TermPat::Var(name)
 }
 
-/// A `logic:`-namespaced constant.  The IRI strings are written out in full so the
-/// table is a literal mirror of the Python rule IRIs (no runtime concatenation).
+/// A `logic:`-namespaced constant.  The IRI strings are written out in full, with no
+/// runtime concatenation.
 macro_rules! logic_iri {
     ($local:literal) => {
         concat!("https://blackcatinformatics.ca/logic/", $local)
@@ -298,8 +296,8 @@ const NO_GUARD: &[(&str, &str)] = &[];
 
 // ── Rule-table macros ───────────────────────────────────────────────────────────
 //
-// These expand to `Rule` table entries so the long rule tables below read as close
-// to the Python generators as possible.  They must precede their use sites.
+// These expand to `Rule` table entries so the long rule tables below stay compact.
+// They must precede their use sites.
 
 /// `hasMetaClass(?C, logic:M) :- ?C rdf:type logic:M`.
 macro_rules! meta_rule {
@@ -2149,7 +2147,7 @@ fn chase_all_worlds_physical(store: &WorldStore) -> gmeow_errors::Result<Vec<Fou
                 .to_owned(),
         ));
     };
-    // Unbounded: the foundation oracle runs to full fixpoint (`BUDGET_OK`).
+    // Unbounded: the foundation evaluator runs to full fixpoint (`BUDGET_OK`).
     let outcome = crate::physical::materialize_native(store, executable.as_ref(), None)?;
     let rows = match outcome {
         crate::physical::NativeOutcome::Decided(budgeted) => budgeted.rows,
@@ -2182,9 +2180,8 @@ fn chase_all_worlds_physical(store: &WorldStore) -> gmeow_errors::Result<Vec<Fou
 
 /// A materialized quad with the full seam provenance contract.
 ///
-/// `object` is in canonical N3 form (`<iri>` for an IRI) — matching the Python
-/// `DerivedQuad.obj` and the materializer's object canonicalisation, so reifier and
-/// derivation IRIs are byte-identical.
+/// `object` is in canonical N3 form (`<iri>` for an IRI) — the materializer's object
+/// canonicalisation, so reifier and derivation IRIs are byte-identical.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FoundationQuad {
     /// The complete contextual modal evaluation, including bounded absence evidence.
