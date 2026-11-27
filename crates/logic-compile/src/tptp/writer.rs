@@ -216,6 +216,13 @@ fn bodies_for(
             .ok_or_else(|| missing("rule", *index))
             .and_then(rule_body)
             .map(|body| vec![body]),
+        AdmittedSemanticUnit::ForbiddenPattern { index } => theory
+            .program()
+            .constraints
+            .get(*index)
+            .ok_or_else(|| missing("constraint", *index))
+            .and_then(|constraint| formula_body(&constraint.integrity))
+            .map(|body| vec![body]),
         AdmittedSemanticUnit::PropertyCharacteristic(characteristic) => {
             property_characteristic_body(characteristic).map(|body| vec![body])
         }
