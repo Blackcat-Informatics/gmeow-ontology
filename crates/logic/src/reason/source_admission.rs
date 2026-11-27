@@ -1092,7 +1092,10 @@ pub fn reason_admitted_theory_within(
     }
     let expected = crate::program_analysis::preparation_identity(
         theory.program(),
-        &crate::program_analysis::selected_source_proof_profile(ingress.resolved_selection()),
+        &crate::program_analysis::selected_source_proof_profile(
+            admission.inventory,
+            ingress.resolved_selection(),
+        ),
     )?;
     if selected.prepared.identity != expected {
         return Err(reason_err(

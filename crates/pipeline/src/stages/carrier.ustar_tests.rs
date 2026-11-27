@@ -81,10 +81,16 @@ fn reasoning_representations_keep_runtime_inputs_separate_from_reports() {
         "stage-compile-logic".into(),
         StageProduct::from_artifacts(
             "stage-compile-logic",
-            BTreeMap::from([(
-                gmeow_logic_compile::tptp::CANON_ADMISSION_CHANNEL.into(),
-                b"synthetic canon admission observation".to_vec(),
-            )]),
+            BTreeMap::from([
+                (
+                    gmeow_logic_compile::tptp::CANON_ADMISSION_CHANNEL.into(),
+                    b"synthetic canon admission observation".to_vec(),
+                ),
+                (
+                    gmeow_logic::reason::prepared_canon::CHANNEL.into(),
+                    b"synthetic prepared native canon".to_vec(),
+                ),
+            ]),
         )
         .expect("the stage carrier digests"),
     );
@@ -120,7 +126,7 @@ fn reasoning_representations_keep_runtime_inputs_separate_from_reports() {
         )
         .expect("the stage carrier digests"),
     );
-    let [reports, prepared, canon] =
+    let [reports, prepared, canon, native_canon] =
         build_reasoning_blobs(&upstream).expect("required reasoning representations");
     assert_eq!(reports.rep, REP_REASONING);
     assert_eq!(
@@ -163,6 +169,15 @@ fn reasoning_representations_keep_runtime_inputs_separate_from_reports() {
     assert_eq!(
         canon.data.as_ref(),
         b"synthetic canon admission observation"
+    );
+    assert_eq!(
+        native_canon.rep,
+        gmeow_gts_profile::archive::PREPARED_CANON_REP
+    );
+    assert_eq!(native_canon.media_type, "application/cbor");
+    assert_eq!(
+        native_canon.data.as_ref(),
+        b"synthetic prepared native canon"
     );
 
     let compile_logic = upstream.remove("stage-compile-logic").unwrap();

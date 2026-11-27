@@ -115,7 +115,7 @@ pub(crate) fn requires_admission(command: &Commands) -> bool {
         | Commands::SliceFixDeps(_)
         | Commands::BoxRoles(_)
         | Commands::Logic(crate::LogicArgs {
-            command: LogicCommands::Query { .. },
+            command: LogicCommands::Query { .. } | LogicCommands::PreparedCanon { .. },
         })
         | Commands::I18n(_) => false,
     }

@@ -428,6 +428,11 @@ impl<'source> SourceInventory<'source> {
     pub fn program_digest(&self) -> &str {
         &self.program_digest
     }
+    /// Identity of the compiler's exact owner, formula and axiom emission trace.
+    #[must_use]
+    pub fn compiler_trace_digest(&self) -> &str {
+        &self.trace_digest
+    }
     #[must_use]
     pub fn selection_digest(&self) -> &str {
         &self.selection_digest

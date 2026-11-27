@@ -364,6 +364,15 @@ impl Bundle {
         gmeow_logic_compile::tptp::CanonAdmissionPublication::from_bytes(&bytes)
     }
 
+    /// Read the unique complete-source native lowering without opening any archive.
+    ///
+    /// # Errors
+    /// Rejects absent, ambiguous, corrupt, or oversized payloads. Integrity of
+    /// the selected representation is not proof authority or signer verification.
+    pub fn prepared_native_canon(&self) -> gmeow_errors::Result<std::borrow::Cow<'_, [u8]>> {
+        gmeow_gts_profile::archive::prepared_canon_blob(self.view.graph())
+    }
+
     /// Every folded OKF document as `{bundle-relative-path: md-bytes}`
     /// ([`REP_OKF`]).
     pub fn okf(&self) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {

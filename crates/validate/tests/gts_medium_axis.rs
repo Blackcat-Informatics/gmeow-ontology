@@ -26,7 +26,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
-use gmeow_gts_profile::archive::{CANON_ADMISSION_REP, PREPARED_REASONING_REP, REASONING_REP};
+use gmeow_gts_profile::archive::{
+    CANON_ADMISSION_REP, PREPARED_CANON_REP, PREPARED_REASONING_REP, REASONING_REP,
+};
 use gmeow_logic::result_rdf::NATIVE_RECEIPT_REPRESENTATION;
 use gmeow_validate::medium_observation::{Node, Observations, Value};
 
@@ -400,6 +402,10 @@ fn carrier_rep_constants() -> BTreeMap<String, String> {
         (
             "CANON_ADMISSION_REP".to_owned(),
             CANON_ADMISSION_REP.to_owned(),
+        ),
+        (
+            "PREPARED_CANON_REP".to_owned(),
+            PREPARED_CANON_REP.to_owned(),
         ),
         (
             "PREPARED_REASONING_REP".to_owned(),

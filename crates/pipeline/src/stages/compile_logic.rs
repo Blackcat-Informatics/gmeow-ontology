@@ -504,7 +504,13 @@ impl Stage for CompileLogicStage {
     }
     /// Require producer-owned diagnostics shape-migration parity in validation fixtures.
     fn impl_version(&self) -> &str {
-        "compile-logic.v49-owl-datatype-definitions"
+        static VERSION: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+        VERSION.get_or_init(|| {
+            format!(
+                "compile-logic.v50-prepared-native-canon.{}",
+                gmeow_logic::reason::native_contract_hash()
+            )
+        })
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // Explicit OPT, worked-example and counterexample selections are direct inputs.
@@ -743,13 +749,25 @@ impl Stage for CompileLogicStage {
         arts.report_header.claimed_uplift_count = 0;
 
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        // Use the original compiled catalog, not the OPT/example-augmented
-        // projection program. Retain refusals as evidence, not a weaker theory.
-        artifacts.insert(
-            gmeow_logic_compile::tptp::CANON_ADMISSION_CHANNEL.into(),
-            gmeow_logic_compile::tptp::CanonAdmissionPublication::from_compiled_source(&theory)
-                .to_bytes()?,
-        );
+        // Both publications borrow the original catalog, not the projection
+        // program. Release temporary native lowering before encoding the report.
+        {
+            use gmeow_logic::reason::prepared_canon;
+            use gmeow_logic_compile::frontend::SourceSelection;
+            use gmeow_logic_compile::source_inventory::SourceInventory;
+            use gmeow_logic_compile::tptp;
+
+            let inventory =
+                SourceInventory::new(&theory, SourceSelection::all_classical_roots(&theory));
+            let native = prepared_canon::PreparedCanonProof::encode(
+                &inventory,
+                gmeow_gts_profile::archive::MAX_PREPARED_CANON_BYTES,
+            )?;
+            let classical = tptp::CanonAdmissionPublication::from_complete_inventory(&inventory);
+            drop(inventory);
+            artifacts.insert(prepared_canon::CHANNEL.into(), native);
+            artifacts.insert(tptp::CANON_ADMISSION_CHANNEL.into(), classical.to_bytes()?);
+        }
         artifacts.insert(
             CORRESPONDENCE_PLANS_PATH.into(),
             physical_plans.report_json(),
