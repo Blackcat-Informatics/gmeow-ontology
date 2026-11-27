@@ -11,8 +11,9 @@
 //! * **Accessibility.**  `w2` is judged from `w1` only along a typed accessibility
 //!   record asserted in the graph of the record's subject: `w1
 //!   logic:epistemicallyPossible w2` asserted in `w1`, or `w2 logic:temporallySucceeds
-//!   w1` asserted in `w2` (the later state names its predecessor, so a later state is
-//!   reached from the earlier one).  A record asserted in any other graph, the bare
+//!   w1` asserted in `w2` (the later state names its predecessor, so every later state, at any
+//!   number of steps, is reached from the earlier one).  The epistemic record is not
+//!   transitive.  A record asserted in any other graph, the bare
 //!   `logic:accessibleFrom` superproperty and every other typed relation license
 //!   nothing.
 //! * **Existence.**  `x` is the subject of at least one quad in `w2` other than a
@@ -48,8 +49,11 @@ pub(super) struct WorldEvidence {
     /// `(world, individual)` pairs whose `rdf:type` statements the world's contract
     /// closes under the closed-world closure.
     closed: BTreeSet<(String, String)>,
-    /// Typed accessibility records: judging world to the worlds accessible from it.
-    accessible: BTreeMap<String, BTreeSet<String>>,
+    /// Direct epistemic records: judging world to the worlds it names as possible.
+    epistemic: BTreeMap<String, BTreeSet<String>>,
+    /// Direct temporal records, read from the named predecessor to the later state that
+    /// asserts the record.
+    successors: BTreeMap<String, BTreeSet<String>>,
 }
 
 /// The fields of one closure entry, keyed by `(world, entry)` while the quads are
@@ -131,13 +135,13 @@ impl WorldEvidence {
             if quad.graph == quad.subject {
                 if quad.predicate == epistemic {
                     evidence
-                        .accessible
+                        .epistemic
                         .entry(quad.subject.clone())
                         .or_default()
                         .insert(object.to_owned());
                 } else if quad.predicate == temporal {
                     evidence
-                        .accessible
+                        .successors
                         .entry(object.to_owned())
                         .or_default()
                         .insert(quad.subject.clone());
@@ -208,8 +212,23 @@ impl WorldEvidence {
     }
 
     /// The worlds reachable from `world` along an admissible typed accessibility record.
+    /// An epistemic record is followed directly.  Temporal succession is followed
+    /// transitively, walking the direct records on demand with a visited set so a cycle
+    /// terminates.  The world itself is never among them: succession is a strict order.
     pub(super) fn accessible_from<'a>(&'a self, world: &str) -> impl Iterator<Item = &'a String> {
-        self.accessible.get(world).into_iter().flatten()
+        let mut reached: BTreeSet<&'a String> =
+            self.epistemic.get(world).into_iter().flatten().collect();
+        let mut later: BTreeSet<&'a String> = BTreeSet::new();
+        let mut pending: Vec<&'a String> =
+            self.successors.get(world).into_iter().flatten().collect();
+        while let Some(next) = pending.pop() {
+            if later.insert(next) {
+                pending.extend(self.successors.get(next).into_iter().flatten());
+            }
+        }
+        reached.extend(later);
+        reached.retain(|reached_world| reached_world.as_str() != world);
+        reached.into_iter()
     }
 
     /// Whether `individual` demonstrably existed in `world` without being a `type_iri`:

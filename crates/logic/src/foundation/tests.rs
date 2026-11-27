@@ -1014,6 +1014,33 @@ fn membership_inherited_through_a_subclass_is_membership_in_the_judged_world() {
     );
 }
 
+/// INVARIANT: a world's membership is entailed only by the `logic:subClassOf` triples
+/// asserted in that world.  The triples that make Adult a subclass of Person are asserted
+/// in the minutes world alone, so Alice's Adult typing in the later world does not make her
+/// a Person there and the loss is still reported.
+#[test]
+fn subclass_triples_of_another_world_do_not_entail_membership() {
+    let minutes = format!("{BOARD}/minutes");
+    let later = format!("{BOARD}/later");
+    let alice = format!("{BOARD}/alice");
+    let person = format!("{BOARD}/Person");
+    let adult = format!("{BOARD}/Adult");
+    let nq = board_minutes()
+        + &accessible(&minutes, &later)
+        + &nq_line(&person, RDF_TYPE_P, &format!("{LOGIC}Kind"), &minutes)
+        + &nq_line(&alice, RDF_TYPE_P, &person, &minutes)
+        + &nq_line(&adult, &format!("{LOGIC}subClassOf"), &person, &minutes)
+        + &later_loss_of_role("")
+        + &closed_membership_of_alice(&later)
+        + &nq_line(&alice, RDF_TYPE_P, &adult, &later);
+
+    assert_eq!(
+        rigidity_violations(&nq, AntiRigidityPolicy::WitnessObligation),
+        vec![(later, alice, format!("<{person}>"))],
+        "a subclass triple asserted only in another world does not make Alice a Person here"
+    );
+}
+
 /// INVARIANT: an individual-scoped closure entry selects one key and one value; an entry
 /// missing either is refused rather than read as a partial closure.
 #[test]
@@ -1116,6 +1143,45 @@ fn temporal_succession_discharges_a_witness_with_a_later_loss() {
     assert!(
         board_violation_open(&backward),
         "a state that precedes the typing does not witness it"
+    );
+}
+
+/// INVARIANT: temporal succession is a strict order walked transitively, so every later
+/// state is reached from an earlier one at any number of steps, a cycle or self-loop of
+/// records terminates, and a world is never its own counter-world.  In a three-state
+/// chain the loss of the role is evidenced only in the last state; it discharges the
+/// witness of the earliest state's typing although the middle state, which says nothing
+/// of Alice, lies between them.  With the chain closed into a cycle and the earliest state
+/// succeeding itself, the same loss still discharges, and without loss evidence nothing
+/// discharges.
+#[test]
+fn temporal_succession_reaches_every_later_state() {
+    let minutes = format!("{BOARD}/minutes");
+    let middle = format!("{BOARD}/middle");
+    let later = format!("{BOARD}/later");
+    let loss = not_instance_of(
+        &format!("{BOARD}/alice"),
+        &format!("{BOARD}/BoardMember"),
+        &later,
+    );
+    let chain = board_minutes()
+        + &succession_record(&middle, &minutes, &middle)
+        + &succession_record(&later, &middle, &later);
+    assert!(
+        !board_violation_open(&(chain.clone() + &later_loss_of_role(&loss))),
+        "a loss two succession steps after the typing discharges its witness"
+    );
+
+    let cyclic = chain
+        + &succession_record(&minutes, &later, &minutes)
+        + &succession_record(&minutes, &minutes, &minutes);
+    assert!(
+        !board_violation_open(&(cyclic.clone() + &later_loss_of_role(&loss))),
+        "a cycle of succession records still reaches the later loss"
+    );
+    assert!(
+        board_violation_open(&(cyclic + &later_loss_of_role(""))),
+        "neither the states of a cycle nor the judged world itself witness a loss without evidence"
     );
 }
 

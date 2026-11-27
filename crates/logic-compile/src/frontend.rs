@@ -4970,6 +4970,9 @@ fn path_to_file_uri(path: &Path) -> Option<String> {
 mod tests;
 
 #[cfg(test)]
+mod shape_derivation_tests;
+
+#[cfg(test)]
 mod native_statement_tests;
 
 #[cfg(test)]
