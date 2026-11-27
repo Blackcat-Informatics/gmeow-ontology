@@ -183,8 +183,11 @@ history that produced it, not of its *circuit*. It stores four fields:
 
 The `content_address` is a framed-BLAKE3 digest, in the domain `gmeow-logic-session-checkpoint-v1`,
 over the identity's `descriptor_hash`, `edb_generation`, `journal_head`, and then each delta in order:
-its additions, its retirement rows, and its step budget (`none` when absent). Every stored field is
-covered. The preconditions `base_commit` and `expected_head` are not stored; restore reconstructs
+its additions, its retirement rows, and its step budget (`none` when absent). The identity contributes
+only its `descriptor_hash`, which binds the other identity axes at mint time. The stored copies of
+`program_hash`, `slice_hash`, `contract_hash`, `engine_descriptor_hash`, `annotation_identity`,
+`fragment` and `data_generation` are neither hashed nor checked individually. The preconditions
+`base_commit` and `expected_head` are not stored; restore reconstructs
 them from the replay state. A checkpoint carries **no circuit state**: no serialized DBSP dataflow,
 no iteration history, no maintained arena.
 
@@ -209,8 +212,8 @@ justifications:
 A restore passes a strict, ordered gate. Each refusal is a typed `OperationOutcome`, never a panic,
 and a refused restore returns no session:
 
-1. **Content integrity.** `verify` recomputes the `content_address` over every stored field,
-   deltas included, and compares it with the stored one. A mismatch is `Invalid { CorruptCheckpoint }`
+1. **Content integrity.** `verify` recomputes the `content_address` over the identity's
+   `descriptor_hash`, the generation, the head and the deltas, and compares it with the stored one. A mismatch is `Invalid { CorruptCheckpoint }`
    (the bytes were tampered with or corrupted).
 2. **Deterministic re-materialization.** `open` rebuilds the base session from the caller's
    authorized EDB, program, contract, and annotation; an engine fault here is `EngineFailure`.
@@ -267,8 +270,11 @@ refused at step 6.
 
 The contract keeps two kinds of evidence apart:
 
-- **Integrity of the recorded bytes** is step 1. `verify` shows that the stored identity, generation,
-  head, and delta payloads are exactly those minted. It does not show that replaying them reproduces
+- **Integrity of the recorded bytes** is step 1. `verify` shows that the descriptor hash, generation,
+  head, and delta payloads match the stored address. It does not check the stored identity axes
+  individually. A checkpoint whose fields were altered and whose address was recomputed passes, so
+  establishing that the values are the originally minted ones requires an independently trusted
+  address or an authenticated record. Integrity does not show that replaying the deltas reproduces
   the state.
 - **Evidence that replay reproduces the state** is steps 5 and 6. Every delta must apply as `Applied`,
   and the replayed head must equal the recorded head. The journal head is a hash chain over the
