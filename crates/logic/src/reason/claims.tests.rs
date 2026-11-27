@@ -86,6 +86,83 @@ fn ingest_modules(
         .expect("module ingress")
 }
 
+/// PROTECTS: a complete source proof reads both independent modules and the
+/// top-level law. An undeclared module coordinate cannot enter that theory.
+#[test]
+fn complete_source_combines_independent_modules_without_erasing_scope() {
+    let theory = compile(
+        r#"
+ex:First a logic:Module . ex:Second logic:instanceOf logic:Module .
+ex:left rdf:reifies <<( ex:a logic:instanceOf ex:Left )>> ;
+    logic:provenance ex:source ; logic:inModule ex:First .
+ex:right rdf:reifies <<( ex:a logic:instanceOf ex:Right )>> ;
+    logic:provenance ex:source ; logic:inModule ex:Second .
+ex:unresolved rdf:reifies <<( ex:missing ex:about ex:other )>> ;
+    logic:provenance ex:source ; logic:inModule ex:Undeclared .
+"#,
+    );
+    let inventory = whole_inventory(&theory);
+    let selection = inventory
+        .resolve_theory_selection(&TheorySelection::complete_source())
+        .expect("the complete request resolves the declared modules");
+    let same_roots = TheorySelection::composed_modules(
+        selection
+            .observation()
+            .modules
+            .iter()
+            .map(|iri| iri.as_str().to_owned()),
+    )
+    .expect("the declared roots are also explicitly selectable");
+    let composed = inventory
+        .resolve_theory_selection(&same_roots)
+        .expect("the explicit roots resolve");
+    assert_ne!(
+        selection.observation().identity,
+        composed.observation().identity,
+        "enumerated roots do not carry the complete-source contract"
+    );
+    assert!(inventory.obligations().all(|unit| !matches!(
+        selection.unit_selection(unit).expect("same inventory"),
+        gmeow_logic_compile::source_inventory::TheoryUnitSelection::OutsideRequestedTheory
+    )));
+    let (input, ingress) =
+        prepare_selected_theory_input(&inventory, &LogicalGraph::Default, &selection)
+            .expect("the exact complete selection can ingest its default graph");
+    assert_eq!(ingress.read().len(), 2, "both declared claims are read");
+    assert_eq!(ingress.unread().len(), 1, "undeclared scope is not erased");
+    let domains = default_domain(&input);
+    let result = reason_selected_theory_within(&inventory, input, &domains, &ingress, &UNBOUNDED)
+        .expect("the admitted claims execute with the top-level law");
+    assert!(!consistent(&result));
+}
+
+/// PROTECTS: complete selection does not require a module, but it cannot skip
+/// an unreferenced declaration with an unresolved import.
+#[test]
+fn complete_source_checks_unreferenced_module_imports() {
+    let bare = compile(EVIDENCE_CLASH);
+    let bare_inventory = whole_inventory(&bare);
+    let selection = bare_inventory
+        .resolve_theory_selection(&TheorySelection::complete_source())
+        .expect("the complete source may have no modules");
+    assert!(selection.observation().modules.is_empty());
+
+    let theory =
+        compile("ex:First a logic:Module . ex:Second a logic:Module ; logic:imports ex:Missing .");
+    let inventory = whole_inventory(&theory);
+    let request =
+        TheorySelection::composed_modules(["https://example.org/claims/First".to_owned()])
+            .expect("a valid explicit root request");
+    inventory
+        .resolve_theory_selection(&request)
+        .expect("the explicit request excludes the unrelated declaration");
+    let refusal = inventory
+        .resolve_theory_selection(&TheorySelection::complete_source())
+        .expect_err("complete source must not skip a broken import")
+        .to_string();
+    assert!(refusal.contains("UNAVAILABLE_IMPORTED_MODULE"), "{refusal}");
+}
+
 /// PROTECTS: module claims and scoped rule/head/body syntax execute together;
 /// excluded schema and NAF contribute no premise while genuinely shared terms survive.
 /// Source, root, preparation, input and domain identities authorize the same run.

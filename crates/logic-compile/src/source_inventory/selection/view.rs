@@ -85,11 +85,11 @@ impl ResolvedTheorySelection {
             .0
             .index
             .obligation_membership(unit.inventory, unit.origin());
-        // Top-level mode has no authority to exclude authored obligations.
-        if !self.request().is_composed() && matches!(membership, Membership::Outside) {
+        // Only explicit module roots authorize exclusion of another scope.
+        if !self.request().allows_module_exclusions() && matches!(membership, Membership::Outside) {
             return Ok(TheoryUnitSelection::Blocked {
                 code: "CONTEXT_ERASURE_FORBIDDEN",
-                reason: "source scope remains untranslated in the top-level theory",
+                reason: "source scope remains untranslated in the requested theory",
             });
         }
         Ok(membership.into())
@@ -235,7 +235,7 @@ impl SelectedProgramView<'_, '_> {
         if let Some(boundary) = blocked {
             return Ok(Membership::Blocked(boundary).into());
         }
-        if outside && self.selection.request().is_composed() {
+        if outside && self.selection.request().allows_module_exclusions() {
             return Ok(TheoryUnitSelection::OutsideRequestedTheory);
         }
         Ok(TheoryUnitSelection::Blocked {

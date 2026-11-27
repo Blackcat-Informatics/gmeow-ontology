@@ -193,7 +193,7 @@ impl SourceInventory<'_> {
             ));
         }
         if request.is_composed() {
-            if request.module_roots().next().is_none() {
+            if !request.includes_all_modules() && request.module_roots().next().is_none() {
                 return Err(selection_error(
                     "EMPTY_MODULE_SELECTION",
                     "a composed theory requires at least one explicit module root",
@@ -217,6 +217,12 @@ impl SourceInventory<'_> {
                     continue;
                 }
                 let TermRef::Iri(iri) = dataset.resolve(quad.s) else {
+                    if request.includes_all_modules() {
+                        return Err(selection_error(
+                            "MALFORMED_MODULE_TARGET",
+                            "complete source requires an absolute IRI for each module declaration",
+                        ));
+                    }
                     continue;
                 };
                 let iri = ModuleIri::try_from(iri.to_owned())?;
@@ -227,7 +233,11 @@ impl SourceInventory<'_> {
                     .extend(self.statement_documents(quad, carrier));
             }
         }
-        let mut pending = BTreeSet::new();
+        let mut pending = if request.includes_all_modules() {
+            available.keys().copied().collect()
+        } else {
+            BTreeSet::new()
+        };
         for root in request.module_roots() {
             let term = dataset
                 .term_id_by_iri(root.as_str())
