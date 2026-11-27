@@ -196,9 +196,10 @@ derive `?C logic:violation <label>` facts for:
 Positive cross-world rigidity cannot be expressed as an in-world Datalog rule because the chase
 is world-local. It is evaluated by a bounded closure pass over the finite materialized world set,
 emitting `logic:rigidityViolation` quads in the world where rigidity persistence fails: a world
-admitted from the typing world by a typed accessibility record asserted in the graph of its subject
-(`w logic:epistemicallyPossible w'` in `w`, or the later state's `w' logic:temporallySucceeds w` in
-`w'`), in which the individual still exists and carries admissible evidence of the loss — an
+admitted from the typing world by typed accessibility records, each asserted in the graph of its
+subject (`w logic:epistemicallyPossible w'` in `w`, or a chain of later states'
+`w' logic:temporallySucceeds w` records, each in its own subject's graph), in which the
+individual still exists and carries admissible evidence of the loss — an
 explicit `logic:notInstanceOf` assertion or a closed-world closure of its `rdf:type` statements that
 a `logic:ReasoningContract` of that world declares. `Kind`, `SubKind` and `Category` are rigid by
 stereotype; a `logic:rigidlyAppliesTo` record holds one instance of any other type, and is refused

@@ -1147,11 +1147,10 @@ fn temporal_succession_discharges_a_witness_with_a_later_loss() {
 }
 
 /// INVARIANT: temporal succession is a strict order walked transitively, so every later
-/// state is reached from an earlier one at any number of steps, a cycle or self-loop of
-/// records terminates, and a world is never its own counter-world.  In a three-state
-/// chain the loss of the role is evidenced only in the last state; it discharges the
-/// witness of the earliest state's typing although the middle state, which says nothing
-/// of Alice, lies between them.  With the chain closed into a cycle and the earliest state
+/// state is reached from an earlier one at any number of steps, and a cycle or self-loop
+/// of records terminates.  In a three-state chain the loss of the role is evidenced only
+/// in the last state; it discharges the witness of the earliest state's typing although
+/// the middle state, which says nothing of Alice, lies between them.  With the chain closed into a cycle and the earliest state
 /// succeeding itself, the same loss still discharges, and without loss evidence nothing
 /// discharges.
 #[test]
@@ -1181,7 +1180,7 @@ fn temporal_succession_reaches_every_later_state() {
     );
     assert!(
         board_violation_open(&(cyclic + &later_loss_of_role(""))),
-        "neither the states of a cycle nor the judged world itself witness a loss without evidence"
+        "the states of a cycle witness no loss without evidence"
     );
 }
 

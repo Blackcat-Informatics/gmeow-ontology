@@ -768,16 +768,19 @@ A cross-world judgment — a `logic:rigidityViolation`, or the discharge of an a
 binds the same individual `x` and the same type `T` in both worlds, and a counter-world cannot be
 conjured from the absence of data. It rests on four things:
 
-1. **A permitted world.** `w'` is judged from `w` only along a typed accessibility record asserted
-   in the graph of its own subject: `w logic:epistemicallyPossible w'` asserted in `w`, or
-   `w' logic:temporallySucceeds w` asserted in `w'`. The evaluator reads a temporal record from its
-   object to its subject: the later state names its predecessor, and a later state is reached from
-   the earlier one, never the reverse. A record asserted in any other
+1. **A permitted world.** `w'` is judged from `w` only along typed accessibility records, each
+   asserted in the graph of its own subject: `w logic:epistemicallyPossible w'` asserted in `w`, or
+   a chain of records `w1 logic:temporallySucceeds w`, `w2 logic:temporallySucceeds w1`, ...,
+   `w' logic:temporallySucceeds wn`, each asserted in its own subject's graph. The evaluator reads a
+   temporal record from its object to its subject: the later state names its predecessor, temporal
+   succession is a strict order, so a later state is reached from an earlier one at any number of
+   steps, and never the reverse. An epistemic record does not chain: it admits only the world it
+   names. A record asserted in any other
    graph (a doxastic context reporting the record, for example), the bare `logic:accessibleFrom`
    superproperty, the doxastic, deontic, counterfactual and standpoint relations, and the absence
-   of any record license nothing. The kernel defines no world-to-world context transport, so these
-   two records are the only way a world is permitted; an inaccessible world neither fires a
-   violation nor discharges a witness.
+   of any record license nothing. The kernel defines no world-to-world context transport, so a
+   direct epistemic record and a chain of temporal records are the only ways a world is permitted;
+   an inaccessible world neither fires a violation nor discharges a witness.
 2. **Continued existence.** `x` is the subject of a statement in `w'` other than its own
    non-membership assertion. A world that never mentions `x` says nothing about it.
 3. **Negative membership.** `x` is not a `T` in `w'`, that is, no asserted typing of `x` in `w'`
@@ -792,8 +795,9 @@ conjured from the absence of data. It rests on four things:
    asserted in `w'` with `logic:closureKey rdf:type`, `logic:closureIndividual x` and
    `logic:closureValue logic:ClosedWorldClosure`. The key is the exact predicate it closes, as for
    every closure entry, and the individual scope closes it only for statements about `x`, so the
-   absence of `x a T` in `w'` is then evidence for every type `T`. An entry over another individual
-   or another predicate, an open-world value, an entry no contract of `w'` declares and an entry
+   absence of `x a T` in `w'` is then evidence for every type `T` that no asserted type of `x` in
+   `w'` reaches through the `logic:subClassOf` triples asserted in `w'`. An entry over another
+   individual or another predicate, an open-world value, an entry no contract of `w'` declares and an entry
    authored in another world do not apply. An individual-scoped entry with several distinct keys,
    values or individuals, an entry missing its key or value, and two entries of one world that
    assign different values to the type statements of one individual are refused. A compiled
