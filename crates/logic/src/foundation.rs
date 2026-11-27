@@ -190,8 +190,7 @@ const RIGIDLY_APPLIES_TO: &str = "https://blackcatinformatics.ca/logic/rigidlyAp
 // ── Anti-rigidity witness policy ────────────────────────────────────────────────
 
 /// The closed three-valued anti-rigidity witness policy (LOGIC-SEMANTICS.md
-/// §Anti-rigidity needs a witness policy).  Mirrors the Python
-/// `_ANTI_RIGIDITY_POLICIES` enum.  An unknown value is a HARD FAILURE — these are
+/// §Anti-rigidity needs a witness policy).  An unknown value is a HARD FAILURE — these are
 /// a closed enum, not feature flags, and there is no silent default.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AntiRigidityPolicy {

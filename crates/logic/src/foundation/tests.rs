@@ -927,6 +927,84 @@ fn unadmitted_accessibility_neither_discharges_nor_violates() {
     }
 }
 
+/// INVARIANT: a loss counts only when the judged world also shows the individual
+/// existing.  An accessible world holding nothing but the non-membership assertion, or
+/// nothing but the contract's closure entry, is no evidence that the individual
+/// persisted there: the witness stays open and no rigidity violation fires.
+#[test]
+fn loss_evidence_without_a_positive_statement_of_existence_is_inadmissible() {
+    let minutes = format!("{BOARD}/minutes");
+    let later = format!("{BOARD}/later");
+    let alice = format!("{BOARD}/alice");
+    let member = format!("{BOARD}/BoardMember");
+    let person = format!("{BOARD}/Person");
+    let base = board_minutes()
+        + &nq_line(&person, RDF_TYPE_P, &format!("{LOGIC}Kind"), &minutes)
+        + &nq_line(&alice, RDF_TYPE_P, &person, &minutes)
+        + &accessible(&minutes, &later);
+    for (why, evidence) in [
+        (
+            "only a non-membership assertion",
+            not_instance_of(&alice, &member, &later) + &not_instance_of(&alice, &person, &later),
+        ),
+        ("only a closure entry", closed_membership_of_alice(&later)),
+    ] {
+        let nq = base.clone() + &evidence;
+        assert!(
+            board_violation_open(&nq),
+            "{why} must leave the witness open"
+        );
+        assert!(
+            rigidity_violations(&nq, AntiRigidityPolicy::WitnessObligation).is_empty(),
+            "{why} must not fire a rigidity violation"
+        );
+    }
+}
+
+/// INVARIANT: an individual-scoped closure entry selects one key and one value; an entry
+/// missing either is refused rather than read as a partial closure.
+#[test]
+fn individual_closure_missing_its_key_or_value_is_refused() {
+    let later = format!("{BOARD}/later");
+    let entry = format!("{BOARD}/closure");
+    let contract = format!("{BOARD}/contract");
+    let alice = format!("{BOARD}/alice");
+    for (why, fields) in [
+        (
+            "key",
+            nq_line(
+                &entry,
+                &format!("{LOGIC}closureValue"),
+                &format!("{LOGIC}ClosedWorldClosure"),
+                &later,
+            ),
+        ),
+        (
+            "value",
+            nq_line(&entry, &format!("{LOGIC}closureKey"), RDF_TYPE_P, &later),
+        ),
+    ] {
+        let nq = board_minutes()
+            + &later_loss_of_role("")
+            + &nq_line(
+                &contract,
+                RDF_TYPE_P,
+                &format!("{LOGIC}ReasoningContract"),
+                &later,
+            )
+            + &nq_line(&contract, &format!("{LOGIC}closureEntry"), &entry, &later)
+            + &nq_line(&entry, &format!("{LOGIC}closureIndividual"), &alice, &later)
+            + &fields;
+        let err = evaluate(&store_from(&nq), AntiRigidityPolicy::SchemaOnly)
+            .expect_err("an individual closure missing its key or value must be refused");
+        assert!(
+            err.message()
+                .contains("lacks logic:closureKey or logic:closureValue"),
+            "the refusal must name the missing {why}, got: {err}"
+        );
+    }
+}
+
 /// INVARIANT: `later temporallySucceeds earlier`, asserted in the later state, carries a
 /// rigid typing forward: a loss in the later state is a violation of a typing in the
 /// earlier one, and a typing in the later state is not judged against the earlier.
@@ -1140,7 +1218,8 @@ fn semi_rigid_mixin_owes_no_witness_and_holds_only_its_permanent_instance() {
 /// the individual is not a violation; an explicit non-membership assertion or a
 /// contract's closed-world closure is, and a persisting individual never is.  A world
 /// that both types the individual and asserts its non-membership carries no
-/// admissible evidence of loss.
+/// admissible evidence of loss, and a world showing nothing but the non-membership
+/// assertion shows no existence.
 #[test]
 fn cross_world_rigidity_fires_only_on_admissible_loss_evidence() {
     let base = "https://example.org/foundation/cross-world-rigidity";
@@ -1183,6 +1262,15 @@ fn cross_world_rigidity_fires_only_on_admissible_loss_evidence() {
     assert!(
         !violated(&contradictory, &alice),
         "a world that also types Alice a Person evidences no loss"
+    );
+    let world_c = format!("{base}/worldC");
+    let absent =
+        nq.clone() + &accessible(&world_a, &world_c) + &not_instance_of(&alice, &person, &world_c);
+    assert!(
+        run(&absent, AntiRigidityPolicy::WitnessObligation)
+            .iter()
+            .all(|q| q.graph != world_c || q.predicate != pred),
+        "a world holding only the non-membership assertion shows no existence and is no violation"
     );
     let closed = nq
         + &closure_entry(

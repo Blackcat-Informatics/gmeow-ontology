@@ -642,6 +642,14 @@ fn closure_entries_cannot_choose_one_of_several_keys_or_values() {
         "{:?}",
         theory.diagnostics()
     );
+    assert!(
+        theory
+            .program()
+            .axioms
+            .iter()
+            .all(|axiom| !axiom.predicate.ends_with("/closureIndividual")),
+        "closureIndividual is configuration and never a domain axiom"
+    );
     let admission =
         SourceAdmission::classical_fof(&theory, SourceSelection::all_classical_roots(&theory));
     assert_eq!(admission.configuration_declarations().count(), 0);

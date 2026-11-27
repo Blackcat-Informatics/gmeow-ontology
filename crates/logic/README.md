@@ -22,8 +22,7 @@ entailment queries, governed materialization and proof provenance.
 ## What this crate is
 
 `gmeow-logic` is the Rust `logic:` engine — the production engine
-that backs world construction, entailment queries, and provenance capture. It
-supersedes the earlier Python reference oracle, which has been retired.
+that backs world construction, entailment queries, and provenance capture.
 
 The runtime includes a **world-indexed storage layer**, typed IR lowering,
 semi-naive positive evaluation, stratified and non-monotone solvers, and a
