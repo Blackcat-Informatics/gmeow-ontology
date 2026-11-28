@@ -1844,7 +1844,7 @@ fn obstruction_kind_counts(obstructions: &[String]) -> String {
                         .contains(&predicate)
                 })
         });
-        let kind = if obstruction.contains("class expression equivalence") {
+        let kind = if obstruction.contains("unsupported equivalent expression") {
             0
         } else if restriction {
             1
