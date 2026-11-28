@@ -57,7 +57,7 @@ equivalence claim.
 
 | Target | Rows | Morphism policy | Preservation policy | Coverage contract |
 |---|---:|---|---|---|
-| **gUFO** | 50 | `AffineCorrespondence` + `InstitutionMorphism` | `ValidationOnly`; six explicit `Unsupported` replacements | Every class in the vendored gUFO surface has a row; nothing disappears silently |
+| **gUFO** | 55 | `AffineCorrespondence` + `InstitutionMorphism` | `ValidationOnly`; seven explicit `Unsupported` rows | Every class in the vendored gUFO surface has a row, and five relation rows join the audited relations; the floor is measured per term kind below |
 | **BFO 2020** | 13 | `BridgeView` + `CommitmentShiftingBridge` | `ValidationOnly` | The category spine from entity/continuant/occurrent through material entity, disposition, quality, role, and process boundary |
 | **OBO / RO** | 6 | `BridgeView` + `CommitmentShiftingBridge` | `ValidationOnly` | BFO `part of`/`precedes` and RO overlap, causal, disjointness, and membership relations |
 | **SUMO** | 24 | `BridgeView` + `CommitmentShiftingBridge` | `ValidationOnly` | Foundational categories and structural relations used by the logic foundation |
@@ -91,17 +91,110 @@ permanent `http://sw.opencyc.org/concept/` identifiers published by the
 
 ### gUFO is a projection floor, not the canon
 
-The gUFO catalog covers the complete vendored class surface from `logic:`. Most
-rows are validation-only affine correspondences. Six rows are explicitly
-unsupported rather than silently flattened:
+The gUFO catalog holds 55 rows: 50 class-side rows covering the complete vendored class
+surface from `logic:`, and 5 relation rows. 48 rows are validation-only affine
+correspondences. Seven rows are explicitly unsupported rather than silently flattened:
 
-- `logic:Disposition` against gUFO's coarser `gufo:IntrinsicMode`; and
+- `logic:Disposition` against gUFO's coarser `gufo:IntrinsicMode`;
 - the five temporary-situation reifiers, represented canonically by
-  `logic:Fluent` plus RDF 1.2 statement metadata.
+  `logic:Fluent` plus RDF 1.2 statement metadata; and
+- `gufo:externallyDependsOn`, whose gUFO domain is disjoint from the relator type a
+  `gmeow:Commitment` has, so the generated view does not emit the edge.
 
 The vendored gUFO source remains an interoperability and conformance input
 during the transition away from external terms in domain slices. It does not
 outrank `logic:` as the grounding authority.
+
+### The gUFO floor is measured over every vendored term
+
+The row count mixes class coverage, property coverage and explicit replacements, so
+it does not measure the floor. The floor check derives its denominator from the
+declarations of the vendored source itself: every term in the gUFO namespace, by the kind
+its declaration gives it. The source declares 49 classes, 40 object properties and 7
+data properties, and no annotation property, individual or datatype of its own. The
+external annotation properties, the `xsd:date` datatype, `time:Instant` and the two
+disjointness axioms the file also contains are not gUFO terms and are outside the
+denominator.
+
+Each term is joined to every catalog cell that names it as target, and each cell keeps
+its own source identity, so a many-to-one mapping stays visible: `logic:Aspect` is the
+source for `gufo:Aspect`, `gufo:IntrinsicAspect` and `gufo:ExtrinsicAspect`, and
+`gufo:IntrinsicMode` is the target of both `logic:Mode` and `logic:Disposition`.
+
+A cell is judged on the native claim, and its target claim is reported beside it:
+
+| Judgment | Native evidence required |
+|---|---|
+| Earned counterpart | The cell is an exact, close or narrow match. The source is declared with the target's kind and carries a `gmeow:graphBoxRole`. For a property, the source carries every characteristic gUFO states for the target, as a type or through a characteristic assertion. |
+| Native replacement | The cell is a related match that states a non-blank `gmeow:lossyDrop`, and the source is declared with the target's kind, carries a `gmeow:graphBoxRole`, and carries every characteristic gUFO states for a property. |
+| Validation-only match | A cell exists, but it is a broad match, or it is a related match with no non-blank `gmeow:lossyDrop`, or the source is not declared with the target's kind, lacks a `gmeow:graphBoxRole`, or lacks a characteristic gUFO states. The catalog validates; the native claim is not earned. |
+| Uncovered | No cell names the term. |
+
+An earned counterpart establishes that the native source relates to the gUFO target at the same or a wider
+relation (a `skos:narrowMatch` cell states that the source includes the view), that the source is declared
+with the target's kind, that it is a member of a graph box, and that it carries the target's characteristics.
+It does not establish structural subsumption, disjointness, or domain and range parity. One wider native term
+may therefore earn several disjoint gUFO terms, as `logic:Aspect` does for the intrinsic and extrinsic aspects.
+
+A term takes the strongest judgment among its cells. The target claim, validation-only
+or unsupported, never raises or lowers the native judgment: `logic:Mode` earns the
+`gufo:IntrinsicMode` counterpart, and `logic:Disposition` is a validation-only broad match whose
+gUFO downprojection is unsupported.
+
+| gUFO kind | Terms | Earned counterpart | Native replacement | Validation-only match | Uncovered |
+|---|---:|---:|---:|---:|---:|
+| Class | 49 | 42 | 7 | 0 | 0 |
+| Object property | 40 | 2 | 0 | 3 | 35 |
+| Data property | 7 | 0 | 0 | 0 | 7 |
+| Annotation property, individual, datatype | 0 | 0 | 0 | 0 | 0 |
+
+The three dependence judgments are measured with their own evidence.
+`gufo:historicallyDependsOn` is an earned counterpart of `logic:historicallyDependsOn`,
+which carries the transitive characteristic. `gufo:externallyDependsOn` is a validation-only
+match: `gmeow:commitmentBeneficiary` is a broad match, and its unsupported target claim does
+not change that judgment. `gufo:inheresIn` is a validation-only match, because `gmeow:bearer`
+is a broad match to the gUFO relation. The temporary-situation reifier classes are covered by
+the `logic:Fluent` replacement that the worked example `criticism-fixes.ttl` exercises. The event
+and situation types are covered by the `logic:Event` and `logic:Situation` replacements.
+
+The floor reads the grounding correspondences only. The core alignment module
+(`slices/core/kernel/mappings/equivalences.ttl`) also names `gufo:isComponentOf`,
+`gufo:isCollectionMemberOf` and `gufo:isSubCollectionOf` under `gmeow:partOf`. Those alignments
+are outside the grounding catalog and carry no `logic:preservationKind`, so the floor does not
+measure them, and the three properties count as uncovered.
+
+`logic:Disposition` is a broad match to `gufo:IntrinsicMode`, because gUFO's mode is the coarser
+class. `logic:Mode` is the earned counterpart of that term. `logic:Event` and `logic:Situation` are
+related matches to `gufo:EventType` and `gufo:SituationType`: their sorts are the type-level targets
+of the projection and make no identity claim, so they are native replacements.
+
+Of the other two relation rows, `gufo:isProperPartOf` is an earned counterpart of
+`logic:properPartOf`. `gufo:mediates` is a validation-only match: `logic:mediates` carries
+neither the asymmetry nor the irreflexivity gUFO states for it, and no `gmeow:graphBoxRole`.
+
+The universal claim, that every gUFO term has a native counterpart or a stated
+replacement, does not hold. Its exceptions are the two decided terms `gufo:inheresIn` and
+`gufo:externallyDependsOn`, which the foundation charter excepts by decision; they are listed below the
+table and are not in it. The other 43 gap terms preclude the claim and fall into these families:
+
+| Family | Terms |
+|---|---|
+| Temporary-situation role properties | `concernsConstitutedEndurant`, `concernsNonRigidType`, `concernsQualityType`, `concernsQualityValue`, `concernsReifiedQualityValue`, `concernsRelatedEndurant`, `concernsRelationshipType`, `concernsTemporaryWhole` |
+| Qualified standing | `standsIn` and its five qualified specializations |
+| Parthood and constitution specializations | `constitutes`, `isAspectProperPartOf`, `isCollectionMemberOf`, `isComponentOf`, `isEventProperPartOf`, `isObjectProperPartOf`, `isSituationProperPartOf`, `isSubCollectionOf`, `isSubQuantityOf` |
+| Temporal boundaries | `hasBeginPoint`, `hasEndPoint` and their four data-property forms |
+| Event and participation relations | `broughtAbout`, `contributedToTrigger`, `manifestedIn`, `participatedIn`, `wasCreatedIn`, `wasTerminatedIn` |
+| Quality values | `hasAssociatedQualityValueType`, `hasQualityValue`, `hasReifiedQualityValue`, `hasValueComponent` |
+| Type categorization | `categorizes`, `partitions` |
+| Derivation | `isDerivedFrom` |
+| Mediation characteristics | `mediates` |
+
+The coverage test holds a family list that includes the two decided exceptions, and the check
+requires that list to equal the measured gaps exactly: covering a term removes it from its family,
+and a gap can never be absent from the list. Full semantic coverage requires qualifying evidence for
+every promised counterpart; the universal claim holds only when every family other than the two
+decided exceptions is empty.
+Characteristic parity is measured; domain and range parity are not machine-compared.
 
 ### BFO, OBO, and SUMO are bridge views
 

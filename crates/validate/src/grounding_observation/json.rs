@@ -21,6 +21,7 @@ impl ToJson for Cell {
             .with("morphism_class", self.morphism_class.to_json())
             .with("morphism_kind", self.morphism_kind.to_json())
             .with("preservation", self.preservation.to_json())
+            .with("loss", self.loss.to_json())
             .with("confidence", self.confidence.to_json())
             .with("grounding", self.grounding.to_json())
             .into()
@@ -40,6 +41,7 @@ impl FromJson for Cell {
             morphism_class: fields.optional("morphism_class")?,
             morphism_kind: fields.optional("morphism_kind")?,
             preservation: fields.optional("preservation")?,
+            loss: fields.optional("loss")?,
             confidence: fields.optional("confidence")?,
             grounding: fields.required("grounding")?,
         })

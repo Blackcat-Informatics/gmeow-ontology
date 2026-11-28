@@ -176,7 +176,7 @@ logic:Aspect skos:closeMatch gufo:Aspect {|
     logic:preservationKind logic:ValidationOnly
 |} .
 
-logic:Aspect skos:closeMatch gufo:IntrinsicAspect {|
+logic:Aspect skos:narrowMatch gufo:IntrinsicAspect {|
     a logic:GroundingCorrespondence ;
     gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
@@ -189,7 +189,7 @@ logic:Aspect skos:closeMatch gufo:IntrinsicAspect {|
     logic:preservationKind logic:ValidationOnly
 |} .
 
-logic:Aspect skos:closeMatch gufo:ExtrinsicAspect {|
+logic:Aspect skos:narrowMatch gufo:ExtrinsicAspect {|
     a logic:GroundingCorrespondence ;
     gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
@@ -202,7 +202,7 @@ logic:Aspect skos:closeMatch gufo:ExtrinsicAspect {|
     logic:preservationKind logic:ValidationOnly
 |} .
 
-logic:Mode skos:closeMatch gufo:IntrinsicMode {|
+logic:Mode skos:narrowMatch gufo:IntrinsicMode {|
     a logic:GroundingCorrespondence ;
     gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
@@ -214,7 +214,7 @@ logic:Mode skos:closeMatch gufo:IntrinsicMode {|
     logic:preservationKind logic:ValidationOnly
 |} .
 
-logic:Mode skos:closeMatch gufo:ExtrinsicMode {|
+logic:Mode skos:narrowMatch gufo:ExtrinsicMode {|
     a logic:GroundingCorrespondence ;
     gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
@@ -406,12 +406,13 @@ logic:ConcreteIndividualType skos:closeMatch gufo:ConcreteIndividualType {|
     logic:preservationKind logic:ValidationOnly
 |} .
 
-logic:Event skos:closeMatch gufo:EventType {|
+logic:Event skos:relatedMatch gufo:EventType {|
     a logic:GroundingCorrespondence ;
     gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "The canonical logic:Event sort is the compiler's type-level target for gUFO EventType; closeMatch records that projection convention without collapsing event individuals into their types." ;
+    gmeow:comment "The canonical logic:Event sort is the compiler's type-level target for gUFO EventType; relatedMatch records that projection convention without collapsing event individuals into their types." ;
+    gmeow:lossyDrop "gufo:EventType classifies event types; logic:Event is the native sort of event individuals and the projection keeps the sort without emitting the EventType classification structure." ;
     logic:sourceEndpoint logic:Event ;
     logic:targetEndpoint gufo:EventType ;
     logic:morphismClass logic:AffineCorrespondence ;
@@ -419,12 +420,13 @@ logic:Event skos:closeMatch gufo:EventType {|
     logic:preservationKind logic:ValidationOnly
 |} .
 
-logic:Situation skos:closeMatch gufo:SituationType {|
+logic:Situation skos:relatedMatch gufo:SituationType {|
     a logic:GroundingCorrespondence ;
     gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "The canonical logic:Situation sort is the compiler's type-level target for gUFO SituationType; closeMatch records the projection convention without an identity claim." ;
+    gmeow:comment "The canonical logic:Situation sort is the compiler's type-level target for gUFO SituationType; relatedMatch records the projection convention without an identity claim." ;
+    gmeow:lossyDrop "gufo:SituationType classifies situation types; logic:Situation is the native sort of situation individuals and the projection keeps the sort without emitting the SituationType classification structure." ;
     logic:sourceEndpoint logic:Situation ;
     logic:targetEndpoint gufo:SituationType ;
     logic:morphismClass logic:AffineCorrespondence ;
@@ -677,7 +679,7 @@ logic:Fluent skos:relatedMatch gufo:TemporaryRelationshipSituation {|
 
 # logic:Disposition is richer than stock gUFO's IntrinsicMode and has no direct gUFO
 # class. The conceptual bridge is retained but the current projection is Unsupported.
-logic:Disposition skos:closeMatch gufo:IntrinsicMode {|
+logic:Disposition skos:broadMatch gufo:IntrinsicMode {|
     a logic:GroundingCorrespondence ;
     gmeow:sssomFile "gmeow-logic-gufo.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;

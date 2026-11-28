@@ -96,6 +96,23 @@ pub struct EquivalenceCell {
     pub object_label: String,
 }
 
+impl EquivalenceCell {
+    /// The projection loss this correspondence states: its `gmeow:lossyDrop` lexical forms,
+    /// joined in authored order with `"; "`, ignoring blank forms. Returns `None` when no
+    /// non-blank loss is stated, so a consumer can distinguish a stated loss from none.
+    #[must_use]
+    pub fn stated_loss(&self) -> Option<String> {
+        let joined = self
+            .lossy_drops
+            .iter()
+            .map(|literal| literal.lexical_form.as_str())
+            .filter(|form| !form.trim().is_empty())
+            .collect::<Vec<_>>()
+            .join("; ");
+        (!joined.is_empty()).then_some(joined)
+    }
+}
+
 /// Per-file SSSOM header metadata (`gmeow:MappingSet`).
 #[derive(Debug, Clone, Default)]
 struct MappingSet {

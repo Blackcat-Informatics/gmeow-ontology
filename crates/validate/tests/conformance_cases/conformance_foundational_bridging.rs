@@ -14,6 +14,7 @@ use std::collections::BTreeSet;
 
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const MATH: &str = "https://blackcatinformatics.ca/math/";
+const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const GUFO: &str = "http://purl.org/nemo/gufo#";
 const BFO: &str = "http://purl.obolibrary.org/obo/";
 const RO: &str = "http://purl.obolibrary.org/obo/RO_";
@@ -168,9 +169,18 @@ fn grounding_catalog_is_single_owner_explicit_and_total() {
                 record.iri
             );
             &math_module
+        } else if record.source.starts_with(GMEOW) {
+            // A narrower core relation may be the source of a gUFO cell. Its declaration in a
+            // core module is checked by the gUFO floor's contract test, which reads those modules.
+            assert_eq!(
+                record.file, "gmeow-logic-gufo.sssom.tsv",
+                "{} may name a core source only in the gUFO catalog",
+                record.iri
+            );
+            continue;
         } else {
             panic!(
-                "{} reverses the take1 orientation: source must be canonical logic: or math:, got {}",
+                "{} reverses the grounding orientation: source must be canonical logic:, math: or a core term, got {}",
                 record.iri, record.source
             );
         };

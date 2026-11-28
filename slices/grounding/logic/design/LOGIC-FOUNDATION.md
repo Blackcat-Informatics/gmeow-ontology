@@ -28,8 +28,17 @@ than minimize symbol count. Where a tool's decidability ceiling or serialization
 a predecessor to drop a real distinction, `gmeow:logic` keeps the distinction and pushes the
 compromise out to the projection boundary.
 
-The foundation subsumes gUFO as a **minimum baseline**: every gUFO term has a `logic:` counterpart,
-and the `logic:` term is at least as expressive as its gUFO image. It then transcends both gUFO's
+The foundation subsumes gUFO as a **minimum baseline**: the promise is that every gUFO term has a
+`logic:` counterpart at least as expressive as its gUFO image, or an explicit native replacement that
+states what the gUFO view drops. The universal claim is that every vendored gUFO term, except the two
+decided exceptions named here, has such a counterpart. The exceptions are `gufo:inheresIn`, which has
+no generic native counterpart by design (its bearer is named by branch properties), and
+`gufo:externallyDependsOn`, which has none because the commitment relator it would relate is disjoint
+from the gUFO domain, so the gUFO view does not emit the edge. Both keep a validation-only or
+unsupported judgment in the [dependence section](#inherence-external-dependence-and-historical-dependence)
+below. The promise is measured term by term over the vendored declarations, by kind, in
+[`docs/foundational-bridging.md`](../../../../docs/foundational-bridging.md#the-gufo-floor-is-measured-over-every-vendored-term);
+the universal claim does not yet hold, and that document lists the terms that preclude it. The foundation then transcends both gUFO's
 and OWL 2's documented weaknesses — gUFO's because it is a deliberately lightweight OWL realization
 of UFO that drops modal and higher-order content, and OWL 2's because OWL trades expressivity for
 decidability by design. Decidability and tractability are therefore **projection and profile
@@ -386,9 +395,11 @@ It entails no present state: no membership, no bearer and no occupied seat follo
 follows from a provenance link to the minutes of the appointment. The present state comes from the
 interval-scoped relator.
 
-**Correspondence judgments.** The inherence cell matches the broader gUFO relation for validation
-only. The external-dependence cell is unsupported for the reason above. The historical-dependence
-cell is a validation-only close match. Each cell holds in the unspecified standpoint, because the
+**Correspondence judgments.** The inherence cell is a broad match to the gUFO relation and is
+validation-only. The external-dependence cell is a broad match from `gmeow:commitmentBeneficiary`, a narrower native
+relation than the gUFO relation, and its gUFO downprojection is unsupported for the reason above. The historical-dependence cell is a close match
+with the transitive characteristic; its native claim is earned, and its gUFO preservation is
+validation-only. Each cell holds in the unspecified standpoint, because the
 alignment cell form carries no standpoint index.
 
 ## Factored claim modality
@@ -816,16 +827,19 @@ realizes it* is deliberate rather than implied.
 
 - the normative design statement of the `gmeow:logic` foundation;
 - the **gUFO-floor superset vocabulary** — the `logic:` foundational sorts and relations that cover
-  every gUFO term as a minimum baseline;
+  the gUFO terms the measured floor reports as covered;
 - the **feature primitives** of the greenfield map (`logic:WorldBoundary`, `logic:closedUnder`,
   `logic:Fluent`, `logic:Builtin`, the HiLog reification vocabulary, `logic:properPartOf` and its
   characteristics, the profiled mereology and `HolonicPosition` constructs, the factored claim-modality
   axes, the proposition/token/attitude/evaluation constructs, the typed-attack argumentation
   vocabulary, and the `FormalizationCandidate` / `NonEntailmentObligation` governance constructs) —
   declarations that add no axioms to the reasoned core until they pass the formalization lifecycle;
-- the **gUFO ⊇ coverage discipline** — the standing requirement that every gUFO term have a `logic:`
-  counterpart, enforced natively by the `meta:gate-logic-gufo-superset` gate
-  (`crates/logic/tests/gufo_superset.rs`).
+- the **gUFO ⊇ coverage discipline** — the standing requirement that every vendored gUFO term is
+  measured by kind and judged on its native claim, and that every gap is listed by family in the coverage
+  test. The
+  `meta:gate-logic-gufo-superset` gate pins the measured judgments
+  (`crates/pipeline/src/stages/conformance/corpus_tests/gufo_superset.rs`); a class-only count is not
+  evidence for the properties.
 
 **Realized in the engine and the rest of the set:**
 

@@ -4,7 +4,7 @@
 //! Authored source observations and diagnostics only; no selected artifact is loaded.
 use super::*;
 use purrdf_lex::json::record::{from_slice, to_vec};
-const OBSERVED: &str = r#"{"sources":{"a":"digest-a","z":"digest-z"},"catalogs":{"x":[{"iri":"urn:cell","subject":"s","predicate":"p","obj":"o","source_endpoint":null,"target_endpoint":null,"sssom_file":"中\n\"\\","morphism_class":null,"morphism_kind":null,"preservation":null,"confidence":null,"grounding":false}]},"transpilation":{"a":{"Ok":0},"z":{"Ok":2}},"declared_subjects":{"a":["s","z"]},"imported_classes":{},"bfo_labels":{"b":["label"]}}"#;
+const OBSERVED: &str = r#"{"sources":{"a":"digest-a","z":"digest-z"},"catalogs":{"x":[{"iri":"urn:cell","subject":"s","predicate":"p","obj":"o","source_endpoint":null,"target_endpoint":null,"sssom_file":"中\n\"\\","morphism_class":null,"morphism_kind":null,"preservation":null,"loss":null,"confidence":null,"grounding":false}]},"transpilation":{"a":{"Ok":0},"z":{"Ok":2}},"declared_subjects":{"a":["s","z"]},"imported_classes":{},"bfo_labels":{"b":["label"]}}"#;
 #[test]
 fn json_grounding_observation_complete_literal_preserves_record_collection_and_null_order() {
     let observed: Observations = from_slice(OBSERVED.as_bytes()).unwrap();

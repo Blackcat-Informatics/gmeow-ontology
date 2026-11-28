@@ -38,6 +38,7 @@ const CONTROLS: [&str; 2] = [
 
 /// Retain each extracted correspondence coordinate under the shared transport owner.
 fn cell(cell: sssom::EquivalenceCell) -> Cell {
+    let loss = cell.stated_loss();
     Cell {
         iri: correspondence_frontend::alignment_provenance_iri(
             &cell.subject,
@@ -55,6 +56,7 @@ fn cell(cell: sssom::EquivalenceCell) -> Cell {
         preservation: cell.preservation,
         confidence: cell.confidence,
         grounding: cell.grounding,
+        loss,
     }
 }
 
@@ -95,7 +97,7 @@ pub(super) fn record(
         let (cells, transpiled): (Vec<Cell>, Option<Result<usize, gmeow_errors::RecordedDiag>>) =
             super::execution::cached_native_inputs(
                 &store,
-                "grounding-catalog-v1:original-native-envelope",
+                "grounding-catalog-v2:original-native-envelope",
                 vec![source_input(path, &digest)],
                 || {
                     let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)
