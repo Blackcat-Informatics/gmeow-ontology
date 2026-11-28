@@ -154,16 +154,18 @@ fn a_nominal_class_does_not_withhold_the_whole_graph_read() {
     assert_clash_is_decided(list_of(NAMED, &format!("{OWL}oneOf"), WITNESS));
 }
 
-/// An asserted literal in a datatype with no admitted interpretation leaves an unrelated
-/// cardinality definition decidable.
+/// An asserted literal in a datatype with no admitted interpretation withholds the whole-graph
+/// read, and the retained `UnsupportedValue` obstruction names that remaining unsupported
+/// literal.
 ///
-/// Obstruction kind: datatype. This is a known defect: the asserted value has no admitted
-/// interpretation, so the world's completed statement read is withheld. The change that
-/// resolves this kind removes the `should_panic` attribute, which turns the test green.
+/// The value space has no decision procedure for membership and no model of its values, so
+/// the premise that the literal is a member stays undecided. The cardinality definition that
+/// waits on the read therefore stays blocked, and the closure carries the obstruction for the
+/// unsupported value.
 #[test]
-#[should_panic(expected = "a cardinality definition waits on a withheld read")]
-fn an_uninterpreted_literal_datatype_does_not_withhold_the_whole_graph_read() {
-    assert_clash_is_decided(vec![
+fn an_uninterpreted_literal_datatype_withholds_the_whole_graph_read() {
+    let mut quads = clash();
+    quads.extend([
         fact("urn:wg:dp", TYPE, &format!("{OWL}DatatypeProperty")),
         fact(
             "urn:wg:dp",
@@ -172,6 +174,30 @@ fn an_uninterpreted_literal_datatype_does_not_withhold_the_whole_graph_read() {
         ),
         literal("urn:wg:v", "urn:wg:dp", "unknown", "urn:wg:uninterpreted"),
     ]);
+    let result = run(&program(Vec::new()), &source(quads));
+    let outcomes = || {
+        result
+            .native_families
+            .iter()
+            .flat_map(|ledger| &ledger.outcomes)
+    };
+    assert!(
+        outcomes()
+            .filter(|outcome| outcome.family == NativeRefutationFamily::Cardinality)
+            .any(|outcome| matches!(outcome.completion, NativeFamilyCompletion::Blocked { .. })),
+        "the cardinality definition must wait on the withheld read: {:?}",
+        obstructions(&result)
+    );
+    assert!(
+        outcomes()
+            .flat_map(|outcome| &outcome.obstructions)
+            .any(|obstruction| matches!(
+                obstruction.kind,
+                crate::reason::refute::NativeObstructionKind::UnsupportedValue
+            )),
+        "the withheld read must name the unsupported value: {:?}",
+        obstructions(&result)
+    );
 }
 
 /// A maximum bound on a datatype property leaves an unrelated cardinality definition
