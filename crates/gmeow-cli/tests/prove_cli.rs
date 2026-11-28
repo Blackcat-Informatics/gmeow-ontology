@@ -2349,6 +2349,122 @@ ex:quote rdf:reifies <<( ex:a ex:edge ex:blocked )>> .
     }
 }
 
+/// An authored classical denial keeps its owner and the exact, scoped join
+/// premises in the native source proof. Neither absence nor quotation fires it.
+#[test]
+fn selected_formula_denial_refutes_the_join_without_assuming_absence() {
+    let body = r#"
+ex:Chosen a logic:Module .
+ex:Other a logic:Module .
+ex:law a logic:Formula ; logic:inModule ex:Chosen ; logic:formalizes ex:Policy ;
+    logic:quantifiedVariable ex:eventVar, ex:claimVar ; logic:forall ex:implication .
+ex:eventVar a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "event" .
+ex:claimVar a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "claim" .
+ex:implication a logic:Formula ; logic:antecedent ex:guard ; logic:consequent ex:denial .
+ex:guard a logic:Formula ; logic:and ex:projected, ex:licensed .
+ex:projected a logic:Formula ; logic:relation ex:projectedClaim ; logic:argument ex:eventVar, ex:claimVar .
+ex:licensed a logic:Formula ; logic:relation ex:veridicality ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ],
+        [ logic:termIndex 1 ; logic:termIri ex:LicensedFalsehood ] .
+ex:denial a logic:Formula ; logic:not ex:deception .
+ex:deception a logic:Formula ; logic:relation ex:eventType ;
+    logic:argument ex:eventVar, [ logic:termIndex 1 ; logic:termIri ex:Deception ] .
+ex:one ex:projectedClaim ex:c .
+ex:other ex:veridicality ex:LicensedFalsehood .
+ex:quote rdf:reifies <<( ex:one ex:eventType ex:Deception )>> .
+"#;
+    let assertion = "ex:one ex:eventType ex:Deception .";
+    let joined = "ex:c ex:veridicality ex:LicensedFalsehood .";
+    for (module, extra, expected_clash) in [
+        ("Chosen", format!("{joined}\n{assertion}"), true),
+        ("Chosen", assertion.to_owned(), false),
+        ("Chosen", joined.to_owned(), false),
+        ("Other", format!("{joined}\n{assertion}"), false),
+    ] {
+        let includes_law = module == "Chosen";
+        let root = format!("https://example.org/prove/{module}");
+        let (report, _) = prove_json(
+            "formula-denial.ttl",
+            &format!("{body}\n{extra}"),
+            &["--module", &root],
+        );
+        let expected_verdict = if expected_clash {
+            "inconsistent"
+        } else {
+            "consistent"
+        };
+        assert_eq!(report["verdict"], expected_verdict, "{report:#}");
+        let law = report["native_admission"]["units"]
+            .as_array()
+            .expect("source units")
+            .iter()
+            .find(|unit| {
+                unit["kind"] == "Formula"
+                    && unit["anchor"]
+                        .as_str()
+                        .is_some_and(|anchor| anchor.ends_with("/law|0:"))
+            })
+            .expect("the authored law remains in the account");
+        let disposition = if includes_law {
+            "Accounted"
+        } else {
+            "OutsideRequestedTheory"
+        };
+        assert!(!law["disposition"][disposition].is_null(), "{law:#}");
+        let formalization = report["native_admission"]["units"]
+            .as_array()
+            .expect("source units")
+            .iter()
+            .find(|unit| {
+                unit["anchor"]
+                    .as_str()
+                    .is_some_and(|anchor| anchor.contains("/law") && anchor.contains("/formalizes"))
+            })
+            .expect("the documentary link remains in the source account");
+        if includes_law {
+            assert_eq!(
+                formalization["disposition"]["FormulaEvidence"]["formula_origins"],
+                serde_json::json!([law["id"].clone()]),
+                "{formalization:#}"
+            );
+        } else {
+            assert!(
+                !formalization["disposition"]["OutsideRequestedTheory"].is_null(),
+                "{formalization:#}"
+            );
+        }
+        if expected_clash {
+            let witness = report["refutations"]
+                .as_array()
+                .expect("contradiction witnesses")
+                .iter()
+                .find(|row| {
+                    row["engine"] == "native" && row["law"] == "https://example.org/prove/law"
+                })
+                .expect("witness attributed to the authored formula");
+            assert_eq!(witness["world"], gmeow_logic::reason::rl::DEFAULT_WORLD);
+            let premises = witness["premises"].as_array().expect("asserted premises");
+            assert_eq!(premises.len(), 3, "{witness:#}");
+            for (subject, predicate, object) in [
+                ("one", "projectedClaim", "c"),
+                ("c", "veridicality", "LicensedFalsehood"),
+                ("one", "eventType", "Deception"),
+            ] {
+                assert!(
+                    premises.contains(&serde_json::json!([
+                        format!("https://example.org/prove/{subject}"),
+                        format!("https://example.org/prove/{predicate}"),
+                        format!("<https://example.org/prove/{object}>"),
+                    ])),
+                    "{witness:#}"
+                );
+            }
+        } else {
+            assert_eq!(report["refutations"], serde_json::json!([]), "{report:#}");
+        }
+    }
+}
+
 /// A consequent that conjoins a unary atom with an atom of arity three is one
 /// dependency the native engine executes: the run is decided, not an execution
 /// failure, and no drop names the formula.

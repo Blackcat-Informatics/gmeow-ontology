@@ -61,6 +61,12 @@ const MAX_SCHEMA_PLANS: usize = 4;
 type SchemaPlans = SchemaCache<NativeOutcome<Arc<JointProgram>>>;
 type SchemaTemplates = SchemaCache<Arc<JointTemplate>>;
 
+#[derive(Clone, Copy)]
+struct SelectedSource<'selection, 'source> {
+    program: gmeow_logic_compile::source_inventory::SelectedProgramView<'selection, 'source>,
+    dataset: &'selection purrdf::RdfDataset,
+}
+
 /// Bounded immutable templates and source-bound plans. No facts or results
 /// or input summaries are retained. Keys are fixed-size digests; retained source and
 /// domain metadata is subject to the template's independent byte bound.
@@ -165,20 +171,31 @@ impl PreparedProgram {
         program: &LogicProgram,
         identity: [u8; 32],
         profile: SourceAdmissionProfile,
-        selected: Option<gmeow_logic_compile::source_inventory::SelectedProgramView<'_, '_>>,
+        selected: Option<SelectedSource<'_, '_>>,
     ) -> gmeow_errors::Result<Self> {
         let source_proof = matches!(
             profile,
             SourceAdmissionProfile::SelectedSourceProofV2 { .. }
         );
-        let (admission, lowering, mut rules) = if let Some(view) = selected {
+        let denials = selected
+            .filter(|_| source_proof)
+            .map_or_else(Vec::new, |source| {
+                crate::reason::selected_denials(source.program, source.dataset)
+            });
+        let denied_formulas: BTreeSet<_> =
+            denials.iter().filter_map(|row| row.formula_index).collect();
+        let (admission, mut lowering, mut rules) = if let Some(source) = selected {
+            let view = source.program;
             (
                 crate::native_semantics::ProgramAdmission::capture_selected(
                     view,
                     profile,
                     program.source_iri.clone(),
                 ),
-                crate::relational_core::lower_indexed_formulas(view.formulas()),
+                crate::relational_core::lower_indexed_formulas(
+                    view.formulas()
+                        .filter(|(index, _)| !denied_formulas.contains(index)),
+                ),
                 view.rules()
                     .map(|(_, rule)| crate::lower::lower_rule(rule))
                     .collect::<gmeow_errors::Result<Vec<_>>>()?,
@@ -192,10 +209,7 @@ impl PreparedProgram {
         };
         rules.extend(lowering.rules);
         let mut denial_owners = BTreeMap::new();
-        if let Some(view) = selected.filter(|_| source_proof)
-            && let mut denials = view.forbidden_patterns().peekable()
-            && denials.peek().is_some()
-        {
+        if !denials.is_empty() {
             let mut rule_ids: BTreeSet<_> =
                 rules.iter().map(|rule| rule.rule_iri.clone()).collect();
             rule_ids.extend(
@@ -209,20 +223,23 @@ impl PreparedProgram {
                     .into_iter()
                     .map(|rule| rule.rule_iri),
             );
-            for (_, constraint) in denials {
-                // Unsupported denials remain source boundaries in NativeSourceAdmission.
-                if let Ok(rule) = crate::reason::lower_forbidden_pattern(constraint) {
-                    if !rule_ids.insert(rule.rule_iri.clone()) {
-                        return Err(gmeow_errors::Diag::of_kind(crate::error::Lower {
-                            detail: format!(
-                                "forbidden pattern {} shares proof rule identity {} with a selected rule",
-                                constraint.iri, rule.rule_iri
-                            ),
-                        }));
-                    }
-                    denial_owners.insert(rule.rule_iri.clone(), constraint.iri.clone());
-                    rules.push(rule);
+            for denial in denials {
+                let rule = denial.rule;
+                if !rule_ids.insert(rule.rule_iri.clone()) {
+                    return Err(gmeow_errors::Diag::of_kind(crate::error::Lower {
+                        detail: format!(
+                            "denial {} shares proof rule identity {} with a selected rule",
+                            denial.owner, rule.rule_iri
+                        ),
+                    }));
                 }
+                if let Some(index) = denial.formula_index {
+                    lowering
+                        .formula_rules
+                        .insert(rule.rule_iri.clone(), BTreeSet::from([index]));
+                }
+                denial_owners.insert(rule.rule_iri.clone(), denial.owner);
+                rules.push(rule);
             }
         }
         Ok(Self {
@@ -289,7 +306,7 @@ impl PreparedProgram {
                 &crate::provenance::term_display(&source.source),
                 &source.world,
                 format!(
-                    "rule identity {} belongs to selected forbidden pattern {owner}",
+                    "rule identity {} belongs to selected denial {owner}",
                     source.rule.rule_iri
                 ),
             ));
@@ -512,8 +529,12 @@ pub(crate) fn prepare_selected_program(
     selection: &gmeow_logic_compile::source_inventory::ResolvedTheorySelection,
     profile: SourceAdmissionProfile,
 ) -> gmeow_errors::Result<Arc<PreparedProgram>> {
-    let view = selection.program_view(inventory)?;
-    prepare_program_view(inventory.theory().program(), profile, Some(view))
+    let theory = inventory.theory();
+    let source = SelectedSource {
+        program: selection.program_view(inventory)?,
+        dataset: theory.source().dataset(),
+    };
+    prepare_program_view(theory.program(), profile, Some(source))
 }
 
 pub(crate) fn selected_profile(
@@ -539,7 +560,7 @@ pub(crate) fn selected_source_proof_profile(
 fn prepare_program_view(
     program: &LogicProgram,
     profile: SourceAdmissionProfile,
-    selected: Option<gmeow_logic_compile::source_inventory::SelectedProgramView<'_, '_>>,
+    selected: Option<SelectedSource<'_, '_>>,
 ) -> gmeow_errors::Result<Arc<PreparedProgram>> {
     static CACHE: OnceLock<Mutex<PreparationCache>> = OnceLock::new();
     let cache = CACHE.get_or_init(|| Mutex::new(PreparationCache::default()));
