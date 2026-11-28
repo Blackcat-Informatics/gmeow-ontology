@@ -10457,11 +10457,23 @@ logic:knowledgePrecedes
     rdfs:label "knowledge precedes"@x-gmeow-english ;
     skos:definition "The explicit knowledge order the kernel's monotonicity law ranges over: a is below b when b settles strictly more than a does. Authored explicitly because the runtime enumeration order of logic:InformationState is DECLARATION order, not the knowledge order, and reading one for the other inverts the lattice. The admitted chain is logic:InfoNotEvaluated below logic:InfoUndetermined below each of logic:InfoSupported and logic:InfoOpposed, both below logic:InfoBoth. A reconciliation may only move effect knowledge upward along it."@x-gmeow-english ;
     skos:scopeNote "Authored explicitly because the runtime enumeration order of the information states is DECLARATION order, not the knowledge order. Reading one for the other inverts the monotonicity law, so this relation exists to keep the ordering out of accidental control of the file layout."@x-gmeow-english ;
-    skos:example "logic:EffectAttempted logic:knowledgePrecedes logic:EffectReconciled ."@x-gmeow-english ;
+    skos:example "logic:InfoUndetermined logic:knowledgePrecedes logic:InfoSupported ."@x-gmeow-english ;
     gmeow:useWhen "Use to state that one information state settles strictly less than another, so the monotonicity law has an order to range over."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid relying on declaration order in its place: that order is an artifact of the file, and the law would silently follow whatever an editor last did."@x-gmeow-english ;
     gmeow:howToUse "Author the full order explicitly between the information states, and let the monotonicity check read it rather than an enumeration."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+# The authored strict knowledge order over the five information states an external
+# effect may carry. It is stated in full - every pair, not a generating chain - because
+# the monotonicity law reads exactly these statements and never closes them. The order
+# is a diamond: nothing is known below, a probe that returned no verdict above that,
+# proof alone and counterproof alone above that and incomparable with each other, and
+# proof together with counterproof at the top. logic:InfoNeither is absent by design: it
+# is the conclusive closed-world reading, which external commitment never has.
+logic:InfoNotEvaluated logic:knowledgePrecedes logic:InfoUndetermined , logic:InfoSupported , logic:InfoOpposed , logic:InfoBoth .
+logic:InfoUndetermined logic:knowledgePrecedes logic:InfoSupported , logic:InfoOpposed , logic:InfoBoth .
+logic:InfoSupported logic:knowledgePrecedes logic:InfoBoth .
+logic:InfoOpposed logic:knowledgePrecedes logic:InfoBoth .
 
 logic:AxisTransitionLaw
     a logic:Class ;
@@ -15153,6 +15165,41 @@ logic:rrvGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rd
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ReconciliationResult ] .
 logic:rrvCons a logic:Formula ; logic:relation logic:reconciliationVerdict ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "verdict" ] .
+
+# Effect knowledge only moves up the knowledge order. A logic:ReconciliationProbe records the
+# knowledge standing on the attempt when the probe was issued, and the logic:ReconciliationResult
+# it produced records the knowledge standing after. Each move is judged against the authored
+# logic:knowledgePrecedes order plus equality, never against the declaration order of the
+# information-state enumeration. A disagreement that would lower knowledge is recorded as
+# logic:InfoBoth and adjudicated, so the lower reading is never a legal result.
+logic:EffectKnowledgeMonotonicityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "effect knowledge never decreases along the knowledge order"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:ReconciliationResult whose logic:effectKnowledge is neither equal to the logic:effectKnowledge recorded on its logic:resultOfProbe probe nor reachable from it by logic:knowledgePrecedes. The probe records the knowledge standing when it was issued and the result records the knowledge standing after, so the pair is one move of the knowledge axis. Only an upward or unchanged move is admitted: a probe that appears to lower knowledge has contradicted the earlier reading, and that disagreement is recorded as logic:InfoBoth and settled by a logic:ContradictionAdjudication, never as a lower value. The order is read from the authored logic:knowledgePrecedes statements and never from the declaration order of logic:InformationState, so a graph that omits those statements condemns every move that changes the value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:ReconciliationResult must carry a logic:effectKnowledge equal to, or above under logic:knowledgePrecedes, the logic:effectKnowledge of its probe; lowering knowledge is a contradiction to adjudicate, not a legal move." ;
+    logic:integrity logic:ekmForall .
+logic:ekmForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:ekmImpl .
+logic:ekmImpl a logic:Formula ; logic:antecedent logic:ekmGuard ; logic:consequent logic:ekmCons .
+logic:ekmGuard a logic:Formula ; logic:and logic:ekmIsResult , logic:ekmProbe , logic:ekmPrior , logic:ekmAfter .
+logic:ekmIsResult a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ReconciliationResult ] .
+logic:ekmProbe a logic:Formula ; logic:relation logic:resultOfProbe ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "probe" ] .
+logic:ekmPrior a logic:Formula ; logic:relation logic:effectKnowledge ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "probe" ] , [ logic:termIndex 1 ; logic:termVariable "prior" ] .
+logic:ekmAfter a logic:Formula ; logic:relation logic:effectKnowledge ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "after" ] .
+logic:ekmCons a logic:Formula ; logic:or logic:ekmUnchanged , logic:ekmAdvances .
+logic:ekmUnchanged a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "prior" ] , [ logic:termIndex 1 ; logic:termVariable "after" ] .
+logic:ekmAdvances a logic:Formula ; logic:relation logic:knowledgePrecedes ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "prior" ] , [ logic:termIndex 1 ; logic:termVariable "after" ] .
 
 logic:EnactmentPinsPrescriptionAndSnapshotConstraint
     a logic:Constraint ;

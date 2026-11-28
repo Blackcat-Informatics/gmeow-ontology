@@ -376,8 +376,21 @@ The displayed history predicates are mathematical metavariables. The actual
 `logic:knowledgePrecedes` property names the strict knowledge order; allowing an
 unchanged value supplies its reflexive closure. A genuine committed-then-not-committed
 disagreement can move `InfoSupported → InfoBoth`, preserving both reports for
-attributed adjudication. This design condition does not claim a separately named
-reconciliation constraint has been authored or executed.
+attributed adjudication.
+
+`logic:EffectKnowledgeMonotonicityConstraint` enforces the law on the production
+verification path. A move of the axis is one `logic:ReconciliationProbe` and the
+`logic:ReconciliationResult` it produced: the probe carries the `logic:effectKnowledge`
+standing when it was issued, the result carries the value standing after, and they are
+joined through `logic:resultOfProbe`. The constraint condemns a result whose value is
+neither equal to its probe's value nor reachable from it by `logic:knowledgePrecedes`,
+so a decrease and a swap between the incomparable `InfoSupported` and `InfoOpposed` are
+both findings. The order is read from the nine authored `logic:knowledgePrecedes`
+statements in the logic module, which state the strict order in full; a graph under
+verification that omits them condemns every move that changes the value. The law judges
+the pair of records a probe and its result form. It does not infer a history from a single
+record carrying several `logic:effectKnowledge` values, and it does not read the
+declaration order of `logic:InformationState`.
 
 ### Axis 6 — `logic:GoalEvaluationStatus`: a minting-and-supersession law
 
@@ -495,7 +508,8 @@ The kernel admits five values for `logic:effectKnowledge` — `InfoNotEvaluated`
 antisymmetric, transitive, with bottom `InfoNotEvaluated`, top `InfoBoth`, and all binary joins —
 notably `InfoSupported ⊔ InfoOpposed = InfoBoth`. The strict part is represented by
 `logic:knowledgePrecedes`; equality supplies reflexivity for the non-strict order.
-A declaration of that relation does not itself certify its runtime evaluation.
+The logic module states the strict order in full as authored statements, and the
+monotonicity constraint evaluates them on the verification path.
 
 `InfoNotEvaluated ⊏ₖ InfoUndetermined` is a real strictness, not a tidy-up. `NotEvaluated` means the
 engine *could not look* — no probe was possible, no semantics were available. `Undetermined` means a

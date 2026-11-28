@@ -13986,6 +13986,14 @@ msgctxt "https://blackcatinformatics.ca/logic/ReconciliationResultCarriesVerdict
 msgid "The logic:Constraint rejecting a logic:ReconciliationResult with no logic:ReconciliationVerdict. A probe that completed and recorded nothing is indistinguishable from a probe that never ran, and the difference matters: the first leaves an effect where it was, the second leaves it unprobed and still owing a reconciliation."
 msgstr "拒斥无 logic:ReconciliationVerdict 之 logic:ReconciliationResult 的 logic:Constraint。一次完成却什么也未记录的探询，与一次从未运行的探询无从分辨，而这一区别至关紧要：前者使效应停留在原处，后者则使它仍未被探询，且仍欠着一次核实。"
 
+msgctxt "https://blackcatinformatics.ca/logic/EffectKnowledgeMonotonicityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effect knowledge never decreases along the knowledge order"
+msgstr "外部效应的认知状态沿认知序永不下降"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectKnowledgeMonotonicityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:ReconciliationResult whose logic:effectKnowledge is neither equal to the logic:effectKnowledge recorded on its logic:resultOfProbe probe nor reachable from it by logic:knowledgePrecedes. The probe records the knowledge standing when it was issued and the result records the knowledge standing after, so the pair is one move of the knowledge axis. Only an upward or unchanged move is admitted: a probe that appears to lower knowledge has contradicted the earlier reading, and that disagreement is recorded as logic:InfoBoth and settled by a logic:ContradictionAdjudication, never as a lower value. The order is read from the authored logic:knowledgePrecedes statements and never from the declaration order of logic:InformationState, so a graph that omits those statements condemns every move that changes the value."
+msgstr "拒斥这样的 logic:ReconciliationResult 的 logic:Constraint：其 logic:effectKnowledge 既不等于其 logic:resultOfProbe 探针上所记录的 logic:effectKnowledge，也不能由后者经 logic:knowledgePrecedes 到达。探针记录其发出时所处的认知状态，结果记录其后所处的认知状态，二者合为认知轴上的一次移动。只允许上行或不变的移动：看似降低认知的探针其实与先前的读数相矛盾，这种分歧应记为 logic:InfoBoth 并由 logic:ContradictionAdjudication 裁决，绝不记为更低的值。次序读取自已撰写的 logic:knowledgePrecedes 陈述，而不是 logic:InformationState 的声明顺序，因此省略这些陈述的图会对每一次改变取值的移动定罪。"
+
 msgctxt "https://blackcatinformatics.ca/logic/AbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "abductive repair schema"
 msgstr "溯因修复模式"
@@ -16987,8 +16995,8 @@ msgid "Authored explicitly because the runtime enumeration order of the informat
 msgstr "之所以要显式撰写，是因为信息状态在运行时的枚举顺序乃是声明顺序，而非知识顺序。若以此为彼，单调性定律便会被颠倒，故设此关系，使该顺序不再受制于文件排布的偶然。"
 
 msgctxt "https://blackcatinformatics.ca/logic/knowledgePrecedes|http://www.w3.org/2004/02/skos/core#example"
-msgid "logic:EffectAttempted logic:knowledgePrecedes logic:EffectReconciled ."
-msgstr "示例：logic:EffectAttempted logic:knowledgePrecedes logic:EffectReconciled 。"
+msgid "logic:InfoUndetermined logic:knowledgePrecedes logic:InfoSupported ."
+msgstr "示例：logic:InfoUndetermined logic:knowledgePrecedes logic:InfoSupported 。"
 
 msgctxt "https://blackcatinformatics.ca/logic/lawAdmits|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Carries the admitted transition relation as a formula rather than as a table, which is what makes the liveness certificate derivable instead of hand-maintained. A table would have to be re-checked by a human whenever an axis value is added; a formula is re-evaluated."
