@@ -410,7 +410,11 @@ jobs:
     # Cold generation A reached stage-reason at 3m and was still correctly
     # executing when the former 60-minute job budget sent SIGTERM. Preserve both
     # independent cold authorities and budget the measured tail explicitly.
-    timeout-minutes: 120
+    # Measured on main: a generation verdict (pass or fail) arrives 80 to 107
+    # minutes after the job starts. Generation A was cancelled at the 120-minute
+    # limit on two runs with no verdict, so the limit is 150 minutes. A job that
+    # finishes earlier costs no more than before.
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
