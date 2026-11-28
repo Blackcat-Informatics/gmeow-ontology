@@ -9,7 +9,7 @@ use std::collections::BTreeSet;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
-/// The 44 enactment-kernel laws the gate MUST compile, by local name.
+/// The 50 enactment-kernel laws the gate MUST compile, by local name.
 ///
 /// Spelled out rather than counted, because the number alone would stay green if one
 /// law silently dropped out of the fragment and an unrelated one was added. This is the
@@ -23,11 +23,13 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// lease double-claiming a held scope are different defects, and a corpus must be able
 /// to trip each alone — and because a single law cannot do both: the relational body
 /// needs the binding in its GUARD, which makes the missing-binding case fall outside it.
-const ENACTMENT_LAWS: [&str; 44] = [
+const ENACTMENT_LAWS: [&str; 50] = [
     "AdvisoryNeverAuthorityConstraint",
     "ApprovalCommitmentCompletenessConstraint",
     "ApprovalDigestBindsDispatchIntentConstraint",
     "ApprovalScopedToIntentEnactmentConstraint",
+    "ApprovalStateTransitionConstraint",
+    "AxisMoveNamesBothPositionsConstraint",
     "CapabilityGapProposalCompletenessConstraint",
     "CheckpointCarriesFoldedIdentityConstraint",
     "CheckpointRestoreIdentityConstraint",
@@ -43,8 +45,10 @@ const ENACTMENT_LAWS: [&str; 44] = [
     "ContinuationKindDisjointnessConstraint",
     "ContinuationRepeatExcludesReviseConstraint",
     "DispatchIntentCompletenessConstraint",
+    "EffectProtocolPositionTransitionConstraint",
     "EffectRecordsAreObservedNotDerivedConstraint",
     "EnactmentPinsPrescriptionAndSnapshotConstraint",
+    "EnactmentStateTransitionConstraint",
     "FrontierCarriesSaturationWitnessConstraint",
     "FrontierClosureRequiresSaturationConstraint",
     "IdempotencyContractCompletenessConstraint",
@@ -63,10 +67,12 @@ const ENACTMENT_LAWS: [&str; 44] = [
     "PrescriptionVersionIsContentAddressedConstraint",
     "ReceiptRequiresAttemptConstraint",
     "ReconciliationResultCarriesVerdictConstraint",
+    "RecurrenceStateTransitionConstraint",
     "RefinementEpisodeDeclaresSearchFragmentConstraint",
     "RefinementPinComesFromCandidateSetConstraint",
     "RestoreStaysWithinItsEnactmentConstraint",
     "RetryRequiresLicenceConstraint",
+    "StepStateTransitionConstraint",
     "UnknownOutcomeNamesItsAttemptConstraint",
 ];
 

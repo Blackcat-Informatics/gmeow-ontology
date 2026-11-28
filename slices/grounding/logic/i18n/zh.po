@@ -24390,3 +24390,127 @@ msgstr "不要用于仅为记录提供证据的来源（用溯源）、仅有时
 msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Assert it from the dependent individual to each individual it requires; read transitivity as the closure. It adds no membership, bearer or occupancy: a consumer reads the present state from the interval-scoped relators and the dependence from this relation."
 msgstr "从依赖个体指向它所要求的每个个体来断言；将传递性理解为闭包。它不增加成员资格、承载者或占据：使用者从受区间限定的关系体读取当下状态，从该关系读取依赖。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AxisMove|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Axis Move"
+msgstr "轴移动"
+
+msgctxt "https://blackcatinformatics.ca/logic/AxisMove|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One recorded move of a record between two positions of a closed lifecycle axis, naming the position it left (logic:moveFromPosition) and the position it reached (logic:moveToPosition). It is the record the axis transition laws judge: a logic:AxisTransitionLaw states the admitted edges, and its enforcing logic:Constraint refuses every move whose pair of positions is not one of them. The axis is read from the positions, and a move never carries values from two axes."
+msgstr "一条已记录的移动：某条记录在一个封闭生命周期轴的两个位置之间移动，并指明其离开的位置（logic:moveFromPosition）与到达的位置（logic:moveToPosition）。它是各轴转换法则所评判的记录：logic:AxisTransitionLaw 陈述被允许的边，而执行它的 logic:Constraint 会拒绝位置对不在其中的每一次移动。轴由位置读出，且一次移动从不携带来自两个轴的值。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AxisMove|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run7Start a logic:AxisMove ; logic:moveFromPosition logic:EnactmentPending ; logic:moveToPosition logic:EnactmentRunning ."
+msgstr "示例：ex:run7Start a logic:AxisMove ; logic:moveFromPosition logic:EnactmentPending ; logic:moveToPosition logic:EnactmentRunning ."
+
+msgctxt "https://blackcatinformatics.ca/logic/moveFromPosition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "move from position"
+msgstr "移动的起始位置"
+
+msgctxt "https://blackcatinformatics.ca/logic/moveFromPosition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a logic:AxisMove to the position of a closed lifecycle axis the record occupied before the move. Range a position individual of one axis value class (stated in prose). A move names exactly one origin, and the governing transition law reads the admitted successors from it."
+msgstr "将 logic:AxisMove 关联到记录在移动之前所处的封闭生命周期轴的位置。值域为某个轴取值类的位置个体（以文字陈述）。一次移动恰好指明一个起点，支配它的转换法则据此读出被允许的后继。"
+
+msgctxt "https://blackcatinformatics.ca/logic/moveFromPosition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run7Start logic:moveFromPosition logic:EnactmentPending ."
+msgstr "示例：ex:run7Start logic:moveFromPosition logic:EnactmentPending ."
+
+msgctxt "https://blackcatinformatics.ca/logic/moveToPosition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "move to position"
+msgstr "移动的到达位置"
+
+msgctxt "https://blackcatinformatics.ca/logic/moveToPosition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a logic:AxisMove to the position of a closed lifecycle axis the record occupied after the move. Range a position individual of one axis value class (stated in prose). A move names exactly one destination, and it is admitted only when the governing transition law lists it among the successors of the origin."
+msgstr "将 logic:AxisMove 关联到记录在移动之后所处的封闭生命周期轴的位置。值域为某个轴取值类的位置个体（以文字陈述）。一次移动恰好指明一个终点，只有当支配它的转换法则将其列为起点的后继之一时，它才被允许。"
+
+msgctxt "https://blackcatinformatics.ca/logic/moveToPosition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run7Start logic:moveToPosition logic:EnactmentRunning ."
+msgstr "示例：ex:run7Start logic:moveToPosition logic:EnactmentRunning ."
+
+msgctxt "https://blackcatinformatics.ca/logic/AxisMoveNamesBothPositionsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a move names the position it left and the position it reached"
+msgstr "移动须指明其离开的位置与到达的位置"
+
+msgctxt "https://blackcatinformatics.ca/logic/AxisMoveNamesBothPositionsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:AxisMove that names no logic:moveFromPosition or no logic:moveToPosition. The transition laws judge a pair of positions, so a move missing either end would be judged by no law and pass every one of them."
+msgstr "拒绝未指明 logic:moveFromPosition 或未指明 logic:moveToPosition 的 logic:AxisMove 的 logic:Constraint。转换法则评判的是一个位置对，因此缺少任一端的移动不会被任何法则评判，却会通过每一条法则。"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentStateTransitionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "enactment state transition law"
+msgstr "执行状态转换法则"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentStateTransitionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The admitted transition relation of the logic:EnactmentState axis, stated as the formula the production verification path executes through logic:EnactmentStateTransitionConstraint. The only edge a logic:ContinuationResume may traverse is Paused to Running."
+msgstr "logic:EnactmentState 轴被允许的转换关系，表述为生产验证路径通过 logic:EnactmentStateTransitionConstraint 所执行的公式。logic:ContinuationResume 唯一可经过的边是从 Paused 到 Running。"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentStateTransitionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a move along the enactment state axis follows an admitted edge"
+msgstr "沿执行状态轴的移动须遵循被允许的边"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentStateTransitionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:AxisMove along the logic:EnactmentState axis whose pair of positions is not an admitted edge of logic:EnactmentStateTransitionLaw. Pending may start or be cancelled; Running may pause, complete, fail or be cancelled; Paused may resume, be cancelled or fail; Completed, Cancelled and Failed admit no successor, so a move out of one of them is refused. A repeat is not a move on this axis: it mints a new enactment at Pending."
+msgstr "拒绝沿 logic:EnactmentState 轴、其位置对不是 logic:EnactmentStateTransitionLaw 所允许的边的 logic:AxisMove 的 logic:Constraint。Pending 可以启动或被取消；Running 可以暂停、完成、失败或被取消；Paused 可以恢复、被取消或失败；Completed、Cancelled 与 Failed 不允许任何后继，因此从它们出发的移动一律被拒绝。重复不是该轴上的移动：它会在 Pending 创建一个新的执行。"
+
+msgctxt "https://blackcatinformatics.ca/logic/StepStateTransitionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "step state transition law"
+msgstr "步骤状态转换法则"
+
+msgctxt "https://blackcatinformatics.ca/logic/StepStateTransitionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The admitted transition relation of the logic:StepState axis, stated as the formula the production verification path executes through logic:StepStateTransitionConstraint."
+msgstr "logic:StepState 轴被允许的转换关系，表述为生产验证路径通过 logic:StepStateTransitionConstraint 所执行的公式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/StepStateTransitionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a move along the step state axis follows an admitted edge"
+msgstr "沿步骤状态轴的移动须遵循被允许的边"
+
+msgctxt "https://blackcatinformatics.ca/logic/StepStateTransitionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:AxisMove along the logic:StepState axis whose pair of positions is not an admitted edge of logic:StepStateTransitionLaw. A waiting step that resolves re-enters Ready, never Running, so a stale gate verdict cannot authorize execution; Completed, Skipped, Cancelled and Failed admit no successor."
+msgstr "拒绝沿 logic:StepState 轴、其位置对不是 logic:StepStateTransitionLaw 所允许的边的 logic:AxisMove 的 logic:Constraint。已解除等待的步骤重新进入 Ready 而绝不直接进入 Running，从而使过期的门控裁决无法授权执行；Completed、Skipped、Cancelled 与 Failed 不允许任何后继。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalStateTransitionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval state transition law"
+msgstr "批准状态转换法则"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalStateTransitionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The admitted transition relation of the logic:ApprovalState axis, stated as the formula the production verification path executes through logic:ApprovalStateTransitionConstraint."
+msgstr "logic:ApprovalState 轴被允许的转换关系，表述为生产验证路径通过 logic:ApprovalStateTransitionConstraint 所执行的公式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalStateTransitionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a move along the approval state axis follows an admitted edge"
+msgstr "沿批准状态轴的移动须遵循被允许的边"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalStateTransitionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:AxisMove along the logic:ApprovalState axis whose pair of positions is not an admitted edge of logic:ApprovalStateTransitionLaw. Once an approval is Detached its antecedent has been satisfied, so withdrawal is a violation and never a cancellation: Detached to Cancelled is refused while Detached to Released, the creditor's waiver, is admitted. Discharged, Expired, Violated, Cancelled and Released admit no successor."
+msgstr "拒绝沿 logic:ApprovalState 轴、其位置对不是 logic:ApprovalStateTransitionLaw 所允许的边的 logic:AxisMove 的 logic:Constraint。批准一旦处于 Detached，其前件已被满足，撤回便是违约而绝不是取消：Detached 到 Cancelled 被拒绝，而 Detached 到 Released（债权人的放弃）被允许。Discharged、Expired、Violated、Cancelled 与 Released 不允许任何后继。"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectProtocolPositionTransitionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effect protocol position transition law"
+msgstr "效应协议位置转换法则"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectProtocolPositionTransitionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The admitted transition relation of the logic:EffectProtocolPosition axis, stated as the formula the production verification path executes through logic:EffectProtocolPositionTransitionConstraint."
+msgstr "logic:EffectProtocolPosition 轴被允许的转换关系，表述为生产验证路径通过 logic:EffectProtocolPositionTransitionConstraint 所执行的公式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectProtocolPositionTransitionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a move along the effect protocol position axis follows an admitted edge"
+msgstr "沿效应协议位置轴的移动须遵循被允许的边"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectProtocolPositionTransitionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:AxisMove along the logic:EffectProtocolPosition axis whose pair of positions is not an admitted edge of logic:EffectProtocolPositionTransitionLaw. Receipted and Reconciled owe nothing further yet admit a newly motivated compensation; a compensation whose own outcome is unknown re-enters Reconciling. Compensated and Abandoned admit no successor."
+msgstr "拒绝沿 logic:EffectProtocolPosition 轴、其位置对不是 logic:EffectProtocolPositionTransitionLaw 所允许的边的 logic:AxisMove 的 logic:Constraint。Receipted 与 Reconciled 不再亏欠任何事项，却仍允许新近触发的补偿；结果本身未知的补偿会重新进入 Reconciling。Compensated 与 Abandoned 不允许任何后继。"
+
+msgctxt "https://blackcatinformatics.ca/logic/RecurrenceStateTransitionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recurrence state transition law"
+msgstr "重复状态转换法则"
+
+msgctxt "https://blackcatinformatics.ca/logic/RecurrenceStateTransitionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The admitted transition relation of the logic:RecurrenceState axis, stated as the formula the production verification path executes through logic:RecurrenceStateTransitionConstraint."
+msgstr "logic:RecurrenceState 轴被允许的转换关系，表述为生产验证路径通过 logic:RecurrenceStateTransitionConstraint 所执行的公式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/RecurrenceStateTransitionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a move along the recurrence state axis follows an admitted edge"
+msgstr "沿重复状态轴的移动须遵循被允许的边"
+
+msgctxt "https://blackcatinformatics.ca/logic/RecurrenceStateTransitionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:AxisMove along the logic:RecurrenceState axis whose pair of positions is not an admitted edge of logic:RecurrenceStateTransitionLaw. The axis belongs to the recurrence schedule, never to an occurrence it generates. Skipped and Ended admit no successor."
+msgstr "拒绝沿 logic:RecurrenceState 轴、其位置对不是 logic:RecurrenceStateTransitionLaw 所允许的边的 logic:AxisMove 的 logic:Constraint。该轴属于重复计划，而绝不属于它所生成的某次发生。Skipped 与 Ended 不允许任何后继。"

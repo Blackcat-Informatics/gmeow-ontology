@@ -24,7 +24,7 @@
 //! corpus needs.
 //!
 //! **The head names the law, and that is load-bearing.** The kernel shares ONE failure
-//! class across all forty-four of its laws, so heading every rule with
+//! class across all fifty of its laws, so heading every rule with
 //! `record rdf:type logic:EnactmentIntegrityViolation` made every law derive the SAME
 //! tuple. The chase keeps one winning derivation per derived tuple, so a record condemned
 //! by two laws surfaced under exactly one of them and the rest went dark — enforcing
@@ -404,9 +404,9 @@ fn subject_iri(term: &TermValue) -> gmeow_errors::Result<String> {
 /// class it is typed with, and the authored `logic:Constraint` whose law condemned it.
 ///
 /// The third field is why this is a struct rather than the `(subject, class)` pair the math
-/// gate returns. The kernel deliberately shares ONE failure class across forty-four laws, so the
+/// gate returns. The kernel deliberately shares ONE failure class across fifty laws, so the
 /// marker alone answers "this record is ill-formed" and leaves the operator to re-derive
-/// WHICH of forty-four authored obligations it broke — from a record that, by construction, looks
+/// WHICH of fifty authored obligations it broke — from a record that, by construction, looks
 /// fine except in the one respect the law names. The law identity already exists at this
 /// point (every violation rule is `constraint_tag`-stamped by the lowering); carrying it out
 /// of the chase rather than dropping it on the floor is the whole fix.
@@ -524,3 +524,7 @@ mod term_kind_tests;
 #[path = "enactment.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+#[path = "enactment/axis_moves.tests.rs"]
+mod axis_moves_tests;
