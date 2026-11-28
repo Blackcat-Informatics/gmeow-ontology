@@ -1139,17 +1139,18 @@ impl State {
                 && (admission.completion != NativeFamilyCompletion::Complete
                     || !admission.obstructions.is_empty())
             {
-                found.push(format!(
-                    "admission {:?} ({:?}): {}",
-                    admission.family,
-                    admission.completion,
-                    admission
-                        .obstructions
-                        .iter()
-                        .map(|o| format!("{:?}: {}", o.kind, o.detail))
-                        .collect::<Vec<_>>()
-                        .join("; ")
-                ));
+                if admission.obstructions.is_empty() {
+                    found.push(format!(
+                        "admission {:?} ({:?})",
+                        admission.family, admission.completion
+                    ));
+                }
+                found.extend(admission.obstructions.iter().map(|o| {
+                    format!(
+                        "admission {:?} ({:?}): {:?}: {}",
+                        admission.family, admission.completion, o.kind, o.detail
+                    )
+                }));
             }
         }
         for outcome in &self.ledger.outcomes {
