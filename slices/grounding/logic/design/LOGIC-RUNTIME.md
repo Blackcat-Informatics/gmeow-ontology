@@ -180,6 +180,13 @@ EDB lookups therefore share the same deterministic plan. Certified fragments ter
 construction; a resource budget bounds other supported programs and returns
 `evaluation = budget-exhausted` rather than diverging. Unsupported fragments hard-fail.
 
+A recursive rule that computes a head value with arithmetic from its own recursion invents
+fresh terms on every pass, and a finite stored relation does not bound them. Without a step
+budget such a program is admitted only when each recursive call descends along a stored relation
+at one common argument position, the recursion is direct, and the stored facts of those relations
+are acyclic; otherwise the run is refused as `non-terminating-arithmetic`. Under a step budget the
+same program runs and is cut deterministically.
+
 **Phase 3 — construct (native counterfactual revision; Stratum C only).** When a
 goal reaches a counterfactual predicate — `holds(W_cf, φ)` with
 `W_cf = counterfactualOf(W_base, A)` — the native path calls `construct_context(W_base, A,
