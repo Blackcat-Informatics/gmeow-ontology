@@ -34,7 +34,7 @@ mod source_admission;
 pub use claims::{
     ClaimIngress, ReadClaim, UnreadClaim, UnreadReason, prepare_selected_theory_input,
 };
-pub(crate) use source_admission::lower_forbidden_pattern;
+pub(crate) use source_admission::selected_denials;
 pub use source_admission::{
     NativeSourceAdmission, NativeSourceDisposition, NativeSourceDrop, NonEntailmentSourceBoundary,
     SelectedNonEntailment, SelectedNonEntailmentDisposition, SelectedNonEntailmentObligation,
