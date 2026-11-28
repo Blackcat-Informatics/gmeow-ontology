@@ -103,7 +103,7 @@ const EXPRESSION_DEFINITION_PREDICATES: &[&str] = &[
 /// Operators requiring another model family when connected to a selected class
 /// obligation. Independent components keep their own family ownership. These
 /// obstructions remain visible alongside every positive closing argument.
-const CONSISTENT_BLOCKING_PREDICATES: &[&str] = &[
+pub(crate) const CONSISTENT_BLOCKING_PREDICATES: &[&str] = &[
     "http://www.w3.org/2002/07/owl#onProperty",
     "http://www.w3.org/2002/07/owl#onClass",
     "http://www.w3.org/2002/07/owl#onDataRange",

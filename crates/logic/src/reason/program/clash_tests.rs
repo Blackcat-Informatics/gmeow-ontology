@@ -1026,3 +1026,6 @@ mod datatype_tests;
 
 #[path = "datatype_constraints_tests.rs"]
 mod datatype_constraints_tests;
+
+#[path = "whole_graph_read_tests.rs"]
+mod whole_graph_read_tests;

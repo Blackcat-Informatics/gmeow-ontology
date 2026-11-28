@@ -1806,6 +1806,7 @@ impl JointStratum {
                 world,
                 property_admission_blocked = property_blocked,
                 obstructions = obstructions.len(),
+                kind_counts = %obstruction_kind_counts(&obstructions),
                 detail = %obstructions.iter().take(12).cloned().collect::<Vec<_>>().join(" | "),
                 "retained native obstruction withholds completed reads"
             );
@@ -1825,6 +1826,45 @@ impl JointStratum {
             blocked,
         })
     }
+}
+
+/// Diagnostic output for the withheld-read measurement: counts every retained obstruction of
+/// a world, not only the prefix the warning prints, by the construct that raised it. A
+/// restriction predicate is one named by the class model's blocking-predicate set; an
+/// obstruction matching no kind is counted as `other`.
+fn obstruction_kind_counts(obstructions: &[String]) -> String {
+    const COMPLETE: &str = "selected class model does not complete <";
+    let mut counts = [0usize; 5];
+    for obstruction in obstructions {
+        let restriction = obstruction.split_once(COMPLETE).is_some_and(|(_, rest)| {
+            rest.split_once("> <")
+                .and_then(|(_, rest)| rest.split_once('>'))
+                .is_some_and(|(predicate, _)| {
+                    crate::reason::refute::casesplit::CONSISTENT_BLOCKING_PREDICATES
+                        .contains(&predicate)
+                })
+        });
+        let kind = if obstruction.contains("class expression equivalence") {
+            0
+        } else if restriction {
+            1
+        } else if obstruction.contains("nominal class") {
+            2
+        } else if obstruction.starts_with("obligation Datatype")
+            || obstruction.contains("UnsupportedValue")
+            || obstruction.contains("literal membership")
+        {
+            3
+        } else {
+            4
+        };
+        counts[kind] += 1;
+    }
+    let [equivalence, restriction, nominal, datatype, other] = counts;
+    format!(
+        "expression_equivalence={equivalence} restriction_predicate={restriction} \
+         nominal={nominal} datatype={datatype} other={other}"
+    )
 }
 
 #[cfg(test)]
