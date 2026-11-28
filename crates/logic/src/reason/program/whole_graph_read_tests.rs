@@ -122,14 +122,9 @@ fn class_expression_equivalence_does_not_withhold_the_whole_graph_read() {
 }
 
 /// A restriction predicate on a class connected to a selected class expression leaves the
-/// world's cardinality definitions decidable.
-///
-/// Obstruction kind: restriction predicate. This is a known defect: the class model does
-/// not complete a restriction predicate on a selected class, so the world's completed
-/// statement read is withheld. The change that gives the class model support for this kind
-/// removes the `should_panic` attribute, which turns the test green.
+/// world's cardinality definitions decidable: the class model decides the restriction, and
+/// the clash is independent of it.
 #[test]
-#[should_panic(expected = "a cardinality definition waits on a withheld read")]
 fn a_restriction_predicate_in_a_selected_class_model_does_not_withhold_the_whole_graph_read() {
     let mut construct = list_of(EXPRESSION, &format!("{OWL}unionOf"), OPERAND);
     construct.push(fact(OPERAND, &format!("{OWL}onProperty"), "urn:wg:other"));

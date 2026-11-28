@@ -24,6 +24,7 @@ pub(crate) mod execution;
 pub use execution::ClassExecutionOutcome;
 mod admission;
 mod receipt_cbor;
+mod restriction;
 pub use admission::{
     ClassAdmissionObservation, ClassAdmissionSourceWorld, ClassAdmissionWorld, ClassSourceRefusal,
     PreparedClassAnalysis,
@@ -1272,8 +1273,17 @@ impl Ctx {
                 }
             }
         }
+        let decided = w.decided_restrictions(&resolver);
         for ((subject, predicate, object), support) in &w.source_premises {
             if !scope.contains(subject) {
+                continue;
+            }
+            // A decided restriction is an exact atom of the class model, so its own
+            // premises and its declaration complete.
+            if decided.contains(subject)
+                && (restriction::is_structural(predicate)
+                    || (predicate == RDF_TYPE && object.as_iri() == Some(OWL_RESTRICTION)))
+            {
                 continue;
             }
             if CONSISTENT_BLOCKING_PREDICATES.contains(&predicate.as_str()) {

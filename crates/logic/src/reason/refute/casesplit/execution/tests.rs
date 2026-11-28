@@ -156,10 +156,11 @@ fn completed_class_conflict_retains_exact_native_support_and_reuses_the_current_
 fn all_connected_model_obstructions_survive_a_sibling_closing_proof() {
     let mut rows = complement();
     let on_property = "http://www.w3.org/2002/07/owl#onProperty";
-    let all_values = "http://www.w3.org/2002/07/owl#allValuesFrom";
+    let inverse = "http://www.w3.org/2002/07/owl#inverseOf";
+    let range = "http://www.w3.org/2000/01/rdf-schema#range";
     rows.extend([
-        ("urn:C", on_property, "urn:p"),
-        ("urn:C", all_values, "urn:D"),
+        ("urn:C", inverse, "urn:p"),
+        ("urn:C", range, "urn:D"),
         ("urn:unrelated", on_property, "urn:other-property"),
     ]);
     let frame = Frame::new(&rows);
@@ -179,7 +180,7 @@ fn all_connected_model_obstructions_survive_a_sibling_closing_proof() {
             .sources
             .iter()
             .filter(|row| row.subject == TermValue::iri("urn:C")
-                && [on_property, all_values].contains(&row.predicate.as_str()))
+                && [inverse, range].contains(&row.predicate.as_str()))
             .cloned()
             .collect()
     );
