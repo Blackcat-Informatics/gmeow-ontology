@@ -318,6 +318,7 @@ impl RunContext {
             .extend(stage_ids.into_iter().map(Into::into));
     }
 
+    #[allow(dead_code)]
     pub(crate) fn retain_post_run_inputs(
         &mut self,
         inputs: impl IntoIterator<Item = (String, crate::reads::ReadSet)>,
