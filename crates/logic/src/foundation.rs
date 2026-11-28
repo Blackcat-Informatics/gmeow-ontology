@@ -3127,9 +3127,10 @@ fn relatum_distinctness_pass(
 /// Returns `Err` for an invalid IRI in the input, a non-IRI (literal or blank-node)
 /// object — foundation requires all-IRI triples — an unbound inequality-guard
 /// variable, any provenance recipe failure (e.g. an RDF-star term), a
-/// `logic:rigidlyAppliesTo` record on a type with an anti-rigid stereotype, or an
-/// individual-scoped closure entry of a world's contract that is ambiguous, incomplete
-/// or in conflict with another entry of that world, or a cycle of `logic:temporallySucceeds`
+/// `logic:rigidlyAppliesTo` record on a type with an anti-rigid stereotype, a world
+/// that asserts more than one `logic:ReasoningContract`, an individual-scoped closure entry
+/// of a world's contract that is ambiguous, incomplete or in conflict with another entry of
+/// that world, or a cycle of `logic:temporallySucceeds`
 /// records (succession is a strict order, including a state that succeeds itself).
 pub fn evaluate(
     store: &WorldStore,
