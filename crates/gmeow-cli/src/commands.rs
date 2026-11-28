@@ -4358,6 +4358,14 @@ fn render_logic_refine(
                 serde_json::json!({
                     "complete_for_fragment": fragment,
                     "derivations": consumed_steps,
+                    // The depth is capped at the declared maximum plus one, so a value
+                    // above the maximum is a lower bound; a closed run never reaches it.
+                    "decomposition_depth": report.depth,
+                    "decomposition_depth_is_lower_bound": matches!(
+                        (report.depth, report.max_depth),
+                        (Some(depth), Some(max_depth)) if depth > max_depth
+                    ),
+                    "declared_max_depth": report.max_depth,
                 }),
             ),
             RefinementOutcome::Incomplete { status, cause } => (
@@ -4430,6 +4438,19 @@ fn render_logic_refine(
             // candidate list would read as "no decomposition exists", which is a
             // different and much more comforting claim than "your method set does not
             // terminate".
+            if let (Some(depth), Some(max_depth)) = (report.depth, report.max_depth) {
+                return fail(
+                    reporter,
+                    CODE,
+                    format!(
+                        "method set is outside the declared search fragment <{fragment}> \
+                         ({kind}): its expansion contains a chain of at least {depth} \
+                         method applications below <{task}>, beyond the declared \
+                         logic:fragmentMaxDepth of {max_depth}. No budget increase would \
+                         help; raise the declared depth or restructure the method set.",
+                    ),
+                );
+            }
             let cycles = report
                 .cycles
                 .iter()

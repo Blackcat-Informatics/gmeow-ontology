@@ -731,7 +731,16 @@ by three admission conditions, all checkable statically over the method set:
 2. **Acyclic method dependency.** The graph whose nodes are abstract task types and whose edges run
    from a task to the task types appearing in an applicable method's expansion is acyclic. No method
    set may reintroduce recursion through a cycle.
-3. **Bounded decomposition depth.** A declared maximum depth, carried on the fragment.
+3. **Bounded decomposition depth.** A declared maximum depth, carried by the refinement episode
+   that selects `logic:FragmentBoundedDepth` as `logic:fragmentMaxDepth` and counted in chained
+   method applications along the longest chain below the refined step that repeats no task. Refinement
+   reads it from the input: a bounded-depth request with no declared maximum, a value that is not
+   an integer of at least one, or two disagreeing values is a malformed request, never a fallback
+   to the step budget. A method set containing a longer chain is out of fragment. A
+   method cycle cannot lengthen a chain that repeats no task, so a cyclic method set within the
+   maximum is admitted. An acyclic method set is measured in time linear in its size. Where a
+   cycle is reachable, the search looks only for a chain one application beyond the declared
+   maximum; its cost is exponential in the worst case in the graph's simple paths within that bound.
 
 The three conditions together bound the decomposition tree, so search terminates and a **closed**
 candidate roster is a claim the engine can certify rather than assert.

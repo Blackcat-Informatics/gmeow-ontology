@@ -1197,7 +1197,9 @@ pub enum LogicCommands {
         /// result, never a silently truncated roster presented as closed.
         #[arg(long = "budget", default_value_t = 1000)]
         budget: u32,
-        /// The declared logic:SearchFragment IRI.
+        /// The declared logic:SearchFragment IRI. logic:FragmentBoundedDepth reads its
+        /// maximum depth from a logic:fragmentMaxDepth on a logic:RefinementEpisode that
+        /// logic:refinesStep the task, and refuses a method set that decomposes deeper.
         #[arg(
             long = "fragment",
             default_value = "https://blackcatinformatics.ca/logic/FragmentAcyclicMethod"

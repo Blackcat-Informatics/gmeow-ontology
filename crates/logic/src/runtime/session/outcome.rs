@@ -110,7 +110,8 @@ pub enum UnsupportedFragment {
     ClauseBodyTooWide,
     /// The METHOD SET is outside the declared `logic:SearchFragment` — a decomposition
     /// cycle under `logic:FragmentAcyclicMethod`, so no expansion of the refined task
-    /// terminates.
+    /// terminates, or a decomposition deeper than the declared `logic:fragmentMaxDepth`
+    /// under `logic:FragmentBoundedDepth`.
     ///
     /// The public mirror of `logic:UnsupportedMethodSet`, which the module has always
     /// shipped alongside `logic:UnsupportedConstruct` and

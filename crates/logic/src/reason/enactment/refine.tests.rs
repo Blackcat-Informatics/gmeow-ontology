@@ -292,6 +292,170 @@ e:b1 rdf:first e:t ; rdf:rest rdf:nil .
     );
 }
 
+const BOUNDED_DEPTH: &str = "https://blackcatinformatics.ca/logic/FragmentBoundedDepth";
+
+/// Two chained method applications below `e:top`, with an episode declaring `declaration`
+/// (`None` omits the maximum).
+fn two_deep(declaration: Option<&str>) -> std::sync::Arc<purrdf::RdfDataset> {
+    let declared = declaration
+        .map(|value| format!("e:episode logic:fragmentMaxDepth {value} ."))
+        .unwrap_or_default();
+    dataset(&format!(
+        r#"
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix e:     <{NS}> .
+e:m1 a logic:DecompositionMethod ; logic:methodDecomposes e:top ; logic:methodYields e:c1 .
+e:c1 rdf:first e:mid ; rdf:rest rdf:nil .
+e:m2 a logic:DecompositionMethod ; logic:methodDecomposes e:mid ; logic:methodYields e:c2 .
+e:c2 rdf:first e:leaf ; rdf:rest rdf:nil .
+e:episode a logic:RefinementEpisode ; logic:refinesStep e:top ;
+    logic:searchFragment logic:FragmentBoundedDepth .
+{declared}
+"#
+    ))
+}
+
+/// `top -> a -> b -> leaf` plus the shortcut `top -> leaf`, whose episode declares `max`. The
+/// shortcut reaches `leaf` in one application, but the nesting is three applications deep.
+fn shortcut(max: u32) -> std::sync::Arc<purrdf::RdfDataset> {
+    dataset(&format!(
+        r#"
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix e:     <{NS}> .
+e:m1 a logic:DecompositionMethod ; logic:methodDecomposes e:top ; logic:methodYields e:c1 .
+e:c1 rdf:first e:a ; rdf:rest e:c1b .
+e:c1b rdf:first e:leaf ; rdf:rest rdf:nil .
+e:m2 a logic:DecompositionMethod ; logic:methodDecomposes e:a ; logic:methodYields e:c2 .
+e:c2 rdf:first e:b ; rdf:rest rdf:nil .
+e:m3 a logic:DecompositionMethod ; logic:methodDecomposes e:b ; logic:methodYields e:c3 .
+e:c3 rdf:first e:leaf ; rdf:rest rdf:nil .
+e:episode a logic:RefinementEpisode ; logic:refinesStep e:top ; logic:fragmentMaxDepth {max} .
+"#
+    ))
+}
+
+/// A method cycle `t -> u -> v -> t` whose episode declares `max`.
+fn cyclic(max: u32) -> std::sync::Arc<purrdf::RdfDataset> {
+    dataset(&format!(
+        r#"
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix e:     <{NS}> .
+e:a a logic:DecompositionMethod ; logic:methodDecomposes e:t ; logic:methodYields e:a1 .
+e:a1 rdf:first e:u ; rdf:rest rdf:nil .
+e:b a logic:DecompositionMethod ; logic:methodDecomposes e:u ; logic:methodYields e:b1 .
+e:b1 rdf:first e:v ; rdf:rest rdf:nil .
+e:c a logic:DecompositionMethod ; logic:methodDecomposes e:v ; logic:methodYields e:c1 .
+e:c1 rdf:first e:t ; rdf:rest rdf:nil .
+e:episode a logic:RefinementEpisode ; logic:refinesStep e:t ; logic:fragmentMaxDepth {max} .
+"#
+    ))
+}
+
+/// INVARIANT: nesting depth, not reach depth, is the bound. Under
+/// `logic:FragmentBoundedDepth`, refinement refuses a method set containing a chain of more
+/// method applications than the declared `logic:fragmentMaxDepth`, however short the route
+/// that reaches its deepest task, and refuses a request that declares no usable maximum, so
+/// the step budget is never the only bound.
+#[test]
+fn bounded_depth_refuses_a_decomposition_deeper_than_the_declared_maximum() {
+    let task = format!("{NS}top");
+    let deeper = two_deep(Some("1"));
+    let report = refine(deeper.as_ref(), &task, BOUNDED_DEPTH, 10_000);
+    assert!(
+        matches!(report.outcome, OperationOutcome::UnsupportedFragment { .. }),
+        "a chain of two method applications exceeds a declared maximum of one: {:?}",
+        report.outcome
+    );
+    assert_eq!((report.depth, report.max_depth), (Some(2), Some(1)));
+    assert!(
+        report.candidates.is_empty(),
+        "an out-of-fragment refusal must not also publish a roster"
+    );
+
+    for undeclared in [None, Some("0"), Some("\"2\""), Some("2.5")] {
+        let report = refine(two_deep(undeclared).as_ref(), &task, BOUNDED_DEPTH, 10_000);
+        assert!(
+            matches!(report.outcome, OperationOutcome::Invalid { .. }),
+            "a bounded-depth request whose maximum is {undeclared:?} must be refused as \
+             malformed, not bounded by the budget: {:?}",
+            report.outcome
+        );
+    }
+
+    // Only nesting decides: a cycle cannot lengthen a chain that repeats no task, so t -> u -> v
+    // is two applications deep, and a maximum of one refuses it exactly as it would a chain.
+    let report = refine(cyclic(1).as_ref(), &format!("{NS}t"), BOUNDED_DEPTH, 10_000);
+    assert!(
+        matches!(report.outcome, OperationOutcome::UnsupportedFragment { .. }),
+        "a cyclic expansion reaching depth two exceeds a declared maximum of one: {:?}",
+        report.outcome
+    );
+    assert_eq!((report.depth, report.max_depth), (Some(2), Some(1)));
+
+    // Nesting depth, not reach depth, is the bound: `leaf` is reached in one application
+    // through the shortcut, yet the chain top -> a -> b -> leaf is three applications deep.
+    let report = refine(shortcut(2).as_ref(), &task, BOUNDED_DEPTH, 10_000);
+    assert!(
+        matches!(report.outcome, OperationOutcome::UnsupportedFragment { .. }),
+        "a nesting of three applications exceeds a declared maximum of two even though a \
+         shortcut reaches the deepest task in one: {:?}",
+        report.outcome
+    );
+    assert_eq!((report.depth, report.max_depth), (Some(3), Some(2)));
+}
+
+/// INVARIANT: a decomposition exactly as deep as the declared maximum is admitted and its
+/// roster is closed, so the bound is inclusive, and a method cycle within the maximum is
+/// admitted too, so the fragment handles cyclic method graphs and ends the search at the
+/// declared depth.
+#[test]
+fn bounded_depth_admits_a_decomposition_within_the_declared_maximum() {
+    let task = format!("{NS}top");
+    for declared in ["2", "3"] {
+        let input = two_deep(Some(declared));
+        let report = refine(input.as_ref(), &task, BOUNDED_DEPTH, 10_000);
+        assert!(
+            report.is_closed(),
+            "a chain of two method applications is within a declared maximum of {declared}: {:?}",
+            report.outcome
+        );
+        assert_eq!(report.depth, Some(2));
+        assert_eq!(report.max_depth, declared.parse().ok());
+        assert_eq!(report.candidates.len(), 2);
+    }
+
+    // A method cycle adds no depth, so the search ends at the declared depth instead of
+    // being refused: the cycle t -> u -> v -> t is two applications deep from t.
+    for declared in [2, 50] {
+        let report = refine(
+            cyclic(declared).as_ref(),
+            &format!("{NS}t"),
+            BOUNDED_DEPTH,
+            10_000,
+        );
+        assert!(
+            report.is_closed(),
+            "a cyclic method set reaching depth two is within a declared maximum of \
+             {declared}: {:?}",
+            report.outcome
+        );
+        assert_eq!((report.depth, report.max_depth), (Some(2), Some(declared)));
+        assert!(
+            report.cycles.contains(&format!("{NS}t")),
+            "the cycle is still reported: {:?}",
+            report.cycles
+        );
+    }
+
+    // The same shortcut graph is admitted once the maximum covers its nesting.
+    let report = refine(shortcut(3).as_ref(), &task, BOUNDED_DEPTH, 10_000);
+    assert!(report.is_closed(), "{:?}", report.outcome);
+    assert_eq!((report.depth, report.max_depth), (Some(3), Some(3)));
+}
+
 /// A budget cut must never present as a closed roster.
 #[test]
 fn a_budget_cut_is_incomplete_and_never_closed() {

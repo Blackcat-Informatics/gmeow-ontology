@@ -201,17 +201,20 @@ portions execute:
 - **Observed-not-derived guard.** A derivation that types a subject as an effect attempt or receipt, or
   stamps derivation provenance on one, is a hard failure (`reject_banned_heads` in the same module).
 - **Means–end refinement.** Eleven authored rules run under a budgeted session and return the typed
-  operation outcome (`crates/logic/src/reason/enactment/refine.rs`). The method-cycle refusal under the
-  acyclic fragment, ordered-carrier validation, the four rejection kinds, pins and budget-cut
-  incompleteness are exercised in `refine.tests.rs`.
+  operation outcome (`crates/logic/src/reason/enactment/refine.rs`). Under `logic:FragmentBoundedDepth`
+  the request reads the `logic:fragmentMaxDepth` declared on an episode refining the task, refuses a
+  missing or malformed declaration, and refuses a method set containing a chain of more method
+  applications than that maximum, repeating no task, as an out-of-fragment condition, while a cyclic
+  method set within it is admitted. The method-cycle refusal under the
+  acyclic fragment, the depth refusal, ordered-carrier validation, the four rejection kinds, pins and
+  budget-cut incompleteness are exercised in `refine.tests.rs`.
 
-Four portions are design-only commitments. The transition formulas of the seven axes are not encoded:
+Three portions are design-only commitments. The transition formulas of the seven axes are not encoded:
 [`examples/axis-transition-laws.ttl`](./examples/axis-transition-laws.ttl) names the positions of axes 1–4
 and 7 without the admitted moves; axis 5 is a monotonicity law and axis 6 a minting-and-supersession law,
 and neither is encoded there. No liveness certificate is computed, so deadlock-freedom,
 reachability and no-orphan-intent are vocabulary. No constraint enforces the monotonicity of
-`logic:effectKnowledge` under the ⊑ₖ order. Refinement does not read the declared maximum depth of
-`logic:FragmentBoundedDepth`; the step budget bounds the search.
+`logic:effectKnowledge` under the ⊑ₖ order.
 
 ### Agentic modality
 

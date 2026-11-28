@@ -55,6 +55,18 @@
 //! roster to mistake for a closed one. The predecessor budgeted only expansions while
 //! leaving its queue unbounded, which is the failure this replaces.
 //!
+//! Under `logic:FragmentBoundedDepth` the budget is not the only bound. The request must
+//! find a `logic:fragmentMaxDepth` on a `logic:RefinementEpisode` that
+//! `logic:refinesStep` the task — a missing or malformed declaration refuses the request
+//! as [`OperationOutcome::Invalid`] rather than falling back to the budget — and a
+//! decomposition containing a chain of more method applications than the declared maximum,
+//! repeating no task, is refused as [`OperationOutcome::UnsupportedFragment`], never reported
+//! as budget exhaustion. Only nesting depth decides it: a cycle cannot lengthen a simple
+//! chain, so a cyclic method set within the maximum is admitted. An acyclic method set is
+//! measured in linear time; where a cycle is reachable the search for a simple chain longer
+//! than the maximum is bounded by the maximum plus one and, in the worst case, exponential in
+//! the graph's simple paths within that bound.
+//!
 //! # Outcomes
 //!
 //! [`RefineReport::outcome`] is the shipped six-way [`OperationOutcome`] — the same fold
@@ -112,6 +124,9 @@ const SEARCH_FRAGMENTS: [&str; 3] = [
 
 /// The fragment forbidding decomposition cycles.
 const FRAGMENT_ACYCLIC: &str = "https://blackcatinformatics.ca/logic/FragmentAcyclicMethod";
+
+/// The fragment admitting decomposition only to a declared maximum depth.
+const FRAGMENT_BOUNDED_DEPTH: &str = "https://blackcatinformatics.ca/logic/FragmentBoundedDepth";
 
 /// The head predicates of the authored means–end rules — the selection criterion for the
 /// sub-program this module drives.
@@ -324,6 +339,15 @@ pub struct RefineReport {
     /// for a well-formed method set; non-empty is what puts the method set outside
     /// `logic:FragmentAcyclicMethod`.
     pub cycles: Vec<String>,
+    /// Under `logic:FragmentBoundedDepth`, the length of the longest chain of method
+    /// applications that repeats no task, capped at `max_depth + 1` — a value above
+    /// `max_depth` means a deeper chain exists. `None` under any other fragment, and when the
+    /// request was cut or refused before the closure settled.
+    pub depth: Option<u32>,
+    /// The maximum decomposition depth the input declared through
+    /// `logic:fragmentMaxDepth`. `Some` exactly when the request ran under
+    /// `logic:FragmentBoundedDepth` and the declaration was admitted.
+    pub max_depth: Option<u32>,
     /// The engine's typed outcome for the derivation. The candidates may be read as a
     /// CLOSED roster only under [`OperationOutcome::Applied`].
     pub outcome: OperationOutcome,
@@ -352,6 +376,8 @@ fn invalid(task: &str, fragment: &str, detail: impl Into<String>) -> RefineRepor
         reached: Vec::new(),
         cycles: Vec::new(),
         pins: Vec::new(),
+        depth: None,
+        max_depth: None,
         outcome: OperationOutcome::Invalid {
             fault: IntegrityFault::MalformedRequest {
                 detail: detail.into(),
@@ -370,6 +396,8 @@ fn engine_failure(task: &str, fragment: &str, diagnostic: gmeow_errors::Diag) ->
         reached: Vec::new(),
         cycles: Vec::new(),
         pins: Vec::new(),
+        depth: None,
+        max_depth: None,
         outcome: OperationOutcome::EngineFailure { diagnostic },
     }
 }
@@ -839,6 +867,187 @@ fn method_digests(input: &RdfDataset) -> gmeow_errors::Result<BTreeMap<String, S
     Ok(out)
 }
 
+/// The maximum decomposition depth the input declares for `task` through
+/// `logic:fragmentMaxDepth`, on a `logic:RefinementEpisode` that `logic:refinesStep` the
+/// task.
+///
+/// A CARRIER READ, like [`method_digests`]: the value is a datatype literal, which the
+/// engine's IRI-object EDB never sees. Each declaration must be one untagged XSD integer
+/// literal of at least one that fits `u32`; episodes refining the same task must agree.
+///
+/// # Errors
+///
+/// Returns `Err` when no episode refining `task` declares a maximum — a bounded-depth
+/// search with no declared bound would be bounded by the step budget alone, which is the
+/// claim this fragment exists to replace — or when a declaration is not an admissible
+/// integer, or two declarations disagree.
+fn declared_max_depth(input: &RdfDataset, task: &str) -> gmeow_errors::Result<u32> {
+    let refines_p = format!("{LOGIC_NS}refinesStep");
+    let max_depth_p = format!("{LOGIC_NS}fragmentMaxDepth");
+    let mut episodes = Vec::new();
+    for quad in input.quads() {
+        if matches!(input.resolve(quad.p), TermRef::Iri(iri) if iri == refines_p)
+            && matches!(input.resolve(quad.o), TermRef::Iri(iri) if iri == task)
+            && !episodes.contains(&quad.s)
+        {
+            episodes.push(quad.s);
+        }
+    }
+    let mut declared: Option<u32> = None;
+    for quad in input.quads() {
+        if !matches!(input.resolve(quad.p), TermRef::Iri(iri) if iri == max_depth_p)
+            || !episodes.contains(&quad.s)
+        {
+            continue;
+        }
+        let TermRef::Literal {
+            lexical,
+            datatype,
+            language: None,
+            direction: None,
+        } = input.resolve(quad.o)
+        else {
+            return Err(refine_err(format!(
+                "logic:fragmentMaxDepth on an episode refining <{task}> requires an untagged \
+                 integer literal"
+            )));
+        };
+        let TermRef::Iri(datatype) = input.resolve(datatype) else {
+            return Err(refine_err(format!(
+                "logic:fragmentMaxDepth on an episode refining <{task}> has no datatype IRI"
+            )));
+        };
+        let value = purrdf::xsd::parse_by_iri(lexical, datatype)
+            .map_err(|error| {
+                refine_err(format!(
+                    "logic:fragmentMaxDepth {lexical:?} on an episode refining <{task}>: {error}"
+                ))
+            })?
+            .and_then(|value| match value {
+                purrdf::xsd::XsdValue::Integer { .. } => value.as_i128(),
+                _ => None,
+            })
+            .and_then(|value| u32::try_from(value).ok())
+            .filter(|depth| *depth >= 1)
+            .ok_or_else(|| {
+                refine_err(format!(
+                    "logic:fragmentMaxDepth {lexical:?} on an episode refining <{task}> is not \
+                     an XSD integer between 1 and {}",
+                    u32::MAX
+                ))
+            })?;
+        if declared.is_some_and(|previous| previous != value) {
+            return Err(refine_err(format!(
+                "episodes refining <{task}> declare conflicting logic:fragmentMaxDepth values"
+            )));
+        }
+        declared = Some(value);
+    }
+    declared.ok_or_else(|| {
+        refine_err(format!(
+            "logic:FragmentBoundedDepth requires a logic:fragmentMaxDepth on a \
+             logic:RefinementEpisode that logic:refinesStep <{task}>; none is declared, and the \
+             step budget alone is not a depth bound"
+        ))
+    })
+}
+
+/// The nesting depth of the expansion of `task`: the length, in chained method applications
+/// through `logic:refinementExpands`, of the longest chain that never repeats a task, with a
+/// direct subtask at depth one. The result is capped at `limit`.
+///
+/// A method cycle cannot lengthen a simple chain, so only nesting decides the answer, never
+/// the mere presence of a cycle. Where no cycle is reachable from `task` the longest chain
+/// is a longest-path problem over a DAG, solved exactly in time linear in the reachable
+/// nodes and edges whatever the number of paths. Only where a cycle is reachable does the
+/// answer need [`bounded_simple_chain`], whose cost is set by the graph's simple paths
+/// within `limit`: exponential in the worst case, and stopping early only once a chain of
+/// `limit` applications is found. For the bounded-depth question the caller passes the
+/// declared maximum plus one.
+///
+/// Read off the derived one-step relation rather than counted during derivation, because
+/// the engine's closure is depth-free.
+fn longest_chain(task: &str, expands: &[(String, String)], limit: u32) -> u32 {
+    let mut successors: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+    for (from, to) in expands {
+        successors.entry(from).or_default().push(to);
+    }
+    match acyclic_longest_chain(task, &successors) {
+        Some(longest) => longest.min(limit),
+        None => bounded_simple_chain(task, &successors, limit),
+    }
+}
+
+/// The longest chain below `task` when no cycle is reachable from it, else `None`. Kahn's
+/// algorithm over the reachable subgraph: linear in its nodes and edges.
+fn acyclic_longest_chain(task: &str, successors: &BTreeMap<&str, Vec<&str>>) -> Option<u32> {
+    let mut reachable: BTreeSet<&str> = BTreeSet::from([task]);
+    let mut pending = vec![task];
+    while let Some(node) = pending.pop() {
+        for next in successors.get(node).into_iter().flatten().copied() {
+            if reachable.insert(next) {
+                pending.push(next);
+            }
+        }
+    }
+    let mut indegree: BTreeMap<&str, usize> = reachable.iter().map(|node| (*node, 0)).collect();
+    for node in &reachable {
+        for next in successors.get(node).into_iter().flatten() {
+            *indegree.entry(next).or_default() += 1;
+        }
+    }
+    let mut chain: BTreeMap<&str, u32> = BTreeMap::new();
+    let mut ready: Vec<&str> = indegree
+        .iter()
+        .filter(|(_, degree)| **degree == 0)
+        .map(|(node, _)| *node)
+        .collect();
+    let mut settled = 0_usize;
+    while let Some(node) = ready.pop() {
+        settled += 1;
+        let here = chain.get(node).copied().unwrap_or(0);
+        for next in successors.get(node).into_iter().flatten().copied() {
+            let slot = chain.entry(next).or_default();
+            *slot = (*slot).max(here.saturating_add(1));
+            if let Some(degree) = indegree.get_mut(next) {
+                *degree -= 1;
+                if *degree == 0 {
+                    ready.push(next);
+                }
+            }
+        }
+    }
+    (settled == reachable.len()).then(|| chain.values().copied().max().unwrap_or(0))
+}
+
+/// The longest chain below `task` that repeats no task, capped at `limit`, by depth-first
+/// search over simple paths, stopping as soon as a chain of `limit` applications is found.
+/// For a graph with a reachable cycle. Iterative, so a long chain cannot overflow the stack.
+fn bounded_simple_chain(task: &str, successors: &BTreeMap<&str, Vec<&str>>, limit: u32) -> u32 {
+    let mut on_chain: BTreeSet<&str> = BTreeSet::from([task]);
+    let mut stack: Vec<(&str, usize)> = vec![(task, 0)];
+    let mut longest = 0_u32;
+    while let Some(&(node, index)) = stack.last() {
+        let Some(&child) = successors.get(node).and_then(|next| next.get(index)) else {
+            on_chain.remove(node);
+            stack.pop();
+            continue;
+        };
+        if let Some(top) = stack.last_mut() {
+            top.1 += 1;
+        }
+        if !on_chain.insert(child) {
+            continue;
+        }
+        stack.push((child, 0));
+        longest = longest.max(u32::try_from(stack.len() - 1).unwrap_or(u32::MAX));
+        if longest >= limit {
+            return limit;
+        }
+    }
+    longest
+}
+
 /// Read a single-valued pin component without choosing among native conclusions.
 fn unique_pin_pairs(
     session: &ReasoningSession,
@@ -929,7 +1138,10 @@ fn collect_pins(
 /// Run a bounded means–end refinement of `task` over the method set carried by `input`.
 ///
 /// `fragment` is the declared `logic:SearchFragment` IRI and `budget` is the
-/// committed-derivation budget the engine's governor enforces.
+/// committed-derivation budget the engine's governor enforces. Under
+/// `logic:FragmentBoundedDepth`, `input` must also declare the maximum depth (see the module
+/// documentation), and the outcome is [`OperationOutcome::UnsupportedFragment`] when the
+/// method set decomposes deeper.
 ///
 /// Never panics and never returns a partial roster wearing a complete one's clothes: the
 /// roster is populated only under [`OperationOutcome::Applied`], and every other outcome
@@ -981,6 +1193,14 @@ pub fn refine(
             );
         }
     };
+    let max_depth = if fragment == FRAGMENT_BOUNDED_DEPTH {
+        match declared_max_depth(input, task) {
+            Ok(depth) => Some(depth),
+            Err(why) => return invalid(task, fragment, why.to_string()),
+        }
+    } else {
+        None
+    };
 
     let digests = match method_digests(input) {
         Ok(digests) => digests,
@@ -1026,11 +1246,15 @@ pub fn refine(
             reached: Vec::new(),
             cycles: Vec::new(),
             pins: Vec::new(),
+            depth: None,
+            max_depth,
             outcome,
         };
     }
 
-    match collect(&session, task, fragment, &orders, &digests, outcome) {
+    match collect(
+        &session, task, fragment, &orders, &digests, max_depth, outcome,
+    ) {
         Ok(report) => report,
         Err(diagnostic) => engine_failure(task, fragment, diagnostic),
     }
@@ -1043,6 +1267,7 @@ fn collect(
     fragment: &str,
     orders: &BTreeMap<String, Vec<String>>,
     digests: &BTreeMap<String, String>,
+    max_depth: Option<u32>,
     outcome: OperationOutcome,
 ) -> gmeow_errors::Result<RefineReport> {
     let witnesses = witness_index(session);
@@ -1136,7 +1361,27 @@ fn collect(
     // itself completed — a transitive closure over a cyclic graph is finite — so the
     // refusal is about the METHOD SET, which is why it is decided here and not by the
     // engine's own outcome.
-    let outcome = if fragment == FRAGMENT_ACYCLIC && !cycles.is_empty() {
+    //
+    // Under `logic:FragmentBoundedDepth` the same refusal fires when a chain of more method
+    // applications than the declared maximum exists, repeating no task. Only nesting depth
+    // decides it: a cycle cannot lengthen a simple chain, so a cyclic method set within the
+    // maximum is admitted. Exceeding the declared depth is a property of the method set, not
+    // of the budget, so it is decided here beside the cycle check.
+    let depth = max_depth.map(|max| {
+        longest_chain(
+            task,
+            &closure_pairs(session, &format!("{LOGIC_NS}refinementExpands")),
+            max.saturating_add(1),
+        )
+    });
+    let outside_fragment = match fragment {
+        FRAGMENT_ACYCLIC => !cycles.is_empty(),
+        FRAGMENT_BOUNDED_DEPTH => {
+            max_depth.is_none_or(|max| depth.is_none_or(|nested| nested > max))
+        }
+        _ => false,
+    };
+    let outcome = if outside_fragment {
         OperationOutcome::UnsupportedFragment {
             kind: UnsupportedFragment::MethodSetOutsideSearchFragment,
         }
@@ -1154,6 +1399,8 @@ fn collect(
         reached: if closed { reached } else { Vec::new() },
         pins: if closed { pins } else { Vec::new() },
         cycles,
+        depth,
+        max_depth,
         outcome,
     })
 }
