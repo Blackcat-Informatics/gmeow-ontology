@@ -202,7 +202,8 @@ subject (`w logic:epistemicallyPossible w'` in `w`, or a chain of
 `w' logic:temporallySucceeds wn` records, each asserted in its own subject's graph), in which the
 individual still exists and carries admissible evidence of the loss — an
 explicit `logic:notInstanceOf` assertion or a closed-world closure of its `rdf:type` statements that
-a `logic:ReasoningContract` of that world declares. An absence of a typing is evidence only where
+the one `logic:ReasoningContract` of that world declares (a world that asserts two or more
+contracts is refused, naming them). An absence of a typing is evidence only where
 no asserted type of the individual reaches the type through `logic:subClassOf` triples asserted in
 that world. `Kind`, `SubKind` and `Category` are rigid by
 stereotype; a `logic:rigidlyAppliesTo` record holds one instance of any other type, and is refused

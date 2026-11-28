@@ -809,8 +809,11 @@ conjured from the absence of data. It rests on four things:
    `x` in `w'`. A world that both types `x` a `T` and asserts the non-membership evidences no loss.
    Absence of a typing in a materialized graph is never negative evidence by itself: open world is
    the default.
-4. **The selected contract.** A closure is admissible only when the contract of `w'` permits it: a
-   `logic:ReasoningContract` asserted in `w'` declares, through `logic:closureEntry`, an entry
+4. **The selected contract.** A world is governed by exactly one `logic:ReasoningContract`; a world
+   that asserts two or more is refused, with the contracts named, whether or not their closure
+   entries agree, and no closure is selected by merging them. A closure is admissible only when
+   the governing contract of `w'` permits it: that `logic:ReasoningContract`, asserted in `w'`,
+   declares, through `logic:closureEntry`, an entry
    asserted in `w'` with `logic:closureKey rdf:type`, `logic:closureIndividual x` and
    `logic:closureValue logic:ClosedWorldClosure`. The key is the exact predicate it closes, as for
    every closure entry, and the individual scope closes it only for statements about `x`, so the

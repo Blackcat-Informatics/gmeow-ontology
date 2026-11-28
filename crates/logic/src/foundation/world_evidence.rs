@@ -23,7 +23,7 @@
 //!   values closed upward under the `logic:subClassOf` triples asserted in `w2` (the
 //!   subclass predicate the foundation chase reads), and the absence is backed by evidence:
 //!   an explicit `x logic:notInstanceOf T` assertion in `w2`, or a closed-world
-//!   closure of `x`'s `rdf:type` statements that a `logic:ReasoningContract` asserted
+//!   closure of `x`'s `rdf:type` statements that the one `logic:ReasoningContract` asserted
 //!   in `w2` declares through `logic:closureEntry`.  Absence of a typing alone is
 //!   never evidence.
 
@@ -85,7 +85,8 @@ impl WorldEvidence {
     ///
     /// # Errors
     ///
-    /// Refuses an individual-scoped closure entry of a world's contract that has
+    /// Refuses a world that asserts more than one `logic:ReasoningContract`, naming the
+    /// contracts.  Refuses an individual-scoped closure entry of the world's contract that has
     /// several distinct keys, values or individuals, that lacks its key or value, or
     /// that assigns a value conflicting with another entry of the same world for the
     /// same individual's `rdf:type` statements.  Refuses cyclic `logic:temporallySucceeds`
@@ -97,7 +98,7 @@ impl WorldEvidence {
         let contract_class = format!("{LOGIC_NS}ReasoningContract");
         let closure_entry = format!("{LOGIC_NS}closureEntry");
         let mut evidence = Self::default();
-        let mut contracts: BTreeSet<(&str, &str)> = BTreeSet::new();
+        let mut contracts: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
         let mut ownership: Vec<(&str, &str, &str)> = Vec::new();
         let sub_class_of = format!("{LOGIC_NS}subClassOf");
         let mut entries: BTreeMap<(&str, &str), ClosureEntryFacts> = BTreeMap::new();
@@ -131,7 +132,10 @@ impl WorldEvidence {
                     object.to_owned(),
                 ));
                 if object == contract_class {
-                    contracts.insert((quad.graph.as_str(), quad.subject.as_str()));
+                    contracts
+                        .entry(quad.graph.as_str())
+                        .or_default()
+                        .insert(quad.subject.as_str());
                 }
             }
             if quad.graph == quad.subject {
@@ -165,10 +169,11 @@ impl WorldEvidence {
                 field.insert(object.to_owned());
             }
         }
-        // An entry counts only when a contract asserted in the same world owns it.
+        let governing = governing_contracts(&contracts)?;
+        // An entry counts only when the world's governing contract owns it.
         let contract_entries: BTreeSet<(&str, &str)> = ownership
             .into_iter()
-            .filter(|(world, contract, _)| contracts.contains(&(*world, *contract)))
+            .filter(|(world, contract, _)| governing.get(world) == Some(contract))
             .map(|(world, _, entry)| (world, entry))
             .collect();
         let mut membership_closure: BTreeMap<(&str, &str), &str> = BTreeMap::new();
@@ -346,4 +351,34 @@ fn single<'a>(
         )));
     }
     Ok(values.first().map(String::as_str))
+}
+
+/// The one governing `logic:ReasoningContract` of each world.  A world is governed by
+/// exactly one contract, so the count is the rule: two contracts are refused whether or not
+/// their closure entries agree, and no closure is selected by merging them.
+///
+/// # Errors
+///
+/// Names the world and every contract asserted in it when a world has more than one.
+fn governing_contracts<'a>(
+    contracts: &BTreeMap<&'a str, BTreeSet<&'a str>>,
+) -> gmeow_errors::Result<BTreeMap<&'a str, &'a str>> {
+    let mut governing = BTreeMap::new();
+    for (&world, asserted) in contracts {
+        let mut names = asserted.iter();
+        let (Some(&only), None) = (names.next(), names.next()) else {
+            let listed = asserted
+                .iter()
+                .map(|contract| format!("<{contract}>"))
+                .collect::<Vec<_>>()
+                .join(", ");
+            return Err(foundation_err(format!(
+                "world <{world}> has {} logic:ReasoningContract records ({listed}); a world is \
+                 governed by exactly one contract",
+                asserted.len()
+            )));
+        };
+        governing.insert(world, only);
+    }
+    Ok(governing)
 }

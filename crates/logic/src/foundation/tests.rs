@@ -826,7 +826,7 @@ fn ambiguous_individual_closure_is_refused() {
     let open = format!("{LOGIC}OpenWorldClosure");
     let alice = format!("{BOARD}/alice");
     let owned = closed_membership_of_alice(&later);
-    let second_contract = format!("{BOARD}/contract2");
+    let contract = format!("{BOARD}/contract");
     for (why, extra) in [
         (
             "multiple distinct logic:closureKey",
@@ -849,12 +849,7 @@ fn ambiguous_individual_closure_is_refused() {
         (
             "conflicting closure values",
             nq_line(
-                &second_contract,
-                RDF_TYPE_P,
-                &format!("{LOGIC}ReasoningContract"),
-                &later,
-            ) + &nq_line(
-                &second_contract,
+                &contract,
                 &format!("{LOGIC}closureEntry"),
                 &format!("{BOARD}/closure2"),
                 &later,
@@ -882,6 +877,153 @@ fn ambiguous_individual_closure_is_refused() {
         assert!(
             err.message().contains(why),
             "the refusal must name {why}, got: {err}"
+        );
+    }
+}
+
+/// A reasoning contract `contract` asserted in `world` that closes Alice's `rdf:type`
+/// statements with `value` through its own entry `entry`.
+fn contract_closing_alice(world: &str, contract: &str, entry: &str, value: &str) -> String {
+    nq_line(
+        contract,
+        RDF_TYPE_P,
+        &format!("{LOGIC}ReasoningContract"),
+        world,
+    ) + &nq_line(contract, &format!("{LOGIC}closureEntry"), entry, world)
+        + &nq_line(entry, &format!("{LOGIC}closureKey"), RDF_TYPE_P, world)
+        + &nq_line(entry, &format!("{LOGIC}closureValue"), value, world)
+        + &nq_line(
+            entry,
+            &format!("{LOGIC}closureIndividual"),
+            &format!("{BOARD}/alice"),
+            world,
+        )
+}
+
+/// INVARIANT: a world governed by exactly one contract is evaluated on that contract's
+/// closure entries: one contract owning several agreeing entries discharges the witness, and
+/// a contract in each of two different worlds is not two contracts of one world.
+#[test]
+fn a_world_with_one_contract_is_evaluated_on_its_closure() {
+    let minutes = format!("{BOARD}/minutes");
+    let later = format!("{BOARD}/later");
+    let closed = format!("{LOGIC}ClosedWorldClosure");
+    let base = board_minutes() + &accessible(&minutes, &later) + &later_loss_of_role("");
+
+    let several_entries = base.clone()
+        + &closed_membership_of_alice(&later)
+        + &nq_line(
+            &format!("{BOARD}/contract"),
+            &format!("{LOGIC}closureEntry"),
+            &format!("{BOARD}/closure2"),
+            &later,
+        )
+        + &nq_line(
+            &format!("{BOARD}/closure2"),
+            &format!("{LOGIC}closureKey"),
+            RDF_TYPE_P,
+            &later,
+        )
+        + &nq_line(
+            &format!("{BOARD}/closure2"),
+            &format!("{LOGIC}closureValue"),
+            &closed,
+            &later,
+        )
+        + &nq_line(
+            &format!("{BOARD}/closure2"),
+            &format!("{LOGIC}closureIndividual"),
+            &format!("{BOARD}/alice"),
+            &later,
+        );
+    assert!(
+        !board_violation_open(&several_entries),
+        "the one contract's agreeing closure entries discharge the witness"
+    );
+
+    let one_per_world =
+        base + &contract_closing_alice(
+            &later,
+            &format!("{BOARD}/contractLater"),
+            &format!("{BOARD}/closureLater"),
+            &closed,
+        ) + &contract_closing_alice(
+            &minutes,
+            &format!("{BOARD}/contractMinutes"),
+            &format!("{BOARD}/closureMinutes"),
+            &closed,
+        );
+    assert!(
+        !board_violation_open(&one_per_world),
+        "a contract in each of two worlds governs each world"
+    );
+}
+
+/// INVARIANT: a world has exactly one governing contract.  Two contracts asserted in one
+/// world are refused with an error that names both, and no closure is selected from either:
+/// conflicting closure values are no different from agreeing ones.
+#[test]
+fn two_contracts_in_one_world_are_refused_by_name() {
+    let later = format!("{BOARD}/later");
+    let first = format!("{BOARD}/contractA");
+    let second = format!("{BOARD}/contractB");
+    let nq = board_minutes()
+        + &later_loss_of_role("")
+        + &contract_closing_alice(
+            &later,
+            &first,
+            &format!("{BOARD}/closureA"),
+            &format!("{LOGIC}ClosedWorldClosure"),
+        )
+        + &contract_closing_alice(
+            &later,
+            &second,
+            &format!("{BOARD}/closureB"),
+            &format!("{LOGIC}OpenWorldClosure"),
+        );
+    let err = evaluate(&store_from(&nq), AntiRigidityPolicy::SchemaOnly)
+        .expect_err("two contracts in one world must be refused");
+    let message = err.message();
+    for named in [&later, &first, &second] {
+        assert!(
+            message.contains(&format!("<{named}>")),
+            "the refusal must name <{named}>, got: {err}"
+        );
+    }
+}
+
+/// INVARIANT: the one-contract rule is about count, not conflict.  Two contracts that
+/// declare the same closure are refused as two contracts, and so is a second contract that
+/// declares no closure entry at all.
+#[test]
+fn compatible_contracts_in_one_world_are_refused() {
+    let later = format!("{BOARD}/later");
+    let second = format!("{BOARD}/contractB");
+    let closed = format!("{LOGIC}ClosedWorldClosure");
+    let agreeing =
+        contract_closing_alice(
+            &later,
+            &format!("{BOARD}/contractA"),
+            &format!("{BOARD}/closureA"),
+            &closed,
+        ) + &contract_closing_alice(&later, &second, &format!("{BOARD}/closureB"), &closed);
+    let empty_second = closed_membership_of_alice(&later)
+        + &nq_line(
+            &second,
+            RDF_TYPE_P,
+            &format!("{LOGIC}ReasoningContract"),
+            &later,
+        );
+    for (why, contracts) in [
+        ("agreeing closures", agreeing),
+        ("a second contract without entries", empty_second),
+    ] {
+        let nq = board_minutes() + &later_loss_of_role("") + &contracts;
+        let err = evaluate(&store_from(&nq), AntiRigidityPolicy::SchemaOnly)
+            .expect_err("a second contract in a world is refused even when compatible");
+        assert!(
+            err.message().contains(&format!("<{second}>")),
+            "the refusal for {why} must name <{second}>, got: {err}"
         );
     }
 }
