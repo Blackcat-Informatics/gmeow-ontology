@@ -261,6 +261,10 @@ fn unsupported_conditions_retain_distinct_worlds_and_native_outcomes() {
     );
 }
 
+/// INVARIANT: native reachability analysis is refused when it is transplanted into another
+/// result (the constructor-owned assessment check guards obligation assessment), and
+/// `ReasoningResult::validate` refuses an analysis that is not the analysis of the
+/// execution's own input (`stale or foreign`).
 #[test]
 fn foreign_or_changed_program_analysis_is_refused() {
     let store = source(&declaration("https://example.org/forbidden", false));
@@ -286,8 +290,25 @@ fn foreign_or_changed_program_analysis_is_refused() {
         .map(std::sync::Arc::make_mut)
         .unwrap()
         .reachability = first.native_execution().unwrap().reachability.clone();
-    let error =
-        assess_non_entailment_obligations(&transplanted).expect_err("foreign analysis must refuse");
+    let error = assess_non_entailment_obligations(&transplanted)
+        .expect_err("transplanted analysis must refuse");
+    assert!(
+        error
+            .to_string()
+            .contains("original native closure differs from its constructor-owned assessment"),
+        "{error}"
+    );
+    let mut foreign_input = changed.clone();
+    let execution = foreign_input
+        .provenance
+        .native_execution
+        .as_mut()
+        .map(std::sync::Arc::make_mut)
+        .unwrap();
+    execution.input_contract[0] ^= 0xFF;
+    let error = foreign_input
+        .validate()
+        .expect_err("execution bound to another input must refuse");
     assert!(error.to_string().contains("stale or foreign"), "{error}");
     let mut foreign_engine = first;
     foreign_engine
