@@ -123,7 +123,6 @@ pub(crate) const CONSISTENT_BLOCKING_PREDICATES: &[&str] = &[
     "http://www.w3.org/2002/07/owl#hasKey",
     "http://www.w3.org/2002/07/owl#equivalentProperty",
     "http://www.w3.org/2002/07/owl#propertyDisjointWith",
-    "http://www.w3.org/2002/07/owl#equivalentClass",
     "http://www.w3.org/2002/07/owl#withRestrictions",
     "http://www.w3.org/2002/07/owl#datatypeComplementOf",
     RDFS_DOMAIN,
@@ -1146,19 +1145,45 @@ impl Ctx {
                     .push((concept, support));
             }
         }
+        // An equivalence is two subsumptions. A named side carries the other side as a told
+        // subsumer; an expression side is never the label of an individual, so its
+        // subsumption holds as a general axiom over every inhabitant.
+        let mut general = Vec::<(Concept, Support)>::new();
         for (a, b) in &w.equivalent_named {
-            if resolver.is_expression(a) || resolver.is_expression(b) {
-                if scope.contains(a) || scope.contains(b) {
-                    obstructions
-                        .entry(format!("class expression equivalence <{a}> to <{b}>"))
-                        .or_default()
-                        .extend(&w.support(a, OWL_EQUIVALENT_CLASS, b));
-                }
-            } else {
-                subsumers.entry(b.clone()).or_default().push((
-                    Concept::Pos(a.clone()),
-                    w.support(a, OWL_EQUIVALENT_CLASS, b),
+            let (a_concept, a_definition) = resolver.resolve_supported(a, 0);
+            let (b_concept, b_definition) = resolver.resolve_supported(b, 0);
+            let support =
+                a_definition
+                    .merge(&b_definition)
+                    .merge(&w.support(a, OWL_EQUIVALENT_CLASS, b));
+            let a_expression = resolver.is_expression(a);
+            let b_expression = resolver.is_expression(b);
+            if (a_expression || b_expression)
+                && (concept_contains_blocked(&a_concept) || concept_contains_blocked(&b_concept))
+                && (scope.contains(a) || scope.contains(b))
+            {
+                obstructions
+                    .entry(format!("unsupported equivalent expression <{a}> to <{b}>"))
+                    .or_default()
+                    .extend(&support);
+            }
+            if a_expression {
+                general.push((
+                    Concept::Or(vec![negate(a_concept.clone()), b_concept.clone()]),
+                    support.clone(),
                 ));
+            }
+            if b_expression {
+                general.push((
+                    Concept::Or(vec![negate(b_concept), a_concept.clone()]),
+                    support.clone(),
+                ));
+            }
+            if !b_expression {
+                subsumers
+                    .entry(b.clone())
+                    .or_default()
+                    .push((a_concept, support));
             }
         }
         for (a, b) in &w.disjoint_with {
@@ -1298,6 +1323,7 @@ impl Ctx {
             }
         }
         let mut universal = subsumers.remove(OWL_THING).unwrap_or_default();
+        universal.extend(general);
         for (owner, is_empty) in [(OWL_THING, false), (OWL_NOTHING, true)] {
             if resolver.is_expression(owner) {
                 let (definition, support) = resolver.resolve_node(owner, 0, false);
