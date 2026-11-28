@@ -16307,8 +16307,8 @@ msgid "The depth bound belongs to the fragment declaration, not to the budget. E
 msgstr "La borne de profondeur relève de la déclaration du fragment, non du budget. La dépasser est un refus de répondre hors du fragment admis, affirmation distincte de l'épuisement des étapes : les deux ne doivent pas être signalées de la même manière."
 
 msgctxt "https://blackcatinformatics.ca/logic/FragmentBoundedDepth|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:episode-3 logic:searchFragment logic:FragmentBoundedDepth ; logic:pathMaxDepth 4 ."
-msgstr "Exemple : ex:episode-3 logic:searchFragment logic:FragmentBoundedDepth ; logic:pathMaxDepth 4 ."
+msgid "ex:episode-3 logic:searchFragment logic:FragmentBoundedDepth ; logic:fragmentMaxDepth 4 ."
+msgstr "Exemple : ex:episode-3 logic:searchFragment logic:FragmentBoundedDepth ; logic:fragmentMaxDepth 4 ."
 
 msgctxt "https://blackcatinformatics.ca/logic/FragmentTotallyOrdered|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The most restrictive admitted fragment and the cheapest to certify, because no interleaving of alternatives is possible. Choosing it is a modelling commitment: a domain with genuinely independent subtasks is misdescribed here, and the search will refuse plans that are in fact valid."
@@ -24390,3 +24390,31 @@ msgstr "Éviter pour une source qui ne fait qu’attester un enregistrement (uti
 msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Assert it from the dependent individual to each individual it requires; read transitivity as the closure. It adds no membership, bearer or occupancy: a consumer reads the present state from the interval-scoped relators and the dependence from this relation."
 msgstr "Affirmer depuis l’individu dépendant vers chaque individu qu’il requiert ; lire la transitivité comme la fermeture. Elle n’ajoute ni adhésion, ni porteur, ni occupation : un consommateur lit l’état présent dans les relateurs bornés par un intervalle et la dépendance dans cette relation."
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentMaxDepth|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fragment maximum depth"
+msgstr "profondeur maximale du fragment"
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentMaxDepth|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The maximum decomposition depth a logic:RefinementEpisode declares under logic:FragmentBoundedDepth, counted in chained method applications: a direct subtask of the refined step is depth one, and a subtask of that subtask is depth two. Depth is the length of the longest chain of method applications that repeats no task, so a method cycle adds no depth by itself and a cyclic method set within the maximum is admitted. Refinement reads the maximum and refuses a method set containing a longer chain as an out-of-fragment condition rather than as budget exhaustion. A bounded-depth episode with no declared maximum, a value that is not an integer of at least one, or two disagreeing values is a malformed request."
+msgstr "La profondeur maximale de décomposition qu'un logic:RefinementEpisode déclare sous logic:FragmentBoundedDepth, comptée en applications de méthodes enchaînées : une sous-tâche directe de l'étape raffinée est à la profondeur un, et une sous-tâche de celle-ci à la profondeur deux. La profondeur est la longueur de la plus longue chaîne d'applications de méthodes qui ne répète aucune tâche : un cycle de méthodes n'ajoute donc aucune profondeur à lui seul, et un ensemble de méthodes cyclique dans la limite du maximum est admis. Le raffinement lit le maximum et refuse, comme condition hors fragment et non comme épuisement du budget, un ensemble de méthodes contenant une chaîne plus longue. Un épisode à profondeur bornée sans maximum déclaré, une valeur qui n'est pas un entier d'au moins un, ou deux valeurs discordantes constitue une requête malformée."
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentMaxDepth|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:episode-3 logic:searchFragment logic:FragmentBoundedDepth ; logic:fragmentMaxDepth 4 ."
+msgstr "Exemple : ex:episode-3 logic:searchFragment logic:FragmentBoundedDepth ; logic:fragmentMaxDepth 4 ."
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentMaxDepth|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The bound is part of the fragment declaration, so it is stated on the episode that declares the fragment and is independent of the step budget. It states what the search is entitled to explore, not what the engine could afford."
+msgstr "La borne fait partie de la déclaration du fragment ; elle est donc énoncée sur l'épisode qui déclare le fragment et reste indépendante du budget d'étapes. Elle dit ce que la recherche a le droit d'explorer, non ce que le moteur pouvait se permettre."
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentMaxDepth|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use on a refinement episode declared under logic:FragmentBoundedDepth to state how deep its decomposition may run."
+msgstr "Utiliser sur un épisode de raffinement déclaré sous logic:FragmentBoundedDepth pour énoncer jusqu'où sa décomposition peut descendre."
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentMaxDepth|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it to express a performance limit: a budget is a resource policy, and a depth stated here makes a method set that runs deeper an inadmissible question."
+msgstr "Éviter de s'en servir pour exprimer une limite de performance : un budget est une politique de ressources, et une profondeur énoncée ici fait d'un ensemble de méthodes plus profond une question inadmissible."
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentMaxDepth|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert one positive integer on the episode, alongside logic:searchFragment logic:FragmentBoundedDepth and logic:refinesStep for the step being refined."
+msgstr "Affirmer un entier positif sur l'épisode, avec logic:searchFragment logic:FragmentBoundedDepth et logic:refinesStep pour l'étape raffinée."

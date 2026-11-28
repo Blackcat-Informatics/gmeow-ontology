@@ -11215,7 +11215,7 @@ logic:FragmentBoundedDepth a logic:NamedIndividual , logic:SearchFragment ;
     rdfs:label "bounded-depth fragment"@x-gmeow-english ;
     skos:definition "Decomposition is admitted to a declared maximum depth, which terminates even where the method graph has cycles. The depth bound is part of the fragment declaration, not a budget: exceeding it is an out-of-fragment refusal, not an exhaustion."@x-gmeow-english ;
     skos:scopeNote "The depth bound belongs to the fragment declaration, not to the budget. Exceeding it is a refusal to answer outside the admitted fragment, which is a different claim from having run out of steps, and the two must not be reported alike."@x-gmeow-english ;
-    skos:example "ex:episode-3 logic:searchFragment logic:FragmentBoundedDepth ; logic:pathMaxDepth 4 ."@x-gmeow-english ;
+    skos:example "ex:episode-3 logic:searchFragment logic:FragmentBoundedDepth ; logic:fragmentMaxDepth 4 ."@x-gmeow-english ;
     gmeow:useWhen "Use when the method graph may contain cycles and termination is obtained by admitting decomposition only to a declared maximum depth."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it to express a performance limit: a budget is a resource policy, and stating it as a fragment makes an exhaustion look like an inadmissible question."@x-gmeow-english ;
     gmeow:howToUse "Declare the bound as part of the fragment and report a refusal beyond it as out-of-fragment, keeping the budget free to express what the engine could afford."@x-gmeow-english ;
@@ -11233,6 +11233,20 @@ logic:searchFragment
     gmeow:useWhen "Use on every refinement episode to declare the decidable fragment its search ran within."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting it on an exploratory search: the roster then cannot be read as complete for anything, which is worse than a narrow declared fragment."@x-gmeow-english ;
     gmeow:howToUse "Declare the fragment before searching, so an out-of-fragment input is refused as inadmissible rather than reported as exhausted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:fragmentMaxDepth
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    logic:domain logic:RefinementEpisode ;
+    logic:range xsd:positiveInteger ;
+    rdfs:label "fragment maximum depth"@x-gmeow-english ;
+    skos:definition "The maximum decomposition depth a logic:RefinementEpisode declares under logic:FragmentBoundedDepth, counted in chained method applications: a direct subtask of the refined step is depth one, and a subtask of that subtask is depth two. Depth is the length of the longest chain of method applications that repeats no task, so a method cycle adds no depth by itself and a cyclic method set within the maximum is admitted. Refinement reads the maximum and refuses a method set containing a longer chain as an out-of-fragment condition rather than as budget exhaustion. A bounded-depth episode with no declared maximum, a value that is not an integer of at least one, or two disagreeing values is a malformed request."@x-gmeow-english ;
+    skos:example "ex:episode-3 logic:searchFragment logic:FragmentBoundedDepth ; logic:fragmentMaxDepth 4 ."@x-gmeow-english ;
+    skos:scopeNote "The bound is part of the fragment declaration, so it is stated on the episode that declares the fragment and is independent of the step budget. It states what the search is entitled to explore, not what the engine could afford."@x-gmeow-english ;
+    gmeow:useWhen "Use on a refinement episode declared under logic:FragmentBoundedDepth to state how deep its decomposition may run."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to express a performance limit: a budget is a resource policy, and a depth stated here makes a method set that runs deeper an inadmissible question."@x-gmeow-english ;
+    gmeow:howToUse "Assert one positive integer on the episode, alongside logic:searchFragment logic:FragmentBoundedDepth and logic:refinesStep for the step being refined."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- RQ2/RQ3: means-end expansion is DERIVED, never computed beside the engine ---

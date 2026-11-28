@@ -16307,8 +16307,8 @@ msgid "The depth bound belongs to the fragment declaration, not to the budget. E
 msgstr "深度界限属于片段声明，而非预算。越过它意味着拒绝在所准入的片段之外作答，这与步数耗尽是不同的论断，二者不可等同上报。"
 
 msgctxt "https://blackcatinformatics.ca/logic/FragmentBoundedDepth|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:episode-3 logic:searchFragment logic:FragmentBoundedDepth ; logic:pathMaxDepth 4 ."
-msgstr "示例：ex:episode-3 logic:searchFragment logic:FragmentBoundedDepth ; logic:pathMaxDepth 4 。"
+msgid "ex:episode-3 logic:searchFragment logic:FragmentBoundedDepth ; logic:fragmentMaxDepth 4 ."
+msgstr "示例：ex:episode-3 logic:searchFragment logic:FragmentBoundedDepth ; logic:fragmentMaxDepth 4 。"
 
 msgctxt "https://blackcatinformatics.ca/logic/FragmentTotallyOrdered|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The most restrictive admitted fragment and the cheapest to certify, because no interleaving of alternatives is possible. Choosing it is a modelling commitment: a domain with genuinely independent subtasks is misdescribed here, and the search will refuse plans that are in fact valid."
@@ -24390,3 +24390,31 @@ msgstr "不要用于仅为记录提供证据的来源（用溯源）、仅有时
 msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Assert it from the dependent individual to each individual it requires; read transitivity as the closure. It adds no membership, bearer or occupancy: a consumer reads the present state from the interval-scoped relators and the dependence from this relation."
 msgstr "从依赖个体指向它所要求的每个个体来断言；将传递性理解为闭包。它不增加成员资格、承载者或占据：使用者从受区间限定的关系体读取当下状态，从该关系读取依赖。"
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentMaxDepth|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fragment maximum depth"
+msgstr "片段最大深度"
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentMaxDepth|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The maximum decomposition depth a logic:RefinementEpisode declares under logic:FragmentBoundedDepth, counted in chained method applications: a direct subtask of the refined step is depth one, and a subtask of that subtask is depth two. Depth is the length of the longest chain of method applications that repeats no task, so a method cycle adds no depth by itself and a cyclic method set within the maximum is admitted. Refinement reads the maximum and refuses a method set containing a longer chain as an out-of-fragment condition rather than as budget exhaustion. A bounded-depth episode with no declared maximum, a value that is not an integer of at least one, or two disagreeing values is a malformed request."
+msgstr "logic:RefinementEpisode 在 logic:FragmentBoundedDepth 之下声明的最大分解深度，以链式方法应用的次数计：被细化步骤的直接子任务深度为一，该子任务的子任务深度为二。深度是不重复任何任务的最长方法应用链的长度，因此方法环本身不增加深度，最大值之内的带环方法集会被准入。细化读取该最大值，并把包含更长链的方法集，作为超出片段的情形予以拒绝，而不是当作预算耗尽。有界深度的 episode 若未声明最大值、取值不是不小于一的整数、或存在两个相互矛盾的取值，则属于畸形请求。"
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentMaxDepth|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:episode-3 logic:searchFragment logic:FragmentBoundedDepth ; logic:fragmentMaxDepth 4 ."
+msgstr "示例：ex:episode-3 logic:searchFragment logic:FragmentBoundedDepth ; logic:fragmentMaxDepth 4 。"
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentMaxDepth|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The bound is part of the fragment declaration, so it is stated on the episode that declares the fragment and is independent of the step budget. It states what the search is entitled to explore, not what the engine could afford."
+msgstr "该界限属于片段声明，因此写在声明该片段的 episode 上，与步数预算相互独立。它表明搜索有权探索的范围，而非引擎负担得起的范围。"
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentMaxDepth|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use on a refinement episode declared under logic:FragmentBoundedDepth to state how deep its decomposition may run."
+msgstr "用于在 logic:FragmentBoundedDepth 之下声明的细化 episode，说明其分解最多可以深入到多深。"
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentMaxDepth|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it to express a performance limit: a budget is a resource policy, and a depth stated here makes a method set that runs deeper an inadmissible question."
+msgstr "避免用它表达性能上限：预算是资源策略，而在此声明深度会使更深的方法集成为不可受理的问题。"
+
+msgctxt "https://blackcatinformatics.ca/logic/fragmentMaxDepth|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert one positive integer on the episode, alongside logic:searchFragment logic:FragmentBoundedDepth and logic:refinesStep for the step being refined."
+msgstr "在 episode 上断言一个正整数，并与 logic:searchFragment logic:FragmentBoundedDepth 以及被细化步骤的 logic:refinesStep 一并给出。"

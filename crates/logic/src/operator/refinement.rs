@@ -20,6 +20,8 @@ pub struct RefinementRecord {
     pub reached: Vec<String>,
     pub pins: Vec<RefinePin>,
     pub cycles: Vec<String>,
+    pub depth: Option<u32>,
+    pub max_depth: Option<u32>,
     pub outcome: RefinementOutcome,
 }
 
@@ -85,6 +87,8 @@ impl From<&RefineReport> for RefinementRecord {
             reached: report.reached.clone(),
             pins: report.pins.clone(),
             cycles: report.cycles.clone(),
+            depth: report.depth,
+            max_depth: report.max_depth,
             outcome,
         }
     }
