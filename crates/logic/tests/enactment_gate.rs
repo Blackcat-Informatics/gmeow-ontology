@@ -676,6 +676,97 @@ ex:attemptOne a logic:EffectAttempt .
     assert_condemns_under(&report, "retry2", "RetryRequiresLicenceConstraint");
 }
 
+// ── Effect knowledge: monotone under the knowledge order ──────────────────────────────
+//
+// The scenes carry the authored strict order exactly as the shipped module states it, because
+// the law reads `logic:knowledgePrecedes` from the graph under verification and never from the
+// declaration order of the information-state enumeration. Each scene is one probe and the one
+// result it produced; the pair is a single move of `logic:effectKnowledge`.
+
+/// The authored strict knowledge order over the five admitted information states.
+const KNOWLEDGE_ORDER: &str = "
+logic:InfoNotEvaluated logic:knowledgePrecedes
+    logic:InfoUndetermined , logic:InfoSupported , logic:InfoOpposed , logic:InfoBoth .
+logic:InfoUndetermined logic:knowledgePrecedes
+    logic:InfoSupported , logic:InfoOpposed , logic:InfoBoth .
+logic:InfoSupported logic:knowledgePrecedes logic:InfoBoth .
+logic:InfoOpposed logic:knowledgePrecedes logic:InfoBoth .
+";
+
+/// One reconciliation move of effect knowledge from `before` to `after`.
+fn knowledge_move(before: &str, after: &str) -> String {
+    scene(&format!(
+        "{KNOWLEDGE_ORDER}
+ex:probe1 a logic:ReconciliationProbe ;
+    logic:probesAttempt ex:attempt1 ;
+    logic:effectKnowledge logic:{before} .
+ex:result1 a logic:ReconciliationResult ;
+    logic:resultOfProbe ex:probe1 ;
+    logic:reconciliationVerdict logic:ReconciledStillUnknown ;
+    logic:effectKnowledge logic:{after} .
+ex:attempt1 a logic:EffectAttempt .
+"
+    ))
+}
+
+/// A probe that lowers the knowledge it started from is condemned under the monotonicity law.
+///
+/// Protects the knowledge-axis law: a reconciliation may only move `logic:effectKnowledge`
+/// upward under the authored order. `InfoBoth` is the top, so a result that reads
+/// `InfoSupported` after it has discarded the counterproof, and `InfoUndetermined` after
+/// `InfoSupported` has forgotten a proof. Both are decreases along the order and must not
+/// pass as corrections.
+#[test]
+fn a_reconciliation_that_lowers_effect_knowledge_fires_on_verify() {
+    for (before, after) in [
+        ("InfoBoth", "InfoSupported"),
+        ("InfoSupported", "InfoUndetermined"),
+        ("InfoUndetermined", "InfoNotEvaluated"),
+    ] {
+        let report = run_verify(&knowledge_move(before, after));
+        assert_condemns_under(&report, "result1", "EffectKnowledgeMonotonicityConstraint");
+    }
+}
+
+/// A move between the two incomparable single-evidence values loses information either way.
+///
+/// `InfoSupported` and `InfoOpposed` are unordered under the knowledge order, so neither may
+/// replace the other: a disagreement is recorded as `InfoBoth` and adjudicated.
+#[test]
+fn a_reconciliation_that_swaps_proof_for_counterproof_fires_on_verify() {
+    for (before, after) in [
+        ("InfoSupported", "InfoOpposed"),
+        ("InfoOpposed", "InfoSupported"),
+    ] {
+        let report = run_verify(&knowledge_move(before, after));
+        assert_condemns_under(&report, "result1", "EffectKnowledgeMonotonicityConstraint");
+    }
+}
+
+/// Unchanged knowledge and every upward move along the order are admitted.
+///
+/// The green half of the pair above. Without it the red half would be satisfied by a law
+/// that condemns every result. It includes `InfoSupported` to `InfoBoth`, the move a
+/// contradicting provider report licenses, which an equality-based reading would refuse.
+#[test]
+fn a_reconciliation_that_keeps_or_raises_effect_knowledge_passes_on_verify() {
+    for (before, after) in [
+        ("InfoUndetermined", "InfoUndetermined"),
+        ("InfoNotEvaluated", "InfoUndetermined"),
+        ("InfoUndetermined", "InfoSupported"),
+        ("InfoUndetermined", "InfoOpposed"),
+        ("InfoSupported", "InfoBoth"),
+        ("InfoNotEvaluated", "InfoBoth"),
+    ] {
+        let report = run_verify(&knowledge_move(before, after));
+        assert_law_silent(
+            &report,
+            "EffectKnowledgeMonotonicityConstraint",
+            &format!("{before} to {after} does not decrease along the knowledge order"),
+        );
+    }
+}
+
 // ── The journal chain: entry n linked to entry n−1 ────────────────────────────────────
 
 #[test]
@@ -1079,7 +1170,7 @@ ex:roster1 a logic:RefinementCandidateSet ;
 
 /// The marker-identity fix, pinned on the production surface.
 ///
-/// The gate's marker is one shared `logic:EnactmentIntegrityViolation` type across forty-four
+/// The gate's marker is one shared `logic:EnactmentIntegrityViolation` type across forty-five
 /// laws, so before the law identity was carried out of the chase an operator saw only that
 /// a record breached enactment integrity. This asserts the finding carries the ABSOLUTE IRI
 /// of the authored `logic:Constraint` — the thing whose `logic:message` states the

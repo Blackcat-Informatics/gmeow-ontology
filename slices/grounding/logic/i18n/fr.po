@@ -13986,6 +13986,14 @@ msgctxt "https://blackcatinformatics.ca/logic/ReconciliationResultCarriesVerdict
 msgid "The logic:Constraint rejecting a logic:ReconciliationResult with no logic:ReconciliationVerdict. A probe that completed and recorded nothing is indistinguishable from a probe that never ran, and the difference matters: the first leaves an effect where it was, the second leaves it unprobed and still owing a reconciliation."
 msgstr "La logic:Constraint qui rejette un logic:ReconciliationResult dépourvu de logic:ReconciliationVerdict. Une sonde qui s'est achevée sans rien consigner est indiscernable d'une sonde qui n'a jamais été lancée, et la différence compte : la première laisse un effet là où il était, la seconde le laisse non sondé et devant toujours un rapprochement."
 
+msgctxt "https://blackcatinformatics.ca/logic/EffectKnowledgeMonotonicityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effect knowledge never decreases along the knowledge order"
+msgstr "la connaissance d'un effet ne décroît jamais le long de l'ordre de connaissance"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectKnowledgeMonotonicityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:ReconciliationResult whose logic:effectKnowledge is neither equal to the logic:effectKnowledge recorded on its logic:resultOfProbe probe nor reachable from it by logic:knowledgePrecedes. The probe records the knowledge standing when it was issued and the result records the knowledge standing after, so the pair is one move of the knowledge axis. Only an upward or unchanged move is admitted: a probe that appears to lower knowledge has contradicted the earlier reading, and that disagreement is recorded as logic:InfoBoth and settled by a logic:ContradictionAdjudication, never as a lower value. The order is read from the authored logic:knowledgePrecedes statements and never from the declaration order of logic:InformationState, so a graph that omits those statements condemns every move that changes the value."
+msgstr "La logic:Constraint qui rejette un logic:ReconciliationResult dont le logic:effectKnowledge n'est ni égal au logic:effectKnowledge consigné sur sa sonde logic:resultOfProbe, ni atteignable depuis celui-ci par logic:knowledgePrecedes. La sonde consigne la connaissance qui prévalait à son émission et le résultat consigne celle qui prévaut ensuite : le couple forme un seul déplacement de l'axe de connaissance. Seul un déplacement ascendant ou nul est admis : une sonde qui semble abaisser la connaissance a contredit la lecture antérieure, et ce désaccord est consigné comme logic:InfoBoth puis tranché par une logic:ContradictionAdjudication, jamais comme une valeur inférieure. L'ordre est lu dans les énoncés logic:knowledgePrecedes rédigés et jamais dans l'ordre de déclaration de logic:InformationState : un graphe qui omet ces énoncés condamne donc tout déplacement qui change la valeur."
+
 msgctxt "https://blackcatinformatics.ca/logic/AbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "abductive repair schema"
 msgstr "schéma de réparation abductif"
@@ -16987,8 +16995,8 @@ msgid "Authored explicitly because the runtime enumeration order of the informat
 msgstr "Rédigée explicitement parce que l'ordre d'énumération à l'exécution des états d'information est l'ordre de DÉCLARATION et non l'ordre de connaissance. Prendre l'un pour l'autre inverse la loi de monotonie : cette relation soustrait donc l'ordre au hasard de la mise en page du fichier."
 
 msgctxt "https://blackcatinformatics.ca/logic/knowledgePrecedes|http://www.w3.org/2004/02/skos/core#example"
-msgid "logic:EffectAttempted logic:knowledgePrecedes logic:EffectReconciled ."
-msgstr "Exemple : logic:EffectAttempted logic:knowledgePrecedes logic:EffectReconciled ."
+msgid "logic:InfoUndetermined logic:knowledgePrecedes logic:InfoSupported ."
+msgstr "Exemple : logic:InfoUndetermined logic:knowledgePrecedes logic:InfoSupported ."
 
 msgctxt "https://blackcatinformatics.ca/logic/lawAdmits|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Carries the admitted transition relation as a formula rather than as a table, which is what makes the liveness certificate derivable instead of hand-maintained. A table would have to be re-checked by a human whenever an axis value is added; a formula is re-evaluated."

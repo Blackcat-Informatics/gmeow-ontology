@@ -9,7 +9,7 @@ use std::collections::BTreeSet;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
-/// The 44 enactment-kernel laws the gate MUST compile, by local name.
+/// The 45 enactment-kernel laws the gate MUST compile, by local name.
 ///
 /// Spelled out rather than counted, because the number alone would stay green if one
 /// law silently dropped out of the fragment and an unrelated one was added. This is the
@@ -23,7 +23,7 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// lease double-claiming a held scope are different defects, and a corpus must be able
 /// to trip each alone — and because a single law cannot do both: the relational body
 /// needs the binding in its GUARD, which makes the missing-binding case fall outside it.
-const ENACTMENT_LAWS: [&str; 44] = [
+const ENACTMENT_LAWS: [&str; 45] = [
     "AdvisoryNeverAuthorityConstraint",
     "ApprovalCommitmentCompletenessConstraint",
     "ApprovalDigestBindsDispatchIntentConstraint",
@@ -43,6 +43,7 @@ const ENACTMENT_LAWS: [&str; 44] = [
     "ContinuationKindDisjointnessConstraint",
     "ContinuationRepeatExcludesReviseConstraint",
     "DispatchIntentCompletenessConstraint",
+    "EffectKnowledgeMonotonicityConstraint",
     "EffectRecordsAreObservedNotDerivedConstraint",
     "EnactmentPinsPrescriptionAndSnapshotConstraint",
     "FrontierCarriesSaturationWitnessConstraint",
@@ -77,7 +78,7 @@ const ENACTMENT_LAWS: [&str; 44] = [
 /// carries the extra join atoms is exactly the shape that falls out of the Horn+NAF
 /// fragment first, and losing one would restore the defect this census was rebuilt to
 /// end — a law whose IRI asserts a relation and whose body tests a field.
-const RELATIONAL_LAWS: [&str; 18] = [
+const RELATIONAL_LAWS: [&str; 19] = [
     "ApprovalDigestBindsDispatchIntentConstraint",
     "ApprovalScopedToIntentEnactmentConstraint",
     "CheckpointRestoreIdentityConstraint",
@@ -85,6 +86,7 @@ const RELATIONAL_LAWS: [&str; 18] = [
     "CompensationOutcomeReceiptIsNotTheForwardReceiptConstraint",
     "ContextAssemblyExclusionIsNotInclusionConstraint",
     "ContextAssemblyRecordsExclusionsConstraint",
+    "EffectKnowledgeMonotonicityConstraint",
     "FrontierClosureRequiresSaturationConstraint",
     "JournalChainIntegrityConstraint",
     "LeaseExclusivityConstraint",
