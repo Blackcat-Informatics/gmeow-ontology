@@ -732,13 +732,15 @@ fn magic_exact_rational_matches_reference() {
 // ── Value-generating-recursion termination guard ─────────────────────────────
 //
 // Over the finite triple EDB a pure-Datalog backward program always terminates; the
-// ONLY divergence source is an arithmetic `is` value-generator inside an IDB cycle
-// with no finite driver.  `potentially_nonterminating_arithmetic` flags EXACTLY that
-// shape, and `resolve_native` returns a typed refusal when `max_steps` is None (no
-// hang possible), evaluating normally when a step budget can cut the recursion.
+// ONLY divergence source is an arithmetic `is` value-generator fed by its own recursion.
+// A finite stored relation does not bound that stream. `arithmetic_descent` admits such a
+// program without a step budget only when its recursion descends along stored relations
+// (checked acyclic over the stored facts by `descent_is_acyclic`); otherwise
+// `resolve_native` returns a typed refusal when `max_steps` is None (no hang possible),
+// and evaluates normally when a step budget can cut the recursion.
 
 /// A binary self-drive `count(X,S) :- count(X,Y), S is Y+1` (seeded from an EDB
-/// `seed(a,a)` via a base rule) has NO finite driver in its recursive rule — its only
+/// `seed(a,a)` via a base rule) has NO descent relation in its recursive rule — its only
 /// positive body atom is the cyclic head predicate `count`, and the `is` generates a
 /// fresh successor forever.  With no step budget that is an unbounded hang, so the
 /// native core refuses it as `NonTerminatingArithmetic`.
@@ -767,7 +769,7 @@ fn magic_value_generating_self_drive_is_unsupported_without_budget() {
             outcome,
             NativeOutcome::Unsupported(UnsupportedKind::NonTerminatingArithmetic)
         ),
-        "a value-generating self-drive with no finite driver and no budget must be \
+        "a value-generating self-drive with no descent relation and no budget must be \
              Unsupported(NonTerminatingArithmetic): {outcome:?}"
     );
 }
@@ -810,33 +812,69 @@ fn magic_value_generating_self_drive_is_budgeted_partial_prefix() {
     );
 }
 
-#[test]
-fn magic_finite_driver_arithmetic_is_not_flagged() {
-    // The list-length program is in an IDB cycle (len→len) WITH arithmetic, but its
-    // recursive rule carries the non-cyclic EDB body atom `rdf:rest(L,R)` — a finite
-    // driver.  The guard must NOT flag it (condition 3 is false), so it is decided
-    // natively even with no step budget.  This is the direct guard-precision check
-    // complementing `magic_binary_arithmetic_is_decided_natively`.
-    let (store, world_nn) = make_world(&[(
-        &format!("{BASE}l0"),
-        "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
-        "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
-    )]);
-    let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
-    let src = format!(
+const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+
+fn list_length_program() -> String {
+    format!(
         ":- prefix(ex, '{BASE}').\n\
              :- prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').\n\
              ex:len(rdf:nil, 0).\n\
              ex:len(L, N) :- rdf:rest(L, R), ex:len(R, M), N is M + 1.\n\
              ?- ex:len(ex:l0, N).\n"
+    )
+}
+
+#[test]
+fn magic_acyclic_descent_arithmetic_is_decided_without_budget() {
+    // The list-length recursion generates `N is M + 1` from its own recursion, but every
+    // recursive call descends along the stored `rdf:rest` relation, and over the acyclic
+    // list l0 -> l1 -> nil that chain is finite. The guard admits it with no step budget.
+    let (store, world_nn) = make_world(&[
+        (&format!("{BASE}l0"), RDF_REST, &format!("{BASE}l1")),
+        (&format!("{BASE}l1"), RDF_REST, RDF_NIL),
+    ]);
+    let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+    let prog = parse_query_program(&list_length_program()).unwrap();
+    let answer = decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap());
+    assert_eq!(answer.bindings.len(), 1, "one length answer: {answer:?}");
+    assert_eq!(
+        answer.bindings[0]["N"],
+        "\"2\"^^<http://www.w3.org/2001/XMLSchema#integer>"
     );
-    let prog = parse_query_program(&src).unwrap();
-    // Budget::default() ⇒ max_steps None ⇒ the guard is ACTIVE. A finite-driver
-    // program must survive it and decide.
-    let outcome = resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
+}
+
+#[test]
+fn magic_cyclic_descent_arithmetic_is_refused_without_budget_and_cut_by_budget() {
+    // `l0 rest l0` makes the recursion call itself forever while `N is M + 1` yields a
+    // new length each pass. The stored driver `rdf:rest` is finite, which does not bound
+    // the generated values, so with no step budget the run is refused rather than
+    // started; a step budget cuts the same program to a sound partial result.
+    let (store, world_nn) = make_world(&[
+        (&format!("{BASE}l0"), RDF_REST, &format!("{BASE}l0")),
+        (&format!("{BASE}l0"), RDF_REST, RDF_NIL),
+    ]);
+    let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+    let prog = parse_query_program(&list_length_program()).unwrap();
+
+    let refused = resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
     assert!(
-        matches!(outcome, NativeOutcome::Decided(_)),
-        "the finite-driver len program must NOT be flagged non-terminating: {outcome:?}"
+        matches!(
+            refused,
+            NativeOutcome::Unsupported(UnsupportedKind::NonTerminatingArithmetic)
+        ),
+        "a cyclic stored driver must not be admitted without a budget: {refused:?}"
+    );
+
+    let budget = Budget {
+        max_steps: Some(3),
+        ..Default::default()
+    };
+    let cut = decided(resolve_native(&foreign, &world_nn, &prog, &budget).unwrap());
+    assert_eq!(
+        cut.status,
+        BudgetStatus::Exhausted,
+        "the budget cuts the unbounded recursion: {cut:?}"
     );
 }
 

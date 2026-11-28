@@ -127,14 +127,14 @@ pub(crate) enum UnsupportedKind {
     /// result.
     NonTerminatingExistential,
     /// A backward program whose only path to divergence is arithmetic self-drive: an
-    /// IDB predicate in a dependency cycle carries a value-generating `is` builtin whose
-    /// result feeds the cyclic head, and the recursive rule has NO finite (EDB or
-    /// strictly-lower-stratum) driver bounding the recursion.  Over the finite triple
-    /// EDB every other backward Datalog program terminates; only such a value-generator
-    /// can invent an unbounded stream of fresh Herbrand terms.  With no `max_steps`
-    /// budget that is an unbounded hang, so the native core returns a typed refusal
-    /// (incomplete-never-wrong); with a step budget the [`StepGovernor`] cuts it, so it
-    /// is evaluated normally.
+    /// IDB predicate in a dependency cycle computes a head value with an `is` builtin
+    /// from the result of its own recursion. A finite stored relation does not bound
+    /// that value stream, so the program is admitted without a step budget only when its
+    /// recursion descends along stored relations whose stored facts are acyclic. A
+    /// program with no such descent, or whose stored descent facts contain a cycle,
+    /// can invent unboundedly many fresh Herbrand terms; with no `max_steps` budget the
+    /// native core returns a typed refusal (incomplete-never-wrong). With a step budget
+    /// the [`StepGovernor`] cuts the recursion, so it is evaluated normally.
     NonTerminatingArithmetic,
     /// A clause body with more than 64 literals: the backward solver represents the
     /// set of not-yet-selected body literals as a `u64` bitmask (one bit per literal),

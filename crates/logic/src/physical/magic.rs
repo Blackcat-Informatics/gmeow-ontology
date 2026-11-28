@@ -1020,53 +1020,237 @@ fn is_generator_reaches_head(rule: &EvalRule) -> bool {
     })
 }
 
-/// Whether any rule in `rules` is potentially non-terminating via arithmetic self-drive.
+/// A stored binary relation along which a value-generating recursion descends.
 ///
-/// A rule is flagged iff ALL of:
-///
-/// 1. **Its head predicate lies on a dependency cycle** (`reach[head]` contains `head`) —
-///    the recursion that a value-generator could feed forever.
-/// 2. **It carries a value-generating `is` builtin whose target reaches the head**
-///    ([`is_generator_reaches_head`]) — the source of fresh Herbrand terms.
-/// 3. **It has NO finite driver**: every POSITIVE body atom is over a relation in the
-///    head's own cycle (an IDB predicate mutually recursive with the head).  A body atom
-///    over an EDB relation, or over a strictly-lower-stratum IDB predicate (one that
-///    cannot reach the head back), is a FINITE driver — it ranges over an already-settled
-///    finite set, so the recursion is bounded and terminates.
-///
-/// This is precise and SOUND: it never flags the terminating list-length shape
-/// `len(L,N) :- rest(L,R), len(R,M), N is M+1`, because its `rest(L,R)` body atom is an
-/// EDB (non-cyclic) finite driver — condition 3 is false.  It DOES flag a pure self-drive
-/// `count(X,S) :- count(X,Y), S is Y+1` whose only body atom is the cyclic head predicate.
-/// Over-flagging a comparison-bounded terminating program is acceptable (it routes to the
-/// oracle — incomplete, never wrong); under-flagging a genuine hang is not, and the
-/// finite-driver test rules out exactly the terminating cases.
-fn potentially_nonterminating_arithmetic(rules: &[EvalRule]) -> bool {
-    let idb: BTreeSet<&str> = rules.iter().map(|r| r.head.predicate.as_str()).collect();
-    let reach = idb_reachability(rules, &idb);
-    let in_cycle = |p: &str| reach.get(p).is_some_and(|s| s.contains(p));
-    for r in rules {
-        let h = r.head.predicate.as_str();
-        // (1) head on a cycle.
-        if !in_cycle(h) {
-            continue;
-        }
-        // (2) a value-generating `is` reaching the head.
-        if !is_generator_reaches_head(r) {
-            continue;
-        }
-        // (3) no finite driver: every positive body atom is cyclic with the head.
-        let has_finite_driver = r.body.iter().filter(|a| !a.negated).any(|a| {
-            let p = a.predicate.as_str();
-            // A finite driver is an EDB relation (not IDB) or a strictly-lower IDB
-            // predicate that cannot reach the head back (not mutually recursive).
-            !idb.contains(p) || !reach.get(p).is_some_and(|s| s.contains(h))
-        });
-        if !has_finite_driver {
-            return true;
+/// The recursive call of the rule moves, at one argument position, from the head's value to
+/// the value related to it by this relation. `caller_is_subject` records the orientation: a
+/// stored fact `(s, o)` is the step `s -> o` when set and `o -> s` otherwise.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct DescentRelation {
+    predicate: String,
+    caller_is_subject: bool,
+}
+
+/// Which argument slot of a binary atom a descent position names.
+#[derive(Debug, Clone, Copy)]
+enum ArgSlot {
+    Subject,
+    Object,
+}
+
+impl ArgSlot {
+    const BOTH: [Self; 2] = [Self::Subject, Self::Object];
+
+    fn of(self, atom: &EvalAtom) -> &EvalTerm {
+        match self {
+            Self::Subject => &atom.subject,
+            Self::Object => &atom.object,
         }
     }
-    false
+}
+
+/// Whether `rule` computes, with `is`, a head value from a variable bound by one of its own
+/// recursive body atoms. Such a rule feeds a freshly generated value back into its own
+/// recursion, which is the only way a binary backward program invents unboundedly many terms.
+///
+/// A generated value whose operands come only from constants and non-recursive atoms ranges
+/// over an already settled finite set, so it does not qualify.
+fn generates_from_recursion(rule: &EvalRule, recursive: &[&EvalAtom]) -> bool {
+    if recursive.is_empty() || !is_generator_reaches_head(rule) {
+        return false;
+    }
+    let mut tainted: BTreeSet<&str> = BTreeSet::new();
+    for atom in recursive {
+        for term in [&atom.subject, &atom.object] {
+            if let EvalTerm::Var(v) = term {
+                tainted.insert(v.as_str());
+            }
+        }
+    }
+    let mut generated: BTreeSet<&str> = BTreeSet::new();
+    loop {
+        let mut changed = false;
+        for builtin in &rule.builtins {
+            if let QBuiltin::Is {
+                target: QTerm::Var(target),
+                lhs,
+                rhs,
+                ..
+            } = builtin
+                && [lhs, rhs]
+                    .iter()
+                    .any(|op| matches!(op, QTerm::Var(v) if tainted.contains(v.as_str())))
+                && tainted.insert(target.as_str())
+            {
+                generated.insert(target.as_str());
+                changed = true;
+            }
+        }
+        if !changed {
+            break;
+        }
+    }
+    [&rule.head.subject, &rule.head.object]
+        .iter()
+        .any(|t| matches!(t, EvalTerm::Var(v) if generated.contains(v.as_str())))
+}
+
+/// The stored relation that the recursive call `call` of `rule` descends along at `slot`:
+/// a positive, non-derived body atom over exactly the head's variable and the call's
+/// variable at that slot.
+fn descent_relation(
+    rule: &EvalRule,
+    call: &EvalAtom,
+    slot: ArgSlot,
+    derived: &BTreeMap<&str, BTreeSet<&str>>,
+) -> Option<DescentRelation> {
+    let (EvalTerm::Var(head_var), EvalTerm::Var(call_var)) = (slot.of(&rule.head), slot.of(call))
+    else {
+        return None;
+    };
+    if head_var == call_var {
+        return None;
+    }
+    rule.body
+        .iter()
+        .filter(|a| !a.negated && !derived.contains_key(a.predicate.as_str()))
+        .find_map(|driver| {
+            let (EvalTerm::Var(s), EvalTerm::Var(o)) = (&driver.subject, &driver.object) else {
+                return None;
+            };
+            let caller_is_subject = if s == head_var && o == call_var {
+                true
+            } else if s == call_var && o == head_var {
+                false
+            } else {
+                return None;
+            };
+            Some(DescentRelation {
+                predicate: driver.predicate.clone(),
+                caller_is_subject,
+            })
+        })
+}
+
+/// The relations that bound the recursion of predicate `head`, or `None` when no common
+/// descent exists.
+///
+/// The recursion of `head` is bounded by descent when it is direct (every recursive atom of
+/// every rule for `head` is a call to `head` itself) and every such call descends along a
+/// stored relation at one common argument position. A chain of calls then follows edges of
+/// the stored relations, so it is finite exactly when those edges are acyclic in the data.
+fn descent_relations(
+    head: &str,
+    rules: &[EvalRule],
+    reach: &BTreeMap<&str, BTreeSet<&str>>,
+) -> Option<Vec<DescentRelation>> {
+    let mut calls: Vec<(&EvalRule, &EvalAtom)> = Vec::new();
+    for rule in rules.iter().filter(|r| r.head.predicate == head) {
+        for atom in recursive_atoms(rule, reach) {
+            if atom.predicate != head {
+                return None;
+            }
+            calls.push((rule, atom));
+        }
+    }
+    ArgSlot::BOTH.into_iter().find_map(|slot| {
+        calls
+            .iter()
+            .map(|(rule, call)| descent_relation(rule, call, slot, reach))
+            .collect::<Option<Vec<_>>>()
+    })
+}
+
+/// The positive body atoms of `rule` over a predicate mutually recursive with its head.
+fn recursive_atoms<'r>(
+    rule: &'r EvalRule,
+    reach: &BTreeMap<&str, BTreeSet<&str>>,
+) -> Vec<&'r EvalAtom> {
+    let head = rule.head.predicate.as_str();
+    rule.body
+        .iter()
+        .filter(|a| {
+            !a.negated
+                && reach
+                    .get(a.predicate.as_str())
+                    .is_some_and(|reaches| reaches.contains(head))
+        })
+        .collect()
+}
+
+/// Classify the arithmetic value generation of `rules` for a run without a step budget.
+///
+/// A recursive rule that computes a head value with `is` from its own recursion
+/// ([`generates_from_recursion`]) is not bounded by the finiteness of any stored relation:
+/// each round can produce a value no earlier round produced. Such a program is
+///
+/// * refused (`Err(NonTerminatingArithmetic)`) unless its recursion descends along stored
+///   relations ([`descent_relations`]);
+/// * otherwise returned with those relations, and it terminates exactly when
+///   [`descent_is_acyclic`] holds over the stored facts, which the caller checks once the
+///   facts are extracted.
+///
+/// A program with no such rule yields an empty relation set. The static test is sound but
+/// not complete: a program it refuses may still terminate, and the refusal routes it to a
+/// step budget.
+fn arithmetic_descent(rules: &[EvalRule]) -> Result<Vec<DescentRelation>, UnsupportedKind> {
+    let idb: BTreeSet<&str> = rules.iter().map(|r| r.head.predicate.as_str()).collect();
+    let reach = idb_reachability(rules, &idb);
+    let generating: BTreeSet<&str> = rules
+        .iter()
+        .filter(|r| generates_from_recursion(r, &recursive_atoms(r, &reach)))
+        .map(|r| r.head.predicate.as_str())
+        .collect();
+    let mut relations = Vec::new();
+    for head in generating {
+        let Some(found) = descent_relations(head, rules, &reach) else {
+            return Err(UnsupportedKind::NonTerminatingArithmetic);
+        };
+        relations.extend(found);
+    }
+    relations.sort();
+    relations.dedup();
+    Ok(relations)
+}
+
+/// Whether the steps `relations` define over the stored `facts` form an acyclic graph.
+///
+/// A cycle, including a fact relating a node to itself, lets the recursion call itself
+/// forever while generating a new value on every pass.
+fn descent_is_acyclic(relations: &[DescentRelation], facts: &[Fact]) -> bool {
+    let mut successors: BTreeMap<&TermValue, Vec<&TermValue>> = BTreeMap::new();
+    let mut in_degree: BTreeMap<&TermValue, usize> = BTreeMap::new();
+    for fact in facts {
+        for relation in relations.iter().filter(|r| r.predicate == fact.predicate) {
+            let (from, to) = if relation.caller_is_subject {
+                (&fact.subject, &fact.object)
+            } else {
+                (&fact.object, &fact.subject)
+            };
+            successors.entry(from).or_default().push(to);
+            in_degree.entry(from).or_insert(0);
+            *in_degree.entry(to).or_insert(0) += 1;
+        }
+    }
+    let node_count = in_degree.len();
+    let mut ready: Vec<&TermValue> = in_degree
+        .iter()
+        .filter(|(_, degree)| **degree == 0)
+        .map(|(node, _)| *node)
+        .collect();
+    let mut removed = 0;
+    while let Some(node) = ready.pop() {
+        removed += 1;
+        for &next in successors.get(node).into_iter().flatten() {
+            if let Some(degree) = in_degree.get_mut(next) {
+                *degree -= 1;
+                if *degree == 0 {
+                    ready.push(next);
+                }
+            }
+        }
+    }
+    removed == node_count
 }
 
 // ── Backward entry: resolve_native ────────────────────────────────────────────────
@@ -1490,11 +1674,13 @@ fn evaluate_binary_under(
         });
     }
 
-    if budget.max_steps.is_none() && potentially_nonterminating_arithmetic(&rules) {
-        return Ok(NativeOutcome::Unsupported(
-            UnsupportedKind::NonTerminatingArithmetic,
-        ));
-    }
+    let descent = match budget.max_steps {
+        None => match arithmetic_descent(&rules) {
+            Ok(descent) => descent,
+            Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+        },
+        Some(_) => Vec::new(),
+    };
 
     let goal_atom = match atom_of(goal) {
         Ok(atom) => atom,
@@ -1517,6 +1703,11 @@ fn evaluate_binary_under(
     source_patterns.extend(math_cell_source_patterns(&rules));
     let mut edb = extract_edb_patterns(foreign, world, &source_patterns)?;
     let base_edb_facts = edb.facts_sorted();
+    if !descent_is_acyclic(&descent, &base_edb_facts) {
+        return Ok(NativeOutcome::Unsupported(
+            UnsupportedKind::NonTerminatingArithmetic,
+        ));
+    }
     for seed in &transformed.seeds {
         let fact = seed_to_fact(seed)?;
         edb.insert(&fact.predicate, &fact.subject, &fact.object);
@@ -1862,11 +2053,13 @@ where
             constraint_tag: None,
         });
     }
-    if budget.max_steps.is_none() && potentially_nonterminating_arithmetic(&base_rules) {
-        return Ok(NativeOutcome::Unsupported(
-            UnsupportedKind::NonTerminatingArithmetic,
-        ));
-    }
+    let descent = match budget.max_steps {
+        None => match arithmetic_descent(&base_rules) {
+            Ok(descent) => descent,
+            Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+        },
+        Some(_) => Vec::new(),
+    };
     let goal_atom = match atom_of(goal) {
         Ok(atom) => atom,
         Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
@@ -1883,6 +2076,11 @@ where
     }
     let source_patterns = binary_source_patterns(&base_rules, &goal_atom);
     let base_edb_facts = extract_edb_patterns(foreign, world, &source_patterns)?.facts_sorted();
+    if !descent_is_acyclic(&descent, &base_edb_facts) {
+        return Ok(NativeOutcome::Unsupported(
+            UnsupportedKind::NonTerminatingArithmetic,
+        ));
+    }
     let mut edb = base_edb_facts.clone();
     for seed in &transformed.seeds {
         edb.push(seed_to_fact(seed)?);
