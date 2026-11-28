@@ -903,6 +903,10 @@ impl ReasoningResult {
     /// 2. The preservation polarity set excludes `ValidationOnly`.
     /// 3. [`InformationState::Both`] must carry at least one proof/counterproof or
     ///    contradiction witness justifying the glut (it is never a bare claim).
+    /// 4. A `complete-for-fragment` counterfactual result (a bindings payload) or
+    ///    probabilistic result (a marginals payload) carries its evaluator's own
+    ///    certified fragment; completeness without the fragment that warrants it
+    ///    is refused.
     ///
     /// # Errors
     /// Returns `Err` describing the first violated invariant.
@@ -941,6 +945,7 @@ impl ReasoningResult {
             ));
         }
         self.preservation.validate()?;
+        self.validate_certified_fragment()?;
         if self.information == InformationState::Both
             && (self.provenance.proof.is_none() || self.provenance.counterproof.is_none())
             && self.provenance.contradiction_witnesses.is_empty()
@@ -959,6 +964,31 @@ impl ReasoningResult {
             ));
         }
         Ok(())
+    }
+
+    /// The bindings payload is the counterfactual result kind and the marginals
+    /// payload the probabilistic one; each states its completeness relative to
+    /// exactly one certified fragment, which the result must name.
+    fn validate_certified_fragment(&self) -> gmeow_errors::Result<()> {
+        if self.completeness != CompletenessStatus::CompleteForFragment {
+            return Ok(());
+        }
+        let (kind, required) = match &self.payload {
+            ResultPayload::Bindings(_) => ("counterfactual", crate::counterfactual::FRAGMENT),
+            ResultPayload::Marginals(_) => ("probabilistic", crate::probabilistic::FRAGMENT),
+            ResultPayload::Inferred(_) | ResultPayload::Empty => return Ok(()),
+        };
+        match self.provenance.certified_fragment.as_deref() {
+            Some(fragment) if fragment == required => Ok(()),
+            Some(fragment) => Err(result_err(format!(
+                "ReasoningResult: a complete-for-fragment {kind} result must certify \
+                 {required}, not {fragment}"
+            ))),
+            None => Err(result_err(format!(
+                "ReasoningResult: a complete-for-fragment {kind} result requires its \
+                 certified fragment {required}"
+            ))),
+        }
     }
 
     /// Require the complete evidence of an explicitly selected native closure.

@@ -24056,6 +24056,30 @@ logic:ObservedTemporalPrefix logic:subClassOf [ a logic:Restriction ; logic:onPr
 logic:TemporalJournalAdmissionExhaustion logic:subClassOf logic:LogicConformanceFailure .
 logic:BoundedFiniteJournalFragment gmeow:enforcesFailureClass logic:TemporalJournalAdmissionExhaustion .
 
+logic:PositiveBinaryHornFragment
+    a logic:NamedIndividual , logic:FormulaFragment ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "positive binary Horn fragment"@x-gmeow-english ;
+    skos:definition "The fragment of binary Horn rules whose bodies are positive atoms, evaluated by weighted model counting over a declared probability model with at most twenty independent probabilistic facts. Negation as failure, builtins and cut are outside it and are refused."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the fragment a complete probabilistic marginal result is relative to."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use this fragment to claim completeness for a program with a negated or builtin body literal, or for one that declares no probability model."@x-gmeow-english ;
+    gmeow:howToUse "Retain it as the certified fragment of a complete probabilistic result, together with the contract identity that digests the program, the reasoning contract and the enumeration budget."@x-gmeow-english ;
+    skos:scopeNote "Confidence annotations stay metadata and never become probabilities. A refusal records unsupported evaluation and produces no marginal."@x-gmeow-english ;
+    skos:example "ex:result logic:resultCertifiedFragment logic:PositiveBinaryHornFragment ."@x-gmeow-english .
+
+logic:BoundedRevisionFragment
+    a logic:NamedIndividual , logic:FormulaFragment ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "bounded revision fragment"@x-gmeow-english ;
+    skos:definition "The fragment of counterfactual construction that revises a base world by a ground antecedent over functional subject and predicate slots, arbitrates an over-determined slot by entrenchment, and resolves the consequent within the nested-depth budget and, under a Lewis profile, the closest-world branch budget of sixteen."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the fragment a complete counterfactual resolution is relative to."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use this fragment to claim an answer when the revision is an incomparable tie or a budget was reached; those results are unknown or incomplete."@x-gmeow-english ;
+    gmeow:howToUse "Retain it as the certified fragment of a complete counterfactual result, together with the contract identity that digests the program, the reasoning contract and every budget."@x-gmeow-english ;
+    skos:scopeNote "The base world is never modified. The constructed world is transient and isolated, and a budget refusal is incompleteness, never falsity."@x-gmeow-english ;
+    skos:example "ex:result logic:resultCertifiedFragment logic:BoundedRevisionFragment ."@x-gmeow-english .
+
 logic:UntilRequiresLeftConstraint
     a logic:GuardedImplicationConstraint ;
     logic:formalizes logic:Formula ;

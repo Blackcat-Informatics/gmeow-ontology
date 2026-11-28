@@ -448,7 +448,13 @@ conditions and silently forces one to mask another; the compositional shape is *
 
 **`completeness` — relative to what is the answer complete?**
 
-- **complete-for-fragment** — the answer is complete relative to the certified fragment of the contract;
+- **complete-for-fragment** — the answer is complete relative to the certified fragment of the contract.
+  A complete counterfactual result names `logic:BoundedRevisionFragment` and a complete probabilistic
+  result names `logic:PositiveBinaryHornFragment` as `certified_fragment`; result validation refuses
+  `complete-for-fragment` for either kind without it. Their contract identity digests the program,
+  the reasoning contract, the fragment and every budget, so a result computed under one budget never
+  stands for another. A probabilistic program with a negated or builtin body literal is outside its
+  fragment and is refused rather than evaluated with the literal dropped;
 - **incomplete** — the search did not exhaust the answer space (e.g. under `budget-exhausted`, or
   outside any certified fragment);
 - **unknown** — the engine cannot characterize its own completeness for this request.

@@ -22160,6 +22160,62 @@ msgctxt "https://blackcatinformatics.ca/logic/BoundedFiniteJournalFragment|http:
 msgid "Example: ex:result logic:resultCertifiedFragment logic:BoundedFiniteJournalFragment ."
 msgstr "示例：ex:result logic:resultCertifiedFragment logic:BoundedFiniteJournalFragment ."
 
+msgctxt "https://blackcatinformatics.ca/logic/PositiveBinaryHornFragment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "positive binary Horn fragment"
+msgstr "正二元 Horn 片段"
+
+msgctxt "https://blackcatinformatics.ca/logic/PositiveBinaryHornFragment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The fragment of binary Horn rules whose bodies are positive atoms, evaluated by weighted model counting over a declared probability model with at most twenty independent probabilistic facts. Negation as failure, builtins and cut are outside it and are refused."
+msgstr "规则体均为正原子的二元 Horn 规则片段，在已声明的概率模型上以加权模型计数求值，且独立概率事实至多二十个。失败即否定、内置谓词与截断不属于该片段，会被拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/logic/PositiveBinaryHornFragment|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the fragment a complete probabilistic marginal result is relative to."
+msgstr "用于标识完整概率边缘结果所相对的片段。"
+
+msgctxt "https://blackcatinformatics.ca/logic/PositiveBinaryHornFragment|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use this fragment to claim completeness for a program with a negated or builtin body literal, or for one that declares no probability model."
+msgstr "不要用该片段为含有否定或内置规则体文字的程序，或未声明概率模型的程序声称完备性。"
+
+msgctxt "https://blackcatinformatics.ca/logic/PositiveBinaryHornFragment|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain it as the certified fragment of a complete probabilistic result, together with the contract identity that digests the program, the reasoning contract and the enumeration budget."
+msgstr "将其保留为完整概率结果的已认证片段，并附带对程序、推理契约与枚举预算作摘要的契约标识。"
+
+msgctxt "https://blackcatinformatics.ca/logic/PositiveBinaryHornFragment|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Confidence annotations stay metadata and never become probabilities. A refusal records unsupported evaluation and produces no marginal."
+msgstr "置信度标注始终是元数据，绝不会变成概率。拒绝记录的是不受支持的求值，且不产生任何边缘值。"
+
+msgctxt "https://blackcatinformatics.ca/logic/PositiveBinaryHornFragment|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:result logic:resultCertifiedFragment logic:PositiveBinaryHornFragment ."
+msgstr "ex:result logic:resultCertifiedFragment logic:PositiveBinaryHornFragment ."
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundedRevisionFragment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bounded revision fragment"
+msgstr "有界修订片段"
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundedRevisionFragment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The fragment of counterfactual construction that revises a base world by a ground antecedent over functional subject and predicate slots, arbitrates an over-determined slot by entrenchment, and resolves the consequent within the nested-depth budget and, under a Lewis profile, the closest-world branch budget of sixteen."
+msgstr "反事实构造的片段：以基础前件在函数式的主语与谓词槽位上修订基础世界，以稳固度裁决过度确定的槽位，并在嵌套深度预算内（在 Lewis 配置下还须在十六个最近世界的分支预算内）求解后件。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundedRevisionFragment|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the fragment a complete counterfactual resolution is relative to."
+msgstr "用于标识完整反事实求解所相对的片段。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundedRevisionFragment|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use this fragment to claim an answer when the revision is an incomparable tie or a budget was reached; those results are unknown or incomplete."
+msgstr "当修订出现不可比较的平局或已触及预算时，不要用该片段声称得到答案；这些结果是未知或不完整的。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundedRevisionFragment|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain it as the certified fragment of a complete counterfactual result, together with the contract identity that digests the program, the reasoning contract and every budget."
+msgstr "将其保留为完整反事实结果的已认证片段，并附带对程序、推理契约与各项预算作摘要的契约标识。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundedRevisionFragment|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The base world is never modified. The constructed world is transient and isolated, and a budget refusal is incompleteness, never falsity."
+msgstr "基础世界绝不被修改。构造出的世界是临时且隔离的，预算拒绝表示不完整，绝非虚假。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundedRevisionFragment|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:result logic:resultCertifiedFragment logic:BoundedRevisionFragment ."
+msgstr "ex:result logic:resultCertifiedFragment logic:BoundedRevisionFragment ."
+
 msgctxt "https://blackcatinformatics.ca/logic/UntilRequiresLeftConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "until requires its left operand"
 msgstr "直到运算需要左操作数"

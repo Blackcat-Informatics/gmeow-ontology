@@ -164,6 +164,7 @@ fn prob_status_string_round_trips() {
         prob_status_string(&prob_result(
             ProbStatus::Ok,
             WORLD,
+            "contract-hash",
             crate::result::ResultPayload::Marginals(vec![])
         )),
         ProbStatus::Ok.as_str()
@@ -172,6 +173,7 @@ fn prob_status_string_round_trips() {
         prob_status_string(&prob_result(
             ProbStatus::Unknown,
             WORLD,
+            "contract-hash",
             crate::result::ResultPayload::Marginals(vec![])
         )),
         ProbStatus::Unknown.as_str()
@@ -186,6 +188,7 @@ fn prob_unknown_is_unsupported_not_evaluated() {
     let r = prob_result(
         ProbStatus::Unknown,
         WORLD,
+        "contract-hash",
         crate::result::ResultPayload::Marginals(vec![]),
     );
     assert_eq!(r.evaluation, EvaluationStatus::Unsupported);
@@ -454,4 +457,90 @@ fn declared_schema_mismatch_returns_err() {
         err.message().contains("result-shape violation"),
         "ContractViolation must be propagated as Err: {err}"
     );
+}
+
+// ── Completeness is bound to the certified fragment and the contract ──────
+
+fn independent_program(prob: &str, goal_var: &str) -> QProgram {
+    parse_query_program(&format!(
+        ":- prefix(ex, '{BASE}').\n\
+             :- probability_model(full_independence).\n\
+             :- probability(ex:rain(ex:today, ex:true), {prob}).\n\
+             ex:wet(D, ex:true) :- ex:rain(D, ex:true).\n\
+             ?- ex:wet(ex:today, {goal_var}).\n"
+    ))
+    .unwrap()
+}
+
+/// INVARIANT: a complete probabilistic result names the positive binary Horn
+/// fragment that warrants it and carries a contract identity that digests the
+/// program (not the literal `probabilistic`); a refusal names no fragment.
+#[test]
+fn complete_probabilistic_result_certifies_the_horn_fragment_and_binds_its_program() {
+    let store = WorldStore::new().unwrap();
+    let evaluate_with = |prob: &str| {
+        evaluate(
+            &store,
+            WORLD,
+            &independent_program(prob, "X"),
+            PROFILE,
+            None,
+        )
+        .unwrap()
+    };
+    let half = evaluate_with("0.5");
+    assert_eq!(
+        half.result.completeness,
+        crate::result::CompletenessStatus::CompleteForFragment
+    );
+    assert_eq!(
+        half.result.provenance.certified_fragment.as_deref(),
+        Some(FRAGMENT)
+    );
+    assert!(half.result.validate().is_ok());
+
+    let identity = &half.result.provenance.contract_hash;
+    assert_ne!(identity, "probabilistic");
+    assert_eq!(identity.len(), 64, "a hex BLAKE3 digest: {identity}");
+    assert_eq!(
+        identity,
+        &evaluate_with("0.5").result.provenance.contract_hash
+    );
+    assert_ne!(
+        identity,
+        &evaluate_with("0.25").result.provenance.contract_hash,
+        "the declared probabilities are part of the program"
+    );
+
+    let no_model = parse_query_program(&format!(
+        ":- prefix(ex, '{BASE}').\n\
+             :- probability(ex:rain(ex:today, ex:true), 0.5).\n\
+             ?- ex:rain(ex:today, X).\n"
+    ))
+    .unwrap();
+    let refused = evaluate(&store, WORLD, &no_model, PROFILE, None).unwrap();
+    assert_eq!(refused.result.provenance.certified_fragment, None);
+    assert_eq!(refused.result.provenance.contract_hash.len(), 64);
+}
+
+/// INVARIANT: the certified fragment is positive binary Horn, so a rule body
+/// with negation-as-failure or a builtin is refused rather than evaluated with
+/// the literal silently dropped.
+#[test]
+fn literals_outside_positive_horn_are_refused_not_dropped() {
+    let store = WorldStore::new().unwrap();
+    for body in ["\\+ ex:q(X, Y)", "N is 1 + 2"] {
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+                 :- probability_model(full_independence).\n\
+                 ex:p(X, Y) :- ex:r(X, Y), {body}.\n\
+                 ?- ex:p(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let err = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap_err();
+        assert!(
+            err.message().contains("outside"),
+            "unexpected error for {body}: {err}"
+        );
+    }
 }
