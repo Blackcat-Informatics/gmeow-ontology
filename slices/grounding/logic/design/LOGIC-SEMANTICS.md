@@ -916,19 +916,27 @@ is a thing one says, not a thing one omits.
 
 ### Three strata of context reasoning
 
-**Frame-indexed contexts (finite, decidable).** A finite set of materialized named contexts, truth by
-`gmeow:accordingTo`, accessibility by the typed relation appropriate to the context type. Contested
-facts coexist without collapse — a place is `conceivable`-ly contained in one polity per one standpoint
-and `refuted` per another, both first-class. Deception lives here: a `gmeow:heldStandpoint` (an
-`EpistemicContext`) and a `gmeow:projectedStandpoint` (an assertoric context) are two claims whose gap
-*is* the deceptive act.
+**Frame-indexed contexts (finite attributed modal fragment).** A finite set of materialized named
+contexts, truth by `gmeow:accordingTo`, accessibility by the typed relation appropriate to the context
+type. Contested facts coexist without collapse — a place is `conceivable`-ly contained in one polity per
+one standpoint and `refuted` per another, both first-class. Deception lives here: a
+`gmeow:heldStandpoint` (an `EpistemicContext`) and a `gmeow:projectedStandpoint` (an assertoric
+context) are two claims whose gap *is* the deceptive act. The admitted fragment is
+`logic:FiniteAttributedModalFragment`: ground world-indexed binary atoms, strong negation,
+conjunction, disjunction, implication, equivalence, nested typed necessity and possibility over a
+selected successor inventory, and strong next, until, eventually and globally over explicitly selected
+finite journal observations. A non-ground atom or a general first-order quantifier is outside it and is
+refused as `logic:ContextualFragmentRefusal` (`evaluation = unsupported`,
+`information = not-evaluated`), never interpreted over the listed contexts.
 
-**Type-level / dispositional modality, the no-occurrence gate (decidable).** The risk doctrine: *the
+**Type-level / dispositional modality under the no-occurrence gate.** The risk doctrine: *the
 counterfactual problem dissolves at the type level.* A disposition is real whether or not it manifests;
 causal links relate event *types*, never event *tokens*; a goal is a *described* state realized by a
-situation; a norm prescribes conduct *types*. The **no-occurrence gate** is an enforced invariant —
-such reasoning entails zero event tokens. Counterfactual *force* with no generative machinery, fully
-decidable.
+situation; a norm prescribes conduct *types*. The **no-occurrence gate** requires that such reasoning
+entail zero event tokens: no derivation asserts an occurrence of an event type, and the Worlds-B
+conformance category checks the materialized closure for it. It gives counterfactual *force* without
+constructing a context. It constrains what is derived; it is not a termination argument, and
+decidability comes from the fragment the program is evaluated in, as stated below.
 
 **Generative counterfactual contexts (the frontier).** Genuine Lewis/Stalnaker counterfactuals: *if A
 had been, C would follow*, where the A-context must be **constructed**. This is what an AI agent does
@@ -1007,14 +1015,61 @@ standpoint-indexed claim. A different declared closeness yields a different coun
 
 ### Decidability across the context strata
 
-Frame-indexed and type-level reasoning are **certified-decidable** — the former because the context
-set is finite and materialized, the latter because the no-occurrence gate keeps everything type-level.
-Generative counterfactual reasoning is undecidable in general; it is enabled but governed — contexts
-are constructed **lazily per query** (only the closest-`A`-context the goal needs), under the resource
-budget, with certified fragments for the structured revision patterns the slices use (a lapsed
-mitigation, a single counterfactual antecedent, a one-step belief update). The no-occurrence gate is
-itself a reusable certified invariant: a contract may assert that a derivation introduces no token
-occurrences, keeping type-level counterfactual reasoning inside the decidable region.
+A finite set of contexts bounds **iteration over contexts**. It does not bound what happens inside one
+context: a single world can carry an unrestricted first-order theory, a value-generating recursion, or
+an existential rule whose every witness needs a fresh witness. The no-occurrence gate bounds **token
+occurrences**; it does not bound witness generation by existential rules over types. Neither fact is a
+decidability argument by itself, so each stratum states its own admitted fragment and the condition
+under which a result is `complete-for-fragment`.
+
+- **Frame-indexed contexts.** Evaluation of a `logic:FiniteAttributedModalFragment` formula memoizes
+  one judgment per formula node and context, and both sets are finite, so it terminates. Termination is
+  not completeness. A judgment is complete only when every atom it read lies in a context declaring
+  `logic:evidenceClosure logic:ClosedWorldClosure`, every modal step it took read a successor inventory
+  carrying an explicit `logic:successorClosure` witness, and the evaluation was not interrupted. An open
+  evidence closure or an open inventory leaves the result `incomplete`, and absence of support is then
+  `undetermined`, never `neither`. The evidence itself is the closure of the context's world: in the
+  native run a contextual request reads attributed claims only after the producers that write them have
+  completed, and a run stopped by its budget or by a blocked read finalizes every unvisited request as
+  `incomplete` without evaluating it. A world whose closure does not terminate therefore never supplies
+  complete contextual evidence.
+- **Type-level reasoning.** The program runs in the fragment its contract's `Resource` facet certifies.
+  Function-free stratified Datalog terminates over the finite active domain. An existential rule runs
+  without a budget only under a `ChaseAdmission` termination certificate (weak, joint, super-weak,
+  restricted joint or model-summarizing acyclicity); without one it is refused rather than run. Under a
+  step budget an uncertified program runs, and the budget stopping it yields `budget-exhausted`,
+  `incomplete` and `undetermined` with the committed witnesses retained. In every case the result is
+  `complete-for-fragment` only when the closure reached its fixpoint, every refutation family completed,
+  and the lowering left no unsupported construct. This holds for a program confined to one world.
+- **Generative counterfactual contexts.** Undecidable in general; enabled but governed. Contexts are
+  constructed **lazily per query** (only the closest-`A`-context the goal needs), under the resource
+  budget. The structured revision patterns the slices use (a lapsed mitigation, a single counterfactual
+  antecedent, a one-step belief update) construct one context by deterministic revision. Resolution in
+  the constructed context is `complete-for-fragment` only when it reaches its fixpoint within the
+  inference and answer budgets; a depth, branch, inference or answer budget that stops it yields
+  `incomplete`, and an incomparable entrenchment tie yields completeness `unknown`.
+
+A `complete-for-fragment` result is bound to what warrants it. A contextual result names
+`logic:FiniteAttributedModalFragment` as its certified fragment, and its contract identity digests the
+fragment, the engine contract, the selected formula, the selected context and its coordinates, the step
+allowance, and the evidence basis (every admitted context with its closure declaration, every attributed
+claim, and every successor inventory with its closure witness). The same formula over a context that
+differs only in its declared closure has a different identity, so a completeness claim never transfers
+to it. A native closure result carries its prepared input contract, the termination certificate of each
+world's chase, and its execution evidence. A coherence certificate over such a result takes its
+fragment from that evidence; a count of contexts or worlds is never fragment evidence.
+
+A consumer reads four distinct non-positive outcomes for one named query under one contract:
+
+| Outcome | `evaluation` | `completeness` | `information` |
+|---|---|---|---|
+| Silence: no support in an open context | `completed` | `incomplete` | `undetermined` |
+| Explicit negation: an attributed counter-claim | `completed` | `complete-for-fragment` or `incomplete` | `opposed` |
+| Unfinished proof search | `budget-exhausted` | `incomplete` | `undetermined` |
+| Certified non-entailment | `completed` | `complete-for-fragment` | `neither` |
+
+Only the last licenses "not entailed under this contract and fragment"; silence and an unfinished search
+establish nothing, and explicit negation is evidence for the negation, not the absence of evidence.
 
 ---
 

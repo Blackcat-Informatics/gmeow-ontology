@@ -3,6 +3,7 @@
 
 use super::*;
 use crate::query_ir::parse_query_program;
+use gmeow_term_arena::engine::StructNodeParts;
 
 const PROFILE: &str = "https://blackcatinformatics.ca/logic/ProbabilisticProfile";
 const WORLD: &str = "https://example.org/prob/world";
@@ -259,20 +260,108 @@ fn too_many_independent_facts_is_rejected() {
     );
 }
 
-// ── Cut is rejected under the probabilistic profile ───────────────────────
+// ── Only the positive binary Horn fragment is admitted ────────────────────
 
+/// A complete-for-fragment marginal is issued only for the program the weighted
+/// model counter actually evaluates. Cut, default negation, a builtin and a
+/// non-binary atom are refused before enumeration; none is dropped from a rule body
+/// while the result still claims an exact, complete answer. (Dropping the negated
+/// literal below would report `P(p(a, b)) = 0.5` where the program entails `0`.)
 #[test]
-fn cut_is_rejected() {
+fn literals_outside_positive_binary_horn_are_refused_not_dropped() {
+    let store = WorldStore::new().unwrap();
+    for (rule, refusal) in [
+        ("ex:p(X, Y) :- ex:q(X, Y), !.", "cut"),
+        ("ex:p(X, Y) :- ex:q(X, Y), \\+ ex:r(X, Y).", "negates"),
+        ("ex:p(X, N) :- ex:q(X, M), N is M + 1.", "builtin"),
+        ("ex:p(X, Y) :- ex:q(X, Y, X).", "arity 3"),
+    ] {
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+                 :- probability_model(full_independence).\n\
+                 :- probability(ex:q(ex:a, ex:b), 0.5).\n\
+                 ex:r(ex:a, ex:b).\n\
+                 {rule}\n\
+                 ?- ex:p(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let err = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap_err();
+        assert!(
+            err.message().contains(refusal),
+            "{rule}: unexpected error: {err}"
+        );
+    }
+}
+
+/// A rule whose head variable no positive body atom binds derives nothing for that
+/// variable, so evaluating it would report a complete marginal set with the bindings
+/// silently omitted. Admission refuses it with a probabilistic diagnostic instead,
+/// whether the head variable is the one a body atom leaves free or the rule has no body.
+#[test]
+fn an_unsafe_head_is_refused_not_evaluated_to_a_complete_result() {
+    let store = WorldStore::new().unwrap();
+    for rule in [
+        "ex:p(X, Y) :- ex:q(X, Z).",
+        "ex:p(X, ex:b) :- ex:q(ex:a, ex:b).",
+        "ex:p(X, ex:b).",
+    ] {
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+                 :- probability_model(full_independence).\n\
+                 :- probability(ex:q(ex:a, ex:b), 0.5).\n\
+                 {rule}\n\
+                 ?- ex:p(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let err = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap_err();
+        assert!(
+            err.message().contains("not bound by a positive body atom"),
+            "{rule}: unexpected error: {err}"
+        );
+    }
+
+    let safe = format!(
+        ":- prefix(ex, '{BASE}').\n\
+             :- probability_model(full_independence).\n\
+             :- probability(ex:q(ex:a, ex:b), 0.5).\n\
+             ex:p(X, Y) :- ex:q(X, Y).\n\
+             ?- ex:p(ex:a, Y).\n"
+    );
+    let prog = parse_query_program(&safe).unwrap();
+    let ans = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap();
+    assert_eq!(marginal_for(&ans, "Y", "b"), Some(0.5));
+}
+
+/// A structured (function-symbol) argument is outside the flat binary fragment. A
+/// body-less fact carrying one is refused rather than silently dropped from the
+/// closure while the result still claims completeness.
+#[test]
+fn a_structured_argument_in_a_fact_is_refused_not_dropped() {
     let store = WorldStore::new().unwrap();
     let src = format!(
         ":- prefix(ex, '{BASE}').\n\
              :- probability_model(full_independence).\n\
-             ex:p(X, Y) :- ex:q(X, Y), !.\n\
-             ?- ex:p(ex:a, Y).\n"
+             :- probability(ex:q(ex:a, ex:b), 0.5).\n\
+             ?- ex:q(ex:a, Y).\n"
     );
-    let prog = parse_query_program(&src).unwrap();
+    let mut prog = parse_query_program(&src).unwrap();
+    let mut dag = gmeow_term_arena::engine::TermDag::new();
+    let node = dag.intern_leaf(purrdf::TermValue::iri("https://example.org/prob/opaque"));
+    prog.rules.push(QRule {
+        head: QAtom {
+            pred: format!("{BASE}p"),
+            args: vec![
+                QTerm::Struct(crate::query_ir::StructNode::wrap(node, dag.arena())),
+                QTerm::Const(const_iri("b")),
+            ],
+        },
+        body: vec![],
+    });
     let err = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap_err();
-    assert!(err.message().contains("cut"), "unexpected error: {err}");
+    assert!(
+        err.message().contains("structured argument"),
+        "unexpected error: {err}"
+    );
 }
 
 // ── Malformed joint table: probabilities must sum to one ──────────────────

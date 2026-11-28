@@ -183,9 +183,10 @@ impl ProbAnswer {
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` on a malformed model (bad probability token, joint
+/// Returns a typed probabilistic diagnostic on a malformed model (bad probability token, joint
 /// probabilities not summing to one, an atom that is both correlated and independent),
-/// a `cut` under the probabilistic profile, an unbound probability variable, or a
+/// a program outside the positive binary Horn fragment (cut, default negation, a
+/// builtin literal, or a non-binary atom), an unbound probability variable, or a
 /// [`crate::result_shape::ContractViolation`] when the declared schema does not
 /// match the result bindings.
 pub fn evaluate(
@@ -201,19 +202,7 @@ pub fn evaluate(
         )));
     }
 
-    // Cut is operational and belongs only to ProceduralPrologProfile; it has no
-    // meaning under the declarative probabilistic semantics. Hard-fail (no silent strip).
-    if program
-        .rules
-        .iter()
-        .any(|r| r.body.iter().any(|l| matches!(l, QBodyLit::Cut)))
-    {
-        return Err(probabilistic_err(
-            "program contains cut (`!`) under ProbabilisticProfile; cut is permitted only \
-             under ProceduralPrologProfile"
-                .to_owned(),
-        ));
-    }
+    admit_positive_binary_horn(program)?;
 
     // ── Refusal guard: probabilistic facts but no declared model → unknown ────
     // Never silently assume independence over the logic:probability facts.
@@ -563,11 +552,116 @@ fn push_facts_for_mask(items: &[(Fact, f64)], mask: u64, out: &mut Vec<Fact>) {
     }
 }
 
+/// Admit exactly the fragment the weighted model counter evaluates: positive,
+/// function-free, binary Horn rules and a binary goal. Over that fragment each total
+/// choice has a finite least Herbrand model, so the enumeration is a decision
+/// procedure and its result is complete for the fragment.
+///
+/// # Errors
+/// Refuses cut (operational, meaningful only under `ProceduralPrologProfile`),
+/// default negation and builtin literals (the per-choice closure has no stratified
+/// negation or value generation, so evaluating such a rule without them would report
+/// a complete answer for a different program), and any rule head, body, goal,
+/// probability, confidence or joint atom that is not binary, any atom carrying a
+/// structured (function-symbol) argument, and any rule whose head variable no positive
+/// body atom binds (such a rule has no finite ground instance to derive).
+fn admit_positive_binary_horn(program: &QProgram) -> gmeow_errors::Result<()> {
+    let binary = admit_flat_binary_atom;
+    for rule in &program.rules {
+        binary(&rule.head, "rule head")?;
+        let mut bound: BTreeSet<&str> = BTreeSet::new();
+        for literal in &rule.body {
+            match literal {
+                QBodyLit::Atom(atom) => {
+                    binary(atom, "rule body")?;
+                    bound.extend(atom.args.iter().filter_map(qterm_var));
+                }
+                QBodyLit::Cut => {
+                    return Err(probabilistic_err(
+                        "program contains cut (`!`) under ProbabilisticProfile; cut is \
+                         permitted only under ProceduralPrologProfile"
+                            .to_owned(),
+                    ));
+                }
+                QBodyLit::Neg(atom) => {
+                    return Err(probabilistic_err(format!(
+                        "rule for {:?} negates {:?}; ProbabilisticProfile evaluates positive \
+                         Horn rules only",
+                        rule.head.pred, atom.pred
+                    )));
+                }
+                QBodyLit::Builtin(_) => {
+                    return Err(probabilistic_err(format!(
+                        "rule for {:?} carries a builtin literal; ProbabilisticProfile \
+                         evaluates positive Horn rules only",
+                        rule.head.pred
+                    )));
+                }
+            }
+        }
+        if let Some(unbound) = rule
+            .head
+            .args
+            .iter()
+            .filter_map(qterm_var)
+            .find(|var| !bound.contains(var))
+        {
+            return Err(probabilistic_err(format!(
+                "rule head {:?} variable {unbound:?} is not bound by a positive body atom; \
+                 ProbabilisticProfile evaluates range-restricted rules only",
+                rule.head.pred
+            )));
+        }
+    }
+    for atom in &program.goal.atoms {
+        binary(atom, "goal")?;
+    }
+    for fact in &program.prob_facts {
+        binary(&fact.atom, "probability")?;
+    }
+    for annotation in &program.confidences {
+        binary(&annotation.atom, "confidence")?;
+    }
+    if let Some(QProbModel::Dependency { joints }) = &program.prob_model {
+        for atom in joints.iter().flat_map(|joint| joint.true_atoms.iter()) {
+            binary(atom, "joint")?;
+        }
+    }
+    Ok(())
+}
+
+/// The variable name of a [`QTerm::Var`], `None` for every other term.
+fn qterm_var(term: &QTerm) -> Option<&str> {
+    match term {
+        QTerm::Var(v) => Some(v.as_str()),
+        QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) | QTerm::Triple { .. } => None,
+    }
+}
+
+/// Admit one atom of the flat binary fragment: exactly two arguments, none structured.
+fn admit_flat_binary_atom(atom: &QAtom, role: &str) -> gmeow_errors::Result<()> {
+    if atom.args.len() != 2 {
+        return Err(probabilistic_err(format!(
+            "{role} atom {:?} has arity {}; ProbabilisticProfile evaluates binary atoms only",
+            atom.pred,
+            atom.args.len()
+        )));
+    }
+    if atom.args.iter().any(|t| matches!(t, QTerm::Struct(_))) {
+        return Err(probabilistic_err(format!(
+            "{role} atom {:?} carries a structured argument; ProbabilisticProfile evaluates \
+             flat atoms only",
+            atom.pred
+        )));
+    }
+    Ok(())
+}
+
 /// Least-Herbrand-model closure of `facts` under the Horn `rules` (naive fixpoint).
 ///
-/// `rules` carry only [`QBodyLit::Atom`] bodies (cut is rejected before this is
-/// called). Bodies and heads are binary atoms; head variables must be bound by the
-/// body (an unbound head variable derives nothing).
+/// [`admit_positive_binary_horn`] has already admitted every rule: bodies are positive
+/// flat binary atoms, heads are flat binary, and every head variable is bound by a body
+/// atom, so each rule binding instantiates a ground head.
 fn closure(mut facts: HashSet<Fact>, rules: &[&QRule]) -> HashSet<Fact> {
     loop {
         let mut added = false;

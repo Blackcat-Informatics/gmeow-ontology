@@ -461,7 +461,11 @@ Each component of this assertion is load-bearing:
   violation and what is a permitted disclosed contradiction. An assertion issued under one contract
   does not transfer to another.
 - **Fragment F** identifies the subset of the bundle that was actually inspected. An assertion
-  over fragment F makes no claim about constructs or graphs outside F.
+  over fragment F makes no claim about constructs or graphs outside F. F comes from the qualifying
+  fragment evidence of the summarized result (its certified fragment, the termination certificate of
+  each world's chase, and its execution evidence); a finite count of contexts or worlds is not
+  fragment evidence (see
+  [`LOGIC-SEMANTICS.md` § Decidability across the context strata](LOGIC-SEMANTICS.md#decidability-across-the-context-strata)).
 - **Budget B** records the resource bound (time, depth, or iteration limit) under which the check
   ran. An assertion issued at budget B does not certify behaviour beyond that bound.
 - **Bundle hash H** content-addresses the exact artifact that was checked. The assertion is invalid

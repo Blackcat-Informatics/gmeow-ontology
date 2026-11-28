@@ -454,6 +454,112 @@ fn public_budget_stop_is_typed_and_cannot_become_neither() {
     assert!(assessment.inferences.is_empty() && assessment.anchors.is_empty());
 }
 
+/// The four non-positive readings a consumer must keep apart for one named query
+/// under one contract. Silence in an open context is `undetermined` and incomplete;
+/// explicit negation is `opposed` from an attributed counter-claim; an unfinished
+/// search is `budget-exhausted` and `undetermined`; certified non-entailment is
+/// `neither` with `complete-for-fragment`, which only a declared evidence closure
+/// warrants. The completeness claim names the admitted fragment and is bound to the
+/// selected formula, context and evidence basis, so it cannot transfer to the open
+/// context that differs from the closed one only in its declared closure.
+#[test]
+fn consumer_separates_silence_negation_unfinished_search_and_certified_non_entailment() {
+    let requests = r#"
+ex:absentFormula a logic:Formula ; logic:relation ex:absent ;
+  logic:argument [ logic:termIndex 0 ; logic:termIri ex:item ],
+                 [ logic:termIndex 1 ; logic:termIri ex:value ] .
+ex:certified a logic:ContextualEvaluationRequest ;
+  logic:queryFormula ex:absentFormula ; logic:queryContext ex:c .
+ex:silent a logic:ContextualEvaluationRequest ;
+  logic:queryFormula ex:absentFormula ; logic:queryContext ex:open .
+ex:negated a logic:ContextualEvaluationRequest ;
+  logic:queryFormula ex:formula ; logic:queryContext ex:rival .
+"#;
+    let dataset = parse(&format!("{SOURCE}\n{QUERY}\n{requests}"));
+    let assess = |request: &str, budget: Option<u64>| {
+        evaluate_request(&dataset, &format!("urn:example:{request}"), budget, None)
+            .unwrap()
+            .result
+    };
+    let axes =
+        |result: &ReasoningResult| (result.evaluation, result.completeness, result.information);
+
+    let certified = assess("certified", None);
+    assert_eq!(
+        axes(&certified),
+        (
+            EvaluationStatus::Completed,
+            CompletenessStatus::CompleteForFragment,
+            InformationState::Neither,
+        )
+    );
+    assert_eq!(
+        certified.provenance.certified_fragment.as_deref(),
+        Some(FRAGMENT)
+    );
+
+    let silent = assess("silent", None);
+    assert_eq!(
+        axes(&silent),
+        (
+            EvaluationStatus::Completed,
+            CompletenessStatus::Incomplete,
+            InformationState::Undetermined,
+        )
+    );
+    assert_ne!(
+        silent.provenance.contract_hash, certified.provenance.contract_hash,
+        "the contract hash binds the selected context"
+    );
+
+    // Same request, formula and context; only the context's declared evidence
+    // closure differs, so the contract hash can differ only through that closure.
+    let closed_closure =
+        "logic:contextStandpoint ex:s ; logic:evidenceClosure logic:ClosedWorldClosure .";
+    let open_closure =
+        "logic:contextStandpoint ex:s ; logic:evidenceClosure logic:OpenWorldClosure .";
+    assert!(
+        SOURCE.contains(closed_closure),
+        "fixture declares the closed context first"
+    );
+    let reclosed = SOURCE.replacen(closed_closure, open_closure, 1);
+    let open_dataset = parse(&format!("{reclosed}\n{QUERY}\n{requests}"));
+    let closed_dataset = parse(&format!("{SOURCE}\n{QUERY}\n{requests}"));
+    let contract_hash = |dataset: &std::sync::Arc<RdfDataset>| {
+        evaluate_request(dataset, "urn:example:certified", None, None)
+            .unwrap()
+            .result
+            .provenance
+            .contract_hash
+    };
+    assert_ne!(
+        contract_hash(&closed_dataset),
+        contract_hash(&open_dataset),
+        "the contract hash binds the context's declared evidence closure"
+    );
+
+    let negated = assess("negated", None);
+    assert_eq!(
+        axes(&negated),
+        (
+            EvaluationStatus::Completed,
+            CompletenessStatus::CompleteForFragment,
+            InformationState::Opposed,
+        )
+    );
+    assert!(negated.provenance.counterproof.is_some() && negated.provenance.proof.is_none());
+
+    let unfinished = assess("certified", Some(0));
+    assert_eq!(
+        axes(&unfinished),
+        (
+            EvaluationStatus::BudgetExhausted,
+            CompletenessStatus::Incomplete,
+            InformationState::Undetermined,
+        )
+    );
+}
+
 #[test]
 fn native_reasoning_evaluates_requests_without_asserting_their_propositions() {
     let dataset = parse(&format!("{SOURCE}\n{QUERY}"));

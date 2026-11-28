@@ -168,10 +168,17 @@ run to fixpoint and write their closure into named graphs. Termination within th
 guaranteed when the contract's `Resource` facet certifies a terminating fragment (weakly-acyclic,
 jointly-acyclic, or other certified-sufficient condition): stratified Datalog rules over a finite
 domain terminate, and the certified-fragment annotation governs existential rules, which outside a
-certified acyclicity condition do not. Phase 1 runs under stratified negation with the no-occurrence
-gate enforced, the runtime enforces the contract's certified-fragment annotation on the termination
-guarantee, and the result, when the phase completes, is a saturated, read-only **extensional
-database (EDB)**.
+certified acyclicity condition do not. The guarantee is per program, not per world inventory: one
+world can hold a chase whose every witness needs a fresh witness. Every forward chase entry, the
+single-world router, the multi-world sweep and the joint native run, applies one admission rule: a
+`ChaseAdmission` certificate runs unbudgeted, an uncertified program runs only under a step budget,
+and an uncertified unbudgeted program is refused as `NonTerminatingExistential`. Phase 1 runs under
+stratified negation; the Worlds-B conformance category checks the no-occurrence gate on its closure.
+When the phase completes it yields a saturated, read-only **extensional database (EDB)**, and the native
+closure result is `complete-for-fragment` only when it reached that fixpoint with every refutation
+family complete and no unsupported construct (`ReasoningResult::from_native_closure`). A budget stop
+yields `budget-exhausted`, `incomplete` and `undetermined`, and contextual requests reading that closure
+are finalized as `incomplete` without evaluation.
 
 **Phase 2 — resolve (native demand evaluation; the query / logic-programming layer).** Backward
 goals read the materialized store through `WorldFactSource`, undergo subsumptive demand
