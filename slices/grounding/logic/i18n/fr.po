@@ -22160,6 +22160,62 @@ msgctxt "https://blackcatinformatics.ca/logic/BoundedFiniteJournalFragment|http:
 msgid "Example: ex:result logic:resultCertifiedFragment logic:BoundedFiniteJournalFragment ."
 msgstr "Exemple : ex:result logic:resultCertifiedFragment logic:BoundedFiniteJournalFragment ."
 
+msgctxt "https://blackcatinformatics.ca/logic/PositiveBinaryHornFragment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "positive binary Horn fragment"
+msgstr "fragment de Horn binaire positif"
+
+msgctxt "https://blackcatinformatics.ca/logic/PositiveBinaryHornFragment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The fragment of binary Horn rules whose bodies are positive atoms, evaluated by weighted model counting over a declared probability model with at most twenty independent probabilistic facts. Negation as failure, builtins and cut are outside it and are refused."
+msgstr "Le fragment des règles de Horn binaires dont les corps sont des atomes positifs, évalué par comptage pondéré de modèles sur un modèle de probabilité déclaré avec au plus vingt faits probabilistes indépendants. La négation par l’échec, les primitives intégrées et la coupure en sont exclues et sont refusées."
+
+msgctxt "https://blackcatinformatics.ca/logic/PositiveBinaryHornFragment|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the fragment a complete probabilistic marginal result is relative to."
+msgstr "Utiliser pour identifier le fragment auquel se rapporte un résultat marginal probabiliste complet."
+
+msgctxt "https://blackcatinformatics.ca/logic/PositiveBinaryHornFragment|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use this fragment to claim completeness for a program with a negated or builtin body literal, or for one that declares no probability model."
+msgstr "Ne pas utiliser ce fragment pour revendiquer la complétude d’un programme comportant un littéral de corps nié ou intégré, ni d’un programme qui ne déclare aucun modèle de probabilité."
+
+msgctxt "https://blackcatinformatics.ca/logic/PositiveBinaryHornFragment|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain it as the certified fragment of a complete probabilistic result, together with the contract identity that digests the program, the reasoning contract and the enumeration budget."
+msgstr "Le conserver comme fragment certifié d’un résultat probabiliste complet, avec l’identité de contrat qui condense le programme, le contrat de raisonnement et le budget d’énumération."
+
+msgctxt "https://blackcatinformatics.ca/logic/PositiveBinaryHornFragment|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Confidence annotations stay metadata and never become probabilities. A refusal records unsupported evaluation and produces no marginal."
+msgstr "Les annotations de confiance restent des métadonnées et ne deviennent jamais des probabilités. Un refus consigne une évaluation non prise en charge et ne produit aucune marginale."
+
+msgctxt "https://blackcatinformatics.ca/logic/PositiveBinaryHornFragment|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:result logic:resultCertifiedFragment logic:PositiveBinaryHornFragment ."
+msgstr "ex:result logic:resultCertifiedFragment logic:PositiveBinaryHornFragment ."
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundedRevisionFragment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bounded revision fragment"
+msgstr "fragment de révision borné"
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundedRevisionFragment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The fragment of counterfactual construction that revises a base world by a ground antecedent over functional subject and predicate slots, arbitrates an over-determined slot by entrenchment, and resolves the consequent within the nested-depth budget and, under a Lewis profile, the closest-world branch budget of sixteen."
+msgstr "Le fragment de construction contrefactuelle qui révise un monde de base par un antécédent clos sur des emplacements fonctionnels sujet-prédicat, arbitre un emplacement surdéterminé par l’enracinement, et résout le conséquent dans le budget de profondeur imbriquée et, sous un profil de Lewis, dans le budget de branches des mondes les plus proches fixé à seize."
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundedRevisionFragment|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the fragment a complete counterfactual resolution is relative to."
+msgstr "Utiliser pour identifier le fragment auquel se rapporte une résolution contrefactuelle complète."
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundedRevisionFragment|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use this fragment to claim an answer when the revision is an incomparable tie or a budget was reached; those results are unknown or incomplete."
+msgstr "Ne pas utiliser ce fragment pour revendiquer une réponse lorsque la révision est une égalité incomparable ou qu’un budget a été atteint ; ces résultats sont inconnus ou incomplets."
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundedRevisionFragment|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain it as the certified fragment of a complete counterfactual result, together with the contract identity that digests the program, the reasoning contract and every budget."
+msgstr "Le conserver comme fragment certifié d’un résultat contrefactuel complet, avec l’identité de contrat qui condense le programme, le contrat de raisonnement et chaque budget."
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundedRevisionFragment|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The base world is never modified. The constructed world is transient and isolated, and a budget refusal is incompleteness, never falsity."
+msgstr "Le monde de base n’est jamais modifié. Le monde construit est transitoire et isolé, et un refus budgétaire est une incomplétude, jamais une fausseté."
+
+msgctxt "https://blackcatinformatics.ca/logic/BoundedRevisionFragment|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:result logic:resultCertifiedFragment logic:BoundedRevisionFragment ."
+msgstr "ex:result logic:resultCertifiedFragment logic:BoundedRevisionFragment ."
+
 msgctxt "https://blackcatinformatics.ca/logic/UntilRequiresLeftConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "until requires its left operand"
 msgstr "jusqu’à exige son opérande gauche"

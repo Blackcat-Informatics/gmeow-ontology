@@ -66,6 +66,62 @@ pub const DEFAULT_BRANCH_BUDGET: u64 = 16;
 /// engine change invalidates cached counterfactual worlds.
 pub const SOLVER_VERSION: &str = concat!("gmeow-logic/", env!("CARGO_PKG_VERSION"), "+native.5");
 
+/// The certified fragment a complete counterfactual result is relative to:
+/// `logic:BoundedRevisionFragment`, the bounded functional-slot revision of a
+/// ground antecedent resolved within the nested-depth and closest-world budgets.
+pub const FRAGMENT: &str = "https://blackcatinformatics.ca/logic/BoundedRevisionFragment";
+
+/// Content identity of one counterfactual evaluation contract: the certified
+/// fragment, the reasoning contract, the program (rules, goal and counterfactual
+/// declaration), the profile and every budget (answers, steps, nested depth and
+/// closest-world branches). Distinct budgets are distinct contracts, so a result
+/// computed under one budget never stands for another.
+fn contract_identity(
+    cf: &crate::query_ir::QCounterfactual,
+    program: &QProgram,
+    profile: &str,
+    budget: &Budget,
+    depth: u64,
+) -> String {
+    fn framed(parts: &[&str]) -> Vec<u8> {
+        let mut out = Vec::new();
+        for part in parts {
+            purrdf_hash::frame::frame_le(&mut out, part.as_bytes());
+        }
+        out
+    }
+    let mut declaration: Vec<String> = cf.antecedent.iter().map(atom_str).collect();
+    declaration.sort();
+    let declaration_hash = purrdf_hash::blake3::hash(
+        framed(&[
+            &cf.cf_world,
+            &cf.base_world,
+            &declaration.join("\n"),
+            &format!("{:?}", cf.depth_budget),
+        ])
+        .as_slice(),
+    );
+    let budgets = format!(
+        "max_answers={:?};max_steps={:?};depth={depth};branches={DEFAULT_BRANCH_BUDGET}",
+        budget.max_answers, budget.max_steps
+    );
+    crate::versioning::evaluator_contract_identity(
+        "counterfactual",
+        &[
+            FRAGMENT.as_bytes(),
+            crate::runtime::EngineContract::current()
+                .descriptor_hash
+                .as_bytes(),
+            SOLVER_VERSION.as_bytes(),
+            crate::profile_gate::canonical_profile_identity(profile).as_bytes(),
+            &hash_rules(program),
+            &hash_goal(&program.goal),
+            declaration_hash.as_bytes(),
+            budgets.as_bytes(),
+        ],
+    )
+}
+
 /// Status of a counterfactual resolution. A superset of [`BudgetStatus`] that adds
 /// the two Stratum-C-only outcomes.
 ///
@@ -113,6 +169,7 @@ impl CfStatus {
 fn cf_result(
     status: CfStatus,
     world: &str,
+    contract_hash: &str,
     payload: crate::result::ResultPayload,
 ) -> ReasoningResult {
     use crate::result::{
@@ -165,9 +222,12 @@ fn cf_result(
         ),
     };
     let preservation = PreservationClaim::exact();
-    let mut provenance = ResultProvenance::native(SOLVER_VERSION, world);
+    let mut provenance = ResultProvenance::native(contract_hash, world);
     provenance.consumed_budget.limit = limit;
     provenance.projection_class = preservation.clone();
+    if completeness == CompletenessStatus::CompleteForFragment {
+        provenance.certified_fragment = Some(FRAGMENT.to_owned());
+    }
     ReasoningResult::new(
         InputStatus::Valid,
         evaluation,
@@ -319,12 +379,14 @@ pub fn construct_and_resolve_cached(
 
     let cf_world = strip_brackets(&cf.cf_world);
     let base_world = strip_brackets(&cf.base_world);
+    let contract = contract_identity(cf, program, profile, budget, depth);
 
     // Depth budget: a request past the budget is incomplete, never unbounded.
     if depth == 0 {
         let result = cf_result(
             CfStatus::Incomplete,
             &cf_world,
+            &contract,
             crate::result::ResultPayload::Bindings(vec![]),
         );
         return apply_schema(
@@ -357,8 +419,10 @@ pub fn construct_and_resolve_cached(
         .unwrap_or(u64::MAX);
     let lewis = crate::profile_gate::lewis_mode(profile);
 
-    // (3) Compute the cache key over the exact inputs that determine the world(s).
-    let key = counterfactual_world_key(&CounterfactualKeyInputs {
+    // (3) Compute the cache key over the exact inputs that determine the world(s),
+    //     extended by the contract identity: the goal and every budget also decide
+    //     the answer a cached entry carries.
+    let world_key = counterfactual_world_key(&CounterfactualKeyInputs {
         base_world_hash: hash_facts(&base_facts),
         antecedent_hash: hash_choices(&choices),
         rule_set_hash: hash_rules(program),
@@ -366,6 +430,7 @@ pub fn construct_and_resolve_cached(
         profile: profile.to_owned(),
         solver_version: SOLVER_VERSION.to_owned(),
     });
+    let key = format!("{world_key}/{contract}");
     if let Some(cached) = cache.entries.get(&key) {
         cache.hits += 1;
         return apply_schema(cached.clone(), declared_row_schema);
@@ -388,6 +453,7 @@ pub fn construct_and_resolve_cached(
         let result = cf_result(
             status,
             &cf_world,
+            &contract,
             crate::result::ResultPayload::Bindings(vec![]),
         );
         let r = CfAnswer {
@@ -441,6 +507,7 @@ pub fn construct_and_resolve_cached(
             let result = cf_result(
                 status,
                 &cf_world,
+                &contract,
                 crate::result::ResultPayload::Bindings(bindings.clone()),
             );
             CfAnswer {
@@ -449,7 +516,7 @@ pub fn construct_and_resolve_cached(
                 cf_world,
             }
         }
-        Some(mode) => combine_lewis(mode, per_world, cf_world),
+        Some(mode) => combine_lewis(mode, per_world, cf_world, &contract),
     };
     cache.entries.insert(key, result.clone());
     apply_schema(result, declared_row_schema)
@@ -693,7 +760,7 @@ fn incremental_base_key(
 /// BLAKE3 of the typed goal structure. Every field is length-framed and every term
 /// variant is domain-tagged, so cache identity is independent of `Debug` rendering
 /// and cannot confuse a variable, constant, or number with the same surface text.
-fn hash_goal(goal: &crate::query_ir::QGoal) -> [u8; 32] {
+pub(crate) fn hash_goal(goal: &crate::query_ir::QGoal) -> [u8; 32] {
     fn frame(hasher: &mut purrdf_hash::blake3::Hasher, value: &[u8]) {
         hasher.update(&(value.len() as u64).to_le_bytes());
         hasher.update(value);
@@ -747,6 +814,7 @@ fn combine_lewis(
     mode: crate::profile_gate::LewisMode,
     per_world: Vec<(BTreeSet<Binding>, CfStatus)>,
     cf_world: String,
+    contract: &str,
 ) -> CfAnswer {
     use crate::profile_gate::LewisMode;
     let status = per_world
@@ -767,6 +835,7 @@ fn combine_lewis(
     let result = cf_result(
         status,
         &cf_world,
+        contract,
         crate::result::ResultPayload::Bindings(bindings.clone()),
     );
     CfAnswer {
@@ -851,7 +920,7 @@ fn hash_choices(choices: &[SlotChoice]) -> [u8; 32] {
 
 /// BLAKE3 of a canonical serialization of the program's Horn rules (the goal and
 /// counterfactual directives are excluded — they are keyed separately).
-fn hash_rules(program: &QProgram) -> [u8; 32] {
+pub(crate) fn hash_rules(program: &QProgram) -> [u8; 32] {
     let mut lines: Vec<String> = program
         .rules
         .iter()
@@ -891,7 +960,7 @@ fn atom_str_term(t: &QTerm) -> String {
     }
 }
 
-fn atom_str(a: &QAtom) -> String {
+pub(crate) fn atom_str(a: &QAtom) -> String {
     let args: Vec<String> = a.args.iter().map(atom_str_term).collect();
     format!("<{}>({})", a.pred, args.join(", "))
 }

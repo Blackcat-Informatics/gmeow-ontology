@@ -401,7 +401,7 @@ fn query(
     semantics_available: bool,
 ) -> ReasoningResult {
     ReasoningResult::from_query(
-        ResultPayload::Bindings(vec![]),
+        ResultPayload::Empty,
         proof,
         counterproof,
         evaluation,
@@ -497,4 +497,57 @@ fn budget_limit_wires() {
     assert_eq!(BudgetLimit::Answers.wire(), "answers");
     assert_eq!(BudgetLimit::Inference.wire(), "inference");
     assert_eq!(BudgetLimit::Depth.wire(), "depth");
+}
+
+// ── Certified fragment for counterfactual and probabilistic completeness ───────
+
+fn fragment_summary(
+    payload: ResultPayload,
+    completeness: CompletenessStatus,
+    fragment: Option<&str>,
+) -> gmeow_errors::Result<ReasoningResult> {
+    let mut provenance = prov();
+    provenance.certified_fragment = fragment.map(str::to_owned);
+    ReasoningResult::from_summary(
+        InputStatus::Valid,
+        EvaluationStatus::Completed,
+        completeness,
+        PreservationClaim::exact(),
+        InformationState::Undetermined,
+        provenance,
+        payload,
+    )
+}
+
+/// INVARIANT: a `complete-for-fragment` counterfactual (bindings) or
+/// probabilistic (marginals) result is valid only when it certifies its own
+/// evaluator's fragment; a missing or foreign fragment is refused, while an
+/// incomplete result needs none.
+#[test]
+fn complete_counterfactual_and_probabilistic_results_require_their_certified_fragment() {
+    let cases = [
+        (
+            ResultPayload::Bindings(vec![]),
+            crate::counterfactual::FRAGMENT,
+            crate::probabilistic::FRAGMENT,
+        ),
+        (
+            ResultPayload::Marginals(vec![]),
+            crate::probabilistic::FRAGMENT,
+            crate::counterfactual::FRAGMENT,
+        ),
+    ];
+    for (payload, own, foreign) in cases {
+        let complete = CompletenessStatus::CompleteForFragment;
+        assert!(fragment_summary(payload.clone(), complete, Some(own)).is_ok());
+        assert!(
+            fragment_summary(payload.clone(), complete, None).is_err(),
+            "complete-for-fragment without a certified fragment must be refused"
+        );
+        assert!(
+            fragment_summary(payload.clone(), complete, Some(foreign)).is_err(),
+            "a fragment belonging to another evaluator must be refused"
+        );
+        assert!(fragment_summary(payload, CompletenessStatus::Incomplete, None).is_ok());
+    }
 }

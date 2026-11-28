@@ -346,6 +346,7 @@ fn cf_status_string_round_trips_every_cfstatus() {
         let r = cf_result(
             s,
             "http://gmeow.example/w",
+            "contract-hash",
             crate::result::ResultPayload::Bindings(vec![]),
         );
         assert_eq!(cf_status_string(&r), s.as_str(), "cf round-trip for {s:?}");
@@ -363,6 +364,7 @@ fn cf_unknown_is_distinct_typed_state_from_prob_unknown() {
     let r = cf_result(
         CfStatus::Unknown,
         "http://gmeow.example/w",
+        "contract-hash",
         crate::result::ResultPayload::Bindings(vec![]),
     );
     assert_eq!(r.evaluation, EvaluationStatus::Completed);
@@ -576,5 +578,106 @@ fn declared_schema_mismatch_returns_err() {
     assert!(
         err.message().contains("result-shape violation"),
         "ContractViolation must be propagated as Err: {err}"
+    );
+}
+
+// ── Completeness is bound to the certified fragment and the contract ──────
+
+fn status_down_program() -> QProgram {
+    parse_query_program(
+        ":- prefix(ex, 'https://ex/').\n\
+             :- counterfactual('http://world/cf', 'http://world/base').\n\
+             :- assume(ex:status(ex:server, ex:down)).\n\
+             ?- ex:status(ex:server, Z).\n",
+    )
+    .unwrap()
+}
+
+fn status_up_store() -> WorldStore {
+    let store = WorldStore::new().unwrap();
+    store.insert_quad(
+        BASE,
+        "https://ex/server",
+        "https://ex/status",
+        "https://ex/up",
+    );
+    store
+}
+
+/// INVARIANT: a complete counterfactual result names the bounded revision
+/// fragment that warrants it, and its contract identity is a digest that binds
+/// the budgets, not the bare solver version. A result that is not complete
+/// names no fragment.
+#[test]
+fn complete_counterfactual_result_certifies_the_revision_fragment_and_binds_its_budgets() {
+    let store = status_up_store();
+    let prog = status_down_program();
+    let run = |budget: &Budget, depth: u64| {
+        construct_and_resolve(&store, &prog, HORN, budget, depth, None).unwrap()
+    };
+
+    let complete = run(&Budget::default(), 4);
+    assert_eq!(
+        complete.result.completeness,
+        crate::result::CompletenessStatus::CompleteForFragment
+    );
+    assert_eq!(
+        complete.result.provenance.certified_fragment.as_deref(),
+        Some(FRAGMENT)
+    );
+    assert!(complete.result.validate().is_ok());
+
+    let identity = &complete.result.provenance.contract_hash;
+    assert_ne!(identity, SOLVER_VERSION);
+    assert_eq!(identity.len(), 64, "a hex BLAKE3 digest: {identity}");
+    assert_eq!(
+        identity,
+        &run(&Budget::default(), 4).result.provenance.contract_hash
+    );
+    let tighter_answers = Budget {
+        max_answers: Some(1),
+        max_steps: None,
+    };
+    let tighter_steps = Budget {
+        max_answers: None,
+        max_steps: Some(1_000),
+    };
+    for (label, other) in [
+        ("answer cap", run(&tighter_answers, 4)),
+        ("step cap", run(&tighter_steps, 4)),
+        ("depth", run(&Budget::default(), 3)),
+    ] {
+        assert_ne!(
+            identity, &other.result.provenance.contract_hash,
+            "the {label} is part of the contract identity"
+        );
+    }
+
+    let exhausted_depth = run(&Budget::default(), 0);
+    assert_eq!(exhausted_depth.status_str(), "incomplete");
+    assert_eq!(exhausted_depth.result.provenance.certified_fragment, None);
+}
+
+/// INVARIANT: a cached answer is reused only under the same contract, so a
+/// result is never served for a budget it was not computed under.
+#[test]
+fn memoized_counterfactual_answer_is_not_shared_across_budgets() {
+    let store = status_up_store();
+    let prog = status_down_program();
+    let mut cache = CfCache::new();
+    let default =
+        construct_and_resolve_cached(&store, &prog, HORN, &Budget::default(), 4, &mut cache, None)
+            .unwrap();
+    let capped = Budget {
+        max_answers: Some(1),
+        max_steps: None,
+    };
+    let other =
+        construct_and_resolve_cached(&store, &prog, HORN, &capped, 4, &mut cache, None).unwrap();
+    assert_eq!(cache.hits(), 0);
+    assert_eq!(cache.misses(), 2);
+    assert_ne!(
+        default.result.provenance.contract_hash,
+        other.result.provenance.contract_hash
     );
 }

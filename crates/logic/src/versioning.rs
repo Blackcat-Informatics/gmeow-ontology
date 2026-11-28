@@ -193,6 +193,37 @@ pub fn counterfactual_world_key(inputs: &CounterfactualKeyInputs) -> String {
     purrdf_hash::hex::encode(h.finalize().as_bytes())
 }
 
+// ── Fragment-certified evaluator contract identity ────────────────────────────────────────────────
+
+/// Compute the content identity of a fragment-certified evaluator contract.
+///
+/// The identity binds exactly the components the caller names: the certified
+/// fragment, the reasoning contract, the evaluated program and every budget.
+/// `domain` separates the key spaces of distinct evaluators so equal component
+/// bytes under different evaluators never collide.
+///
+/// # Hashing order (fixed and documented)
+///
+/// 1. Domain tag: `"evaluator-contract-key\0"`
+/// 2. `domain`
+/// 3. Each of `components`, in the given order
+///
+/// Every entry is length-prefixed (8-byte LE u64), so distinct component splits
+/// yield distinct byte streams.
+///
+/// # Returns
+///
+/// Lowercase hex string of the 32-byte BLAKE3 digest.
+pub(crate) fn evaluator_contract_identity(domain: &str, components: &[&[u8]]) -> String {
+    let mut h = purrdf_hash::blake3::Hasher::new();
+    feed(&mut h, b"evaluator-contract-key\0");
+    feed(&mut h, domain.as_bytes());
+    for component in components {
+        feed(&mut h, component);
+    }
+    purrdf_hash::hex::encode(h.finalize().as_bytes())
+}
+
 // ── Hypothetical run key ──────────────────────────────────────────────────────────────────────────
 
 /// Input components for a **hypothetical (sandbox) transaction-run** key.

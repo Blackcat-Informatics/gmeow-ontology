@@ -61,6 +61,79 @@ const ROUND_DECIMALS: i32 = 10;
 /// failure with a clear message — never a silent truncation (no-optionality doctrine).
 const MAX_INDEPENDENT_FACTS: usize = 20;
 
+/// The certified fragment a complete probabilistic result is relative to:
+/// `logic:PositiveBinaryHornFragment`, binary Horn rules whose bodies are positive
+/// atoms, with probabilistic facts under a declared probability model and at most
+/// [`MAX_INDEPENDENT_FACTS`] independent facts. A program outside it is refused,
+/// never evaluated by dropping the literals the fragment does not carry.
+pub const FRAGMENT: &str = "https://blackcatinformatics.ca/logic/PositiveBinaryHornFragment";
+
+/// Content identity of one probabilistic evaluation contract: the certified
+/// fragment, the reasoning contract, the program (rules, goal, probabilistic
+/// facts, model and confidence annotations), the profile and the enumeration and
+/// rounding budgets.
+fn contract_identity(program: &QProgram, profile: &str) -> String {
+    let mut facts: Vec<String> = program
+        .prob_facts
+        .iter()
+        .map(|f| format!("{} p={}", crate::counterfactual::atom_str(&f.atom), f.prob))
+        .collect();
+    facts.sort();
+    let model = match &program.prob_model {
+        None => "model:none".to_owned(),
+        Some(QProbModel::FullIndependence) => "model:independence".to_owned(),
+        Some(QProbModel::Dependency { joints }) => {
+            let mut rows: Vec<String> = joints
+                .iter()
+                .map(|j| {
+                    let mut atoms: Vec<String> = j
+                        .true_atoms
+                        .iter()
+                        .map(crate::counterfactual::atom_str)
+                        .collect();
+                    atoms.sort();
+                    format!("{} p={}", atoms.join(","), j.prob)
+                })
+                .collect();
+            rows.sort();
+            format!("model:dependency\n{}", rows.join("\n"))
+        }
+    };
+    let mut confidences: Vec<String> = program
+        .confidences
+        .iter()
+        .map(|c| {
+            format!(
+                "{} c={}",
+                crate::counterfactual::atom_str(&c.atom),
+                c.confidence
+            )
+        })
+        .collect();
+    confidences.sort();
+    let declarations = format!(
+        "{}\n--\n{model}\n--\n{}",
+        facts.join("\n"),
+        confidences.join("\n")
+    );
+    let budgets =
+        format!("max_independent_facts={MAX_INDEPENDENT_FACTS};decimals={ROUND_DECIMALS}");
+    crate::versioning::evaluator_contract_identity(
+        "probabilistic",
+        &[
+            FRAGMENT.as_bytes(),
+            crate::runtime::EngineContract::current()
+                .descriptor_hash
+                .as_bytes(),
+            crate::profile_gate::canonical_profile_identity(profile).as_bytes(),
+            &crate::counterfactual::hash_rules(program),
+            &crate::counterfactual::hash_goal(&program.goal),
+            declarations.as_bytes(),
+            budgets.as_bytes(),
+        ],
+    )
+}
+
 /// A ground RDF fact: `(bare predicate IRI, subject const, object const)`.
 ///
 /// Subject/object are in canonical `<iri>`/n3-literal form — the same surface
@@ -96,17 +169,19 @@ pub(crate) enum ProbStatus {
 fn prob_result(
     status: ProbStatus,
     world: &str,
+    contract_hash: &str,
     payload: crate::result::ResultPayload,
 ) -> crate::result::ReasoningResult {
     use crate::result::{
         CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
         ReasoningResult, ResultProvenance,
     };
-    let mut provenance = ResultProvenance::native("probabilistic", world);
+    let mut provenance = ResultProvenance::native(contract_hash, world);
     match status {
         ProbStatus::Ok => {
             let preservation = PreservationClaim::exact();
             provenance.projection_class = preservation.clone();
+            provenance.certified_fragment = Some(FRAGMENT.to_owned());
             ReasoningResult::new(
                 InputStatus::Valid,
                 EvaluationStatus::Completed,
@@ -215,12 +290,35 @@ pub fn evaluate(
         ));
     }
 
+    // The certified fragment is positive binary Horn: negation-as-failure and
+    // builtin body literals have no meaning in the weighted least-model semantics,
+    // so a program carrying one is outside the fragment. Hard-fail (no silent drop).
+    if let Some(literal) = program
+        .rules
+        .iter()
+        .flat_map(|r| r.body.iter())
+        .find(|l| matches!(l, QBodyLit::Neg(_) | QBodyLit::Builtin(_)))
+    {
+        let kind = if matches!(literal, QBodyLit::Neg(_)) {
+            "negation-as-failure"
+        } else {
+            "builtin"
+        };
+        return Err(probabilistic_err(format!(
+            "program contains a {kind} body literal outside {FRAGMENT}; the probabilistic \
+             profile admits only positive binary Horn rule bodies"
+        )));
+    }
+
+    let contract = contract_identity(program, profile);
+
     // ── Refusal guard: probabilistic facts but no declared model → unknown ────
     // Never silently assume independence over the logic:probability facts.
     if !program.prob_facts.is_empty() && program.prob_model.is_none() {
         let result = prob_result(
             ProbStatus::Unknown,
             world,
+            &contract,
             crate::result::ResultPayload::Marginals(vec![]),
         );
         let result = if let Some(schema) = declared_row_schema {
@@ -330,6 +428,7 @@ pub fn evaluate(
     let result = prob_result(
         ProbStatus::Ok,
         world,
+        &contract,
         crate::result::ResultPayload::Marginals(bindings.clone()),
     );
     let result = if let Some(schema) = declared_row_schema {
@@ -565,9 +664,9 @@ fn push_facts_for_mask(items: &[(Fact, f64)], mask: u64, out: &mut Vec<Fact>) {
 
 /// Least-Herbrand-model closure of `facts` under the Horn `rules` (naive fixpoint).
 ///
-/// `rules` carry only [`QBodyLit::Atom`] bodies (cut is rejected before this is
-/// called). Bodies and heads are binary atoms; head variables must be bound by the
-/// body (an unbound head variable derives nothing).
+/// `rules` carry only [`QBodyLit::Atom`] bodies (cut, negation and builtins are
+/// rejected before this is called). Bodies and heads are binary atoms; head
+/// variables must be bound by the body (an unbound head variable derives nothing).
 fn closure(mut facts: HashSet<Fact>, rules: &[&QRule]) -> HashSet<Fact> {
     loop {
         let mut added = false;

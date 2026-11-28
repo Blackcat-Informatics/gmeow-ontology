@@ -2066,6 +2066,16 @@ fn sample_reasoning_result(
     // them equal (an inconsistent fixture would test a state no real result holds).
     let mut prov = ResultProvenance::native("contract:cache-test", "http://example.org/world/w");
     prov.projection_class = PreservationClaim::exact();
+    // A complete counterfactual or probabilistic result names its evaluator's fragment.
+    prov.certified_fragment = match &payload {
+        gmeow_logic::result::ResultPayload::Bindings(_) => {
+            Some(gmeow_logic::counterfactual::FRAGMENT.to_owned())
+        }
+        gmeow_logic::result::ResultPayload::Marginals(_) => {
+            Some(gmeow_logic::probabilistic::FRAGMENT.to_owned())
+        }
+        _ => None,
+    };
     ReasoningResult::new(
         InputStatus::Valid,
         EvaluationStatus::Completed,
