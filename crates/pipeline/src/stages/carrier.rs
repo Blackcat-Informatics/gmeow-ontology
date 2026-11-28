@@ -1530,6 +1530,65 @@ fn log_carrier_size(phase: &str, carrier: &purrdf::RdfDataset) {
     );
 }
 
+/// Rows one named graph holds in the owned carrier.
+#[derive(Default, Clone, Copy)]
+struct CarrierGraphRows {
+    quads: usize,
+    reifiers: usize,
+    annotations: usize,
+}
+
+/// Log the rows every graph of the owned carrier holds, one event per graph.
+///
+/// This reads the carrier the terminal serializes, so its table is the authoritative
+/// attribution of the carrier's size: it counts rows after composition, including rows
+/// contributed by parts that name no graph themselves (the OWL/RDFS base projection,
+/// the termination demonstrator worlds, the gate verdicts and the coherence
+/// certificate). Reifier and annotation rows are counted beside ordinary quads because
+/// the flat canonical form serializes all three. A declared graph with no rows appears
+/// with zero counts.
+fn log_carrier_graph_table(carrier: &purrdf::RdfDataset) {
+    const DEFAULT_GRAPH: &str = "(default graph)";
+    const NON_IRI_GRAPH: &str = "(non-IRI graph)";
+    let label = |graph: Option<purrdf::TermId>| match graph.map(|id| carrier.resolve(id)) {
+        None => DEFAULT_GRAPH.to_owned(),
+        Some(purrdf::TermRef::Iri(iri)) => iri.to_owned(),
+        Some(_) => NON_IRI_GRAPH.to_owned(),
+    };
+    let mut table: BTreeMap<String, CarrierGraphRows> = BTreeMap::new();
+    for graph in carrier.named_graphs() {
+        table.entry(label(Some(graph))).or_default();
+    }
+    for quad in carrier.quads() {
+        table.entry(label(quad.g)).or_default().quads += 1;
+    }
+    for (_, _, graph) in carrier.reifiers_with_graph() {
+        table.entry(label(graph)).or_default().reifiers += 1;
+    }
+    for (_, _, _, graph) in carrier.annotations_with_graph() {
+        table.entry(label(graph)).or_default().annotations += 1;
+    }
+    let mut total = CarrierGraphRows::default();
+    for (graph, rows) in &table {
+        tracing::info!(
+            target: "pipeline_phase", stage = "stage-snapshot", phase = "carrier-graph-table",
+            graph = graph.as_str(),
+            quads = rows.quads, reifiers = rows.reifiers, annotations = rows.annotations,
+            "carrier graph rows"
+        );
+        total.quads += rows.quads;
+        total.reifiers += rows.reifiers;
+        total.annotations += rows.annotations;
+    }
+    tracing::info!(
+        target: "pipeline_phase", stage = "stage-snapshot", phase = "carrier-graph-table",
+        graphs = table.len(),
+        quads = total.quads, reifiers = total.reifiers, annotations = total.annotations,
+        carrier_quads = carrier.quad_count(),
+        "carrier graph rows total"
+    );
+}
+
 /// The INJECTED issue timestamp the terminal coherence certificate carries. The
 /// regenerate pipeline never samples a clock (the bundle must be byte-stable run to run —
 /// the parity gate), so the certificate's `logic:checkIssuedAt` is pinned to the Unix
@@ -1627,6 +1686,7 @@ fn fold_coherence_certificate(
         || parts.materialize(),
     )?;
     log_carrier_size("materialize-certified-carrier", &certified);
+    log_carrier_graph_table(&certified);
     Ok(certified)
 }
 

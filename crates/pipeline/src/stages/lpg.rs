@@ -16,9 +16,10 @@
 //! purrdf's `project_lpg` is a generic `DatasetView → LPG` mapper with no notion
 //! of "business layer" vs. "ontology machinery" — it walks every quad the view
 //! exposes. The full carrier snapshot (`crate::stages::carrier::snapshot_dataset`)
-//! is the WHOLE composed `gmeow.gts` dataset: ~2.3M quads across 111 named
-//! graphs (ontology axioms, reasoning closure, EDOAL correspondence tables,
-//! diagnostics, provenance, math producers, …). Projecting that unscoped
+//! is the WHOLE composed `gmeow.gts` dataset: millions of quads across
+//! many named graphs (ontology axioms, reasoning closure, EDOAL correspondence
+//! tables, diagnostics, provenance, math producers, …); the snapshot stage logs
+//! the exact per-graph rows as `carrier graph rows` events. Projecting that unscoped
 //! balloons `generated/lpg/` from ~276 KB to multiple GIGABYTES and the stage
 //! from milliseconds to many minutes — measured directly: the generic CSV
 //! package alone was 1.73 GB (901 MB `nodes.csv` + 830 MB `edges.csv`) for
