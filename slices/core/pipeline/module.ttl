@@ -1136,7 +1136,7 @@ gmeow:pipeline-dataflow-gts-sink-compile-logic
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: compile-logic → gts-sink"@x-gmeow-english ;
     gmeow:flowReason gmeow:flowReasonDataflow ;
-    skos:definition "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-gts-sink: gts-sink reads the artifact 'generated/cl/gmeow.cgif', the artifact 'generated/cl/gmeow.clif', the artifact 'generated/cl/gmeow.xcl', the artifact 'generated/diagnostics/logic-compile.html', the artifact 'generated/diagnostics/logic-compile.json', the artifact 'generated/diagnostics/logic-compile.sarif', the artifact 'generated/n3/gmeow.n3', the artifact 'generated/shacl-af/gmeow.shacl-af.ttl', the artifact 'generated/shapes/validation-shapes.shex', the artifact 'generated/shapes/validation-shapes.ttl', the artifact 'pipeline/canon-proof-admission.json' of the producer's product."@x-gmeow-english ;
+    skos:definition "The sink reads the compiler's individual artifacts, including the classical admission report and the separate prepared native canon. This edge does not give the sink access to the compiler's carrier."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-compile-logic ;
     gmeow:buildFlowTo gmeow:stage-gts-sink ;
@@ -1150,7 +1150,8 @@ gmeow:pipeline-dataflow-gts-sink-compile-logic
     gmeow:flowReadsArtifact "generated/shacl-af/gmeow.shacl-af.ttl" ;
     gmeow:flowReadsArtifact "generated/shapes/validation-shapes.shex" ;
     gmeow:flowReadsArtifact "generated/shapes/validation-shapes.ttl" ;
-    gmeow:flowReadsArtifact "pipeline/canon-proof-admission.json" .
+    gmeow:flowReadsArtifact "pipeline/canon-proof-admission.json" ;
+    gmeow:flowReadsArtifact "pipeline/prepared-native-canon.cbor" .
 
 gmeow:pipeline-dataflow-gts-sink-conformance
     a gmeow:BuildDataFlow ;

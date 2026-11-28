@@ -8,6 +8,7 @@
 use crate::frontend::{
     CompiledTheory, FofSemanticProfile, RootSelection, SourceAdmission, SourceSelection,
 };
+use crate::source_inventory::SourceInventory;
 use gmeow_errors::DiagKind as _;
 
 mod json;
@@ -27,12 +28,16 @@ impl CanonAdmissionPublication {
     /// A blocked or malformed canon is retained explicitly, never filtered away.
     #[must_use]
     pub fn from_compiled_source(theory: &CompiledTheory) -> Self {
+        let inventory = SourceInventory::new(theory, SourceSelection::all_classical_roots(theory));
+        Self::from_complete_inventory(&inventory)
+    }
+
+    /// Build the classical observation from the caller's complete-source inventory.
+    #[must_use]
+    pub fn from_complete_inventory(inventory: &SourceInventory<'_>) -> Self {
         Self {
             schema_version: 1,
-            admission: SourceAdmission::classical_fof(
-                theory,
-                SourceSelection::all_classical_roots(theory),
-            ),
+            admission: SourceAdmission::classical_fof_from_inventory(inventory),
         }
     }
 

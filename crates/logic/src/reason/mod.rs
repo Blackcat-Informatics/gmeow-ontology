@@ -29,11 +29,12 @@ pub mod perf_ledger;
 mod program;
 pub use program::{PreparedReasoningInput, prepare_reasoning_input};
 mod claims;
+pub mod prepared_canon;
 mod source_admission;
 pub use claims::{
     ClaimIngress, ReadClaim, UnreadClaim, UnreadReason, prepare_selected_theory_input,
 };
-pub(crate) use source_admission::lower_forbidden_pattern;
+pub(crate) use source_admission::selected_denials;
 pub use source_admission::{
     NativeSourceAdmission, NativeSourceDisposition, NativeSourceDrop, NonEntailmentSourceBoundary,
     SelectedNonEntailment, SelectedNonEntailmentDisposition, SelectedNonEntailmentObligation,
@@ -669,7 +670,7 @@ pub fn prepare_selected_theory(
 ) -> gmeow_errors::Result<SelectedProgram> {
     prepare_selected_with_profile(
         inventory,
-        ingress,
+        ingress.resolved_selection(),
         crate::program_analysis::selected_profile(ingress.resolved_selection()),
     )
 }
@@ -684,18 +685,20 @@ pub fn prepare_selected_source_proof(
 ) -> gmeow_errors::Result<SelectedProgram> {
     prepare_selected_with_profile(
         inventory,
-        ingress,
-        crate::program_analysis::selected_source_proof_profile(ingress.resolved_selection()),
+        ingress.resolved_selection(),
+        crate::program_analysis::selected_source_proof_profile(
+            inventory,
+            ingress.resolved_selection(),
+        ),
     )
 }
 
 fn prepare_selected_with_profile(
     inventory: &gmeow_logic_compile::source_inventory::SourceInventory<'_>,
-    ingress: &ClaimIngress,
+    selection: &gmeow_logic_compile::source_inventory::ResolvedTheorySelection,
     profile: crate::native_semantics::SourceAdmissionProfile,
 ) -> gmeow_errors::Result<SelectedProgram> {
     let theory = inventory.theory();
-    let selection = ingress.resolved_selection();
     let view = selection.program_view(inventory)?;
     let mut authored: std::collections::BTreeMap<usize, std::collections::BTreeSet<String>> =
         Default::default();

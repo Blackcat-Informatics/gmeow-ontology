@@ -127,6 +127,17 @@ augment a separate projection program while preserving authored collections;
 their example facts do not enter the source theory. No duplicate full-corpus
 compiler transport graph is built or cached.
 
+The compiler uses one original-source inventory for the classical proof
+admission report and the prepared native canon. The terminal places them in
+separate representations and reads their exact declared artifact paths. The
+native payload binds the compiler trace, program, resolved selection and
+reasoning contract. It preserves authored denial ownership, formula origins
+and incomplete lowering. `gmeow-dev logic prepared-canon BUNDLE` applies a
+finite whole-bundle read budget and a separate decoded payload budget. The
+folded bundle is released before typed decoding. Transport integrity and decoded
+lowering do not provide the live source selection, claim ingress or logical
+world needed to authorize a native proof.
+
 The compiler publishes its shared program and mandatory report inputs as one typed
 `CompiledLogic` handle. The report retains compact projection judgments, complete
 source-attributed loss witnesses and compiler-owned counts; serialized projection

@@ -3092,7 +3092,7 @@ const PREPARED_REASONING_MEMBERS: [(&str, &str, &str); 3] = [
 /// Runtime readers select the small prepared archive independently of the evidence.
 fn build_reasoning_blobs(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<[GmeowGtsBlob<'_>; 3], gmeow_errors::Diag> {
+) -> Result<[GmeowGtsBlob<'_>; 4], gmeow_errors::Diag> {
     let get = |stage: &str, artifact: &str| {
         upstream
             .get(stage)
@@ -3139,7 +3139,16 @@ fn build_reasoning_blobs(
         media_type: "application/json".to_owned(),
         rep: gmeow_gts_profile::archive::CANON_ADMISSION_REP.to_owned(),
     };
-    Ok([reports.into(), prepared.into(), canon])
+    let native_canon = GmeowGtsBlob {
+        data: get(
+            "stage-compile-logic",
+            gmeow_logic::reason::prepared_canon::CHANNEL,
+        )?
+        .into(),
+        media_type: gmeow_gts_profile::archive::PREPARED_CANON_MEDIA_TYPE.to_owned(),
+        rep: gmeow_gts_profile::archive::PREPARED_CANON_REP.to_owned(),
+    };
+    Ok([reports.into(), prepared.into(), canon, native_canon])
 }
 
 /// Match documented IRIs in a native RDF 1.2 value without serializing it.

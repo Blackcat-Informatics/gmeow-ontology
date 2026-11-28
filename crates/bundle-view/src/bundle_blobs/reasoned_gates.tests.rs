@@ -10,6 +10,34 @@ use purrdf_lex::cbor::Value;
 
 use super::*;
 
+/// A correctly hashed blob cannot masquerade as native canon under another media type.
+#[test]
+fn the_native_canon_reader_requires_exact_media() {
+    use gmeow_gts_profile::archive::PREPARED_CANON_REP;
+
+    let fixture = [0xa0_u8];
+    let graph = |media_type: &str| {
+        let mut graph = blob_graph(PREPARED_CANON_REP, fixture.to_vec());
+        let Value::Map(fields) = &mut graph.blob_meta[0].1 else {
+            panic!("the synthetic public metadata is a map");
+        };
+        fields.push((Value::Text("mt".into()), Value::Text(media_type.into())));
+        graph
+    };
+    assert!(
+        bundle(graph("application/json"))
+            .prepared_native_canon()
+            .is_err()
+    );
+    assert_eq!(
+        bundle(graph("application/cbor"))
+            .prepared_native_canon()
+            .expect("exact native blob")
+            .as_ref(),
+        fixture
+    );
+}
+
 /// Package inert members through the real archive codec, without invoking producers.
 fn graph(members: &[(&str, &[u8])]) -> Graph {
     let bytes = purrdf::ustar::write_archive_borrowed(members.iter().copied()).unwrap();

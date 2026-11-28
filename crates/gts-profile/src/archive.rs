@@ -4,6 +4,7 @@
 //! Bounded access to required native artifacts in an already imported GMEOW bundle.
 
 use purrdf::gts::model::{BlobEntry, Graph};
+use purrdf::gts::reader::{GtsReadLimits, ReadOptions, read_with_limits};
 use purrdf_lex::cbor::Value;
 use std::borrow::Cow;
 use std::sync::Arc;
@@ -14,6 +15,12 @@ pub const REASONING_REP: &str = "reasoning-archive";
 pub const PREPARED_REASONING_REP: &str = "prepared-reasoning-archive";
 /// Standalone JSON representation of the complete canon proof admission.
 pub const CANON_ADMISSION_REP: &str = "canon-proof-admission";
+/// Standalone native lowering of the complete original canon, not proof authority.
+pub const PREPARED_CANON_REP: &str = "prepared-native-canon";
+/// Media type of the versioned native canon wire record.
+pub const PREPARED_CANON_MEDIA_TYPE: &str = "application/cbor";
+/// Maximum decoded payload size for the selected native canon artifact.
+pub const MAX_PREPARED_CANON_BYTES: usize = 256 * 1024 * 1024;
 /// Native verification laws produced with the matching reasoning result.
 pub const REASONED_GATES_MEMBER: &str = "reason/prepared-verify-gates.json";
 /// Aggregate decoded archive budget for a selected native bundle view.
@@ -63,6 +70,51 @@ pub fn required_blob_bounded<'a>(
     representation: &str,
     max_bytes: usize,
 ) -> gmeow_errors::Result<Cow<'a, [u8]>> {
+    bounded_blob(graph, representation, None, max_bytes)
+}
+
+/// Select the native canon blob with its exact representation and media type.
+///
+/// # Errors
+/// Refuses an absent, ambiguous, oversized, or corrupt blob or mismatched metadata.
+pub fn prepared_canon_blob(graph: &Graph) -> gmeow_errors::Result<Cow<'_, [u8]>> {
+    bounded_blob(
+        graph,
+        PREPARED_CANON_REP,
+        Some(PREPARED_CANON_MEDIA_TYPE),
+        MAX_PREPARED_CANON_BYTES,
+    )
+}
+
+/// Admit a captured bundle under explicit whole-read limits, select its exact
+/// native canon payload and release the folded graph before typed proof decoding.
+///
+/// # Errors
+/// Refuses a GTS read that exceeds the selected limits or has no valid canon blob.
+pub fn read_prepared_canon(bytes: &[u8], limits: GtsReadLimits) -> gmeow_errors::Result<Vec<u8>> {
+    let graph = read_with_limits(
+        bytes,
+        ReadOptions {
+            allow_segments: true,
+            ..ReadOptions::default()
+        },
+        limits,
+    )
+    .map_err(|cause| {
+        gmeow_errors::Diag::of_kind(crate::error::Transport::caused_by(
+            format!("admit bundle for prepared canon inspection: {cause}"),
+            cause,
+        ))
+    })?;
+    Ok(prepared_canon_blob(&graph)?.into_owned())
+}
+
+fn bounded_blob<'a>(
+    graph: &'a Graph,
+    representation: &str,
+    media_type: Option<&str>,
+    max_bytes: usize,
+) -> gmeow_errors::Result<Cow<'a, [u8]>> {
     let fail = |message| {
         gmeow_errors::Diag::of_kind(crate::error::Archive {
             message,
@@ -83,11 +135,27 @@ pub fn required_blob_bounded<'a>(
             key.as_text() == Some("rep") && value.as_text() == Some(representation)
         })
     });
-    let (digest, _) = archives
+    let (digest, metadata) = archives
         .next()
         .ok_or_else(|| fail(format!("required archive {representation} is missing")))?;
     if archives.next().is_some() {
         return Err(fail(format!("archive {representation} is ambiguous")));
+    }
+    if let Some(expected) = media_type {
+        let exact = |name, value| {
+            let mut fields = metadata
+                .as_map()
+                .into_iter()
+                .flatten()
+                .filter(|(key, _)| key.as_text() == Some(name));
+            fields.next().and_then(|(_, field)| field.as_text()) == Some(value)
+                && fields.next().is_none()
+        };
+        if !exact("rep", representation) || !exact("mt", expected) {
+            return Err(fail(format!(
+                "required blob {representation} must declare that exact representation and {expected} media type"
+            )));
+        }
     }
     let mut blobs = graph
         .blobs

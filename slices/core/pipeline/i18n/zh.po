@@ -718,8 +718,8 @@ msgid "dataflow: compile-logic → gts-sink"
 msgstr "数据流：compile-logic → gts-sink"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-compile-logic|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The dataflow edge from gmeow:stage-compile-logic to gmeow:stage-gts-sink: gts-sink reads the artifact 'generated/cl/gmeow.cgif', the artifact 'generated/cl/gmeow.clif', the artifact 'generated/cl/gmeow.xcl', the artifact 'generated/diagnostics/logic-compile.html', the artifact 'generated/diagnostics/logic-compile.json', the artifact 'generated/diagnostics/logic-compile.sarif', the artifact 'generated/n3/gmeow.n3', the artifact 'generated/shacl-af/gmeow.shacl-af.ttl', the artifact 'generated/shapes/validation-shapes.shex', the artifact 'generated/shapes/validation-shapes.ttl', the artifact 'pipeline/canon-proof-admission.json' of the producer's product."
-msgstr "从 gmeow:stage-compile-logic 到 gmeow:stage-gts-sink 的数据流边：gts-sink 读取生产者产品中的产物“generated/cl/gmeow.cgif”、产物“generated/cl/gmeow.clif”、产物“generated/cl/gmeow.xcl”、产物“generated/diagnostics/logic-compile.html”、产物“generated/diagnostics/logic-compile.json”、产物“generated/diagnostics/logic-compile.sarif”、产物“generated/n3/gmeow.n3”、产物“generated/shacl-af/gmeow.shacl-af.ttl”、产物“generated/shapes/validation-shapes.shex”、产物“generated/shapes/validation-shapes.ttl”、产物“pipeline/canon-proof-admission.json”。"
+msgid "The sink reads the compiler's individual artifacts, including the classical admission report and the separate prepared native canon. This edge does not give the sink access to the compiler's carrier."
+msgstr "终端读取编译器的各项产物，包括经典逻辑准入报告和与之分离的预备原生规范。此边不允许终端访问编译器的载体。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pipeline-dataflow-gts-sink-conformance|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "dataflow: conformance → gts-sink"

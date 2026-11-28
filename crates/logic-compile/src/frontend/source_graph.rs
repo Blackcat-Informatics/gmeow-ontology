@@ -151,11 +151,37 @@ pub enum SourceEdgeRole {
 
 /// Native storage position is retained even if the same RDF assertion also has
 /// an ordinary statement-table representation.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
+#[serde(rename_all = "lowercase", try_from = "String")]
 pub enum SourceCarrier {
     Statement,
     Annotation,
     Reifier,
+}
+
+impl SourceCarrier {
+    /// Stable wire label for the actual storage position.
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Statement => "statement",
+            Self::Annotation => "annotation",
+            Self::Reifier => "reifier",
+        }
+    }
+}
+
+impl TryFrom<String> for SourceCarrier {
+    type Error = crate::error::Frontend;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        [Self::Statement, Self::Annotation, Self::Reifier]
+            .into_iter()
+            .find(|carrier| carrier.as_str() == value)
+            .ok_or_else(|| crate::error::Frontend::new(format!("unknown source carrier {value:?}")))
+    }
 }
 
 /// One RDF statement after native composition/canonicalization.

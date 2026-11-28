@@ -193,6 +193,17 @@ the owner and the two premises. Quotation preserves evidence without supplying
 either premise. Ambiguous scalar fields and unread owner support retain source
 boundaries.
 
+A selected, singly named universal formula also states a positive denial
+when a conjunction of binary atoms implies the explicit negation of a binary
+atom. The source-proof preparation joins the antecedent with the prohibited
+atom in the admitted theory under the operation's source-proof contract.
+Declaring a candidate contract does not select proof execution. Only a
+complete match derives the contradiction witness. Its rule identity names
+the formula owner and the report keeps that witness's matched premises.
+An absent premise does not derive negative data. A shared or anonymous
+formula root, an unbound variable, or a formula outside this lowering retains
+the general formula route and its coverage diagnostics.
+
 ### Explicit module composition
 
 `gmeow prove --module IRI` selects a declared module root; repeating the option
@@ -229,6 +240,12 @@ links its evidence to the original formula obligation IDs after native
 coverage checks. Evidence supplies no object-level premise or context
 selection. Named graphs, invalid resource values and independent contexts
 retain their boundaries.
+
+An ordinary default-graph `logic:formalizes` statement from an emitted
+formula root to an IRI records that formula's formalization target. When
+no other owner consumes the statement, the proof accounts for it as
+evidence of that exact original formula after native lowering. It does
+not make the target a premise or give the link a new assertion route.
 
 The executed selected-theory profile is narrower than this definition in one direction only.
 It may leave an assertion unread, for example a claim over a typed term carrier, a claim

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! `gmeow-dev logic {query,compile}` — the logic-stack developer surface.
+//! The logic-stack developer commands.
 //!
 //! `logic query` resolves a backward `.logic` goal over a materialized world
 //! through the native dispatcher (`gmeow_logic::dispatch`); `logic compile` emits
@@ -313,6 +313,60 @@ fn mode_path(mode: &str) -> &'static str {
         "xcl" => XCL_PATH,
         _ => PROJECTION_REPORT_PATH,
     }
+}
+
+/// Inspect the producer's portable native lowering without admitting it for proof.
+pub fn prepared_canon(path: &Path) -> i32 {
+    use std::io::Read as _;
+
+    use gmeow_gts_profile::archive::{MAX_PREPARED_CANON_BYTES, read_prepared_canon};
+    use gmeow_logic::reason::prepared_canon::PreparedCanonProof;
+    use purrdf::gts::reader::GtsReadLimits;
+    use purrdf_hash::hex::Digest32;
+
+    // Production bundles can exceed the generic encoded and aggregate limits.
+    // Bound their whole read separately from the smaller selected proof payload.
+    const LIMITS: GtsReadLimits = GtsReadLimits {
+        encoded_input_bytes: 512 * 1024 * 1024,
+        encoded_frame_bytes: 256 * 1024 * 1024,
+        decoded_frame_bytes: 1024 * 1024 * 1024,
+        decoded_blob_bytes: 1024 * 1024 * 1024,
+        total_decoded_bytes: 3 * 1024 * 1024 * 1024,
+        terms: 8_000_000,
+        rows: 32_000_000,
+        work: 4_000_000_000,
+        ..GtsReadLimits::DEFAULT
+    };
+
+    let report = match (|| {
+        let input = std::fs::File::open(path)
+            .map_err(|error| fail(format!("open {}: {error}", path.display())))?;
+        let mut bytes = Vec::new();
+        input
+            .take(LIMITS.encoded_input_bytes as u64 + 1)
+            .read_to_end(&mut bytes)
+            .map_err(|error| fail(format!("read {}: {error}", path.display())))?;
+        let bundle_digest = Digest32::new(*purrdf_hash::blake3::hash(&bytes).as_bytes());
+        let payload = read_prepared_canon(&bytes, LIMITS).map_err(fail)?;
+        drop(bytes);
+        let prepared =
+            PreparedCanonProof::decode(&payload, MAX_PREPARED_CANON_BYTES).map_err(fail)?;
+        let report = serde_json::json!({
+            "bundle_blake3": bundle_digest.to_hex(),
+            "prepared_blake3": Digest32::new(*purrdf_hash::blake3::hash(&payload).as_bytes()).to_hex(),
+            "prepared_bytes": payload.len(),
+            "producer_preparation": prepared.preparation_identity().to_hex(),
+            "binding": prepared.binding(),
+            "incomplete_formulas": prepared.incomplete_formulas().len(),
+            "execution_authority": false,
+        });
+        Ok::<_, i32>(report)
+    })() {
+        Ok(report) => report,
+        Err(code) => return code,
+    };
+    println!("{report}");
+    0
 }
 
 #[path = "dev_logic.query_tests.rs"]

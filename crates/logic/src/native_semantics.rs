@@ -232,9 +232,10 @@ pub(crate) enum SourceAdmissionProfile {
         execution_identity: String,
     },
     /// Selected source proof additionally prepares the admitted denial rules.
-    SelectedSourceProofV1 {
+    SelectedSourceProofV2 {
         theory: TheorySelection,
         execution_identity: String,
+        compiler_trace: String,
     },
 }
 
@@ -325,7 +326,7 @@ impl ProgramAdmission {
                 self.outside(|source| !source.scope.selects_no_context()),
             ),
             SourceAdmissionProfile::ResolvedTheoryV1 { .. }
-            | SourceAdmissionProfile::SelectedSourceProofV1 { .. } => (
+            | SourceAdmissionProfile::SelectedSourceProofV2 { .. } => (
                 "resolved-theory",
                 self.outside(|source| {
                     !matches!(source.owner, SourceOwner::Axiom(_))

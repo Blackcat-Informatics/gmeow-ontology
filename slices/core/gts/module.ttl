@@ -2606,6 +2606,17 @@ gmeow:payloadSchemaSchemasArchive
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
+gmeow:payloadSchemaPreparedNativeCanon
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — prepared native canon"@x-gmeow-english ;
+    skos:definition "The native lowering of the original canon and its source attribution and refusal evidence, encoded as CBOR. Reading this payload does not authorize proof execution."@x-gmeow-english ;
+    gmeow:payloadSchemaId "prepared-native-canon" ;
+    gmeow:payloadSchemaMedium gmeow:mediumProfileDistL12 ;
+    gmeow:payloadSchemaDictionary gmeow:dictGmeowProoftraceV1 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
 gmeow:payloadSchemaShaclFindings
     a gmeow:PayloadSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
