@@ -562,24 +562,20 @@ fn push_facts_for_mask(items: &[(Fact, f64)], mask: u64, out: &mut Vec<Fact>) {
 /// default negation and builtin literals (the per-choice closure has no stratified
 /// negation or value generation, so evaluating such a rule without them would report
 /// a complete answer for a different program), and any rule head, body, goal,
-/// probability, confidence or joint atom that is not binary.
+/// probability, confidence or joint atom that is not binary, any atom carrying a
+/// structured (function-symbol) argument, and any rule whose head variable no positive
+/// body atom binds (such a rule has no finite ground instance to derive).
 fn admit_positive_binary_horn(program: &QProgram) -> gmeow_errors::Result<()> {
-    let binary = |atom: &QAtom, role: &str| {
-        if atom.args.len() == 2 {
-            Ok(())
-        } else {
-            Err(probabilistic_err(format!(
-                "{role} atom {:?} has arity {}; ProbabilisticProfile evaluates binary atoms only",
-                atom.pred,
-                atom.args.len()
-            )))
-        }
-    };
+    let binary = admit_flat_binary_atom;
     for rule in &program.rules {
         binary(&rule.head, "rule head")?;
+        let mut bound: BTreeSet<&str> = BTreeSet::new();
         for literal in &rule.body {
             match literal {
-                QBodyLit::Atom(atom) => binary(atom, "rule body")?,
+                QBodyLit::Atom(atom) => {
+                    binary(atom, "rule body")?;
+                    bound.extend(atom.args.iter().filter_map(qterm_var));
+                }
                 QBodyLit::Cut => {
                     return Err(probabilistic_err(
                         "program contains cut (`!`) under ProbabilisticProfile; cut is \
@@ -603,6 +599,19 @@ fn admit_positive_binary_horn(program: &QProgram) -> gmeow_errors::Result<()> {
                 }
             }
         }
+        if let Some(unbound) = rule
+            .head
+            .args
+            .iter()
+            .filter_map(qterm_var)
+            .find(|var| !bound.contains(var))
+        {
+            return Err(probabilistic_err(format!(
+                "rule head {:?} variable {unbound:?} is not bound by a positive body atom; \
+                 ProbabilisticProfile evaluates range-restricted rules only",
+                rule.head.pred
+            )));
+        }
     }
     for atom in &program.goal.atoms {
         binary(atom, "goal")?;
@@ -621,10 +630,38 @@ fn admit_positive_binary_horn(program: &QProgram) -> gmeow_errors::Result<()> {
     Ok(())
 }
 
+/// The variable name of a [`QTerm::Var`], `None` for every other term.
+fn qterm_var(term: &QTerm) -> Option<&str> {
+    match term {
+        QTerm::Var(v) => Some(v.as_str()),
+        QTerm::Const(_) | QTerm::Num(_) | QTerm::Struct(_) | QTerm::Triple { .. } => None,
+    }
+}
+
+/// Admit one atom of the flat binary fragment: exactly two arguments, none structured.
+fn admit_flat_binary_atom(atom: &QAtom, role: &str) -> gmeow_errors::Result<()> {
+    if atom.args.len() != 2 {
+        return Err(probabilistic_err(format!(
+            "{role} atom {:?} has arity {}; ProbabilisticProfile evaluates binary atoms only",
+            atom.pred,
+            atom.args.len()
+        )));
+    }
+    if atom.args.iter().any(|t| matches!(t, QTerm::Struct(_))) {
+        return Err(probabilistic_err(format!(
+            "{role} atom {:?} carries a structured argument; ProbabilisticProfile evaluates \
+             flat atoms only",
+            atom.pred
+        )));
+    }
+    Ok(())
+}
+
 /// Least-Herbrand-model closure of `facts` under the Horn `rules` (naive fixpoint).
 ///
 /// [`admit_positive_binary_horn`] has already admitted every rule: bodies are positive
-/// binary atoms and heads are binary; an unbound head variable derives nothing.
+/// flat binary atoms, heads are flat binary, and every head variable is bound by a body
+/// atom, so each rule binding instantiates a ground head.
 fn closure(mut facts: HashSet<Fact>, rules: &[&QRule]) -> HashSet<Fact> {
     loop {
         let mut added = false;

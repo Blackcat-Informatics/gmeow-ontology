@@ -509,7 +509,33 @@ ex:negated a logic:ContextualEvaluationRequest ;
     );
     assert_ne!(
         silent.provenance.contract_hash, certified.provenance.contract_hash,
-        "a completeness claim is bound to its selected context and does not transfer"
+        "the contract hash binds the selected context"
+    );
+
+    // Same request, formula and context; only the context's declared evidence
+    // closure differs, so the contract hash can differ only through that closure.
+    let closed_closure =
+        "logic:contextStandpoint ex:s ; logic:evidenceClosure logic:ClosedWorldClosure .";
+    let open_closure =
+        "logic:contextStandpoint ex:s ; logic:evidenceClosure logic:OpenWorldClosure .";
+    assert!(
+        SOURCE.contains(closed_closure),
+        "fixture declares the closed context first"
+    );
+    let reclosed = SOURCE.replacen(closed_closure, open_closure, 1);
+    let open_dataset = parse(&format!("{reclosed}\n{QUERY}\n{requests}"));
+    let closed_dataset = parse(&format!("{SOURCE}\n{QUERY}\n{requests}"));
+    let contract_hash = |dataset: &std::sync::Arc<RdfDataset>| {
+        evaluate_request(dataset, "urn:example:certified", None, None)
+            .unwrap()
+            .result
+            .provenance
+            .contract_hash
+    };
+    assert_ne!(
+        contract_hash(&closed_dataset),
+        contract_hash(&open_dataset),
+        "the contract hash binds the context's declared evidence closure"
     );
 
     let negated = assess("negated", None);
