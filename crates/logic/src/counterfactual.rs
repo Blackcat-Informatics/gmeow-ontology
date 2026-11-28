@@ -86,8 +86,7 @@ fn contract_identity(
     fn framed(parts: &[&str]) -> Vec<u8> {
         let mut out = Vec::new();
         for part in parts {
-            out.extend_from_slice(&(part.len() as u64).to_le_bytes());
-            out.extend_from_slice(part.as_bytes());
+            purrdf_hash::frame::frame_le(&mut out, part.as_bytes());
         }
         out
     }
