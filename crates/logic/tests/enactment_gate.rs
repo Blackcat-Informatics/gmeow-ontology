@@ -1079,7 +1079,7 @@ ex:roster1 a logic:RefinementCandidateSet ;
 
 /// The marker-identity fix, pinned on the production surface.
 ///
-/// The gate's marker is one shared `logic:EnactmentIntegrityViolation` type across forty-four
+/// The gate's marker is one shared `logic:EnactmentIntegrityViolation` type across fifty
 /// laws, so before the law identity was carried out of the chase an operator saw only that
 /// a record breached enactment integrity. This asserts the finding carries the ABSOLUTE IRI
 /// of the authored `logic:Constraint` — the thing whose `logic:message` states the
@@ -1387,3 +1387,71 @@ ex:payVendorApproval a logic:ApprovalCommitment ;
 // and each can only reach the presence law: the relational law's guard requires the very
 // binding the absence fixture omits, so a cell pinning an absence fixture to a relational
 // law pins it to a law that cannot fire on it.
+
+// ── The transition laws of axes 1, 2, 3, 4 and 7 ──────────────────────────────────────
+//
+// One scene per verdict class, driven through the production `verify()` entrypoint. The
+// refused moves name an edge each axis's law omits; the admitted moves are the edges
+// beside them, so a gate that condemned every `logic:AxisMove` would fail the green half.
+
+/// A move the transition law of its axis omits is condemned under that law, and the edge
+/// beside it passes.
+///
+/// Protects the contract that the transition formulas of the enactment, step, approval,
+/// effect-protocol and recurrence axes are executed on the production verification path: a
+/// waiting step resumed straight to running, a withdrawal from `ApprovalDetached` as a cancellation,
+/// a compensation from an unreceipted attempt, a restart of an ended recurrence and a
+/// completion of a pending enactment are each refused by their own law and no other.
+#[test]
+fn a_move_the_axis_law_omits_fires_on_verify_and_the_neighbouring_edge_passes() {
+    let report = run_verify(&scene(
+        "
+ex:refusedEnactment a logic:AxisMove ;
+    logic:moveFromPosition logic:EnactmentPending ; logic:moveToPosition logic:EnactmentCompleted .
+ex:refusedStep a logic:AxisMove ;
+    logic:moveFromPosition logic:StepWaiting ; logic:moveToPosition logic:StepRunning .
+ex:refusedApproval a logic:AxisMove ;
+    logic:moveFromPosition logic:ApprovalDetached ; logic:moveToPosition logic:ApprovalCancelled .
+ex:refusedEffect a logic:AxisMove ;
+    logic:moveFromPosition logic:EffectAttempted ; logic:moveToPosition logic:EffectCompensating .
+ex:refusedRecurrence a logic:AxisMove ;
+    logic:moveFromPosition logic:RecurrenceEnded ; logic:moveToPosition logic:RecurrenceActive .
+
+ex:admittedEnactment a logic:AxisMove ;
+    logic:moveFromPosition logic:EnactmentPaused ; logic:moveToPosition logic:EnactmentRunning .
+ex:admittedStep a logic:AxisMove ;
+    logic:moveFromPosition logic:StepWaiting ; logic:moveToPosition logic:StepReady .
+ex:admittedApproval a logic:AxisMove ;
+    logic:moveFromPosition logic:ApprovalDetached ; logic:moveToPosition logic:ApprovalReleased .
+ex:admittedEffect a logic:AxisMove ;
+    logic:moveFromPosition logic:EffectReceipted ; logic:moveToPosition logic:EffectCompensating .
+ex:admittedRecurrence a logic:AxisMove ;
+    logic:moveFromPosition logic:RecurrenceSuspended ; logic:moveToPosition logic:RecurrenceActive .
+",
+    ));
+    for (record, law) in [
+        ("refusedEnactment", "EnactmentStateTransitionConstraint"),
+        ("refusedStep", "StepStateTransitionConstraint"),
+        ("refusedApproval", "ApprovalStateTransitionConstraint"),
+        (
+            "refusedEffect",
+            "EffectProtocolPositionTransitionConstraint",
+        ),
+        ("refusedRecurrence", "RecurrenceStateTransitionConstraint"),
+    ] {
+        assert_condemns_under(&report, record, law);
+    }
+    for record in [
+        "admittedEnactment",
+        "admittedStep",
+        "admittedApproval",
+        "admittedEffect",
+        "admittedRecurrence",
+    ] {
+        assert!(
+            rows_naming(&report, record).is_empty(),
+            "{record} follows an edge its axis law admits and must raise nothing; rows were: {:?}",
+            rows_naming(&report, record)
+        );
+    }
+}

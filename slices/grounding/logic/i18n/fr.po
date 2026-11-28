@@ -24390,3 +24390,127 @@ msgstr "Éviter pour une source qui ne fait qu’attester un enregistrement (uti
 msgctxt "https://blackcatinformatics.ca/logic/historicallyDependsOn|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Assert it from the dependent individual to each individual it requires; read transitivity as the closure. It adds no membership, bearer or occupancy: a consumer reads the present state from the interval-scoped relators and the dependence from this relation."
 msgstr "Affirmer depuis l’individu dépendant vers chaque individu qu’il requiert ; lire la transitivité comme la fermeture. Elle n’ajoute ni adhésion, ni porteur, ni occupation : un consommateur lit l’état présent dans les relateurs bornés par un intervalle et la dépendance dans cette relation."
+
+msgctxt "https://blackcatinformatics.ca/logic/AxisMove|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Axis Move"
+msgstr "Déplacement d'axe"
+
+msgctxt "https://blackcatinformatics.ca/logic/AxisMove|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One recorded move of a record between two positions of a closed lifecycle axis, naming the position it left (logic:moveFromPosition) and the position it reached (logic:moveToPosition). It is the record the axis transition laws judge: a logic:AxisTransitionLaw states the admitted edges, and its enforcing logic:Constraint refuses every move whose pair of positions is not one of them. The axis is read from the positions, and a move never carries values from two axes."
+msgstr "Un déplacement consigné d'un enregistrement entre deux positions d'un axe de cycle de vie fermé, nommant la position qu'il a quittée (logic:moveFromPosition) et celle qu'il a atteinte (logic:moveToPosition). C'est l'enregistrement que jugent les lois de transition d'axe : une logic:AxisTransitionLaw énonce les arêtes admises, et la logic:Constraint qui l'applique refuse tout déplacement dont le couple de positions n'en fait pas partie. L'axe se lit à partir des positions, et un déplacement ne porte jamais des valeurs de deux axes."
+
+msgctxt "https://blackcatinformatics.ca/logic/AxisMove|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run7Start a logic:AxisMove ; logic:moveFromPosition logic:EnactmentPending ; logic:moveToPosition logic:EnactmentRunning ."
+msgstr "Exemple : ex:run7Start a logic:AxisMove ; logic:moveFromPosition logic:EnactmentPending ; logic:moveToPosition logic:EnactmentRunning ."
+
+msgctxt "https://blackcatinformatics.ca/logic/moveFromPosition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "move from position"
+msgstr "position de départ du déplacement"
+
+msgctxt "https://blackcatinformatics.ca/logic/moveFromPosition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a logic:AxisMove to the position of a closed lifecycle axis the record occupied before the move. Range a position individual of one axis value class (stated in prose). A move names exactly one origin, and the governing transition law reads the admitted successors from it."
+msgstr "Relie un logic:AxisMove à la position d'un axe de cycle de vie fermé que l'enregistrement occupait avant le déplacement. L'étendue est un individu de position d'une classe de valeurs d'axe (énoncé en prose). Un déplacement nomme exactement une origine, et la loi de transition qui le régit en lit les successeurs admis."
+
+msgctxt "https://blackcatinformatics.ca/logic/moveFromPosition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run7Start logic:moveFromPosition logic:EnactmentPending ."
+msgstr "Exemple : ex:run7Start logic:moveFromPosition logic:EnactmentPending ."
+
+msgctxt "https://blackcatinformatics.ca/logic/moveToPosition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "move to position"
+msgstr "position d'arrivée du déplacement"
+
+msgctxt "https://blackcatinformatics.ca/logic/moveToPosition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a logic:AxisMove to the position of a closed lifecycle axis the record occupied after the move. Range a position individual of one axis value class (stated in prose). A move names exactly one destination, and it is admitted only when the governing transition law lists it among the successors of the origin."
+msgstr "Relie un logic:AxisMove à la position d'un axe de cycle de vie fermé que l'enregistrement occupait après le déplacement. L'étendue est un individu de position d'une classe de valeurs d'axe (énoncé en prose). Un déplacement nomme exactement une destination, et il n'est admis que si la loi de transition qui le régit la compte parmi les successeurs de l'origine."
+
+msgctxt "https://blackcatinformatics.ca/logic/moveToPosition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run7Start logic:moveToPosition logic:EnactmentRunning ."
+msgstr "Exemple : ex:run7Start logic:moveToPosition logic:EnactmentRunning ."
+
+msgctxt "https://blackcatinformatics.ca/logic/AxisMoveNamesBothPositionsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a move names the position it left and the position it reached"
+msgstr "un déplacement nomme la position qu'il a quittée et celle qu'il a atteinte"
+
+msgctxt "https://blackcatinformatics.ca/logic/AxisMoveNamesBothPositionsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:AxisMove that names no logic:moveFromPosition or no logic:moveToPosition. The transition laws judge a pair of positions, so a move missing either end would be judged by no law and pass every one of them."
+msgstr "La logic:Constraint qui rejette un logic:AxisMove ne nommant aucune logic:moveFromPosition ou aucune logic:moveToPosition. Les lois de transition jugent un couple de positions : un déplacement dépourvu de l'une des extrémités ne serait jugé par aucune loi et satisferait chacune d'elles."
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentStateTransitionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "enactment state transition law"
+msgstr "loi de transition de l'état d'exécution"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentStateTransitionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The admitted transition relation of the logic:EnactmentState axis, stated as the formula the production verification path executes through logic:EnactmentStateTransitionConstraint. The only edge a logic:ContinuationResume may traverse is Paused to Running."
+msgstr "La relation de transition admise de l'axe logic:EnactmentState, énoncée comme la formule que le chemin de vérification de production exécute au moyen de logic:EnactmentStateTransitionConstraint. La seule arête qu'une logic:ContinuationResume puisse emprunter est de Paused vers Running."
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentStateTransitionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a move along the enactment state axis follows an admitted edge"
+msgstr "un déplacement le long de l'axe de l'état d'exécution suit une arête admise"
+
+msgctxt "https://blackcatinformatics.ca/logic/EnactmentStateTransitionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:AxisMove along the logic:EnactmentState axis whose pair of positions is not an admitted edge of logic:EnactmentStateTransitionLaw. Pending may start or be cancelled; Running may pause, complete, fail or be cancelled; Paused may resume, be cancelled or fail; Completed, Cancelled and Failed admit no successor, so a move out of one of them is refused. A repeat is not a move on this axis: it mints a new enactment at Pending."
+msgstr "La logic:Constraint qui rejette un logic:AxisMove le long de l'axe logic:EnactmentState dont le couple de positions n'est pas une arête admise de logic:EnactmentStateTransitionLaw. Pending peut démarrer ou être annulée ; Running peut être suspendue, s'achever, échouer ou être annulée ; Paused peut reprendre, être annulée ou échouer ; Completed, Cancelled et Failed n'admettent aucun successeur, de sorte qu'un déplacement hors de l'une d'elles est refusé. Une répétition n'est pas un déplacement sur cet axe : elle crée une nouvelle exécution à Pending."
+
+msgctxt "https://blackcatinformatics.ca/logic/StepStateTransitionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "step state transition law"
+msgstr "loi de transition de l'état d'étape"
+
+msgctxt "https://blackcatinformatics.ca/logic/StepStateTransitionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The admitted transition relation of the logic:StepState axis, stated as the formula the production verification path executes through logic:StepStateTransitionConstraint."
+msgstr "La relation de transition admise de l'axe logic:StepState, énoncée comme la formule que le chemin de vérification de production exécute au moyen de logic:StepStateTransitionConstraint."
+
+msgctxt "https://blackcatinformatics.ca/logic/StepStateTransitionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a move along the step state axis follows an admitted edge"
+msgstr "un déplacement le long de l'axe de l'état d'étape suit une arête admise"
+
+msgctxt "https://blackcatinformatics.ca/logic/StepStateTransitionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:AxisMove along the logic:StepState axis whose pair of positions is not an admitted edge of logic:StepStateTransitionLaw. A waiting step that resolves re-enters Ready, never Running, so a stale gate verdict cannot authorize execution; Completed, Skipped, Cancelled and Failed admit no successor."
+msgstr "La logic:Constraint qui rejette un logic:AxisMove le long de l'axe logic:StepState dont le couple de positions n'est pas une arête admise de logic:StepStateTransitionLaw. Une étape en attente qui se résout rentre à Ready, jamais à Running, de sorte qu'un verdict de porte périmé ne puisse autoriser l'exécution ; Completed, Skipped, Cancelled et Failed n'admettent aucun successeur."
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalStateTransitionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "approval state transition law"
+msgstr "loi de transition de l'état d'approbation"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalStateTransitionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The admitted transition relation of the logic:ApprovalState axis, stated as the formula the production verification path executes through logic:ApprovalStateTransitionConstraint."
+msgstr "La relation de transition admise de l'axe logic:ApprovalState, énoncée comme la formule que le chemin de vérification de production exécute au moyen de logic:ApprovalStateTransitionConstraint."
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalStateTransitionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a move along the approval state axis follows an admitted edge"
+msgstr "un déplacement le long de l'axe de l'état d'approbation suit une arête admise"
+
+msgctxt "https://blackcatinformatics.ca/logic/ApprovalStateTransitionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:AxisMove along the logic:ApprovalState axis whose pair of positions is not an admitted edge of logic:ApprovalStateTransitionLaw. Once an approval is Detached its antecedent has been satisfied, so withdrawal is a violation and never a cancellation: Detached to Cancelled is refused while Detached to Released, the creditor's waiver, is admitted. Discharged, Expired, Violated, Cancelled and Released admit no successor."
+msgstr "La logic:Constraint qui rejette un logic:AxisMove le long de l'axe logic:ApprovalState dont le couple de positions n'est pas une arête admise de logic:ApprovalStateTransitionLaw. Une fois une approbation Detached, son antécédent est satisfait : le retrait est alors une violation et jamais une annulation, si bien que Detached vers Cancelled est refusé alors que Detached vers Released, la renonciation du créancier, est admis. Discharged, Expired, Violated, Cancelled et Released n'admettent aucun successeur."
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectProtocolPositionTransitionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effect protocol position transition law"
+msgstr "loi de transition de la position de protocole d'effet"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectProtocolPositionTransitionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The admitted transition relation of the logic:EffectProtocolPosition axis, stated as the formula the production verification path executes through logic:EffectProtocolPositionTransitionConstraint."
+msgstr "La relation de transition admise de l'axe logic:EffectProtocolPosition, énoncée comme la formule que le chemin de vérification de production exécute au moyen de logic:EffectProtocolPositionTransitionConstraint."
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectProtocolPositionTransitionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a move along the effect protocol position axis follows an admitted edge"
+msgstr "un déplacement le long de l'axe de la position de protocole d'effet suit une arête admise"
+
+msgctxt "https://blackcatinformatics.ca/logic/EffectProtocolPositionTransitionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:AxisMove along the logic:EffectProtocolPosition axis whose pair of positions is not an admitted edge of logic:EffectProtocolPositionTransitionLaw. Receipted and Reconciled owe nothing further yet admit a newly motivated compensation; a compensation whose own outcome is unknown re-enters Reconciling. Compensated and Abandoned admit no successor."
+msgstr "La logic:Constraint qui rejette un logic:AxisMove le long de l'axe logic:EffectProtocolPosition dont le couple de positions n'est pas une arête admise de logic:EffectProtocolPositionTransitionLaw. Receipted et Reconciled ne doivent plus rien et admettent pourtant une compensation nouvellement motivée ; une compensation dont l'issue est elle-même inconnue rentre à Reconciling. Compensated et Abandoned n'admettent aucun successeur."
+
+msgctxt "https://blackcatinformatics.ca/logic/RecurrenceStateTransitionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recurrence state transition law"
+msgstr "loi de transition de l'état de récurrence"
+
+msgctxt "https://blackcatinformatics.ca/logic/RecurrenceStateTransitionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The admitted transition relation of the logic:RecurrenceState axis, stated as the formula the production verification path executes through logic:RecurrenceStateTransitionConstraint."
+msgstr "La relation de transition admise de l'axe logic:RecurrenceState, énoncée comme la formule que le chemin de vérification de production exécute au moyen de logic:RecurrenceStateTransitionConstraint."
+
+msgctxt "https://blackcatinformatics.ca/logic/RecurrenceStateTransitionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a move along the recurrence state axis follows an admitted edge"
+msgstr "un déplacement le long de l'axe de l'état de récurrence suit une arête admise"
+
+msgctxt "https://blackcatinformatics.ca/logic/RecurrenceStateTransitionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logic:Constraint rejecting a logic:AxisMove along the logic:RecurrenceState axis whose pair of positions is not an admitted edge of logic:RecurrenceStateTransitionLaw. The axis belongs to the recurrence schedule, never to an occurrence it generates. Skipped and Ended admit no successor."
+msgstr "La logic:Constraint qui rejette un logic:AxisMove le long de l'axe logic:RecurrenceState dont le couple de positions n'est pas une arête admise de logic:RecurrenceStateTransitionLaw. L'axe appartient au calendrier de récurrence, jamais à une occurrence qu'il engendre. Skipped et Ended n'admettent aucun successeur."

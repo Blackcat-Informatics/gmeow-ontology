@@ -121,7 +121,7 @@ A document that mixes classes states each boundary in [Evidence boundaries](#evi
 | [`design/LOGIC-AGENTIC-MODALITY.md`](./design/LOGIC-AGENTIC-MODALITY.md) | modal composition | exercised bounded case for the finite ground modal fragment and the finite temporal interpretation (`crates/logic/src/modal`); design-only commitment for norms, intentions, protocols and scheduler adoption — see [Agentic modality](#agentic-modality) | the attributed evaluation context, the finite ground modal fragment over typed accessibility, the information coordinates, `gmeow logic evaluate`, the finite journal temporal operators, and the norm, intention and protocol commitments |
 | [`design/LOGIC-TRANSACTION.md`](./design/LOGIC-TRANSACTION.md) | state change | exercised bounded case (`crates/logic/src/transaction.rs`, `conformance/logic/cases/transaction`), including `logic:SerializationAnomaly` non-serializable-schedule findings | Transaction Logic — path semantics, serial conjunction, updates as supersession, the state-change facet |
 | [`design/LOGIC-TELEOLOGY.md`](./design/LOGIC-TELEOLOGY.md) | goal/action layer | exercised bounded case (`crates/logic/src/teleology.rs`, `conformance/logic/cases/teleology`); the goal kinds are evaluated by this module's own interpreters, not the finite-journal temporal evaluator | goals, intentional modes, structured goal expressions, reified goal evaluation, action schemas, goal decomposition and conflict; the intention → plan → action → transaction-path chain |
-| [`design/LOGIC-ENACTMENT.md`](./design/LOGIC-ENACTMENT.md) | charter | exercised bounded case for the integrity laws, the observed-not-derived guard and means–end refinement; design-only commitment for transition-law execution, liveness certificates, knowledge-order monotonicity and refinement depth — see [Enactment](#enactment) | the general prescription → enactment → commitment kernel over the existing `logic:Plan`: immutable versioned prescriptions, immutable journalled enactments, checkpoints and continuation kinds, the seven orthogonal lifecycle axes with their transition and liveness laws, the ⊑ₖ knowledge order over external-effect commitment, hierarchical refinement methods and the declared decidable search fragment, and the reuse ledger |
+| [`design/LOGIC-ENACTMENT.md`](./design/LOGIC-ENACTMENT.md) | charter | exercised bounded case for the integrity laws, the transition laws of axes 1–4 and 7, the observed-not-derived guard and means–end refinement; design-only commitment for liveness certificates, knowledge-order monotonicity and refinement depth — see [Enactment](#enactment) | the general prescription → enactment → commitment kernel over the existing `logic:Plan`: immutable versioned prescriptions, immutable journalled enactments, checkpoints and continuation kinds, the seven orthogonal lifecycle axes with their transition and liveness laws, the ⊑ₖ knowledge order over external-effect commitment, hierarchical refinement methods and the declared decidable search fragment, and the reuse ledger |
 | [`WORK-ORCHESTRATION.md`](../../core/work-orchestration/design/WORK-ORCHESTRATION.md) | binding charter (core slice, not this one) | exercised bounded case (that slice's `tests` and `conformance/logic/cases/enactment`); governed by the same enactment boundary | the domain binding of the kernel above — durable work clusters: the continuing-cluster thesis, guidance versioning, context assembly, recurrence non-identity, the decision-support bindings, and the review projection with its Principle-17 preservation judgment |
 | [`design/LOGIC-SESSION.md`](./design/LOGIC-SESSION.md) | operational façade | exercised bounded case (`crates/logic/tests/reasoning_session_*.rs`) — see [Session checkpoints](#session-checkpoints) | the stateful `ReasoningSession`: the seven-axis identity, the two delta anchors, the hash-linked journal, content-addressed checkpoints with replay restore, the six-way operation outcome, paged world-source composition, semver governance |
 | [`design/LOGIC-COGNITION.md`](./design/LOGIC-COGNITION.md) | cognitive assessment | exercised bounded case (`conformance/logic/cases/cognition`) | the multidimensional cognitive-assessment construct — factored dimensions of reasoning quality, reliability, calibration, and metacognitive posture; reasoning quality over the inference modes; reliability over the typed reasoning result |
@@ -191,13 +191,18 @@ compile-logic stages, and the `gmeow correspondence` commands.
 
 ### Enactment
 
-The enactment charter is normative, and GMEOW describes enactments without performing them. Three
+The enactment charter is normative, and GMEOW describes enactments without performing them. Four
 portions execute:
 
 - **Integrity laws.** The authored enactment constraints compile to violation-emitting rules and run on
   the production verification path (`crates/logic/src/reason/enactment.rs`,
   `crates/logic/tests/enactment_gate.rs`, `conformance/logic/cases/enactment`). Each finding names the
   law it breaks.
+- **Transition laws of axes 1–4 and 7.** Each axis has a `logic:AxisTransitionLaw` whose
+  `logic:lawAdmits` formula is the integrity formula of its enforcing constraint, so the admitted
+  moves run on the same path. A `logic:AxisMove` whose pair of positions is not an admitted edge is
+  condemned under its origin axis's law. Every ordered pair of positions of the five axes is judged in
+  `crates/logic/src/reason/enactment/axis_moves.tests.rs`.
 - **Observed-not-derived guard.** A derivation that types a subject as an effect attempt or receipt, or
   stamps derivation provenance on one, is a hard failure (`reject_banned_heads` in the same module).
 - **Means–end refinement.** Eleven authored rules run under a budgeted session and return the typed
@@ -205,13 +210,13 @@ portions execute:
   acyclic fragment, ordered-carrier validation, the four rejection kinds, pins and budget-cut
   incompleteness are exercised in `refine.tests.rs`.
 
-Four portions are design-only commitments. The transition formulas of the seven axes are not encoded:
-[`examples/axis-transition-laws.ttl`](./examples/axis-transition-laws.ttl) names the positions of axes 1–4
-and 7 without the admitted moves; axis 5 is a monotonicity law and axis 6 a minting-and-supersession law,
-and neither is encoded there. No liveness certificate is computed, so deadlock-freedom,
-reachability and no-orphan-intent are vocabulary. No constraint enforces the monotonicity of
-`logic:effectKnowledge` under the ⊑ₖ order. Refinement does not read the declared maximum depth of
-`logic:FragmentBoundedDepth`; the step budget bounds the search.
+Three portions are design-only commitments. Axis 5 is a monotonicity law and axis 6 a
+minting-and-supersession law, and neither is encoded as a transition formula;
+[`examples/axis-transition-laws.ttl`](./examples/axis-transition-laws.ttl) is a roster of the positions
+of the closed axes and carries no moves; the admitted moves of axes 1–4 and 7 are the module's transition laws. No liveness
+certificate is computed, so deadlock-freedom, reachability and no-orphan-intent are vocabulary. No
+constraint enforces the monotonicity of `logic:effectKnowledge` under the ⊑ₖ order. Refinement does not
+read the declared maximum depth of `logic:FragmentBoundedDepth`; the step budget bounds the search.
 
 ### Agentic modality
 

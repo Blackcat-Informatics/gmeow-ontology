@@ -294,9 +294,24 @@ observed transition of record r from s₁ to s₂ on axis A
 This is explanatory mathematical notation. The concrete formula supplies its own
 authored relations and ordered arguments through the existing `logic:Formula`
 vocabulary. A transition law describes admitted moves; an authored
-`logic:Constraint` is a separate integrity obligation. The tables below describe
-the transition policies without asserting that each has an encoded formula,
-enforcing constraint or executed certificate.
+`logic:Constraint` is a separate integrity obligation.
+
+**Evidence classification.** The tables for axes 1, 2, 3, 4 and 7 are encoded and executed.
+Each of those axes has a `logic:AxisTransitionLaw` in the logic module
+(`logic:EnactmentStateTransitionLaw`, `logic:StepStateTransitionLaw`,
+`logic:ApprovalStateTransitionLaw`, `logic:EffectProtocolPositionTransitionLaw` and
+`logic:RecurrenceStateTransitionLaw`). The formula named by `logic:lawAdmits` is the same node
+as the `logic:integrity` formula of the law's enforcing constraint, so the formula that states the
+admitted moves is the formula the production verification path runs. A move is recorded as a
+`logic:AxisMove` naming `logic:moveFromPosition` and `logic:moveToPosition`. For each origin the
+formula either lists the admitted destinations with `logic:termIn` or, for a quiescent origin,
+forbids any move out of it. The enactment gate lowers each constraint into violation rules and
+condemns every `logic:AxisMove` whose pair of positions is not an admitted edge, including a
+self move, a move out of a quiescent position and a pair that spans two axes, each under the law of
+its origin axis. `logic:AxisMoveNamesBothPositionsConstraint` condemns a move that names only one
+end, which no transition law would judge. Axis 5 is a monotonicity law and axis 6 a
+minting-and-supersession law; neither is encoded as a transition formula. No liveness
+certificate over these relations is computed.
 
 ### Axis 1 — `logic:EnactmentState`
 

@@ -10502,6 +10502,342 @@ logic:lawAdmits
     gmeow:howToUse "Author the relation as a formula and let the deadlock and reachability certificates be derived from it rather than asserted beside it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:AxisMove
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Axis Move"@x-gmeow-english ;
+    skos:definition "One recorded move of a record between two positions of a closed lifecycle axis, naming the position it left (logic:moveFromPosition) and the position it reached (logic:moveToPosition). It is the record the axis transition laws judge: a logic:AxisTransitionLaw states the admitted edges, and its enforcing logic:Constraint refuses every move whose pair of positions is not one of them. The axis is read from the positions, and a move never carries values from two axes."@x-gmeow-english ;
+    skos:example "ex:run7Start a logic:AxisMove ; logic:moveFromPosition logic:EnactmentPending ; logic:moveToPosition logic:EnactmentRunning ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:moveFromPosition
+    a logic:ObjectProperty ;
+    logic:domain logic:AxisMove ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "move from position"@x-gmeow-english ;
+    skos:definition "Relates a logic:AxisMove to the position of a closed lifecycle axis the record occupied before the move. Range a position individual of one axis value class (stated in prose). A move names exactly one origin, and the governing transition law reads the admitted successors from it."@x-gmeow-english ;
+    skos:example "ex:run7Start logic:moveFromPosition logic:EnactmentPending ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:moveToPosition
+    a logic:ObjectProperty ;
+    logic:domain logic:AxisMove ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "move to position"@x-gmeow-english ;
+    skos:definition "Relates a logic:AxisMove to the position of a closed lifecycle axis the record occupied after the move. Range a position individual of one axis value class (stated in prose). A move names exactly one destination, and it is admitted only when the governing transition law lists it among the successors of the origin."@x-gmeow-english ;
+    skos:example "ex:run7Start logic:moveToPosition logic:EnactmentRunning ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:AxisMoveNamesBothPositionsConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a move names the position it left and the position it reached"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:AxisMove that names no logic:moveFromPosition or no logic:moveToPosition. The transition laws judge a pair of positions, so a move missing either end would be judged by no law and pass every one of them."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:AxisMove must name both a logic:moveFromPosition and a logic:moveToPosition; a move missing either end is judged by no transition law." ;
+    logic:integrity logic:amnForall .
+logic:amnForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:amnImpl .
+logic:amnImpl a logic:Formula ; logic:antecedent logic:amnGuard ; logic:consequent logic:amnCons .
+logic:amnGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:AxisMove ] .
+logic:amnCons a logic:Formula ; logic:and logic:amnFrom , logic:amnTo .
+logic:amnFrom a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "origin" ] .
+logic:amnTo a logic:Formula ; logic:relation logic:moveToPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "destination" ] .
+
+logic:EnactmentStateTransitionLaw
+    a logic:AxisTransitionLaw ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "enactment state transition law"@x-gmeow-english ;
+    skos:definition "The admitted transition relation of the logic:EnactmentState axis, stated as the formula the production verification path executes through logic:EnactmentStateTransitionConstraint. The only edge a logic:ContinuationResume may traverse is Paused to Running."@x-gmeow-english ;
+    logic:lawGovernsAxis logic:EnactmentState ;
+    logic:lawAdmits logic:estForall .
+
+logic:EnactmentStateTransitionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a move along the enactment state axis follows an admitted edge"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:AxisMove along the logic:EnactmentState axis whose pair of positions is not an admitted edge of logic:EnactmentStateTransitionLaw. Pending may start or be cancelled; Running may pause, complete, fail or be cancelled; Paused may resume, be cancelled or fail; Completed, Cancelled and Failed admit no successor, so a move out of one of them is refused. A repeat is not a move on this axis: it mints a new enactment at Pending."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:AxisMove between logic:EnactmentState positions must follow an edge the logic:EnactmentStateTransitionLaw admits; a move from a quiescent position, or to a position the law does not admit, is refused." ;
+    logic:integrity logic:estForall .
+logic:estForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "to" ] ;
+    logic:forall logic:estImpl .
+logic:estImpl a logic:Formula ; logic:antecedent logic:estGuard ; logic:consequent logic:estCons .
+logic:estGuard a logic:Formula ; logic:and logic:estIsMove , logic:estTo .
+logic:estIsMove a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:AxisMove ] .
+logic:estTo a logic:Formula ; logic:relation logic:moveToPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "to" ] .
+logic:estCons a logic:Formula ; logic:and logic:estEdgeEnactmentPending , logic:estEdgeEnactmentRunning , logic:estEdgeEnactmentPaused , logic:estEdgeEnactmentCompleted , logic:estEdgeEnactmentCancelled , logic:estEdgeEnactmentFailed .
+logic:estFromEnactmentPending a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:EnactmentPending ] .
+logic:estEdgeEnactmentPending a logic:Formula ; logic:antecedent logic:estFromEnactmentPending ; logic:consequent logic:estToEnactmentPending .
+logic:estToEnactmentPending a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:EnactmentRunning ] , [ logic:termIndex 2 ; logic:termIri logic:EnactmentCancelled ] .
+logic:estFromEnactmentRunning a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:EnactmentRunning ] .
+logic:estEdgeEnactmentRunning a logic:Formula ; logic:antecedent logic:estFromEnactmentRunning ; logic:consequent logic:estToEnactmentRunning .
+logic:estToEnactmentRunning a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:EnactmentPaused ] , [ logic:termIndex 2 ; logic:termIri logic:EnactmentCompleted ] , [ logic:termIndex 3 ; logic:termIri logic:EnactmentFailed ] , [ logic:termIndex 4 ; logic:termIri logic:EnactmentCancelled ] .
+logic:estFromEnactmentPaused a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:EnactmentPaused ] .
+logic:estEdgeEnactmentPaused a logic:Formula ; logic:antecedent logic:estFromEnactmentPaused ; logic:consequent logic:estToEnactmentPaused .
+logic:estToEnactmentPaused a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:EnactmentRunning ] , [ logic:termIndex 2 ; logic:termIri logic:EnactmentCancelled ] , [ logic:termIndex 3 ; logic:termIri logic:EnactmentFailed ] .
+logic:estFromEnactmentCompleted a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:EnactmentCompleted ] .
+logic:estEdgeEnactmentCompleted a logic:Formula ; logic:not logic:estFromEnactmentCompleted .
+logic:estFromEnactmentCancelled a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:EnactmentCancelled ] .
+logic:estEdgeEnactmentCancelled a logic:Formula ; logic:not logic:estFromEnactmentCancelled .
+logic:estFromEnactmentFailed a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:EnactmentFailed ] .
+logic:estEdgeEnactmentFailed a logic:Formula ; logic:not logic:estFromEnactmentFailed .
+
+logic:StepStateTransitionLaw
+    a logic:AxisTransitionLaw ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "step state transition law"@x-gmeow-english ;
+    skos:definition "The admitted transition relation of the logic:StepState axis, stated as the formula the production verification path executes through logic:StepStateTransitionConstraint."@x-gmeow-english ;
+    logic:lawGovernsAxis logic:StepState ;
+    logic:lawAdmits logic:stpForall .
+
+logic:StepStateTransitionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a move along the step state axis follows an admitted edge"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:AxisMove along the logic:StepState axis whose pair of positions is not an admitted edge of logic:StepStateTransitionLaw. A waiting step that resolves re-enters Ready, never Running, so a stale gate verdict cannot authorize execution; Completed, Skipped, Cancelled and Failed admit no successor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:AxisMove between logic:StepState positions must follow an edge the logic:StepStateTransitionLaw admits; a move from a quiescent position, or to a position the law does not admit, is refused." ;
+    logic:integrity logic:stpForall .
+logic:stpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "to" ] ;
+    logic:forall logic:stpImpl .
+logic:stpImpl a logic:Formula ; logic:antecedent logic:stpGuard ; logic:consequent logic:stpCons .
+logic:stpGuard a logic:Formula ; logic:and logic:stpIsMove , logic:stpTo .
+logic:stpIsMove a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:AxisMove ] .
+logic:stpTo a logic:Formula ; logic:relation logic:moveToPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "to" ] .
+logic:stpCons a logic:Formula ; logic:and logic:stpEdgeStepPending , logic:stpEdgeStepReady , logic:stpEdgeStepRunning , logic:stpEdgeStepWaiting , logic:stpEdgeStepCompleted , logic:stpEdgeStepSkipped , logic:stpEdgeStepCancelled , logic:stpEdgeStepFailed .
+logic:stpFromStepPending a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:StepPending ] .
+logic:stpEdgeStepPending a logic:Formula ; logic:antecedent logic:stpFromStepPending ; logic:consequent logic:stpToStepPending .
+logic:stpToStepPending a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:StepReady ] , [ logic:termIndex 2 ; logic:termIri logic:StepSkipped ] , [ logic:termIndex 3 ; logic:termIri logic:StepCancelled ] .
+logic:stpFromStepReady a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:StepReady ] .
+logic:stpEdgeStepReady a logic:Formula ; logic:antecedent logic:stpFromStepReady ; logic:consequent logic:stpToStepReady .
+logic:stpToStepReady a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:StepRunning ] , [ logic:termIndex 2 ; logic:termIri logic:StepWaiting ] , [ logic:termIndex 3 ; logic:termIri logic:StepSkipped ] , [ logic:termIndex 4 ; logic:termIri logic:StepCancelled ] .
+logic:stpFromStepRunning a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:StepRunning ] .
+logic:stpEdgeStepRunning a logic:Formula ; logic:antecedent logic:stpFromStepRunning ; logic:consequent logic:stpToStepRunning .
+logic:stpToStepRunning a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:StepWaiting ] , [ logic:termIndex 2 ; logic:termIri logic:StepCompleted ] , [ logic:termIndex 3 ; logic:termIri logic:StepFailed ] , [ logic:termIndex 4 ; logic:termIri logic:StepCancelled ] .
+logic:stpFromStepWaiting a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:StepWaiting ] .
+logic:stpEdgeStepWaiting a logic:Formula ; logic:antecedent logic:stpFromStepWaiting ; logic:consequent logic:stpToStepWaiting .
+logic:stpToStepWaiting a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:StepReady ] , [ logic:termIndex 2 ; logic:termIri logic:StepCancelled ] , [ logic:termIndex 3 ; logic:termIri logic:StepFailed ] .
+logic:stpFromStepCompleted a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:StepCompleted ] .
+logic:stpEdgeStepCompleted a logic:Formula ; logic:not logic:stpFromStepCompleted .
+logic:stpFromStepSkipped a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:StepSkipped ] .
+logic:stpEdgeStepSkipped a logic:Formula ; logic:not logic:stpFromStepSkipped .
+logic:stpFromStepCancelled a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:StepCancelled ] .
+logic:stpEdgeStepCancelled a logic:Formula ; logic:not logic:stpFromStepCancelled .
+logic:stpFromStepFailed a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:StepFailed ] .
+logic:stpEdgeStepFailed a logic:Formula ; logic:not logic:stpFromStepFailed .
+
+logic:ApprovalStateTransitionLaw
+    a logic:AxisTransitionLaw ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "approval state transition law"@x-gmeow-english ;
+    skos:definition "The admitted transition relation of the logic:ApprovalState axis, stated as the formula the production verification path executes through logic:ApprovalStateTransitionConstraint."@x-gmeow-english ;
+    logic:lawGovernsAxis logic:ApprovalState ;
+    logic:lawAdmits logic:aprForall .
+
+logic:ApprovalStateTransitionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a move along the approval state axis follows an admitted edge"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:AxisMove along the logic:ApprovalState axis whose pair of positions is not an admitted edge of logic:ApprovalStateTransitionLaw. Once an approval is Detached its antecedent has been satisfied, so withdrawal is a violation and never a cancellation: Detached to Cancelled is refused while Detached to Released, the creditor's waiver, is admitted. Discharged, Expired, Violated, Cancelled and Released admit no successor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:AxisMove between logic:ApprovalState positions must follow an edge the logic:ApprovalStateTransitionLaw admits; a move from a quiescent position, or to a position the law does not admit such as Detached to Cancelled, is refused." ;
+    logic:integrity logic:aprForall .
+logic:aprForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "to" ] ;
+    logic:forall logic:aprImpl .
+logic:aprImpl a logic:Formula ; logic:antecedent logic:aprGuard ; logic:consequent logic:aprCons .
+logic:aprGuard a logic:Formula ; logic:and logic:aprIsMove , logic:aprTo .
+logic:aprIsMove a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:AxisMove ] .
+logic:aprTo a logic:Formula ; logic:relation logic:moveToPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "to" ] .
+logic:aprCons a logic:Formula ; logic:and logic:aprEdgeApprovalNull , logic:aprEdgeApprovalCreated , logic:aprEdgeApprovalDetached , logic:aprEdgeApprovalDischarged , logic:aprEdgeApprovalExpired , logic:aprEdgeApprovalViolated , logic:aprEdgeApprovalCancelled , logic:aprEdgeApprovalReleased .
+logic:aprFromApprovalNull a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ApprovalNull ] .
+logic:aprEdgeApprovalNull a logic:Formula ; logic:antecedent logic:aprFromApprovalNull ; logic:consequent logic:aprToApprovalNull .
+logic:aprToApprovalNull a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:ApprovalCreated ] .
+logic:aprFromApprovalCreated a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ApprovalCreated ] .
+logic:aprEdgeApprovalCreated a logic:Formula ; logic:antecedent logic:aprFromApprovalCreated ; logic:consequent logic:aprToApprovalCreated .
+logic:aprToApprovalCreated a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:ApprovalDetached ] , [ logic:termIndex 2 ; logic:termIri logic:ApprovalExpired ] , [ logic:termIndex 3 ; logic:termIri logic:ApprovalCancelled ] , [ logic:termIndex 4 ; logic:termIri logic:ApprovalReleased ] .
+logic:aprFromApprovalDetached a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ApprovalDetached ] .
+logic:aprEdgeApprovalDetached a logic:Formula ; logic:antecedent logic:aprFromApprovalDetached ; logic:consequent logic:aprToApprovalDetached .
+logic:aprToApprovalDetached a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:ApprovalDischarged ] , [ logic:termIndex 2 ; logic:termIri logic:ApprovalViolated ] , [ logic:termIndex 3 ; logic:termIri logic:ApprovalReleased ] .
+logic:aprFromApprovalDischarged a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ApprovalDischarged ] .
+logic:aprEdgeApprovalDischarged a logic:Formula ; logic:not logic:aprFromApprovalDischarged .
+logic:aprFromApprovalExpired a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ApprovalExpired ] .
+logic:aprEdgeApprovalExpired a logic:Formula ; logic:not logic:aprFromApprovalExpired .
+logic:aprFromApprovalViolated a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ApprovalViolated ] .
+logic:aprEdgeApprovalViolated a logic:Formula ; logic:not logic:aprFromApprovalViolated .
+logic:aprFromApprovalCancelled a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ApprovalCancelled ] .
+logic:aprEdgeApprovalCancelled a logic:Formula ; logic:not logic:aprFromApprovalCancelled .
+logic:aprFromApprovalReleased a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ApprovalReleased ] .
+logic:aprEdgeApprovalReleased a logic:Formula ; logic:not logic:aprFromApprovalReleased .
+
+logic:EffectProtocolPositionTransitionLaw
+    a logic:AxisTransitionLaw ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "effect protocol position transition law"@x-gmeow-english ;
+    skos:definition "The admitted transition relation of the logic:EffectProtocolPosition axis, stated as the formula the production verification path executes through logic:EffectProtocolPositionTransitionConstraint."@x-gmeow-english ;
+    logic:lawGovernsAxis logic:EffectProtocolPosition ;
+    logic:lawAdmits logic:eppForall .
+
+logic:EffectProtocolPositionTransitionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a move along the effect protocol position axis follows an admitted edge"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:AxisMove along the logic:EffectProtocolPosition axis whose pair of positions is not an admitted edge of logic:EffectProtocolPositionTransitionLaw. Receipted and Reconciled owe nothing further yet admit a newly motivated compensation; a compensation whose own outcome is unknown re-enters Reconciling. Compensated and Abandoned admit no successor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:AxisMove between logic:EffectProtocolPosition positions must follow an edge the logic:EffectProtocolPositionTransitionLaw admits; a move from a final position, or to a position the law does not admit, is refused." ;
+    logic:integrity logic:eppForall .
+logic:eppForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "to" ] ;
+    logic:forall logic:eppImpl .
+logic:eppImpl a logic:Formula ; logic:antecedent logic:eppGuard ; logic:consequent logic:eppCons .
+logic:eppGuard a logic:Formula ; logic:and logic:eppIsMove , logic:eppTo .
+logic:eppIsMove a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:AxisMove ] .
+logic:eppTo a logic:Formula ; logic:relation logic:moveToPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "to" ] .
+logic:eppCons a logic:Formula ; logic:and logic:eppEdgeEffectIntended , logic:eppEdgeEffectAttempted , logic:eppEdgeEffectReceipted , logic:eppEdgeEffectReconciling , logic:eppEdgeEffectReconciled , logic:eppEdgeEffectCompensating , logic:eppEdgeEffectCompensated , logic:eppEdgeEffectAbandoned .
+logic:eppFromEffectIntended a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:EffectIntended ] .
+logic:eppEdgeEffectIntended a logic:Formula ; logic:antecedent logic:eppFromEffectIntended ; logic:consequent logic:eppToEffectIntended .
+logic:eppToEffectIntended a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:EffectAttempted ] , [ logic:termIndex 2 ; logic:termIri logic:EffectAbandoned ] .
+logic:eppFromEffectAttempted a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:EffectAttempted ] .
+logic:eppEdgeEffectAttempted a logic:Formula ; logic:antecedent logic:eppFromEffectAttempted ; logic:consequent logic:eppToEffectAttempted .
+logic:eppToEffectAttempted a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:EffectReceipted ] , [ logic:termIndex 2 ; logic:termIri logic:EffectReconciling ] , [ logic:termIndex 3 ; logic:termIri logic:EffectAbandoned ] .
+logic:eppFromEffectReceipted a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:EffectReceipted ] .
+logic:eppEdgeEffectReceipted a logic:Formula ; logic:antecedent logic:eppFromEffectReceipted ; logic:consequent logic:eppToEffectReceipted .
+logic:eppToEffectReceipted a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:EffectCompensating ] .
+logic:eppFromEffectReconciling a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:EffectReconciling ] .
+logic:eppEdgeEffectReconciling a logic:Formula ; logic:antecedent logic:eppFromEffectReconciling ; logic:consequent logic:eppToEffectReconciling .
+logic:eppToEffectReconciling a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:EffectReconciled ] , [ logic:termIndex 2 ; logic:termIri logic:EffectAbandoned ] .
+logic:eppFromEffectReconciled a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:EffectReconciled ] .
+logic:eppEdgeEffectReconciled a logic:Formula ; logic:antecedent logic:eppFromEffectReconciled ; logic:consequent logic:eppToEffectReconciled .
+logic:eppToEffectReconciled a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:EffectCompensating ] .
+logic:eppFromEffectCompensating a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:EffectCompensating ] .
+logic:eppEdgeEffectCompensating a logic:Formula ; logic:antecedent logic:eppFromEffectCompensating ; logic:consequent logic:eppToEffectCompensating .
+logic:eppToEffectCompensating a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:EffectCompensated ] , [ logic:termIndex 2 ; logic:termIri logic:EffectReconciling ] .
+logic:eppFromEffectCompensated a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:EffectCompensated ] .
+logic:eppEdgeEffectCompensated a logic:Formula ; logic:not logic:eppFromEffectCompensated .
+logic:eppFromEffectAbandoned a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:EffectAbandoned ] .
+logic:eppEdgeEffectAbandoned a logic:Formula ; logic:not logic:eppFromEffectAbandoned .
+
+logic:RecurrenceStateTransitionLaw
+    a logic:AxisTransitionLaw ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "recurrence state transition law"@x-gmeow-english ;
+    skos:definition "The admitted transition relation of the logic:RecurrenceState axis, stated as the formula the production verification path executes through logic:RecurrenceStateTransitionConstraint."@x-gmeow-english ;
+    logic:lawGovernsAxis logic:RecurrenceState ;
+    logic:lawAdmits logic:rcrForall .
+
+logic:RecurrenceStateTransitionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a move along the recurrence state axis follows an admitted edge"@x-gmeow-english ;
+    skos:definition "The logic:Constraint rejecting a logic:AxisMove along the logic:RecurrenceState axis whose pair of positions is not an admitted edge of logic:RecurrenceStateTransitionLaw. The axis belongs to the recurrence schedule, never to an occurrence it generates. Skipped and Ended admit no successor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A logic:AxisMove between logic:RecurrenceState positions must follow an edge the logic:RecurrenceStateTransitionLaw admits; a move from a quiescent position, or to a position the law does not admit, is refused." ;
+    logic:integrity logic:rcrForall .
+logic:rcrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "to" ] ;
+    logic:forall logic:rcrImpl .
+logic:rcrImpl a logic:Formula ; logic:antecedent logic:rcrGuard ; logic:consequent logic:rcrCons .
+logic:rcrGuard a logic:Formula ; logic:and logic:rcrIsMove , logic:rcrTo .
+logic:rcrIsMove a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:AxisMove ] .
+logic:rcrTo a logic:Formula ; logic:relation logic:moveToPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "to" ] .
+logic:rcrCons a logic:Formula ; logic:and logic:rcrEdgeRecurrenceScheduled , logic:rcrEdgeRecurrenceActive , logic:rcrEdgeRecurrenceSuspended , logic:rcrEdgeRecurrenceSkipped , logic:rcrEdgeRecurrenceEnded .
+logic:rcrFromRecurrenceScheduled a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:RecurrenceScheduled ] .
+logic:rcrEdgeRecurrenceScheduled a logic:Formula ; logic:antecedent logic:rcrFromRecurrenceScheduled ; logic:consequent logic:rcrToRecurrenceScheduled .
+logic:rcrToRecurrenceScheduled a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:RecurrenceActive ] , [ logic:termIndex 2 ; logic:termIri logic:RecurrenceSkipped ] , [ logic:termIndex 3 ; logic:termIri logic:RecurrenceSuspended ] , [ logic:termIndex 4 ; logic:termIri logic:RecurrenceEnded ] .
+logic:rcrFromRecurrenceActive a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:RecurrenceActive ] .
+logic:rcrEdgeRecurrenceActive a logic:Formula ; logic:antecedent logic:rcrFromRecurrenceActive ; logic:consequent logic:rcrToRecurrenceActive .
+logic:rcrToRecurrenceActive a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:RecurrenceSuspended ] , [ logic:termIndex 2 ; logic:termIri logic:RecurrenceEnded ] .
+logic:rcrFromRecurrenceSuspended a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:RecurrenceSuspended ] .
+logic:rcrEdgeRecurrenceSuspended a logic:Formula ; logic:antecedent logic:rcrFromRecurrenceSuspended ; logic:consequent logic:rcrToRecurrenceSuspended .
+logic:rcrToRecurrenceSuspended a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "to" ] , [ logic:termIndex 1 ; logic:termIri logic:RecurrenceScheduled ] , [ logic:termIndex 2 ; logic:termIri logic:RecurrenceActive ] , [ logic:termIndex 3 ; logic:termIri logic:RecurrenceSkipped ] , [ logic:termIndex 4 ; logic:termIri logic:RecurrenceEnded ] .
+logic:rcrFromRecurrenceSkipped a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:RecurrenceSkipped ] .
+logic:rcrEdgeRecurrenceSkipped a logic:Formula ; logic:not logic:rcrFromRecurrenceSkipped .
+logic:rcrFromRecurrenceEnded a logic:Formula ; logic:relation logic:moveFromPosition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:RecurrenceEnded ] .
+logic:rcrEdgeRecurrenceEnded a logic:Formula ; logic:not logic:rcrFromRecurrenceEnded .
+
 logic:LivenessCertificate
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
